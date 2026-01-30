@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -184,6 +185,7 @@ class WebViewScreen extends StatefulWidget {
 class _WebViewScreenState extends State<WebViewScreen> {
   late final WebViewController _controller;
   bool _isLoading = true;
+  bool _hasError = false;
 
   @override
   void initState() {
@@ -195,6 +197,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
           onPageStarted: (String url) {
             setState(() {
               _isLoading = true;
+              _hasError = false;
             });
           },
           onPageFinished: (String url) {
@@ -202,13 +205,28 @@ class _WebViewScreenState extends State<WebViewScreen> {
               _isLoading = false;
             });
           },
+          onWebResourceError: (WebResourceError error) {
+            setState(() {
+              _isLoading = false;
+              _hasError = true;
+            });
+          },
         ),
       )
       ..loadRequest(Uri.parse(widget.url));
   }
 
+  Future<void> _loadOfflinePage() async {
+    final String offlineHtml = await rootBundle.loadString('assets/offline.html');
+    await _controller.loadHtmlString(offlineHtml);
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_hasError) {
+      _loadOfflinePage();
+    }
+
     return Scaffold(
       body: SafeArea(
         child: Stack(
