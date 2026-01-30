@@ -1,0 +1,76 @@
+image: cirrusci/flutter:stable
+
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  ANDROID_COMPILE_SDK: "34"
+  ANDROID_BUILD_TOOLS: "34.0.0"
+
+before_script:
+  - flutter --version
+  - flutter pub get
+
+# Tests
+test:
+  stage: test
+  script:
+    - flutter analyze
+    - flutter test
+  only:
+    - merge_requests
+    - main
+
+# Build Android Debug
+build_android_debug:
+  stage: build
+  script:
+    - flutter build apk --debug
+  artifacts:
+    paths:
+      - build/app/outputs/flutter-apk/app-debug.apk
+    expire_in: 1 week
+  only:
+    - main
+    - develop
+
+# Build Android Release
+build_android_release:
+  stage: build
+  script:
+    - flutter build apk --release
+    - flutter build appbundle --release
+  artifacts:
+    paths:
+      - build/app/outputs/flutter-apk/app-release.apk
+      - build/app/outputs/bundle/release/app-release.aab
+    expire_in: 1 month
+  only:
+    - tags
+    - main
+
+# Build iOS (nécessite un runner macOS)
+build_ios:
+  stage: build
+  script:
+    - flutter build ios --release --no-codesign
+  artifacts:
+    paths:
+      - build/ios/iphoneos/Runner.app
+    expire_in: 1 month
+  only:
+    - tags
+  tags:
+    - macos
+
+# Déploiement automatique (optionnel)
+deploy_internal:
+  stage: deploy
+  script:
+    - echo "Déploiement sur canal interne"
+    # Ajouter ici les commandes de déploiement
+  only:
+    - tags
+  when: manual
