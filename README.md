@@ -1,11 +1,22 @@
 # Militant - Application Mobile
 
-[![Flutter](https://img.shields.io/badge/Flutter-3.0+-02569B?style=flat&logo=flutter)](https://flutter.dev)
-[![Dart](https://img.shields.io/badge/Dart-3.0+-0175C2?style=flat&logo=dart)](https://dart.dev)
-[![License](https://img.shields.io/badge/License-AGPL--3.0-red?style=flat)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS-lightgrey?style=flat)]()
+<p align="center">
+  <img src="assets/logo.svg" alt="Militant Logo" width="200"/>
+</p>
 
-Application mobile Flutter pour le réseau social militant décentralisé.
+<p align="center">
+  <a href="https://flutter.dev"><img src="https://img.shields.io/badge/Flutter-3.0+-02569B?style=flat&logo=flutter" alt="Flutter"></a>
+  <a href="https://dart.dev"><img src="https://img.shields.io/badge/Dart-3.0+-0175C2?style=flat&logo=dart" alt="Dart"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-red?style=flat" alt="License"></a>
+  <img src="https://img.shields.io/badge/Platform-Android-3DDC84?style=flat&logo=android" alt="Platform">
+  <img src="https://img.shields.io/badge/iOS-Coming%20Soon-999999?style=flat&logo=apple" alt="iOS">
+</p>
+
+<p align="center">
+  Application mobile Flutter pour le réseau social militant décentralisé
+</p>
+
+---
 
 ## Description
 
@@ -23,8 +34,10 @@ Militant est un réseau social décentralisé conçu pour les mouvements militan
 
 - Flutter 3.0 ou supérieur
 - Dart 3.0 ou supérieur
-- Android Studio / Xcode (pour le développement)
-- Un émulateur ou appareil physique
+- Android Studio (pour le développement Android)
+- Un émulateur Android ou appareil physique
+
+**Note :** Le support iOS est prévu mais pas encore implémenté.
 
 ## Installation
 
@@ -99,11 +112,7 @@ flutter build apk --release
 flutter build appbundle --release
 ```
 
-### iOS
-
-```bash
-flutter build ios --release
-```
+**Note :** Le support iOS sera ajouté dans une future version.
 
 ## Déploiement
 
@@ -114,12 +123,7 @@ flutter build ios --release
 3. Build l'App Bundle : `flutter build appbundle --release`
 4. Uploader sur Play Console
 
-### Apple App Store
-
-1. Créer un compte développeur Apple
-2. Configurer les certificats et profils
-3. Build : `flutter build ios --release`
-4. Uploader via Xcode ou Transporter
+**Support iOS à venir**
 
 ## Contribution
 

@@ -1,4 +1,4 @@
-image: cirrusci/flutter:stable
+image: instrumentisto/flutter:latest
 
 stages:
   - test
@@ -36,9 +36,21 @@ build_android_debug:
     - main
     - develop
 
-# Build Android Release
+# Build Android Release (signé)
 build_android_release:
   stage: build
+  before_script:
+    - flutter --version
+    - flutter pub get
+    # Créer le fichier key.properties depuis les variables GitLab
+    - |
+      if [ -n "$KEYSTORE_FILE" ] && [ -n "$KEYSTORE_PASSWORD" ]; then
+        echo "$KEYSTORE_FILE" | base64 -d > /tmp/release-key.jks
+        echo "storePassword=$KEYSTORE_PASSWORD" > android/key.properties
+        echo "keyPassword=$KEY_PASSWORD" >> android/key.properties
+        echo "keyAlias=$KEY_ALIAS" >> android/key.properties
+        echo "storeFile=/tmp/release-key.jks" >> android/key.properties
+      fi
   script:
     - flutter build apk --release
     - flutter build appbundle --release

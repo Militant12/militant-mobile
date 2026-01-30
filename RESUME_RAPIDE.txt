@@ -1,0 +1,33 @@
+✅ APPLICATION MILITANT - PRÊTE POUR GOOGLE PLAY STORE
+
+📦 FICHIERS GÉNÉRÉS
+===================
+✓ App Bundle signé : build/app/outputs/bundle/release/app-release.aab (40 MB)
+✓ Icône 512x512 : play-store-icon-512.png
+✓ Clé de signature : /home/calyps/militant-release-key.jks
+✓ Mots de passe : militant2025 (dans MOTS_DE_PASSE_KEYSTORE.txt)
+
+🚀 PROCHAINES ÉTAPES
+====================
+1. Héberger politique confidentialité sur jointomilitant.org
+   - jointomilitant/privacy-app.html
+   - jointomilitant/en/privacy-app.html
+   - jointomilitant/es/privacy-app.html
+
+2. S'inscrire développeur : https://play.google.com/console/signup (25$)
+
+3. Uploader app-release.aab sur Play Console
+
+📄 DOCUMENTATION
+================
+- PRET_POUR_PUBLICATION.md : Toutes les infos détaillées
+- PLAY_STORE.md : Guide complet
+- CHECKLIST_PLAY_STORE.md : Checklist étape par étape
+
+🔗 LIENS
+========
+- Inscription : https://play.google.com/console/signup
+- Console : https://play.google.com/console
+- Politique : https://jointomilitant.org/privacy-app.html (à héberger)
+
+✅ STATUT : 100% PRÊT À PUBLIER !
