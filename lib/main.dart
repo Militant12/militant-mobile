@@ -209,10 +209,16 @@ class _WebViewScreenState extends State<WebViewScreen> {
             });
           },
           onWebResourceError: (WebResourceError error) {
-            setState(() {
-              _isLoading = false;
-              _hasError = true;
-            });
+            // Ignorer les erreurs mineures (images, CSS, etc.)
+            // Ne montrer la page offline que pour les erreurs critiques
+            if (error.errorType == WebResourceErrorType.hostLookup ||
+                error.errorType == WebResourceErrorType.connect ||
+                error.errorType == WebResourceErrorType.timeout) {
+              setState(() {
+                _isLoading = false;
+                _hasError = true;
+              });
+            }
           },
         ),
       )
