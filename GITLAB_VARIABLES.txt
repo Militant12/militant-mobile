@@ -1,0 +1,86 @@
+CONFIGURATION DES VARIABLES GITLAB CI/CD
+=========================================
+
+Pour que GitLab CI puisse builder l'app en release signé, il faut ajouter
+les variables secrètes dans GitLab.
+
+ÉTAPE 1 : ALLER DANS LES PARAMÈTRES
+------------------------------------
+1. Ouvrir le projet sur GitLab : https://gitlab.com/militant1/militant-flutter
+2. Aller dans : Settings > CI/CD
+3. Développer la section "Variables"
+4. Cliquer sur "Add variable"
+
+ÉTAPE 2 : AJOUTER LES 4 VARIABLES
+----------------------------------
+
+Variable 1 : KEYSTORE_FILE
+--------------------------
+Key: KEYSTORE_FILE
+Value: (copier le contenu de /tmp/keystore-base64.txt)
+Type: Variable
+Protected: ✓ (coché)
+Masked: ✗ (décoché - trop long pour être masqué)
+Expand variable reference: ✗ (décoché)
+
+Variable 2 : KEYSTORE_PASSWORD
+-------------------------------
+Key: KEYSTORE_PASSWORD
+Value: militant2025
+Type: Variable
+Protected: ✓ (coché)
+Masked: ✓ (coché)
+Expand variable reference: ✗ (décoché)
+
+Variable 3 : KEY_PASSWORD
+--------------------------
+Key: KEY_PASSWORD
+Value: militant2025
+Type: Variable
+Protected: ✓ (coché)
+Masked: ✓ (coché)
+Expand variable reference: ✗ (décoché)
+
+Variable 4 : KEY_ALIAS
+-----------------------
+Key: KEY_ALIAS
+Value: militant-key
+Type: Variable
+Protected: ✗ (décoché)
+Masked: ✗ (décoché)
+Expand variable reference: ✗ (décoché)
+
+ÉTAPE 3 : RÉCUPÉRER LE CONTENU BASE64
+--------------------------------------
+Le fichier keystore en base64 est ici : /tmp/keystore-base64.txt
+
+Pour le copier :
+cat /tmp/keystore-base64.txt
+
+Copier TOUT le contenu (c'est une longue ligne) et le coller dans KEYSTORE_FILE
+
+ÉTAPE 4 : TESTER
+----------------
+1. Faire un commit et push
+2. Aller dans CI/CD > Pipelines
+3. Le build release devrait maintenant fonctionner
+
+ALTERNATIVE : BUILD LOCAL UNIQUEMENT
+-------------------------------------
+Si tu ne veux pas configurer GitLab CI, tu peux :
+1. Builder localement : flutter build appbundle --release
+2. Le fichier est déjà prêt : build/app/outputs/bundle/release/app-release.aab
+3. Uploader manuellement sur Play Store
+
+GitLab CI est juste un bonus pour automatiser les futurs builds.
+
+SÉCURITÉ
+--------
+⚠️ NE JAMAIS commit le keystore ou les mots de passe dans Git !
+✓ Les variables GitLab CI sont sécurisées et chiffrées
+✓ Seuls les mainteneurs du projet peuvent les voir
+
+LIENS
+-----
+- Variables CI/CD : https://gitlab.com/militant1/militant-flutter/-/settings/ci_cd
+- Documentation : https://docs.gitlab.com/ee/ci/variables/

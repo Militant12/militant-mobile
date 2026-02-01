@@ -37,6 +37,8 @@ dependencies:
   webview_flutter: ^4.13.1
   shared_preferences: ^2.5.4
   flutter_svg: ^2.2.3
+  firebase_messaging: ^15.1.6
+  flutter_local_notifications: ^18.0.1
 
 dev_dependencies:
   flutter_test:

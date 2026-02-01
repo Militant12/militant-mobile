@@ -1,33 +1,38 @@
-✅ APPLICATION MILITANT - PRÊTE POUR GOOGLE PLAY STORE
+CONFIGURATION GITLAB CI/CD - RÉSUMÉ ULTRA RAPIDE
+=================================================
 
-📦 FICHIERS GÉNÉRÉS
-===================
-✓ App Bundle signé : build/app/outputs/bundle/release/app-release.aab (40 MB)
-✓ Icône 512x512 : play-store-icon-512.png
-✓ Clé de signature : /home/calyps/militant-release-key.jks
-✓ Mots de passe : militant2025 (dans MOTS_DE_PASSE_KEYSTORE.txt)
+🌐 LIEN DIRECT
+--------------
+https://gitlab.com/militant1/militant-flutter/-/settings/ci_cd
 
-🚀 PROCHAINES ÉTAPES
-====================
-1. Héberger politique confidentialité sur jointomilitant.org
-   - jointomilitant/privacy-app.html
-   - jointomilitant/en/privacy-app.html
-   - jointomilitant/es/privacy-app.html
+📝 4 VARIABLES À AJOUTER
+------------------------
 
-2. S'inscrire développeur : https://play.google.com/console/signup (25$)
+1. KEYSTORE_FILE
+   Value: (copier le long texte de A_FAIRE.txt)
+   Protected: ✓
+   Masked: ✗
 
-3. Uploader app-release.aab sur Play Console
+2. KEYSTORE_PASSWORD
+   Value: militant2025
+   Protected: ✓
+   Masked: ✓
 
-📄 DOCUMENTATION
-================
-- PRET_POUR_PUBLICATION.md : Toutes les infos détaillées
-- PLAY_STORE.md : Guide complet
-- CHECKLIST_PLAY_STORE.md : Checklist étape par étape
+3. KEY_PASSWORD
+   Value: militant2025
+   Protected: ✓
+   Masked: ✓
 
-🔗 LIENS
-========
-- Inscription : https://play.google.com/console/signup
-- Console : https://play.google.com/console
-- Politique : https://jointomilitant.org/privacy-app.html (à héberger)
+4. KEY_ALIAS
+   Value: militant-key
+   Protected: ✗
+   Masked: ✗
 
-✅ STATUT : 100% PRÊT À PUBLIER !
+✅ C'EST TOUT !
+---------------
+Après avoir ajouté ces 4 variables, GitLab CI pourra builder l'app automatiquement.
+
+💡 PAS OBLIGATOIRE
+------------------
+L'app est déjà buildée localement. Tu peux uploader directement sur Play Store.
+GitLab CI est juste un bonus pour les futurs builds automatiques.

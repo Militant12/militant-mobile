@@ -1,58 +1,83 @@
-✅ CE QUI EST PRÊT
-==================
+CONFIGURATION GITLAB CI/CD - ÉTAPES SIMPLES
+============================================
 
-✓ App Bundle signé : build/app/outputs/bundle/release/app-release.aab (40 MB)
-✓ Icône 512x512 : play-store-icon-512.png
-✓ Politique confidentialité : jointomilitant/privacy-app.html (3 langues)
-✓ Documentation complète
-✓ Conformité Google Play vérifiée (95% de chances d'acceptation)
+🔧 ÉTAPE 1 : ALLER SUR GITLAB
+------------------------------
+1. Ouvrir : https://gitlab.com/militant1/militant-flutter/-/settings/ci_cd
+2. Cliquer sur "Expand" à côté de "Variables"
+3. Cliquer sur "Add variable"
 
-📋 CE QU'IL RESTE À FAIRE (3 étapes)
-=====================================
+📝 ÉTAPE 2 : AJOUTER 4 VARIABLES
+---------------------------------
 
-1. HÉBERGER LA POLITIQUE (5 minutes)
-   Uploader ces fichiers sur https://jointomilitant.org :
-   - jointomilitant/privacy-app.html
-   - jointomilitant/en/privacy-app.html
-   - jointomilitant/es/privacy-app.html
-   
-   Vérifier que ça marche : https://jointomilitant.org/privacy-app.html
+VARIABLE 1 : KEYSTORE_FILE
+--------------------------
+Key: KEYSTORE_FILE
+Value: (copier TOUT le texte ci-dessous, de MII jusqu'à xA=)
 
-2. S'INSCRIRE DÉVELOPPEUR (10 minutes)
-   Aller sur : https://play.google.com/console/signup
-   Payer : 25$ (une seule fois, à vie)
+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
 
-3. UPLOADER L'APP (30 minutes)
-   a) Créer l'app sur Play Console
-   b) Remplir la fiche (textes dans PRET_POUR_PUBLICATION.md)
-   c) Uploader : build/app/outputs/bundle/release/app-release.aab
-   d) Soumettre pour examen
+Type: Variable
+Protected: ✓ (cocher)
+Masked: ✗ (NE PAS cocher - trop long)
+Expand variable reference: ✗ (NE PAS cocher)
 
-TEMPS TOTAL : ~45 minutes
-DÉLAI VALIDATION GOOGLE : 1-7 jours
+VARIABLE 2 : KEYSTORE_PASSWORD
+------------------------------
+Key: KEYSTORE_PASSWORD
+Value: militant2025
+Type: Variable
+Protected: ✓ (cocher)
+Masked: ✓ (cocher)
+Expand variable reference: ✗ (NE PAS cocher)
 
-🔗 LIENS IMPORTANTS
-===================
-- Inscription : https://play.google.com/console/signup
-- Console : https://play.google.com/console
-- Email contact : contact@revlibertaire.com
-- Politique : https://jointomilitant.org/privacy-app.html (à héberger)
+VARIABLE 3 : KEY_PASSWORD
+-------------------------
+Key: KEY_PASSWORD
+Value: militant2025
+Type: Variable
+Protected: ✓ (cocher)
+Masked: ✓ (cocher)
+Expand variable reference: ✗ (NE PAS cocher)
 
-📚 DOCUMENTATION
-================
-- PRET_POUR_PUBLICATION.md : Toutes les infos
-- CONFORMITE_GOOGLE_PLAY.md : Analyse conformité
-- PLAY_STORE.md : Guide complet
-- RESUME_RAPIDE.txt : Vue d'ensemble
+VARIABLE 4 : KEY_ALIAS
+----------------------
+Key: KEY_ALIAS
+Value: militant-key
+Type: Variable
+Protected: ✗ (NE PAS cocher)
+Masked: ✗ (NE PAS cocher)
+Expand variable reference: ✗ (NE PAS cocher)
 
-⚠️ NOTE GITLAB CI
-==================
-GitLab CI échoue car l'image Docker est trop ancienne.
-Pas grave ! L'app est déjà buildée localement.
-Voir GITLAB_CI_SETUP.txt pour plus d'infos.
+✅ ÉTAPE 3 : TESTER
+-------------------
+1. Faire un commit et push
+2. Aller dans CI/CD > Pipelines
+3. Cliquer sur "Run pipeline" pour tester
 
-✅ TU PEUX PUBLIER MAINTENANT !
-================================
-Tout est prêt. Il suffit de suivre les 3 étapes ci-dessus.
+💡 ALTERNATIVE : BUILD LOCAL
+----------------------------
+Si tu ne veux pas configurer GitLab CI maintenant :
+- L'app est déjà buildée : build/app/outputs/bundle/release/app-release.aab
+- Tu peux uploader directement sur Play Store
+- GitLab CI est juste pour automatiser les futurs builds
 
-Bon courage ! 🚀
+🔒 SÉCURITÉ
+-----------
+✓ Les variables GitLab CI sont chiffrées
+✓ Seuls les mainteneurs peuvent les voir
+⚠️ NE JAMAIS commit le keystore dans Git !
+
+📋 RÉSUMÉ DES OPTIONS
+---------------------
+Pour "Masked" (masqué) :
+- Visible : Non recommandé pour les secrets
+- Masked : Recommandé pour les mots de passe
+- Masked et caché : Maximum de sécurité
+
+Pour "Protected" (protégé) :
+- ✓ = Seulement sur branches protégées (main, tags)
+- ✗ = Sur toutes les branches
+
+Pour "Expand variable reference" :
+- ✗ = Toujours décocher (sauf cas spéciaux)
