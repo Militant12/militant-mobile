@@ -65,4 +65,7 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    
+    // Trusted Web Activity support
+    implementation("com.google.androidbrowserhelper:androidbrowserhelper:2.5.0")
 }

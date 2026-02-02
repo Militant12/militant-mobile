@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -34,6 +32,8 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  static const platform = MethodChannel('com.militant.militant_flutter/twa');
+  
   final TextEditingController _urlController = TextEditingController(
     text: 'https://militant.revlibertaire.com',
   );
@@ -48,7 +48,7 @@ class _SplashScreenState extends State<SplashScreen> {
     final prefs = await SharedPreferences.getInstance();
     final savedUrl = prefs.getString('server_url');
     if (savedUrl != null && mounted) {
-      _navigateToWebView(savedUrl);
+      _launchTWA(savedUrl);
     }
   }
 
@@ -67,16 +67,20 @@ class _SplashScreenState extends State<SplashScreen> {
     await prefs.setString('server_url', url);
 
     if (mounted) {
-      _navigateToWebView(url);
+      _launchTWA(url);
     }
   }
 
-  void _navigateToWebView(String url) {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => WebViewScreen(url: url),
-      ),
-    );
+  Future<void> _launchTWA(String url) async {
+    try {
+      await platform.invokeMethod('launchTWA', {'url': url});
+    } on PlatformException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: ${e.message}')),
+        );
+      }
+    }
   }
 
   @override
@@ -88,15 +92,12 @@ class _SplashScreenState extends State<SplashScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Logo SVG
               SvgPicture.asset(
                 'assets/logo.svg',
                 width: 120,
                 height: 120,
               ),
               const SizedBox(height: 40),
-              
-              // Titre
               const Text(
                 'Bienvenue sur Militant',
                 style: TextStyle(
@@ -107,8 +108,6 @@ class _SplashScreenState extends State<SplashScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              
-              // Sous-titre
               const Text(
                 'Le réseau social pour celles et ceux\nqui veulent changer les choses',
                 style: TextStyle(
@@ -118,8 +117,6 @@ class _SplashScreenState extends State<SplashScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 60),
-              
-              // Champ URL
               TextField(
                 controller: _urlController,
                 style: const TextStyle(color: Colors.white),
@@ -137,8 +134,6 @@ class _SplashScreenState extends State<SplashScreen> {
                 onSubmitted: (_) => _connect(),
               ),
               const SizedBox(height: 20),
-              
-              // Bouton
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -171,100 +166,5 @@ class _SplashScreenState extends State<SplashScreen> {
   void dispose() {
     _urlController.dispose();
     super.dispose();
-  }
-}
-
-class WebViewScreen extends StatefulWidget {
-  final String url;
-
-  const WebViewScreen({super.key, required this.url});
-
-  @override
-  State<WebViewScreen> createState() => _WebViewScreenState();
-}
-
-class _WebViewScreenState extends State<WebViewScreen> {
-  late final WebViewController _controller;
-  bool _isLoading = true;
-  bool _hasError = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..enableZoom(true)
-      ..setBackgroundColor(const Color(0xFF121212))
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onPageStarted: (String url) {
-            setState(() {
-              _isLoading = true;
-              _hasError = false;
-            });
-          },
-          onPageFinished: (String url) {
-            setState(() {
-              _isLoading = false;
-            });
-          },
-          onWebResourceError: (WebResourceError error) {
-            // Ignorer les erreurs mineures (images, CSS, etc.)
-            // Ne montrer la page offline que pour les erreurs critiques
-            if (error.errorType == WebResourceErrorType.hostLookup ||
-                error.errorType == WebResourceErrorType.connect ||
-                error.errorType == WebResourceErrorType.timeout) {
-              setState(() {
-                _isLoading = false;
-                _hasError = true;
-              });
-            }
-          },
-        ),
-      )
-      ..loadRequest(Uri.parse(widget.url));
-    
-    // Activer les fonctionnalités avancées pour WebAuthn/Passkeys
-    if (_controller.platform is AndroidWebViewController) {
-      AndroidWebViewController.enableDebugging(false);
-      (_controller.platform as AndroidWebViewController)
-        ..setMediaPlaybackRequiresUserGesture(false)
-        ..setGeolocationPermissionsPromptCallbacks(
-          onShowPrompt: (request) async {
-            return GeolocationPermissionsResponse(
-              allow: true,
-              retain: true,
-            );
-          },
-        );
-    }
-  }
-
-  Future<void> _loadOfflinePage() async {
-    final String offlineHtml = await rootBundle.loadString('assets/offline.html');
-    await _controller.loadHtmlString(offlineHtml);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_hasError) {
-      _loadOfflinePage();
-    }
-
-    return Scaffold(
-      body: SafeArea(
-        child: Stack(
-          children: [
-            WebViewWidget(controller: _controller),
-            if (_isLoading)
-              const Center(
-                child: CircularProgressIndicator(
-                  color: Color(0xFFBE1E1E),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
   }
 }
