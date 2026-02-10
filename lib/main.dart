@@ -1,9 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fvp/fvp.dart' as fvp;
+import 'screens/login_screen.dart';
+import 'screens/home_screen.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Register FVP with options to handle more formats and network streams better
+  fvp.registerWith(
+    options: {
+      'hwdec': 'auto', // Try hardware decoding but fallback safely
+      'network-timeout': '10', // Increase timeout
+      'ytdl-format': 'best', // In case it's a stream URL
+    },
+  );
   runApp(const MilitantApp());
 }
 
@@ -17,6 +27,10 @@ class MilitantApp extends StatelessWidget {
       theme: ThemeData(
         primaryColor: const Color(0xFFBE1E1E),
         scaffoldBackgroundColor: const Color(0xFF121212),
+        colorScheme: ColorScheme.dark(
+          primary: const Color(0xFFBE1E1E),
+          secondary: const Color(0xFFBE1E1E),
+        ),
       ),
       home: const SplashScreen(),
       debugShowCheckedModeBanner: false,
@@ -32,52 +46,28 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  static const platform = MethodChannel('com.militant.militant_flutter/twa');
-  
-  final TextEditingController _urlController = TextEditingController(
-    text: 'https://militant.revlibertaire.com',
-  );
-
   @override
   void initState() {
     super.initState();
-    _checkSavedUrl();
+    _checkAuth();
   }
 
-  Future<void> _checkSavedUrl() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedUrl = prefs.getString('server_url');
-    if (savedUrl != null && mounted) {
-      _launchTWA(savedUrl);
-    }
-  }
-
-  Future<void> _connect() async {
-    String url = _urlController.text.trim();
-    if (url.isEmpty) return;
-
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      url = 'https://$url';
-    }
-    if (!url.endsWith('/')) {
-      url = '$url/';
-    }
+  Future<void> _checkAuth() async {
+    await Future.delayed(const Duration(seconds: 1));
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('server_url', url);
+    final token = prefs.getString('api_token');
 
     if (mounted) {
-      _launchTWA(url);
-    }
-  }
-
-  Future<void> _launchTWA(String url) async {
-    try {
-      await platform.invokeMethod('launchTWA', {'url': url});
-    } on PlatformException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: ${e.message}')),
+      if (token != null) {
+        // Utilisateur connecté, aller à l'accueil
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      } else {
+        // Pas connecté, aller au login
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
         );
       }
     }
@@ -86,85 +76,35 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SvgPicture.asset(
-                'assets/logo.svg',
-                width: 120,
-                height: 120,
+      backgroundColor: const Color(0xFF121212),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Logo (vous pouvez utiliser SvgPicture.asset si vous avez le logo)
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: const Color(0xFFBE1E1E),
+                borderRadius: BorderRadius.circular(24),
               ),
-              const SizedBox(height: 40),
-              const Text(
-                'Bienvenue sur Militant',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
+              child: const Icon(Icons.people, size: 60, color: Colors.white),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Militant',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'Le réseau social pour celles et ceux\nqui veulent changer les choses',
-                style: TextStyle(
-                  color: Color(0xFFAAAAAA),
-                  fontSize: 16,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 60),
-              TextField(
-                controller: _urlController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'Adresse du serveur',
-                  hintStyle: const TextStyle(color: Color(0xFF666666)),
-                  filled: true,
-                  fillColor: const Color(0xFF2A2A2A),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.all(20),
-                ),
-                onSubmitted: (_) => _connect(),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _connect,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFBE1E1E),
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Rejoindre',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 48),
+            const CircularProgressIndicator(color: Color(0xFFBE1E1E)),
+          ],
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _urlController.dispose();
-    super.dispose();
   }
 }
