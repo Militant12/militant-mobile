@@ -24,11 +24,11 @@ Militant est un réseau social décentralisé conçu pour les mouvements militan
 
 ## Fonctionnalités
 
-- **Connexion multi-instances** : Connectez-vous à n'importe quelle instance Militant
-- **Interface native** : Écran de bienvenue et sélection de serveur en Flutter natif
-- **WebView intégrée** : Navigation fluide dans l'application
-- **Sauvegarde des préférences** : L'URL du serveur est mémorisée
-- **Thème sombre** : Interface moderne avec couleurs du projet
+- **Connexion multi-instances** : Connectez-vous à n'importe quelle instance Militant.
+- **Notifications Push Dynamiques** : Support natif de OneSignal. L'application récupère automatiquement l'App ID du serveur lors de la connexion.
+- **Interface native** : Écran de bienvenue, connexion et paramètres en Flutter natif.
+- **Respect de la confidentialité** : Intégration complète avec les paramètres du compte (comptes privés, permissions de messages).
+- **Thème sombre** : Interface moderne avec couleurs du projet.
 
 ## Prérequis
 
@@ -70,6 +70,9 @@ flutter build apk --release
 ## Configuration
 
 L'application se connecte par défaut à `https://militant.revlibertaire.com`. Vous pouvez modifier cette URL dans le code ou directement depuis l'interface de l'application.
+
+### Android (Firebase/Push)
+Pour compiler l'application avec le support des notifications push sur Android, vous devez placer votre fichier `google-services.json` dans le dossier `android/app/`.
 
 ### Modifier l'URL par défaut
 
