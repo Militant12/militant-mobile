@@ -7,6 +7,7 @@ import 'screens/home_screen.dart';
 
 import 'services/theme_manager.dart';
 import 'services/language_service.dart';
+import 'services/api_service.dart';
 
 // Import OneSignal
 import 'package:onesignal_flutter/onesignal_flutter.dart';
@@ -14,16 +15,8 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize OneSignal
-  // Remove this method to stop OneSignal Debugging
+  // Initialize OneSignal Debugging only (removed hardcoded initialize)
   OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
-
-  // Initialize OneSignal with App ID
-  OneSignal.initialize("5605910e-2b91-4f2c-b842-78817d213761");
-
-  // The promptForPushNotificationsWithUserResponse function will show the iOS or Android push notification prompt.
-  // We recommend removing the following code and instead using an In-App Message to prompt for notification permission
-  OneSignal.Notifications.requestPermission(true);
 
   // Register FVP with options to handle more formats and network streams better
   fvp.registerWith(
@@ -149,6 +142,20 @@ class _SplashScreenState extends State<SplashScreen>
 
     if (mounted) {
       if (token != null) {
+        // Dynamic initialization of OneSignal
+        try {
+          final api = await ApiService.getInstance();
+          await api.initializeOneSignal();
+
+          // Identify user in OneSignal
+          final profile = await api.getProfile();
+          if (profile['id'] != null) {
+            OneSignal.login(profile['id'].toString());
+          }
+        } catch (e) {
+          print('Erreur initialisation OneSignal au démarrage: $e');
+        }
+
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );

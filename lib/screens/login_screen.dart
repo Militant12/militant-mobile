@@ -39,13 +39,17 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (result['success'] == true && mounted) {
-        // Login to OneSignal for notifications
-        if (result['user'] != null && result['user']['id'] != null) {
-          try {
+        // Dynamic initialization of OneSignal
+        try {
+          // Initialize with server's App ID
+          await api.initializeOneSignal();
+
+          // Login to OneSignal for notifications
+          if (result['user'] != null && result['user']['id'] != null) {
             OneSignal.login(result['user']['id'].toString());
-          } catch (e) {
-            print('OneSignal login error: $e');
           }
+        } catch (e) {
+          print('OneSignal dynamic init error: $e');
         }
 
         Navigator.of(context).pushReplacement(

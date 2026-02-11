@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class ApiService {
   String baseUrl;
@@ -43,6 +44,37 @@ class ApiService {
       return baseUrl;
     }
     return '$baseUrl/api';
+  }
+
+  // === DYNAMIC CONFIGURATION ===
+
+  /// Récupère la configuration publique du serveur (comme l'App ID OneSignal)
+  Future<Map<String, dynamic>> getServerSettings() async {
+    try {
+      final response = await http.get(Uri.parse('$apiUrl/v1/settings.php'));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (e) {
+      print('Erreur lors de la récupération des paramètres serveur: $e');
+    }
+    return {};
+  }
+
+  /// Initialise OneSignal dynamiquement avec l'App ID du serveur
+  Future<void> initializeOneSignal() async {
+    final settings = await getServerSettings();
+    final appId = settings['onesignal_app_id'];
+
+    if (appId != null && appId.isNotEmpty) {
+      print('Initialisation de OneSignal avec App ID: $appId');
+      try {
+        OneSignal.initialize(appId);
+        OneSignal.Notifications.requestPermission(true);
+      } catch (e) {
+        print('Erreur d\'initialisation OneSignal: $e');
+      }
+    }
   }
 
   // Helper pour les URLs d'images et médias
