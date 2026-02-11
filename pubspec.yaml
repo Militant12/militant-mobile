@@ -38,6 +38,7 @@ dependencies:
   video_player: ^2.9.3
   fvp: any
   url_launcher: ^6.2.5
+  onesignal_flutter: ^5.4.1
 
 dev_dependencies:
   flutter_test:

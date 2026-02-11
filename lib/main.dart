@@ -5,12 +5,32 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 
-void main() {
+import 'services/theme_manager.dart';
+import 'services/language_service.dart';
+
+// Import OneSignal
+import 'package:onesignal_flutter/onesignal_flutter.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize OneSignal
+  // Remove this method to stop OneSignal Debugging
+  OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
+
+  // Initialize OneSignal with App ID
+  OneSignal.initialize("5605910e-2b91-4f2c-b842-78817d213761");
+
+  // The promptForPushNotificationsWithUserResponse function will show the iOS or Android push notification prompt.
+  // We recommend removing the following code and instead using an In-App Message to prompt for notification permission
+  OneSignal.Notifications.requestPermission(true);
+
   // Register FVP with options to handle more formats and network streams better
   fvp.registerWith(
     options: {'hwdec': 'auto', 'network-timeout': '10', 'ytdl-format': 'best'},
   );
+  await ThemeManager.instance.loadTheme();
+  await LanguageService.instance.loadLanguage();
   runApp(const MilitantApp());
 }
 
@@ -19,18 +39,56 @@ class MilitantApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Militant',
-      theme: ThemeData(
-        primaryColor: const Color(0xFFBE1E1E),
-        scaffoldBackgroundColor: const Color(0xFF121212),
-        colorScheme: ColorScheme.dark(
-          primary: const Color(0xFFBE1E1E),
-          secondary: const Color(0xFFBE1E1E),
-        ),
-      ),
-      home: const SplashScreen(),
-      debugShowCheckedModeBanner: false,
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: ThemeManager.instance,
+      builder: (context, mode, _) {
+        return ValueListenableBuilder<Locale>(
+          valueListenable: LanguageService.instance,
+          builder: (context, locale, __) {
+            return MaterialApp(
+              title: 'Militant',
+              locale: locale,
+              themeMode: mode,
+              theme: ThemeData(
+                brightness: Brightness.light,
+                primaryColor: const Color(0xFFBE1E1E),
+                scaffoldBackgroundColor: Colors.white,
+                colorScheme: const ColorScheme.light(
+                  primary: Color(0xFFBE1E1E),
+                  secondary: Color(0xFFBE1E1E),
+                  surface: Colors.white,
+                ),
+                appBarTheme: const AppBarTheme(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  elevation: 0,
+                  iconTheme: IconThemeData(color: Colors.black),
+                ),
+                useMaterial3: true,
+              ),
+              darkTheme: ThemeData(
+                brightness: Brightness.dark,
+                primaryColor: const Color(0xFFBE1E1E),
+                scaffoldBackgroundColor: const Color(0xFF121212),
+                colorScheme: const ColorScheme.dark(
+                  primary: Color(0xFFBE1E1E),
+                  secondary: Color(0xFFBE1E1E),
+                  surface: Color(0xFF1E1E1E),
+                ),
+                appBarTheme: const AppBarTheme(
+                  backgroundColor: Color(0xFF1E1E1E),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  iconTheme: IconThemeData(color: Colors.white),
+                ),
+                useMaterial3: true,
+              ),
+              home: const SplashScreen(),
+              debugShowCheckedModeBanner: false,
+            );
+          },
+        );
+      },
     );
   }
 }

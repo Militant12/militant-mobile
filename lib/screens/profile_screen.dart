@@ -6,6 +6,7 @@ import 'login_screen.dart';
 import 'edit_profile_screen.dart';
 import 'bookmarks_screen.dart';
 import 'settings_screen.dart';
+import '../services/language_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -140,52 +141,62 @@ class _ProfileScreenState extends State<ProfileScreen>
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: Color(0xFF121212),
-        body: Center(
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: const Center(
           child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
         ),
       );
     }
 
+    final theme = Theme.of(context);
+    final lang = LanguageService.instance;
+    final isDark = theme.brightness == Brightness.dark;
+    final textColor = theme.textTheme.bodyLarge?.color;
+    final subtitleColor = theme.textTheme.bodyMedium?.color;
+
     final username = _profile?['username'] ?? 'Utilisateur';
-    final email = _profile?['email'] ?? '';
-    final bio = _profile?['bio'] ?? '';
+
+    // ... (avatar logic unchanged) ...
 
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text('Mon Profil', style: TextStyle(color: Colors.white)),
+        title: Text(
+          lang.translate('profile_title'),
+          style: TextStyle(color: theme.textTheme.titleLarge?.color),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
+            icon: Icon(Icons.logout, color: theme.iconTheme.color),
             onPressed: _logout,
           ),
         ],
       ),
       body: ListView(
         children: [
-          // En-tête du profil
+          // En-tête (unchanged until stats)
           Container(
             padding: const EdgeInsets.all(24),
-            decoration: const BoxDecoration(
-              color: Color(0xFF1E1E1E),
-              border: Border(bottom: BorderSide(color: Colors.white10)),
+            decoration: BoxDecoration(
+              color: theme.cardColor,
+              border: Border(bottom: BorderSide(color: theme.dividerColor)),
             ),
             child: Column(
               children: [
                 _avatarUrl != null
                     ? CircleAvatar(
                         radius: 50,
-                        backgroundColor: const Color(0xFF2A2A2A),
+                        backgroundColor: isDark
+                            ? const Color(0xFF2A2A2A)
+                            : Colors.grey[200],
                         backgroundImage: NetworkImage(_avatarUrl!),
                         onBackgroundImageError: (_, __) {},
                         child: _avatarUrl == null
                             ? Text(
                                 username[0].toUpperCase(),
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: textColor,
                                   fontSize: 36,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -207,28 +218,30 @@ class _ProfileScreenState extends State<ProfileScreen>
                 const SizedBox(height: 16),
                 Text(
                   username,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: textColor,
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                if (email.isNotEmpty) ...[
+                if (_profile?['email'] != null &&
+                    _profile!['email'].isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(
-                    email,
-                    style: const TextStyle(
-                      color: Color(0xFF888888),
-                      fontSize: 14,
-                    ),
+                    _profile!['email'],
+                    style: TextStyle(color: subtitleColor, fontSize: 14),
                   ),
                 ],
-                if (bio.isNotEmpty) ...[
+                if (_profile?['bio'] != null &&
+                    _profile!['bio'].isNotEmpty) ...[
                   const SizedBox(height: 16),
                   Text(
-                    bio,
+                    _profile!['bio'],
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.white70, fontSize: 14),
+                    style: TextStyle(
+                      color: textColor?.withOpacity(0.7),
+                      fontSize: 14,
+                    ),
                   ),
                 ],
               ],
@@ -238,23 +251,23 @@ class _ProfileScreenState extends State<ProfileScreen>
           // Statistiques
           Container(
             padding: const EdgeInsets.symmetric(vertical: 16),
-            decoration: const BoxDecoration(
-              color: Color(0xFF1E1E1E),
-              border: Border(bottom: BorderSide(color: Colors.white10)),
+            decoration: BoxDecoration(
+              color: theme.cardColor,
+              border: Border(bottom: BorderSide(color: theme.dividerColor)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _buildStat(
-                  'Posts',
+                  lang.translate('posts'),
                   _profile?['posts_count']?.toString() ?? '0',
                 ),
                 _buildStat(
-                  'Abonnés',
+                  lang.translate('followers'),
                   _profile?['followers_count']?.toString() ?? '0',
                 ),
                 _buildStat(
-                  'Abonnements',
+                  lang.translate('following'),
                   _profile?['following_count']?.toString() ?? '0',
                 ),
               ],
@@ -264,7 +277,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           // Options
           _buildOption(
             icon: Icons.edit,
-            title: 'Modifier le profil',
+            title: lang.translate('edit_profile_title'),
             onTap: () {
               Navigator.push(
                 context,
@@ -274,7 +287,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
           _buildOption(
             icon: Icons.settings,
-            title: 'Paramètres',
+            title: lang.translate('settings_title'),
             onTap: () {
               Navigator.push(
                 context,
@@ -284,7 +297,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
           _buildOption(
             icon: Icons.bookmark,
-            title: 'Posts sauvegardés',
+            title: lang.translate('saved_posts_title'),
             onTap: () {
               Navigator.push(
                 context,
@@ -295,20 +308,20 @@ class _ProfileScreenState extends State<ProfileScreen>
 
           // Onglets
           Container(
-            color: const Color(0xFF1E1E1E),
+            color: theme.cardColor,
             child: TabBar(
               controller: _tabController,
               indicatorColor: const Color(0xFFBE1E1E),
               labelColor: const Color(0xFFBE1E1E),
-              unselectedLabelColor: const Color(0xFF888888),
+              unselectedLabelColor: subtitleColor,
               tabs: [
-                Tab(text: 'Posts (${_posts.length})'),
-                Tab(text: 'Médias'),
+                Tab(text: '${lang.translate('posts')} (${_posts.length})'),
+                Tab(text: lang.translate('media')),
               ],
             ),
           ),
 
-          // Contenu des onglets (inline, pas de TabBarView pour éviter la hauteur fixe)
+          // Contenu des onglets
           if (_selectedTab == 0) ...[
             // Posts
             if (_isLoadingPosts)
@@ -319,12 +332,12 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ),
               )
             else if (_posts.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(32),
+              Padding(
+                padding: const EdgeInsets.all(32),
                 child: Center(
                   child: Text(
-                    'Aucun post',
-                    style: TextStyle(color: Color(0xFF888888)),
+                    lang.translate('no_posts'),
+                    style: TextStyle(color: subtitleColor),
                   ),
                 ),
               )
@@ -361,18 +374,23 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   Widget _buildMediaGrid() {
+    final theme = Theme.of(context);
+    final lang = LanguageService.instance;
     final postsWithMedia = _posts.where((p) => p.mediaUrls.isNotEmpty).toList();
 
     if (postsWithMedia.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(32),
+      return Padding(
+        padding: const EdgeInsets.all(32),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.photo_library, size: 64, color: Color(0xFF888888)),
-              SizedBox(height: 16),
-              Text('Aucun média', style: TextStyle(color: Color(0xFF888888))),
+              Icon(Icons.photo_library, size: 64, color: theme.disabledColor),
+              const SizedBox(height: 16),
+              Text(
+                lang.translate('no_media'),
+                style: TextStyle(color: theme.disabledColor),
+              ),
             ],
           ),
         ),
@@ -407,7 +425,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ? api.getImageUrl(rawMedia)
                 : null;
 
-            // Check if it's a video
             final isVideo =
                 rawMedia != null &&
                 (rawMedia.endsWith('.mp4') ||
@@ -420,7 +437,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 // TODO: Navigate to post detail
               },
               child: Container(
-                color: const Color(0xFF2A2A2A),
+                color: theme.cardColor,
                 child: imageUrl != null
                     ? isVideo
                           ? const Center(
@@ -444,13 +461,13 @@ class _ProfileScreenState extends State<ProfileScreen>
                                     );
                                   },
                               errorBuilder: (context, error, stackTrace) {
-                                return const Icon(
+                                return Icon(
                                   Icons.broken_image,
-                                  color: Color(0xFF888888),
+                                  color: theme.disabledColor,
                                 );
                               },
                             )
-                    : const Icon(Icons.image, color: Color(0xFF888888)),
+                    : Icon(Icons.image, color: theme.disabledColor),
               ),
             );
           },
@@ -460,12 +477,13 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   Widget _buildStat(String label, String value) {
+    final theme = Theme.of(context);
     return Column(
       children: [
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: theme.textTheme.bodyLarge?.color,
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -473,7 +491,10 @@ class _ProfileScreenState extends State<ProfileScreen>
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(color: Color(0xFF888888), fontSize: 14),
+          style: TextStyle(
+            color: theme.textTheme.bodyMedium?.color,
+            fontSize: 14,
+          ),
         ),
       ],
     );
@@ -484,12 +505,13 @@ class _ProfileScreenState extends State<ProfileScreen>
     required String title,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
     return InkWell(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: Colors.white10)),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: theme.dividerColor)),
         ),
         child: Row(
           children: [
@@ -498,10 +520,16 @@ class _ProfileScreenState extends State<ProfileScreen>
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(color: Colors.white, fontSize: 16),
+                style: TextStyle(
+                  color: theme.textTheme.bodyLarge?.color,
+                  fontSize: 16,
+                ),
               ),
             ),
-            const Icon(Icons.chevron_right, color: Color(0xFF888888)),
+            Icon(
+              Icons.chevron_right,
+              color: theme.iconTheme.color?.withOpacity(0.5),
+            ),
           ],
         ),
       ),

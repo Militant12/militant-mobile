@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({super.key});
@@ -31,9 +32,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
       }
     } finally {
       if (mounted) {
@@ -44,35 +45,43 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final lang = LanguageService.instance;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text('Nouveau post', style: TextStyle(color: Colors.white)),
+        title: Text(
+          lang.translate('create_post_title'),
+          style: TextStyle(color: theme.textTheme.titleLarge?.color),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
+          icon: Icon(Icons.close, color: theme.iconTheme.color),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          TextButton(
-            onPressed: _isLoading ? null : _createPost,
-            child: _isLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Color(0xFFBE1E1E),
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: TextButton(
+              onPressed: _isLoading ? null : _createPost,
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Color(0xFFBE1E1E),
+                      ),
+                    )
+                  : Text(
+                      lang.translate('publish_button'),
+                      style: const TextStyle(
+                        color: Color(0xFFBE1E1E),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
-                  )
-                : const Text(
-                    'Publier',
-                    style: TextStyle(
-                      color: Color(0xFFBE1E1E),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
+            ),
           ),
         ],
       ),
@@ -82,10 +91,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           controller: _contentController,
           autofocus: true,
           maxLines: null,
-          style: const TextStyle(color: Colors.white, fontSize: 16),
-          decoration: const InputDecoration(
-            hintText: 'Quoi de neuf ?',
-            hintStyle: TextStyle(color: Color(0xFF888888)),
+          style: TextStyle(
+            color: theme.textTheme.bodyLarge?.color,
+            fontSize: 16,
+          ),
+          decoration: InputDecoration(
+            hintText: lang.translate('create_post_hint'),
+            hintStyle: TextStyle(color: theme.hintColor),
             border: InputBorder.none,
           ),
         ),

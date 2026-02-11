@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -16,7 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _serverController = TextEditingController(
     text: 'https://api.militant.revlibertaire.com',
   );
-  
+
   bool _isLoading = false;
   bool _showServerField = false;
   String? _errorMessage;
@@ -30,13 +32,22 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final api = await ApiService.getInstance();
       api.baseUrl = _serverController.text.trim();
-      
+
       final result = await api.login(
         _usernameController.text.trim(),
         _passwordController.text,
       );
 
       if (result['success'] == true && mounted) {
+        // Login to OneSignal for notifications
+        if (result['user'] != null && result['user']['id'] != null) {
+          try {
+            OneSignal.login(result['user']['id'].toString());
+          } catch (e) {
+            print('OneSignal login error: $e');
+          }
+        }
+
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
@@ -58,8 +69,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final lang = LanguageService.instance;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(32.0),
@@ -67,34 +82,32 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const SizedBox(height: 60),
-              
+
               // Logo
-              SvgPicture.asset(
-                'assets/logo.svg',
-                width: 100,
-                height: 100,
-              ),
+              SvgPicture.asset('assets/logo.svg', width: 100, height: 100),
               const SizedBox(height: 24),
-              
+
               // Titre
-              const Text(
-                'Militant',
+              Text(
+                lang.translate('app_title'),
                 style: TextStyle(
-                  color: Colors.white,
+                  color:
+                      theme.textTheme.displayLarge?.color ??
+                      (isDark ? Colors.white : Colors.black),
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Réseau social militant',
                 style: TextStyle(
-                  color: Color(0xFFAAAAAA),
+                  color: isDark ? const Color(0xFFAAAAAA) : Colors.grey[600],
                   fontSize: 16,
                 ),
               ),
               const SizedBox(height: 48),
-              
+
               // Message d'erreur
               if (_errorMessage != null)
                 Container(
@@ -107,7 +120,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.error_outline, color: Colors.red, size: 20),
+                      const Icon(
+                        Icons.error_outline,
+                        color: Colors.red,
+                        size: 20,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -118,67 +135,68 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                 ),
-              
+
               // Champ serveur (optionnel)
               if (_showServerField) ...[
                 _buildTextField(
                   controller: _serverController,
-                  label: 'Serveur',
+                  label: lang.translate('server_label'),
                   icon: Icons.dns,
                 ),
                 const SizedBox(height: 16),
               ],
-              
+
               // Champ username
               _buildTextField(
                 controller: _usernameController,
-                label: 'Nom d\'utilisateur ou email',
+                label:
+                    '${lang.translate('username_label')} / ${lang.translate('email_label')}',
                 icon: Icons.person,
               ),
               const SizedBox(height: 16),
-              
+
               // Champ password
               _buildTextField(
                 controller: _passwordController,
-                label: 'Mot de passe',
+                label: lang.translate('password_label'),
                 icon: Icons.lock,
                 isPassword: true,
               ),
               const SizedBox(height: 24),
-              
+
               // Bouton connexion
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : _login,
+                  onPressed: _isLoading ? null : () => _login(),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFBE1E1E),
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(
+                          lang.translate('login_button'),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      )
-                    : const Text(
-                        'Se connecter',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
                 ),
               ),
               const SizedBox(height: 16),
-              
+
               // Bouton changer de serveur
               TextButton(
                 onPressed: () {
@@ -187,10 +205,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   });
                 },
                 child: Text(
-                  _showServerField ? 'Masquer le serveur' : 'Changer de serveur',
-                  style: const TextStyle(
-                    color: Color(0xFFBE1E1E),
-                  ),
+                  _showServerField
+                      ? 'Masquer le serveur'
+                      : 'Changer de serveur',
+                  style: const TextStyle(color: Color(0xFFBE1E1E)),
                 ),
               ),
             ],
@@ -206,17 +224,29 @@ class _LoginScreenState extends State<LoginScreen> {
     required IconData icon,
     bool isPassword = false,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return TextField(
       controller: controller,
       obscureText: isPassword,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: theme.textTheme.bodyLarge?.color),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: Color(0xFF888888)),
-        prefixIcon: Icon(icon, color: const Color(0xFF888888)),
+        labelStyle: TextStyle(
+          color: isDark ? const Color(0xFF888888) : Colors.grey[600],
+        ),
+        prefixIcon: Icon(
+          icon,
+          color: isDark ? const Color(0xFF888888) : Colors.grey[600],
+        ),
         filled: true,
-        fillColor: const Color(0xFF2A2A2A),
+        fillColor: isDark ? const Color(0xFF2A2A2A) : Colors.grey[200],
         border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),

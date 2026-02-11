@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/post.dart';
 import '../models/comment.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 import '../widgets/post_card.dart';
 
 class PostDetailScreen extends StatefulWidget {
@@ -64,25 +65,28 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final lang = LanguageService.instance;
+
+    final textColor = theme.textTheme.bodyLarge?.color;
+    final subtitleColor = theme.textTheme.bodyMedium?.color;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text('Post'),
-      ),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(title: Text(lang.translate('post_detail_title'))),
       body: Column(
         children: [
           Expanded(
             child: ListView(
               children: [
                 PostCard(post: widget.post),
-                const Divider(color: Colors.white10),
-                const Padding(
-                  padding: EdgeInsets.all(16.0),
+                Divider(color: theme.dividerColor),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
                   child: Text(
-                    'Commentaires',
+                    lang.translate('comments_title'),
                     style: TextStyle(
-                      color: Colors.white,
+                      color: textColor,
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
                     ),
@@ -93,12 +97,12 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                     child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
                   )
                 else if (_comments.isEmpty)
-                  const Center(
+                  Center(
                     child: Padding(
-                      padding: EdgeInsets.all(32.0),
+                      padding: const EdgeInsets.all(32.0),
                       child: Text(
-                        'Aucun commentaire pour le moment',
-                        style: TextStyle(color: Colors.white54),
+                        'Aucun commentaire',
+                        style: TextStyle(color: subtitleColor),
                       ),
                     ),
                   )
@@ -114,6 +118,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   }
 
   Widget _buildCommentItem(Comment comment) {
+    final theme = Theme.of(context);
+    final textColor = theme.textTheme.bodyLarge?.color;
+    final subtitleColor = theme.textTheme.bodyMedium?.color;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
@@ -123,7 +131,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
             radius: 16,
             backgroundColor: const Color(0xFFBE1E1E),
             child: Text(
-              comment.username[0].toUpperCase(),
+              comment.username.isNotEmpty
+                  ? comment.username[0].toUpperCase()
+                  : '?',
               style: const TextStyle(color: Colors.white, fontSize: 12),
             ),
           ),
@@ -136,8 +146,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   children: [
                     Text(
                       comment.username,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: textColor,
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
@@ -145,17 +155,14 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                     const SizedBox(width: 8),
                     Text(
                       _formatDate(comment.createdAt),
-                      style: const TextStyle(
-                        color: Color(0xFF888888),
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: subtitleColor, fontSize: 12),
                     ),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Text(
                   comment.content,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  style: TextStyle(color: textColor, fontSize: 14),
                 ),
               ],
             ),
@@ -183,6 +190,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   }
 
   Widget _buildCommentInput() {
+    final theme = Theme.of(context);
+    final lang = LanguageService.instance;
+
     return Container(
       padding: EdgeInsets.only(
         left: 16,
@@ -190,26 +200,26 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         top: 8,
         bottom: 8 + MediaQuery.of(context).viewInsets.bottom,
       ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF1E1E1E),
-        border: Border(top: BorderSide(color: Colors.white10)),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        border: Border(top: BorderSide(color: theme.dividerColor)),
       ),
       child: Row(
         children: [
           Expanded(
             child: TextField(
               controller: _commentController,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                hintText: 'Ajouter un commentaire...',
-                hintStyle: TextStyle(color: Colors.white38),
+              style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+              decoration: InputDecoration(
+                hintText: lang.translate('comment_hint'),
+                hintStyle: TextStyle(color: theme.hintColor),
                 border: InputBorder.none,
               ),
             ),
           ),
           IconButton(
             icon: const Icon(Icons.send, color: Color(0xFFBE1E1E)),
-            onPressed: _submitComment,
+            onPressed: () => _submitComment(),
           ),
         ],
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 import '../models/post.dart';
 import '../widgets/post_card.dart';
 import 'moderation_screen.dart';
@@ -72,10 +73,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final lang = LanguageService.instance;
+    final isDark = theme.brightness == Brightness.dark;
+    final iconColor = theme.iconTheme.color;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
         elevation: 0,
         title: const Text(
           'Militant',
@@ -86,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
+            icon: Icon(Icons.search, color: iconColor),
             onPressed: () {
               Navigator.push(
                 context,
@@ -95,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.shield, color: Colors.white),
+            icon: Icon(Icons.shield, color: iconColor),
             onPressed: () {
               Navigator.push(
                 context,
@@ -104,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+            icon: Icon(Icons.notifications_outlined, color: iconColor),
             onPressed: () {
               Navigator.push(
                 context,
@@ -122,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () async {
                 final result = await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const CreatePostScreen()),
+                  materialPageRoute(builder: (_) => const CreatePostScreen()),
                 );
                 if (result == true) {
                   _loadPosts(refresh: true);
@@ -137,21 +142,49 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: (index) {
           setState(() {
             _selectedIndex = index;
+            _screens = [
+              const SizedBox.shrink(),
+              const GroupsScreen(),
+              const EventsScreen(),
+              const MessagesScreen(),
+              const ProfileScreen(),
+            ];
           });
         },
-        backgroundColor: const Color(0xFF1E1E1E),
+        backgroundColor: theme.cardColor,
         selectedItemColor: const Color(0xFFBE1E1E),
-        unselectedItemColor: const Color(0xFF888888),
+        unselectedItemColor: isDark ? const Color(0xFF888888) : Colors.grey,
         type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Accueil'),
-          BottomNavigationBarItem(icon: Icon(Icons.group), label: 'Groupes'),
-          BottomNavigationBarItem(icon: Icon(Icons.event), label: 'Événements'),
-          BottomNavigationBarItem(icon: Icon(Icons.message), label: 'Messages'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
+        items: [
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.home),
+            label: lang.translate('home_title'),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.group),
+            label: lang.translate('groups_title'),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.event),
+            label: lang.translate('events_title'),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.message),
+            label: lang.translate('messages_title'),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.person),
+            label: lang.translate('profile_title'),
+          ),
         ],
       ),
     );
+  }
+
+  MaterialPageRoute materialPageRoute({
+    required Widget Function(BuildContext) builder,
+  }) {
+    return MaterialPageRoute(builder: builder);
   }
 
   Widget _buildHomeContent() {

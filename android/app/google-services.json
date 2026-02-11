@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "403740903570",
+    "project_id": "militant-47f90",
+    "storage_bucket": "militant-47f90.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:403740903570:android:b46e3af2069942f8713e4b",
+        "android_client_info": {
+          "package_name": "com.militant.militant_flutter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_ROOSVl0nZiEZnNFIKhq69V-DU66Hd3Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

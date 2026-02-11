@@ -30,9 +30,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
       }
     } finally {
       setState(() => _isLoading = false);
@@ -41,52 +41,56 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text('Messages', style: TextStyle(color: Colors.white)),
-      ),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(title: const Text('Messages')),
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
             )
           : _conversations.isEmpty
-              ? const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.message_outlined,
-                        size: 64,
-                        color: Color(0xFF888888),
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'Aucune conversation',
-                        style: TextStyle(
-                          color: Color(0xFF888888),
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.message_outlined,
+                    size: 64,
+                    color: isDark ? const Color(0xFF888888) : Colors.grey,
                   ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _loadConversations,
-                  color: const Color(0xFFBE1E1E),
-                  child: ListView.builder(
-                    itemCount: _conversations.length,
-                    itemBuilder: (context, index) {
-                      final conv = _conversations[index];
-                      return _buildConversationItem(conv);
-                    },
+                  const SizedBox(height: 16),
+                  Text(
+                    'Aucune conversation',
+                    style: TextStyle(
+                      color: isDark ? const Color(0xFF888888) : Colors.grey,
+                      fontSize: 16,
+                    ),
                   ),
-                ),
+                ],
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _loadConversations,
+              color: const Color(0xFFBE1E1E),
+              child: ListView.builder(
+                itemCount: _conversations.length,
+                itemBuilder: (context, index) {
+                  final conv = _conversations[index];
+                  return _buildConversationItem(conv);
+                },
+              ),
+            ),
     );
   }
 
   Widget _buildConversationItem(dynamic conv) {
+    final theme = Theme.of(context);
+    final textColor = theme.textTheme.bodyLarge?.color;
+    final subtitleColor = theme.textTheme.bodyMedium?.color;
+
     final username = conv['username'] ?? 'Utilisateur';
     final lastMessage = conv['last_message'] ?? '';
     final unreadCount = conv['unread_count'] ?? 0;
@@ -97,19 +101,14 @@ class _MessagesScreenState extends State<MessagesScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => ChatScreen(
-              userId: userId,
-              username: username,
-            ),
+            builder: (_) => ChatScreen(userId: userId, username: username),
           ),
         ).then((_) => _loadConversations());
       },
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: const BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: Colors.white10),
-          ),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: theme.dividerColor)),
         ),
         child: Row(
           children: [
@@ -132,8 +131,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 children: [
                   Text(
                     username,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: textColor,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -143,10 +142,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                     lastMessage,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Color(0xFF888888),
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: subtitleColor, fontSize: 14),
                   ),
                 ],
               ),
