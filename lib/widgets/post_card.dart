@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/post.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 import '../screens/post_detail_screen.dart';
 import 'video_player_widget.dart';
 
@@ -93,6 +94,12 @@ class _PostCardState extends State<PostCard> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textColor = theme.textTheme.bodyLarge?.color;
+    final subtitleColor = isDark ? const Color(0xFF888888) : Colors.grey[600];
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -105,10 +112,19 @@ class _PostCardState extends State<PostCard> {
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 4),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E1E1E),
+          color: cardColor,
           border: Border(
-            bottom: BorderSide(color: Colors.white.withOpacity(0.1), width: 1),
+            bottom: BorderSide(color: theme.dividerColor, width: 1),
           ),
+          boxShadow: isDark
+              ? null
+              : [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 2,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
         ),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -141,24 +157,21 @@ class _PostCardState extends State<PostCard> {
                       children: [
                         Text(
                           widget.post.username,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: textColor,
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
                           ),
                         ),
                         Text(
                           _formatDate(widget.post.createdAt),
-                          style: const TextStyle(
-                            color: Color(0xFF888888),
-                            fontSize: 13,
-                          ),
+                          style: TextStyle(color: subtitleColor, fontSize: 13),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.more_vert, color: Color(0xFF888888)),
+                    icon: Icon(Icons.more_vert, color: subtitleColor),
                     onPressed: () => _showPostMenu(context),
                   ),
                 ],
@@ -170,11 +183,7 @@ class _PostCardState extends State<PostCard> {
                 _showTranslation && _translatedContent != null
                     ? _translatedContent!
                     : widget.post.content,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  height: 1.4,
-                ),
+                style: TextStyle(color: textColor, fontSize: 15, height: 1.4),
               ),
 
               // Bouton traduire
@@ -189,7 +198,7 @@ class _PostCardState extends State<PostCard> {
                         size: 16,
                         color: _showTranslation
                             ? const Color(0xFFBE1E1E)
-                            : const Color(0xFF888888),
+                            : subtitleColor,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -201,7 +210,7 @@ class _PostCardState extends State<PostCard> {
                         style: TextStyle(
                           color: _showTranslation
                               ? const Color(0xFFBE1E1E)
-                              : const Color(0xFF888888),
+                              : subtitleColor,
                           fontSize: 13,
                         ),
                       ),
@@ -228,7 +237,9 @@ class _PostCardState extends State<PostCard> {
                           if (loadingProgress == null) return child;
                           return Container(
                             height: 200,
-                            color: const Color(0xFF2A2A2A),
+                            color: isDark
+                                ? const Color(0xFF2A2A2A)
+                                : Colors.grey[200],
                             child: Center(
                               child: CircularProgressIndicator(
                                 value:
@@ -246,21 +257,23 @@ class _PostCardState extends State<PostCard> {
                           print('URL: $_mediaUrl');
                           return Container(
                             height: 200,
-                            color: const Color(0xFF2A2A2A),
+                            color: isDark
+                                ? const Color(0xFF2A2A2A)
+                                : Colors.grey[200],
                             child: Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(
+                                  Icon(
                                     Icons.broken_image,
-                                    color: Color(0xFF888888),
+                                    color: subtitleColor,
                                     size: 48,
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
                                     'Image non disponible',
                                     style: TextStyle(
-                                      color: Colors.grey[600],
+                                      color: subtitleColor,
                                       fontSize: 12,
                                     ),
                                   ),
@@ -284,14 +297,14 @@ class _PostCardState extends State<PostCard> {
                     label: _likesCount.toString(),
                     color: _isLiked
                         ? const Color(0xFFBE1E1E)
-                        : const Color(0xFF888888),
+                        : (subtitleColor ?? Colors.grey),
                     onTap: _toggleLike,
                   ),
                   const SizedBox(width: 24),
                   _buildActionButton(
                     icon: Icons.comment_outlined,
                     label: widget.post.commentsCount.toString(),
-                    color: const Color(0xFF888888),
+                    color: subtitleColor ?? Colors.grey,
                     onTap: () {
                       Navigator.push(
                         context,
@@ -306,7 +319,7 @@ class _PostCardState extends State<PostCard> {
                   _buildActionButton(
                     icon: Icons.share_outlined,
                     label: widget.post.sharesCount.toString(),
-                    color: const Color(0xFF888888),
+                    color: subtitleColor ?? Colors.grey,
                     onTap: () => _sharePost(context),
                   ),
                 ],
@@ -344,9 +357,14 @@ class _PostCardState extends State<PostCard> {
   }
 
   void _showPostMenu(BuildContext context) {
+    final theme = Theme.of(context);
+    final lang = LanguageService.instance;
+    final textColor = theme.textTheme.bodyLarge?.color;
+    final iconColor = theme.iconTheme.color;
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E1E1E),
+      backgroundColor: theme.scaffoldBackgroundColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -355,10 +373,10 @@ class _PostCardState extends State<PostCard> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.bookmark_border, color: Colors.white),
-              title: const Text(
-                'Sauvegarder',
-                style: TextStyle(color: Colors.white),
+              leading: Icon(Icons.bookmark_border, color: iconColor),
+              title: Text(
+                lang.translate('save'),
+                style: TextStyle(color: textColor),
               ),
               onTap: () {
                 Navigator.pop(context);
@@ -366,10 +384,10 @@ class _PostCardState extends State<PostCard> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.edit, color: Colors.white),
-              title: const Text(
-                'Modifier',
-                style: TextStyle(color: Colors.white),
+              leading: Icon(Icons.edit, color: iconColor),
+              title: Text(
+                lang.translate('edit'),
+                style: TextStyle(color: textColor),
               ),
               onTap: () {
                 Navigator.pop(context);
@@ -377,10 +395,10 @@ class _PostCardState extends State<PostCard> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.flag, color: Colors.white),
-              title: const Text(
-                'Signaler',
-                style: TextStyle(color: Colors.white),
+              leading: Icon(Icons.flag, color: iconColor),
+              title: Text(
+                lang.translate('report'),
+                style: TextStyle(color: textColor),
               ),
               onTap: () {
                 Navigator.pop(context);
@@ -389,9 +407,9 @@ class _PostCardState extends State<PostCard> {
             ),
             ListTile(
               leading: const Icon(Icons.delete, color: Colors.red),
-              title: const Text(
-                'Supprimer',
-                style: TextStyle(color: Colors.red),
+              title: Text(
+                lang.translate('delete'),
+                style: const TextStyle(color: Colors.red),
               ),
               onTap: () {
                 Navigator.pop(context);
@@ -405,15 +423,19 @@ class _PostCardState extends State<PostCard> {
     );
   }
 
+  // ... (keep _sharePost and _savePost and _editPost unchanged for now)
+
   Future<void> _sharePost(BuildContext context) async {
     try {
       final api = await ApiService.getInstance();
       await api.sharePost(widget.post.id);
 
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Post partagé !')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(LanguageService.instance.translate('success')),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -430,9 +452,11 @@ class _PostCardState extends State<PostCard> {
       await api.bookmarkPost(widget.post.id);
 
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Post sauvegardé !')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(LanguageService.instance.translate('success')),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -444,31 +468,35 @@ class _PostCardState extends State<PostCard> {
   }
 
   void _editPost(BuildContext context) {
-    // TODO: Implémenter l'édition de post
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Fonctionnalité à venir')));
   }
 
   void _reportPost(BuildContext context) {
+    final theme = Theme.of(context);
+    final lang = LanguageService.instance;
+    final textColor = theme.textTheme.bodyLarge?.color;
+    final subtitleColor = theme.textTheme.bodyMedium?.color;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text(
-          'Signaler ce post',
-          style: TextStyle(color: Colors.white),
+        backgroundColor: theme.cardColor,
+        title: Text(
+          lang.translate('report_post_title'),
+          style: TextStyle(color: textColor),
         ),
-        content: const Text(
-          'Voulez-vous signaler ce post aux modérateurs ?',
-          style: TextStyle(color: Colors.white70),
+        content: Text(
+          lang.translate('report_reason_hint'), // Using hint as prompt
+          style: TextStyle(color: subtitleColor),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Annuler',
-              style: TextStyle(color: Colors.white70),
+            child: Text(
+              lang.translate('cancel'),
+              style: TextStyle(color: subtitleColor),
             ),
           ),
           TextButton(
@@ -484,9 +512,7 @@ class _PostCardState extends State<PostCard> {
 
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Post signalé aux modérateurs'),
-                    ),
+                    SnackBar(content: Text(lang.translate('success'))),
                   );
                 }
               } catch (e) {
@@ -497,9 +523,9 @@ class _PostCardState extends State<PostCard> {
                 }
               }
             },
-            child: const Text(
-              'Signaler',
-              style: TextStyle(color: Color(0xFFBE1E1E)),
+            child: Text(
+              lang.translate('report'),
+              style: const TextStyle(color: Color(0xFFBE1E1E)),
             ),
           ),
         ],
@@ -508,29 +534,37 @@ class _PostCardState extends State<PostCard> {
   }
 
   Future<void> _deletePost(BuildContext context) async {
+    final theme = Theme.of(context);
+    final lang = LanguageService.instance;
+    final textColor = theme.textTheme.bodyLarge?.color;
+    final subtitleColor = theme.textTheme.bodyMedium?.color;
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text(
-          'Supprimer le post',
-          style: TextStyle(color: Colors.white),
+        backgroundColor: theme.cardColor,
+        title: Text(
+          lang.translate('delete'),
+          style: TextStyle(color: textColor),
         ),
-        content: const Text(
-          'Êtes-vous sûr de vouloir supprimer ce post ?',
-          style: TextStyle(color: Colors.white70),
+        content: Text(
+          lang.translate('delete_post_confirm'),
+          style: TextStyle(color: subtitleColor),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text(
-              'Annuler',
-              style: TextStyle(color: Colors.white70),
+            child: Text(
+              lang.translate('cancel'),
+              style: TextStyle(color: subtitleColor),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
+            child: Text(
+              lang.translate('delete'),
+              style: const TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),
@@ -544,7 +578,7 @@ class _PostCardState extends State<PostCard> {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text('Post supprimé')));
+          ).showSnackBar(SnackBar(content: Text(lang.translate('success'))));
           // Call the onDeleted callback if provided
           widget.onDeleted?.call();
         }

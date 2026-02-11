@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../services/api_service.dart';
+import '../services/theme_manager.dart';
+import '../services/language_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -15,57 +18,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
+    _currentLanguage = LanguageService.instance.value.languageCode;
     _loadPreferences();
   }
 
   Future<void> _loadPreferences() async {
-    try {
-      final api = await ApiService.getInstance();
-      final prefs = await api.getPreferences();
-      if (mounted) {
-        setState(() {
-          _currentLanguage = prefs['language'] ?? 'fr';
-        });
-      }
-    } catch (_) {
-      // Ignore errors for main settings screen load
-    }
+    // Language is now handled by LanguageService
   }
 
   Future<void> _updateLanguage(String lang) async {
     setState(() => _currentLanguage = lang);
-    try {
-      final api = await ApiService.getInstance();
-      await api.updatePreferences({'language': lang});
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Langue mise à jour')));
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Erreur de sauvegarde')));
-      }
+    await LanguageService.instance.setLanguage(lang);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            LanguageService.instance.translate('language_title') + ' updated',
+          ),
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final lang = LanguageService.instance;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text('Paramètres', style: TextStyle(color: Colors.white)),
-      ),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(title: Text(lang.translate('settings_title'))),
       body: ListView(
         children: [
           _buildOption(
             context,
             icon: Icons.notifications,
-            title: 'Notifications',
-            subtitle: 'Gérer les notifications',
+            title: lang.translate('notifications_title'),
+            subtitle: lang.translate('subtitle_notifications'),
             onTap: () {
               Navigator.push(
                 context,
@@ -76,8 +67,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildOption(
             context,
             icon: Icons.lock,
-            title: 'Sécurité',
-            subtitle: 'Changer de mot de passe',
+            title: lang.translate('security_title'),
+            subtitle: lang.translate('subtitle_security'),
             onTap: () {
               Navigator.push(
                 context,
@@ -88,8 +79,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildOption(
             context,
             icon: Icons.privacy_tip,
-            title: 'Confidentialité',
-            subtitle: 'Paramètres de confidentialité',
+            title: lang.translate('privacy_title'),
+            subtitle: lang.translate('subtitle_privacy'),
             onTap: () {
               Navigator.push(
                 context,
@@ -100,22 +91,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildOption(
             context,
             icon: Icons.language,
-            title: 'Langue',
+            title: lang.translate('language_title'),
             subtitle: _getLanguageName(_currentLanguage),
             onTap: () => _showLanguageDialog(context),
           ),
           _buildOption(
             context,
             icon: Icons.dark_mode,
-            title: 'Thème',
-            subtitle: 'Sombre',
+            title: lang.translate('theme_title'),
+            subtitle: isDark
+                ? lang.translate('theme_dark')
+                : lang.translate('theme_light'),
             onTap: () => _showThemeDialog(context),
           ),
           _buildOption(
             context,
             icon: Icons.info,
-            title: 'À propos',
-            subtitle: 'Version 1.0.0',
+            title: lang.translate('about_title'),
+            subtitle: lang.translate('version'),
             onTap: () => _showAboutDialog(context),
           ),
         ],
@@ -136,12 +129,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final dividerColor = isDark ? Colors.white10 : Colors.black12;
+    final subtitleColor = isDark ? const Color(0xFF888888) : Colors.grey[700];
+    final titleColor = theme.textTheme.bodyLarge?.color;
+
     return InkWell(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: Colors.white10)),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: dividerColor)),
         ),
         child: Row(
           children: [
@@ -153,20 +152,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                    style: TextStyle(color: titleColor, fontSize: 16),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                      color: Color(0xFF888888),
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: subtitleColor, fontSize: 14),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: Color(0xFF888888)),
+            Icon(Icons.chevron_right, color: subtitleColor),
           ],
         ),
       ),
@@ -174,38 +170,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showThemeDialog(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    final lang = LanguageService.instance;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text(
-          'Choisir le thème',
-          style: TextStyle(color: Colors.white),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        title: Text(
+          lang.translate('choose_theme'),
+          style: TextStyle(color: onSurface),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              title: const Text(
-                'Sombre',
-                style: TextStyle(color: Colors.white),
+              title: Text(
+                lang.translate('theme_dark'),
+                style: TextStyle(color: onSurface),
               ),
-              leading: const Icon(Icons.dark_mode, color: Color(0xFFBE1E1E)),
-              trailing: const Icon(Icons.check, color: Color(0xFFBE1E1E)),
+              leading: Icon(
+                Icons.dark_mode,
+                color: isDark ? const Color(0xFFBE1E1E) : onSurface,
+              ),
+              trailing: isDark
+                  ? const Icon(Icons.check, color: Color(0xFFBE1E1E))
+                  : null,
               onTap: () {
                 Navigator.pop(context);
+                ThemeManager.instance.setTheme(true);
               },
             ),
             ListTile(
-              title: const Text('Clair', style: TextStyle(color: Colors.white)),
-              leading: const Icon(Icons.light_mode, color: Colors.white70),
+              title: Text(
+                lang.translate('theme_light'),
+                style: TextStyle(color: onSurface),
+              ),
+              leading: Icon(
+                Icons.light_mode,
+                color: !isDark ? const Color(0xFFBE1E1E) : onSurface,
+              ),
+              trailing: !isDark
+                  ? const Icon(Icons.check, color: Color(0xFFBE1E1E))
+                  : null,
               onTap: () {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Thème clair bientôt disponible'),
-                  ),
-                );
+                ThemeManager.instance.setTheme(false);
               },
             ),
           ],
@@ -218,10 +229,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text(
-          'Choisir la langue',
-          style: TextStyle(color: Colors.white),
+        backgroundColor: Theme.of(
+          context,
+        ).scaffoldBackgroundColor, // Use theme/context color
+        title: Text(
+          LanguageService.instance.translate('choose_language'),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -238,8 +251,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildLanguageTile(String name, String code, String flag) {
     final isSelected = _currentLanguage == code;
     return ListTile(
-      title: Text(name, style: const TextStyle(color: Colors.white)),
-      leading: Text(flag, style: const TextStyle(fontSize: 24)),
+      title: Text(
+        name,
+        style: TextStyle(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white
+              : Colors.black,
+        ),
+      ),
       trailing: isSelected
           ? const Icon(Icons.check, color: Color(0xFFBE1E1E))
           : null,
@@ -255,13 +274,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       applicationName: 'Militant',
       applicationVersion: '1.0.0',
-      applicationIcon: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: const BoxDecoration(
-          color: Color(0xFFBE1E1E),
-          shape: BoxShape.circle,
-        ),
-        child: const Icon(Icons.bolt, color: Colors.white),
+      applicationIcon: SvgPicture.asset(
+        'assets/logo.svg',
+        width: 80,
+        height: 80,
       ),
       children: [
         const Text('Le réseau social de combat.'),
@@ -328,15 +344,16 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final lang = LanguageService.instance;
+    final isDark = theme.brightness == Brightness.dark;
+    final inputColor = theme.textTheme.bodyLarge?.color;
+    final labelColor = isDark ? Colors.white70 : Colors.black54;
+    final borderColor = isDark ? Colors.white30 : Colors.black26;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text(
-          'Changer de mot de passe',
-          style: TextStyle(color: Colors.white),
-        ),
-      ),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(title: Text(lang.translate('change_password_title'))),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -347,53 +364,56 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               TextFormField(
                 controller: _currentPasswordController,
                 obscureText: true,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Mot de passe actuel',
-                  labelStyle: TextStyle(color: Colors.white70),
+                style: TextStyle(color: inputColor),
+                decoration: InputDecoration(
+                  labelText: lang.translate('current_password'),
+                  labelStyle: TextStyle(color: labelColor),
                   enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white30),
+                    borderSide: BorderSide(color: borderColor),
                   ),
-                  focusedBorder: UnderlineInputBorder(
+                  focusedBorder: const UnderlineInputBorder(
                     borderSide: BorderSide(color: Color(0xFFBE1E1E)),
                   ),
                 ),
-                validator: (v) => v!.isEmpty ? 'Requis' : null,
+                validator: (v) =>
+                    v!.isEmpty ? lang.translate('password_required') : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _newPasswordController,
                 obscureText: true,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Nouveau mot de passe',
-                  labelStyle: TextStyle(color: Colors.white70),
+                style: TextStyle(color: inputColor),
+                decoration: InputDecoration(
+                  labelText: lang.translate('new_password'),
+                  labelStyle: TextStyle(color: labelColor),
                   enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white30),
+                    borderSide: BorderSide(color: borderColor),
                   ),
-                  focusedBorder: UnderlineInputBorder(
+                  focusedBorder: const UnderlineInputBorder(
                     borderSide: BorderSide(color: Color(0xFFBE1E1E)),
                   ),
                 ),
-                validator: (v) => v!.length < 8 ? 'Minimun 8 caractères' : null,
+                validator: (v) => v!.length < 8
+                    ? lang.translate('password_min_length')
+                    : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _confirmPasswordController,
                 obscureText: true,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Confirmer le mot de passe',
-                  labelStyle: TextStyle(color: Colors.white70),
+                style: TextStyle(color: inputColor),
+                decoration: InputDecoration(
+                  labelText: lang.translate('confirm_password'),
+                  labelStyle: TextStyle(color: labelColor),
                   enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white30),
+                    borderSide: BorderSide(color: borderColor),
                   ),
-                  focusedBorder: UnderlineInputBorder(
+                  focusedBorder: const UnderlineInputBorder(
                     borderSide: BorderSide(color: Color(0xFFBE1E1E)),
                   ),
                 ),
                 validator: (v) => v != _newPasswordController.text
-                    ? 'Les mots de passe ne correspondent pas'
+                    ? lang.translate('password_match_error')
                     : null,
               ),
               const SizedBox(height: 32),
@@ -413,7 +433,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text('Mettre à jour'),
+                    : Text(lang.translate('update_button')),
               ),
             ],
           ),
@@ -505,58 +525,59 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final lang = LanguageService.instance;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text(
-          'Notifications',
-          style: TextStyle(color: Colors.white),
-        ),
-      ),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(title: Text(lang.translate('notifications_title'))),
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
             )
           : ListView(
               children: [
-                _buildSectionHeader('Canaux'),
+                _buildSectionHeader(
+                  lang.translate('notifications_channels_title'),
+                ),
                 _buildSwitch(
-                  'Notifications push',
-                  'Sur cet appareil',
+                  lang.translate('notifications_push'),
+                  lang.translate('notifications_push_subtitle'),
                   _pushEnabled,
                   (v) => _updatePreference('notifications_push', v),
                 ),
                 _buildSwitch(
-                  'E-mails',
-                  'Recevoir des résumés par mail',
+                  lang.translate('notifications_email'),
+                  lang.translate('notifications_email_subtitle'),
                   _emailEnabled,
                   (v) => _updatePreference('notifications_email', v),
                 ),
 
                 if (_pushEnabled || _emailEnabled) ...[
-                  _buildSectionHeader('Interactions'),
+                  _buildSectionHeader(
+                    lang.translate('notifications_interactions_title'),
+                  ),
                   _buildSwitch(
-                    'J\'aime',
-                    'Quand quelqu\'un aime vos posts',
+                    lang.translate('notifications_likes'),
+                    lang.translate('notifications_likes_subtitle'),
                     _likes,
                     (v) => _updatePreference('notifications_likes', v),
                   ),
                   _buildSwitch(
-                    'Commentaires',
-                    'Quand quelqu\'un commente',
+                    lang.translate('notifications_comments'),
+                    lang.translate('notifications_comments_subtitle'),
                     _comments,
                     (v) => _updatePreference('notifications_comments', v),
                   ),
                   _buildSwitch(
-                    'Abonnements',
-                    'Nouveaux abonnés',
+                    lang.translate('notifications_follows'),
+                    lang.translate('notifications_follows_subtitle'),
                     _follows,
                     (v) => _updatePreference('notifications_follows', v),
                   ),
                   _buildSwitch(
-                    'Mentions',
-                    'Quand on vous mentionne',
+                    lang.translate('notifications_mentions'),
+                    lang.translate('notifications_mentions_subtitle'),
                     _mentions,
                     (v) => _updatePreference('notifications_mentions', v),
                   ),
@@ -587,15 +608,24 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     bool value,
     ValueChanged<bool> onChanged,
   ) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return SwitchListTile(
       value: value,
       onChanged: onChanged,
       activeColor: const Color(0xFFBE1E1E),
-      tileColor: const Color(0xFF121212),
-      title: Text(title, style: const TextStyle(color: Colors.white)),
+      tileColor: theme.scaffoldBackgroundColor, // Seamless with background
+      title: Text(
+        title,
+        style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+      ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(color: Colors.white70, fontSize: 12),
+        style: TextStyle(
+          color: isDark ? Colors.white70 : Colors.grey,
+          fontSize: 12,
+        ),
       ),
     );
   }
@@ -670,15 +700,12 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final lang = LanguageService.instance;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text(
-          'Confidentialité',
-          style: TextStyle(color: Colors.white),
-        ),
-      ),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(title: Text(lang.translate('privacy_title'))),
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
@@ -686,27 +713,27 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
           : ListView(
               children: [
                 _buildSwitch(
-                  'Compte privé',
-                  'Seuls vos abonnés peuvent voir vos posts et médias',
+                  lang.translate('privacy_private_account'),
+                  lang.translate('privacy_private_subtitle'),
                   _isPrivate,
                   (v) => _updatePreference('privacy_private_account', v),
                 ),
-                const Divider(color: Colors.white10),
+                Divider(color: theme.dividerColor),
                 _buildSwitch(
-                  'Messages privés',
-                  'Autoriser tout le monde à vous envoyer des messages',
+                  lang.translate('privacy_allow_messages'),
+                  lang.translate('privacy_allow_messages_subtitle'),
                   _allowMessages,
                   (v) => _updatePreference('privacy_allow_messages', v),
                 ),
                 _buildSwitch(
-                  'Statut en ligne',
-                  'Afficher quand vous êtes actif',
+                  lang.translate('privacy_online_status'),
+                  lang.translate('privacy_online_subtitle'),
                   _showOnlineStatus,
                   (v) => _updatePreference('privacy_online_status', v),
                 ),
                 _buildSwitch(
-                  'Confirmations de lecture',
-                  'Voir quand vos messages sont lus',
+                  lang.translate('privacy_read_receipts'),
+                  lang.translate('privacy_read_receipts_subtitle'),
                   _showReadReceipts,
                   (v) => _updatePreference('privacy_read_receipts', v),
                 ),
@@ -721,15 +748,24 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
     bool value,
     ValueChanged<bool> onChanged,
   ) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return SwitchListTile(
       value: value,
       onChanged: onChanged,
       activeColor: const Color(0xFFBE1E1E),
-      tileColor: const Color(0xFF121212),
-      title: Text(title, style: const TextStyle(color: Colors.white)),
+      tileColor: theme.scaffoldBackgroundColor,
+      title: Text(
+        title,
+        style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+      ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(color: Colors.white70, fontSize: 12),
+        style: TextStyle(
+          color: isDark ? Colors.white70 : Colors.grey,
+          fontSize: 12,
+        ),
       ),
     );
   }
