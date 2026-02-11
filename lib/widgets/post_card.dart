@@ -3,6 +3,7 @@ import '../models/post.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../screens/post_detail_screen.dart';
+import '../screens/profile_screen.dart';
 import 'video_player_widget.dart';
 
 class PostCard extends StatefulWidget {
@@ -134,33 +135,76 @@ class _PostCardState extends State<PostCard> {
               // En-tête (avatar + nom + date)
               Row(
                 children: [
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundColor: const Color(0xFFBE1E1E),
-                    backgroundImage: _avatarUrl != null
-                        ? NetworkImage(_avatarUrl!)
-                        : null,
-                    child: _avatarUrl == null
-                        ? Text(
-                            widget.post.username[0].toUpperCase(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ProfileScreen(userId: widget.post.userId),
+                        ),
+                      );
+                    },
+                    child: Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: const Color(0xFFBE1E1E),
+                          backgroundImage: _avatarUrl != null
+                              ? NetworkImage(_avatarUrl!)
+                              : null,
+                          child: _avatarUrl == null
+                              ? Text(
+                                  widget.post.username[0].toUpperCase(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                )
+                              : null,
+                        ),
+                        if (widget.post.isOnline)
+                          Positioned(
+                            right: 0,
+                            bottom: 0,
+                            child: Container(
+                              width: 12,
+                              height: 12,
+                              decoration: BoxDecoration(
+                                color: Colors.green,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: const Color(0xFF1E1E1E),
+                                  width: 2,
+                                ),
+                              ),
                             ),
-                          )
-                        : null,
+                          ),
+                      ],
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          widget.post.username,
-                          style: TextStyle(
-                            color: textColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    ProfileScreen(userId: widget.post.userId),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            widget.post.username,
+                            style: TextStyle(
+                              color: textColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
                           ),
                         ),
                         Text(

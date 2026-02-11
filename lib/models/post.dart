@@ -11,6 +11,7 @@ class Post {
   final int commentsCount;
   final int sharesCount;
   final bool isLiked;
+  final bool isOnline;
   final DateTime createdAt;
 
   Post({
@@ -24,16 +25,16 @@ class Post {
     required this.commentsCount,
     required this.sharesCount,
     required this.isLiked,
+    required this.isOnline,
     required this.createdAt,
   });
 
   factory Post.fromJson(Map<String, dynamic> json) {
-    // Gérer les différents formats de média
+    // ... (logic unchanged) ...
     List<String> mediaList = [];
     if (json['media'] != null) {
       final media = json['media'];
       if (media is String && media.isNotEmpty) {
-        // Si c'est une chaîne, vérifier si c'est du JSON
         if (media.startsWith('[')) {
           try {
             final decoded = jsonDecode(media);
@@ -41,7 +42,6 @@ class Post {
               mediaList = decoded.map((e) => e.toString()).toList();
             }
           } catch (e) {
-            // Si le décodage échoue, traiter comme une seule URL
             mediaList = [media];
           }
         } else {
@@ -63,6 +63,7 @@ class Post {
       commentsCount: json['comments_count'] ?? 0,
       sharesCount: json['shares_count'] ?? 0,
       isLiked: json['is_liked'] == 1 || json['is_liked'] == true,
+      isOnline: json['is_online'] == 1 || json['is_online'] == true,
       createdAt: DateTime.parse(
         (json['created_at'] ?? DateTime.now().toIso8601String()).replaceAll(
           ' ',

@@ -139,6 +139,10 @@ class LanguageService extends ValueNotifier<Locale> {
       // Chat
       'message_hint': 'Message...',
       'online': 'En ligne',
+      'private_account_title': 'Ce compte est privé',
+      'private_account_subtitle': 'Abonnez-vous pour voir ses publications.',
+      'follow': 'Suivre',
+      'following_status': 'Suivi',
     },
     'en': {
       // General
@@ -258,6 +262,10 @@ class LanguageService extends ValueNotifier<Locale> {
       // Chat
       'message_hint': 'Message...',
       'online': 'Online',
+      'private_account_title': 'This account is private',
+      'private_account_subtitle': 'Follow this account to see their posts.',
+      'follow': 'Follow',
+      'following_status': 'Following',
     },
     'es': {
       // General
@@ -380,6 +388,11 @@ class LanguageService extends ValueNotifier<Locale> {
       // Chat
       'message_hint': 'Mensaje...',
       'online': 'En línea',
+      'private_account_title': 'Esta cuenta es privada',
+      'private_account_subtitle':
+          'Sigue a esta cuenta para ver sus publicaciones.',
+      'follow': 'Seguir',
+      'following_status': 'Siguiendo',
     },
   };
 

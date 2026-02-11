@@ -9,7 +9,8 @@ import 'settings_screen.dart';
 import '../services/language_service.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final int? userId;
+  const ProfileScreen({super.key, this.userId});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -23,6 +24,8 @@ class _ProfileScreenState extends State<ProfileScreen>
   bool _isLoadingPosts = false;
   late TabController _tabController;
   int _selectedTab = 0;
+  bool _isFollowing = false;
+  bool _isMe = false;
 
   @override
   void initState() {
@@ -32,7 +35,6 @@ class _ProfileScreenState extends State<ProfileScreen>
       setState(() => _selectedTab = _tabController.index);
     });
     _loadProfile();
-    _loadUserPosts();
   }
 
   String? _avatarUrl;
@@ -41,12 +43,24 @@ class _ProfileScreenState extends State<ProfileScreen>
     setState(() => _isLoading = true);
     try {
       final api = await ApiService.getInstance();
-      final profile = await api.getProfile();
+      final myProfile = await api.getProfile();
+
+      final profile = await api.getProfile(userId: widget.userId);
 
       setState(() {
         _profile = profile;
+        _isMe = widget.userId == null || widget.userId == myProfile['id'];
+        _isFollowing =
+            profile['is_following'] == 1 || profile['is_following'] == true;
         _avatarUrl = api.getImageUrl(profile['avatar']);
       });
+
+      // Load posts if allowed
+      final isPrivate =
+          profile['is_private'] == 1 || profile['is_private'] == true;
+      if (!isPrivate || _isMe || _isFollowing) {
+        _loadUserPosts(profile['id'] ?? profile['user_id']);
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -58,12 +72,10 @@ class _ProfileScreenState extends State<ProfileScreen>
     }
   }
 
-  Future<void> _loadUserPosts() async {
+  Future<void> _loadUserPosts(int userId) async {
     setState(() => _isLoadingPosts = true);
     try {
       final api = await ApiService.getInstance();
-      final profile = await api.getProfile();
-      final userId = profile['id'] ?? profile['user_id'];
 
       // Load ALL pages of posts
       List<dynamic> allPosts = [];
@@ -73,13 +85,11 @@ class _ProfileScreenState extends State<ProfileScreen>
         final postsData = await api.getUserPosts(userId, page: page);
         allPosts.addAll(postsData);
 
-        // Try to get total pages from the API response metadata
-        // If we got fewer posts than expected, we've reached the last page
         if (postsData.length < 20) {
           break; // No more pages
         }
         page++;
-      } while (page <= 50); // Safety limit: max 50 pages (1000 posts)
+      } while (page <= 50); // Safety limit
 
       setState(() {
         _posts.clear();
@@ -216,13 +226,58 @@ class _ProfileScreenState extends State<ProfileScreen>
                         ),
                       ),
                 const SizedBox(height: 16),
-                Text(
-                  username,
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      username,
+                      style: TextStyle(
+                        color: textColor,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (_profile?['is_private'] == 1 ||
+                        _profile?['is_private'] == true) ...[
+                      const SizedBox(width: 8),
+                      const Icon(
+                        Icons.lock,
+                        size: 20,
+                        color: Color(0xFFBE1E1E),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (_profile?['is_online'] == 1 ||
+                        _profile?['is_online'] == true) ...[
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: const BoxDecoration(
+                          color: Colors.green,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        lang.translate('online'),
+                        style: const TextStyle(
+                          color: Colors.green,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ] else if (_profile?['last_active'] != null) ...[
+                      Text(
+                        'Dernière activité: ${_profile!['last_active']}', // TODO: Format date
+                        style: TextStyle(color: subtitleColor, fontSize: 13),
+                      ),
+                    ],
+                  ],
                 ),
                 if (_profile?['email'] != null &&
                     _profile!['email'].isNotEmpty) ...[
@@ -274,93 +329,145 @@ class _ProfileScreenState extends State<ProfileScreen>
             ),
           ),
 
-          // Options
-          _buildOption(
-            icon: Icons.edit,
-            title: lang.translate('edit_profile_title'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const EditProfileScreen()),
-              ).then((_) => _loadProfile());
-            },
-          ),
-          _buildOption(
-            icon: Icons.settings,
-            title: lang.translate('settings_title'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const SettingsScreen()),
-              );
-            },
-          ),
-          _buildOption(
-            icon: Icons.bookmark,
-            title: lang.translate('saved_posts_title'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const BookmarksScreen()),
-              );
-            },
-          ),
-
-          // Onglets
-          Container(
-            color: theme.cardColor,
-            child: TabBar(
-              controller: _tabController,
-              indicatorColor: const Color(0xFFBE1E1E),
-              labelColor: const Color(0xFFBE1E1E),
-              unselectedLabelColor: subtitleColor,
-              tabs: [
-                Tab(text: '${lang.translate('posts')} (${_posts.length})'),
-                Tab(text: lang.translate('media')),
-              ],
+          // Options (Only if Me)
+          if (_isMe) ...[
+            _buildOption(
+              icon: Icons.edit,
+              title: lang.translate('edit_profile_title'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                ).then((_) => _loadProfile());
+              },
             ),
-          ),
-
-          // Contenu des onglets
-          if (_selectedTab == 0) ...[
-            // Posts
-            if (_isLoadingPosts)
-              const Padding(
-                padding: EdgeInsets.all(32),
-                child: Center(
-                  child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-                ),
-              )
-            else if (_posts.isEmpty)
-              Padding(
-                padding: const EdgeInsets.all(32),
-                child: Center(
-                  child: Text(
-                    lang.translate('no_posts'),
-                    style: TextStyle(color: subtitleColor),
-                  ),
-                ),
-              )
-            else
-              ...List.generate(_posts.length, (index) {
-                return PostCard(
-                  post: _posts[index],
-                  onDeleted: () {
-                    setState(() => _posts.removeAt(index));
-                  },
+            _buildOption(
+              icon: Icons.settings,
+              title: lang.translate('settings_title'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
                 );
-              }),
+              },
+            ),
+            _buildOption(
+              icon: Icons.bookmark,
+              title: lang.translate('saved_posts_title'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const BookmarksScreen()),
+                );
+              },
+            ),
           ] else ...[
-            // Médias
-            if (_isLoadingPosts)
-              const Padding(
-                padding: EdgeInsets.all(32),
-                child: Center(
-                  child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
+            // Follow button could go here
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: ElevatedButton(
+                onPressed: () async {
+                  // TODO: Follow/Unfollow logic
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _isFollowing
+                      ? Colors.grey
+                      : const Color(0xFFBE1E1E),
                 ),
-              )
-            else
-              _buildMediaGrid(),
+                child: Text(
+                  _isFollowing
+                      ? lang.translate('following_status')
+                      : lang.translate('follow'),
+                ),
+              ),
+            ),
+          ],
+
+          // Check for Private access
+          if ((_profile?['is_private'] == 1 ||
+                  _profile?['is_private'] == true) &&
+              !_isMe &&
+              !_isFollowing) ...[
+            Padding(
+              padding: const EdgeInsets.all(48),
+              child: Column(
+                children: [
+                  const Icon(Icons.lock_outline, size: 64, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  Text(
+                    lang.translate('private_account_title'),
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    lang.translate('private_account_subtitle'),
+                    style: TextStyle(color: subtitleColor),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            // Onglets
+            Container(
+              color: theme.cardColor,
+              child: TabBar(
+                controller: _tabController,
+                indicatorColor: const Color(0xFFBE1E1E),
+                labelColor: const Color(0xFFBE1E1E),
+                unselectedLabelColor: subtitleColor,
+                tabs: [
+                  Tab(text: '${lang.translate('posts')} (${_posts.length})'),
+                  Tab(text: lang.translate('media')),
+                ],
+              ),
+            ),
+
+            // Render Selected Tab Content
+            if (_selectedTab == 0) ...[
+              // Posts
+              if (_isLoadingPosts)
+                const Padding(
+                  padding: EdgeInsets.all(32),
+                  child: Center(
+                    child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
+                  ),
+                )
+              else if (_posts.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Center(
+                    child: Text(
+                      lang.translate('no_posts'),
+                      style: TextStyle(color: subtitleColor),
+                    ),
+                  ),
+                )
+              else
+                ...List.generate(_posts.length, (index) {
+                  return PostCard(
+                    post: _posts[index],
+                    onDeleted: () {
+                      setState(() => _posts.removeAt(index));
+                    },
+                  );
+                }),
+            ] else ...[
+              // Médias content
+              if (_isLoadingPosts)
+                const Padding(
+                  padding: EdgeInsets.all(32),
+                  child: Center(
+                    child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
+                  ),
+                )
+              else
+                _buildMediaGrid(),
+            ],
           ],
         ],
       ),

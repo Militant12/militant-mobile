@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import 'profile_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -183,12 +184,30 @@ class _SearchScreenState extends State<SearchScreen> {
 
     // User result
     return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: const Color(0xFFBE1E1E),
-        child: Text(
-          ((item['name'] ?? item['username'] ?? 'U')[0]).toUpperCase(),
-          style: const TextStyle(color: Colors.white),
-        ),
+      leading: Stack(
+        children: [
+          CircleAvatar(
+            backgroundColor: const Color(0xFFBE1E1E),
+            child: Text(
+              ((item['name'] ?? item['username'] ?? 'U')[0]).toUpperCase(),
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+          if (item['is_online'] == 1 || item['is_online'] == true)
+            Positioned(
+              right: 0,
+              bottom: 0,
+              child: Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFF1E1E1E), width: 2),
+                ),
+              ),
+            ),
+        ],
       ),
       title: Text(
         item['name'] ?? item['username'] ?? 'Utilisateur',
@@ -201,10 +220,13 @@ class _SearchScreenState extends State<SearchScreen> {
         overflow: TextOverflow.ellipsis,
       ),
       onTap: () {
-        // Navigate to profile
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Navigation vers le profil à venir')),
-        );
+        final userId = item['id'];
+        if (userId != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => ProfileScreen(userId: userId)),
+          );
+        }
       },
     );
   }
