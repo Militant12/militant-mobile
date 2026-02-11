@@ -441,6 +441,53 @@ class ApiService {
     }
   }
 
+  Future<List<dynamic>> getFollows({
+    int? userId,
+    required String type,
+    int page = 1,
+  }) async {
+    final url =
+        '$apiUrl/v1/follows.php?user_id=${userId ?? ''}&type=$type&page=$page';
+    final response = await http.get(Uri.parse(url), headers: _headers);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['success'] == true && data['data'] != null) {
+        return data['data']['data'] ?? [];
+      }
+      return [];
+    } else {
+      throw Exception('Erreur de chargement de la liste');
+    }
+  }
+
+  Future<Map<String, dynamic>> followUser(int userId) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/follows.php'),
+      headers: _headers,
+      body: jsonEncode({'user_id': userId}),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur lors du suivi');
+    }
+  }
+
+  Future<Map<String, dynamic>> unfollowUser(int userId) async {
+    final response = await http.delete(
+      Uri.parse('$apiUrl/v1/follows.php?user_id=$userId'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur lors du désabonnement');
+    }
+  }
+
   // === MESSAGES ===
 
   Future<List<dynamic>> getMessages({int? userId, int page = 1}) async {

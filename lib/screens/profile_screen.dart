@@ -6,6 +6,7 @@ import 'login_screen.dart';
 import 'edit_profile_screen.dart';
 import 'bookmarks_screen.dart';
 import 'settings_screen.dart';
+import 'users_list_screen.dart';
 import '../services/language_service.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -103,6 +104,35 @@ class _ProfileScreenState extends State<ProfileScreen>
       }
     } finally {
       setState(() => _isLoadingPosts = false);
+    }
+  }
+
+  Future<void> _toggleFollow() async {
+    if (_profile == null || _isMe) return;
+
+    try {
+      final api = await ApiService.getInstance();
+      if (_isFollowing) {
+        await api.unfollowUser(widget.userId ?? _profile!['id']);
+        setState(() {
+          _isFollowing = false;
+          _profile!['followers_count'] =
+              (_profile!['followers_count'] ?? 1) - 1;
+        });
+      } else {
+        await api.followUser(widget.userId ?? _profile!['id']);
+        setState(() {
+          _isFollowing = true;
+          _profile!['followers_count'] =
+              (_profile!['followers_count'] ?? 0) + 1;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+      }
     }
   }
 
@@ -320,10 +350,34 @@ class _ProfileScreenState extends State<ProfileScreen>
                 _buildStat(
                   lang.translate('followers'),
                   _profile?['followers_count']?.toString() ?? '0',
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => UsersListScreen(
+                          userId: widget.userId ?? _profile!['id'],
+                          title: lang.translate('followers'),
+                          type: 'followers',
+                        ),
+                      ),
+                    );
+                  },
                 ),
                 _buildStat(
                   lang.translate('following'),
                   _profile?['following_count']?.toString() ?? '0',
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => UsersListScreen(
+                          userId: widget.userId ?? _profile!['id'],
+                          title: lang.translate('following'),
+                          type: 'following',
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -366,9 +420,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             Padding(
               padding: const EdgeInsets.all(16),
               child: ElevatedButton(
-                onPressed: () async {
-                  // TODO: Follow/Unfollow logic
-                },
+                onPressed: _toggleFollow,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _isFollowing
                       ? Colors.grey
@@ -583,27 +635,30 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildStat(String label, String value) {
+  Widget _buildStat(String label, String value, [VoidCallback? onTap]) {
     final theme = Theme.of(context);
-    return Column(
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-            color: theme.textTheme.bodyLarge?.color,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: TextStyle(
+              color: theme.textTheme.bodyLarge?.color,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            color: theme.textTheme.bodyMedium?.color,
-            fontSize: 14,
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: theme.textTheme.bodyMedium?.color,
+              fontSize: 14,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

@@ -474,12 +474,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
       if (mounted) {
         setState(() {
-          _pushEnabled = prefs['notifications_push'] ?? true;
-          _emailEnabled = prefs['notifications_email'] ?? false;
-          _likes = prefs['notifications_likes'] ?? true;
-          _comments = prefs['notifications_comments'] ?? true;
-          _follows = prefs['notifications_follows'] ?? true;
-          _mentions = prefs['notifications_mentions'] ?? true;
+          _pushEnabled = _toBool(prefs['notifications_push'], true);
+          _emailEnabled = _toBool(prefs['notifications_email'], false);
+          _likes = _toBool(prefs['notifications_likes'], true);
+          _comments = _toBool(prefs['notifications_comments'], true);
+          _follows = _toBool(prefs['notifications_follows'], true);
+          _mentions = _toBool(prefs['notifications_mentions'], true);
           _isLoading = false;
         });
       }
@@ -491,6 +491,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         );
       }
     }
+  }
+
+  bool _toBool(dynamic value, bool defaultValue) {
+    if (value == null) return defaultValue;
+    if (value is bool) return value;
+    if (value is int) return value == 1;
+    if (value is String) return value == '1' || value.toLowerCase() == 'true';
+    return defaultValue;
   }
 
   Future<void> _updatePreference(String key, bool value) async {
@@ -659,19 +667,26 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
 
       if (mounted) {
         setState(() {
-          _isPrivate = prefs['privacy_private_account'] ?? false;
-          _allowMessages = prefs['privacy_allow_messages'] ?? true;
-          _showOnlineStatus = prefs['privacy_online_status'] ?? true;
-          _showReadReceipts = prefs['privacy_read_receipts'] ?? true;
+          _isPrivate = _toBool(prefs['privacy_private_account'], false);
+          _allowMessages = _toBool(prefs['privacy_allow_messages'], true);
+          _showOnlineStatus = _toBool(prefs['privacy_online_status'], true);
+          _showReadReceipts = _toBool(prefs['privacy_read_receipts'], true);
           _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        // Silent fail or default values
       }
     }
+  }
+
+  bool _toBool(dynamic value, bool defaultValue) {
+    if (value == null) return defaultValue;
+    if (value is bool) return value;
+    if (value is int) return value == 1;
+    if (value is String) return value == '1' || value.toLowerCase() == 'true';
+    return defaultValue;
   }
 
   Future<void> _updatePreference(String key, bool value) async {
@@ -689,6 +704,14 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
     try {
       final api = await ApiService.getInstance();
       await api.updatePreferences({key: value});
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Paramètre mis à jour'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
