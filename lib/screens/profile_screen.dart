@@ -14,17 +14,22 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProviderStateMixin {
+class _ProfileScreenState extends State<ProfileScreen>
+    with SingleTickerProviderStateMixin {
   Map<String, dynamic>? _profile;
   final List<Post> _posts = [];
   bool _isLoading = true;
   bool _isLoadingPosts = false;
   late TabController _tabController;
+  int _selectedTab = 0;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      setState(() => _selectedTab = _tabController.index);
+    });
     _loadProfile();
     _loadUserPosts();
   }
@@ -36,16 +41,16 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     try {
       final api = await ApiService.getInstance();
       final profile = await api.getProfile();
-      
+
       setState(() {
         _profile = profile;
         _avatarUrl = api.getImageUrl(profile['avatar']);
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
       }
     } finally {
       setState(() => _isLoading = false);
@@ -58,17 +63,32 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       final api = await ApiService.getInstance();
       final profile = await api.getProfile();
       final userId = profile['id'] ?? profile['user_id'];
-      
-      final postsData = await api.getUserPosts(userId);
+
+      // Load ALL pages of posts
+      List<dynamic> allPosts = [];
+      int page = 1;
+
+      do {
+        final postsData = await api.getUserPosts(userId, page: page);
+        allPosts.addAll(postsData);
+
+        // Try to get total pages from the API response metadata
+        // If we got fewer posts than expected, we've reached the last page
+        if (postsData.length < 20) {
+          break; // No more pages
+        }
+        page++;
+      } while (page <= 50); // Safety limit: max 50 pages (1000 posts)
+
       setState(() {
         _posts.clear();
-        _posts.addAll(postsData.map((p) => Post.fromJson(p)).toList());
+        _posts.addAll(allPosts.map((p) => Post.fromJson(p)).toList());
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
       }
     } finally {
       setState(() => _isLoadingPosts = false);
@@ -88,11 +108,17 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler', style: TextStyle(color: Colors.white70)),
+            child: const Text(
+              'Annuler',
+              style: TextStyle(color: Colors.white70),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Déconnexion', style: TextStyle(color: Color(0xFFBE1E1E))),
+            child: const Text(
+              'Déconnexion',
+              style: TextStyle(color: Color(0xFFBE1E1E)),
+            ),
           ),
         ],
       ),
@@ -101,7 +127,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     if (confirm == true && mounted) {
       final api = await ApiService.getInstance();
       await api.clearToken();
-      
+
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -145,9 +171,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
             padding: const EdgeInsets.all(24),
             decoration: const BoxDecoration(
               color: Color(0xFF1E1E1E),
-              border: Border(
-                bottom: BorderSide(color: Colors.white10),
-              ),
+              border: Border(bottom: BorderSide(color: Colors.white10)),
             ),
             child: Column(
               children: [
@@ -204,10 +228,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
                   Text(
                     bio,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                 ],
               ],
@@ -219,16 +240,23 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
             padding: const EdgeInsets.symmetric(vertical: 16),
             decoration: const BoxDecoration(
               color: Color(0xFF1E1E1E),
-              border: Border(
-                bottom: BorderSide(color: Colors.white10),
-              ),
+              border: Border(bottom: BorderSide(color: Colors.white10)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildStat('Posts', _profile?['posts_count']?.toString() ?? '0'),
-                _buildStat('Abonnés', _profile?['followers_count']?.toString() ?? '0'),
-                _buildStat('Abonnements', _profile?['following_count']?.toString() ?? '0'),
+                _buildStat(
+                  'Posts',
+                  _profile?['posts_count']?.toString() ?? '0',
+                ),
+                _buildStat(
+                  'Abonnés',
+                  _profile?['followers_count']?.toString() ?? '0',
+                ),
+                _buildStat(
+                  'Abonnements',
+                  _profile?['following_count']?.toString() ?? '0',
+                ),
               ],
             ),
           ),
@@ -273,48 +301,54 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               indicatorColor: const Color(0xFFBE1E1E),
               labelColor: const Color(0xFFBE1E1E),
               unselectedLabelColor: const Color(0xFF888888),
-              tabs: const [
-                Tab(text: 'Posts'),
+              tabs: [
+                Tab(text: 'Posts (${_posts.length})'),
                 Tab(text: 'Médias'),
               ],
             ),
           ),
 
-          // Contenu des onglets
-          SizedBox(
-            height: 400,
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                // Posts
-                _isLoadingPosts
-                    ? const Center(
-                        child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-                      )
-                    : _posts.isEmpty
-                        ? const Center(
-                            child: Text(
-                              'Aucun post',
-                              style: TextStyle(color: Color(0xFF888888)),
-                            ),
-                          )
-                        : ListView.builder(
-                            physics: const NeverScrollableScrollPhysics(),
-                            shrinkWrap: true,
-                            itemCount: _posts.length,
-                            itemBuilder: (context, index) {
-                              return PostCard(post: _posts[index]);
-                            },
-                          ),
-                // Médias
-                _isLoadingPosts
-                    ? const Center(
-                        child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-                      )
-                    : _buildMediaGrid(),
-              ],
-            ),
-          ),
+          // Contenu des onglets (inline, pas de TabBarView pour éviter la hauteur fixe)
+          if (_selectedTab == 0) ...[
+            // Posts
+            if (_isLoadingPosts)
+              const Padding(
+                padding: EdgeInsets.all(32),
+                child: Center(
+                  child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
+                ),
+              )
+            else if (_posts.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(32),
+                child: Center(
+                  child: Text(
+                    'Aucun post',
+                    style: TextStyle(color: Color(0xFF888888)),
+                  ),
+                ),
+              )
+            else
+              ...List.generate(_posts.length, (index) {
+                return PostCard(
+                  post: _posts[index],
+                  onDeleted: () {
+                    setState(() => _posts.removeAt(index));
+                  },
+                );
+              }),
+          ] else ...[
+            // Médias
+            if (_isLoadingPosts)
+              const Padding(
+                padding: EdgeInsets.all(32),
+                child: Center(
+                  child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
+                ),
+              )
+            else
+              _buildMediaGrid(),
+          ],
         ],
       ),
     );
@@ -328,68 +362,98 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
 
   Widget _buildMediaGrid() {
     final postsWithMedia = _posts.where((p) => p.mediaUrls.isNotEmpty).toList();
-    
+
     if (postsWithMedia.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.photo_library, size: 64, color: Color(0xFF888888)),
-            SizedBox(height: 16),
-            Text(
-              'Aucun média',
-              style: TextStyle(color: Color(0xFF888888)),
-            ),
-          ],
+      return const Padding(
+        padding: EdgeInsets.all(32),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.photo_library, size: 64, color: Color(0xFF888888)),
+              SizedBox(height: 16),
+              Text('Aucun média', style: TextStyle(color: Color(0xFF888888))),
+            ],
+          ),
         ),
       );
     }
 
-    return GridView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 2,
-        mainAxisSpacing: 2,
-      ),
-      itemCount: postsWithMedia.length,
-      itemBuilder: (context, index) {
-        final post = postsWithMedia[index];
-        final imageUrl = post.mediaUrls.isNotEmpty ? post.mediaUrls[0] : null;
-        
-        return GestureDetector(
-          onTap: () {
-            // Navigate to post detail
-            Navigator.pushNamed(context, '/post', arguments: post);
-          },
-          child: Container(
-            color: const Color(0xFF2A2A2A),
-            child: imageUrl != null
-                ? Image.network(
-                    imageUrl,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return const Center(
-                        child: CircularProgressIndicator(
-                          color: Color(0xFFBE1E1E),
-                          strokeWidth: 2,
-                        ),
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Icon(
-                        Icons.broken_image,
-                        color: Color(0xFF888888),
-                      );
-                    },
-                  )
-                : const Icon(
-                    Icons.image,
-                    color: Color(0xFF888888),
-                  ),
+    return FutureBuilder<ApiService>(
+      future: ApiService.getInstance(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(
+            child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
+          );
+        }
+        final api = snapshot.data!;
+
+        return GridView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: 2,
+            mainAxisSpacing: 2,
           ),
+          itemCount: postsWithMedia.length,
+          itemBuilder: (context, index) {
+            final post = postsWithMedia[index];
+            final rawMedia = post.mediaUrls.isNotEmpty
+                ? post.mediaUrls[0]
+                : null;
+            final imageUrl = rawMedia != null
+                ? api.getImageUrl(rawMedia)
+                : null;
+
+            // Check if it's a video
+            final isVideo =
+                rawMedia != null &&
+                (rawMedia.endsWith('.mp4') ||
+                    rawMedia.endsWith('.webm') ||
+                    rawMedia.endsWith('.mov') ||
+                    rawMedia.endsWith('.avi'));
+
+            return GestureDetector(
+              onTap: () {
+                // TODO: Navigate to post detail
+              },
+              child: Container(
+                color: const Color(0xFF2A2A2A),
+                child: imageUrl != null
+                    ? isVideo
+                          ? const Center(
+                              child: Icon(
+                                Icons.play_circle_outline,
+                                color: Color(0xFFBE1E1E),
+                                size: 40,
+                              ),
+                            )
+                          : Image.network(
+                              imageUrl,
+                              fit: BoxFit.cover,
+                              loadingBuilder:
+                                  (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return const Center(
+                                      child: CircularProgressIndicator(
+                                        color: Color(0xFFBE1E1E),
+                                        strokeWidth: 2,
+                                      ),
+                                    );
+                                  },
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(
+                                  Icons.broken_image,
+                                  color: Color(0xFF888888),
+                                );
+                              },
+                            )
+                    : const Icon(Icons.image, color: Color(0xFF888888)),
+              ),
+            );
+          },
         );
       },
     );
@@ -409,10 +473,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(
-            color: Color(0xFF888888),
-            fontSize: 14,
-          ),
+          style: const TextStyle(color: Color(0xFF888888), fontSize: 14),
         ),
       ],
     );
@@ -428,9 +489,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: const BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: Colors.white10),
-          ),
+          border: Border(bottom: BorderSide(color: Colors.white10)),
         ),
         child: Row(
           children: [
@@ -439,10 +498,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                ),
+                style: const TextStyle(color: Colors.white, fontSize: 16),
               ),
             ),
             const Icon(Icons.chevron_right, color: Color(0xFF888888)),

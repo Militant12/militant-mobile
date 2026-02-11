@@ -668,6 +668,57 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> getPreferences() async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/user_preferences.php'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      return json['success'] == true ? json : {};
+    } else {
+      throw Exception('Erreur de chargement des préférences');
+    }
+  }
+
+  Future<Map<String, dynamic>> updatePreferences(
+    Map<String, dynamic> prefs,
+  ) async {
+    final response = await http.put(
+      Uri.parse('$apiUrl/v1/user_preferences.php'),
+      headers: _headers,
+      body: jsonEncode(prefs),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur de mise à jour des préférences');
+    }
+  }
+
+  Future<Map<String, dynamic>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/change_password.php'),
+      headers: _headers,
+      body: jsonEncode({
+        'current_password': currentPassword,
+        'new_password': newPassword,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final body = jsonDecode(response.body);
+      throw Exception(body['error'] ?? 'Impossible de changer le mot de passe');
+    }
+  }
+
   // === SEARCH ===
 
   Future<Map<String, dynamic>> search(

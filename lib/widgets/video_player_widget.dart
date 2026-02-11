@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -17,87 +18,109 @@ class VideoPlayerWidget extends StatefulWidget {
 }
 
 class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
-  late VideoPlayerController _controller;
+  VideoPlayerController? _controller;
   bool _isInitialized = false;
   bool _hasError = false;
   bool _showControls = true;
   bool _isMuted = true;
+  bool _isDesktop = false;
   String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _initializePlayer();
+    _isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
+    if (_isDesktop) {
+      // On desktop, skip inline playback to avoid native crashes
+      setState(() {
+        _hasError = true;
+        _errorMessage = 'Lecture inline non disponible sur desktop';
+      });
+    } else {
+      _initializePlayer();
+    }
   }
 
   void _initializePlayer() {
     print('[VideoPlayer] Initializing with URL: ${widget.videoUrl}');
 
-    final newController = VideoPlayerController.networkUrl(
-      Uri.parse(widget.videoUrl),
-    );
+    try {
+      final newController = VideoPlayerController.networkUrl(
+        Uri.parse(widget.videoUrl),
+      );
 
-    newController.setVolume(0);
-    newController.setLooping(true);
+      newController.setVolume(0);
+      newController.setLooping(true);
 
-    newController
-        .initialize()
-        .then((_) {
-          print('[VideoPlayer] OK - Size: ${newController.value.size}');
-          if (mounted) {
-            setState(() {
-              _controller = newController;
-              _isInitialized = true;
-              _hasError = false;
-              _errorMessage = null;
-            });
-            _controller.play();
-          } else {
-            newController.dispose();
-          }
-        })
-        .catchError((error) {
-          print('[VideoPlayer] ERROR: $error');
-          print('[VideoPlayer] URL: ${widget.videoUrl}');
-          newController.dispose();
+      newController
+          .initialize()
+          .then((_) {
+            print('[VideoPlayer] OK - Size: ${newController.value.size}');
+            if (mounted) {
+              setState(() {
+                _controller = newController;
+                _isInitialized = true;
+                _hasError = false;
+                _errorMessage = null;
+              });
+              newController.addListener(_videoListener);
+              newController.play();
+            } else {
+              newController.dispose();
+            }
+          })
+          .catchError((error) {
+            print('[VideoPlayer] ERROR: $error');
+            print('[VideoPlayer] URL: ${widget.videoUrl}');
+            try {
+              newController.dispose();
+            } catch (_) {}
 
-          if (mounted) {
-            setState(() {
-              _hasError = true;
-              _errorMessage = error.toString();
-            });
-          }
+            if (mounted) {
+              setState(() {
+                _hasError = true;
+                _errorMessage = error.toString();
+              });
+            }
+          });
+    } catch (e) {
+      print('[VideoPlayer] INIT ERROR: $e');
+      if (mounted) {
+        setState(() {
+          _hasError = true;
+          _errorMessage = e.toString();
         });
-
-    _controller = newController;
-    _controller.addListener(_videoListener);
+      }
+    }
   }
 
   void _videoListener() {
-    if (_controller.value.hasError && !_hasError && mounted) {
-      print(
-        '[VideoPlayer] Playback error: ${_controller.value.errorDescription}',
-      );
+    final ctrl = _controller;
+    if (ctrl != null && ctrl.value.hasError && !_hasError && mounted) {
+      print('[VideoPlayer] Playback error: ${ctrl.value.errorDescription}');
       setState(() {
         _hasError = true;
-        _errorMessage = _controller.value.errorDescription;
+        _errorMessage = ctrl.value.errorDescription;
       });
     }
   }
 
   @override
   void dispose() {
-    _controller.removeListener(_videoListener);
-    _controller.dispose();
+    final ctrl = _controller;
+    if (ctrl != null) {
+      ctrl.removeListener(_videoListener);
+      ctrl.dispose();
+    }
     super.dispose();
   }
 
   void _togglePlayPause() {
     setState(() {
-      if (_controller.value.isPlaying) {
-        _controller.pause();
+      if (_controller!.value.isPlaying) {
+        _controller!.pause();
       } else {
-        _controller.play();
+        _controller!.play();
       }
     });
   }
@@ -105,7 +128,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   void _toggleMute() {
     setState(() {
       _isMuted = !_isMuted;
-      _controller.setVolume(_isMuted ? 0 : 1);
+      _controller!.setVolume(_isMuted ? 0 : 1);
     });
   }
 
@@ -150,13 +173,13 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
             children: [
               // Video
               AspectRatio(
-                aspectRatio: _controller.value.aspectRatio,
-                child: VideoPlayer(_controller),
+                aspectRatio: _controller!.value.aspectRatio,
+                child: VideoPlayer(_controller!),
               ),
 
               // Play/pause button center overlay
               AnimatedOpacity(
-                opacity: _showControls || !_controller.value.isPlaying
+                opacity: _showControls || !_controller!.value.isPlaying
                     ? 1.0
                     : 0.0,
                 duration: const Duration(milliseconds: 250),
@@ -176,7 +199,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                       ],
                     ),
                     child: Icon(
-                      _controller.value.isPlaying
+                      _controller!.value.isPlaying
                           ? Icons.pause_rounded
                           : Icons.play_arrow_rounded,
                       color: Colors.white,
@@ -222,7 +245,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
               ),
 
               // Bottom controls bar
-              if (_showControls || !_controller.value.isPlaying)
+              if (_showControls || !_controller!.value.isPlaying)
                 Positioned(
                   left: 0,
                   right: 0,
@@ -247,7 +270,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                       children: [
                         // Progress bar
                         VideoProgressIndicator(
-                          _controller,
+                          _controller!,
                           allowScrubbing: true,
                           colors: const VideoProgressColors(
                             playedColor: Color(0xFFBE1E1E),
@@ -261,7 +284,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                           children: [
                             // Current time
                             ValueListenableBuilder<VideoPlayerValue>(
-                              valueListenable: _controller,
+                              valueListenable: _controller!,
                               builder: (context, value, _) {
                                 return Text(
                                   '${_formatDuration(value.position)} / ${_formatDuration(value.duration)}',
@@ -325,38 +348,49 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       child: Container(
         height: 200,
         width: double.infinity,
-        color: const Color(0xFF2A2A2A),
+        decoration: BoxDecoration(
+          color: const Color(0xFF2A2A2A),
+          borderRadius: BorderRadius.circular(12),
+        ),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.videocam_off,
-                color: Color(0xFF888888),
-                size: 48,
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFBE1E1E).withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.play_circle_outline,
+                  color: Color(0xFFBE1E1E),
+                  size: 40,
+                ),
               ),
               const SizedBox(height: 12),
-              const Text(
-                'Impossible de lire la vidéo',
-                style: TextStyle(color: Colors.white70, fontSize: 14),
+              Text(
+                _isDesktop ? 'Vidéo disponible' : 'Impossible de lire la vidéo',
+                style: const TextStyle(color: Colors.white70, fontSize: 14),
               ),
-              if (_errorMessage != null) ...[
-                const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Text(
-                    'Erreur: ${_errorMessage!.contains('unsupported') ? 'Format non supporté' : 'Erreur de lecture'}',
-                    style: const TextStyle(color: Colors.white38, fontSize: 11),
-                    textAlign: TextAlign.center,
-                  ),
+              if (!_isDesktop && _errorMessage != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  'Format non supporté',
+                  style: const TextStyle(color: Colors.white38, fontSize: 11),
                 ),
               ],
               const SizedBox(height: 16),
               ElevatedButton.icon(
                 onPressed: _openInBrowser,
                 icon: const Icon(Icons.open_in_new, size: 16),
-                label: const Text('Ouvrir dans le navigateur'),
+                label: Text(
+                  _isDesktop
+                      ? 'Regarder la vidéo'
+                      : 'Ouvrir dans le navigateur',
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFBE1E1E),
                   foregroundColor: Colors.white,
