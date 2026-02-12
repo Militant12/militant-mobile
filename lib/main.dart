@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fvp/fvp.dart' as fvp;
@@ -15,8 +17,10 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize OneSignal Debugging only (removed hardcoded initialize)
-  OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
+  // Initialize OneSignal Debugging only on supported platforms
+  if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+    OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
+  }
 
   // Register FVP with options to handle more formats and network streams better
   fvp.registerWith(
@@ -147,10 +151,12 @@ class _SplashScreenState extends State<SplashScreen>
           final api = await ApiService.getInstance();
           await api.initializeOneSignal();
 
-          // Identify user in OneSignal
-          final profile = await api.getProfile();
-          if (profile['id'] != null) {
-            OneSignal.login(profile['id'].toString());
+          // Identify user in OneSignal only on supported platforms
+          if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+            final profile = await api.getProfile();
+            if (profile['id'] != null) {
+              OneSignal.login(profile['id'].toString());
+            }
           }
         } catch (e) {
           print('Erreur initialisation OneSignal au démarrage: $e');

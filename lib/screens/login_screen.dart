@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
@@ -44,9 +46,11 @@ class _LoginScreenState extends State<LoginScreen> {
           // Initialize with server's App ID
           await api.initializeOneSignal();
 
-          // Login to OneSignal for notifications
-          if (result['user'] != null && result['user']['id'] != null) {
-            OneSignal.login(result['user']['id'].toString());
+          // Login to OneSignal for notifications only on supported platforms
+          if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+            if (result['user'] != null && result['user']['id'] != null) {
+              OneSignal.login(result['user']['id'].toString());
+            }
           }
         } catch (e) {
           print('OneSignal dynamic init error: $e');

@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
@@ -63,6 +65,11 @@ class ApiService {
 
   /// Initialise OneSignal dynamiquement avec l'App ID du serveur
   Future<void> initializeOneSignal() async {
+    // Only on supported platforms
+    if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
+      return;
+    }
+
     final settings = await getServerSettings();
     final appId = settings['onesignal_app_id'];
 
@@ -726,6 +733,12 @@ class ApiService {
     String? location,
     String? avatar,
     String? banner,
+    String? github,
+    String? twitter,
+    String? instagram,
+    String? facebook,
+    String? patreon,
+    String? mastodon,
   }) async {
     final body = <String, dynamic>{};
     if (bio != null) body['bio'] = bio;
@@ -733,6 +746,12 @@ class ApiService {
     if (location != null) body['location'] = location;
     if (avatar != null) body['avatar'] = avatar;
     if (banner != null) body['banner'] = banner;
+    if (github != null) body['github'] = github;
+    if (twitter != null) body['twitter'] = twitter;
+    if (instagram != null) body['instagram'] = instagram;
+    if (facebook != null) body['facebook'] = facebook;
+    if (patreon != null) body['patreon'] = patreon;
+    if (mastodon != null) body['mastodon'] = mastodon;
 
     final response = await http.put(
       Uri.parse('$apiUrl/v1/users.php'),

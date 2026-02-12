@@ -8,6 +8,7 @@ import 'bookmarks_screen.dart';
 import 'settings_screen.dart';
 import 'users_list_screen.dart';
 import '../services/language_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfileScreen extends StatefulWidget {
   final int? userId;
@@ -309,6 +310,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                     ],
                   ],
                 ),
+                const SizedBox(height: 16),
+                _buildSocialRow(),
                 if (_profile?['email'] != null &&
                     _profile!['email'].isNotEmpty) ...[
                   const SizedBox(height: 4),
@@ -633,6 +636,69 @@ class _ProfileScreenState extends State<ProfileScreen>
         );
       },
     );
+  }
+
+  Widget _buildSocialRow() {
+    if (_profile == null) return const SizedBox.shrink();
+
+    final socials = [
+      {
+        'key': 'mastodon',
+        'icon': Icons.alternate_email,
+        'url': (v) => v.startsWith('http') ? v : 'https://$v',
+      },
+      {
+        'key': 'github',
+        'icon': Icons.code,
+        'url': (v) => v.startsWith('http') ? v : 'https://github.com/$v',
+      },
+      {
+        'key': 'twitter',
+        'icon': Icons.chat_bubble_outline,
+        'url': (v) => v.startsWith('http') ? v : 'https://twitter.com/$v',
+      },
+      {
+        'key': 'instagram',
+        'icon': Icons.camera_alt_outlined,
+        'url': (v) => v.startsWith('http') ? v : 'https://instagram.com/$v',
+      },
+      {
+        'key': 'facebook',
+        'icon': Icons.facebook,
+        'url': (v) => v.startsWith('http') ? v : 'https://facebook.com/$v',
+      },
+      {
+        'key': 'patreon',
+        'icon': Icons.monetization_on_outlined,
+        'url': (v) => v.startsWith('http') ? v : 'https://patreon.com/$v',
+      },
+    ];
+
+    List<Widget> icons = [];
+    for (var social in socials) {
+      final value = _profile![social['key']];
+      if (value != null && value.toString().isNotEmpty) {
+        icons.add(
+          IconButton(
+            icon: Icon(social['icon'] as IconData, size: 24),
+            color: const Color(0xFFBE1E1E),
+            onPressed: () async {
+              final urlString = (social['url'] as String Function(String))(
+                value.toString(),
+              );
+              final url = Uri.parse(urlString);
+              if (await canLaunchUrl(url)) {
+                await launchUrl(url, mode: LaunchMode.externalApplication);
+              }
+            },
+          ),
+        );
+      }
+    }
+
+    if (icons.isEmpty) return const SizedBox.shrink();
+
+    return Wrap(alignment: WrapAlignment.center, spacing: 8, children: icons);
   }
 
   Widget _buildStat(String label, String value, [VoidCallback? onTap]) {

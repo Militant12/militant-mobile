@@ -13,6 +13,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _bioController = TextEditingController();
   final _websiteController = TextEditingController();
   final _locationController = TextEditingController();
+  final _githubController = TextEditingController();
+  final _twitterController = TextEditingController();
+  final _instagramController = TextEditingController();
+  final _facebookController = TextEditingController();
+  final _patreonController = TextEditingController();
+  final _mastodonController = TextEditingController();
   bool _isLoading = true;
   bool _isSaving = false;
 
@@ -27,17 +33,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     try {
       final api = await ApiService.getInstance();
       final profile = await api.getProfile();
-      
+
       setState(() {
         _bioController.text = profile['bio'] ?? '';
         _websiteController.text = profile['website'] ?? '';
         _locationController.text = profile['location'] ?? '';
+        _githubController.text = profile['github'] ?? '';
+        _twitterController.text = profile['twitter'] ?? '';
+        _instagramController.text = profile['instagram'] ?? '';
+        _facebookController.text = profile['facebook'] ?? '';
+        _patreonController.text = profile['patreon'] ?? '';
+        _mastodonController.text = profile['mastodon'] ?? '';
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
       }
     } finally {
       setState(() => _isLoading = false);
@@ -54,6 +66,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         bio: _bioController.text.trim(),
         website: _websiteController.text.trim(),
         location: _locationController.text.trim(),
+        github: _githubController.text.trim(),
+        twitter: _twitterController.text.trim(),
+        instagram: _instagramController.text.trim(),
+        facebook: _facebookController.text.trim(),
+        patreon: _patreonController.text.trim(),
+        mastodon: _mastodonController.text.trim(),
       );
 
       if (mounted) {
@@ -84,6 +102,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _bioController.dispose();
     _websiteController.dispose();
     _locationController.dispose();
+    _githubController.dispose();
+    _twitterController.dispose();
+    _instagramController.dispose();
+    _facebookController.dispose();
+    _patreonController.dispose();
+    _mastodonController.dispose();
     super.dispose();
   }
 
@@ -93,7 +117,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text('Modifier le profil', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Modifier le profil',
+          style: TextStyle(color: Colors.white),
+        ),
         actions: [
           if (_isSaving)
             const Center(
@@ -182,11 +209,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide.none,
                         ),
-                        prefixIcon: const Icon(Icons.link, color: Color(0xFF888888)),
+                        prefixIcon: const Icon(
+                          Icons.link,
+                          color: Color(0xFF888888),
+                        ),
                       ),
                       validator: (value) {
                         if (value != null && value.isNotEmpty) {
-                          if (!value.startsWith('http://') && !value.startsWith('https://')) {
+                          if (!value.startsWith('http://') &&
+                              !value.startsWith('https://')) {
                             return 'L\'URL doit commencer par http:// ou https://';
                           }
                         }
@@ -215,13 +246,91 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide.none,
                         ),
-                        prefixIcon: const Icon(Icons.location_on, color: Color(0xFF888888)),
+                        prefixIcon: const Icon(
+                          Icons.location_on,
+                          color: Color(0xFF888888),
+                        ),
                       ),
+                    ),
+                    const SizedBox(height: 32),
+                    const Text(
+                      'Réseaux Sociaux',
+                      style: TextStyle(
+                        color: Color(0xFFBE1E1E),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSocialField(
+                      _mastodonController,
+                      'Mastodon',
+                      Icons.alternate_email,
+                    ),
+                    _buildSocialField(_githubController, 'GitHub', Icons.code),
+                    _buildSocialField(
+                      _twitterController,
+                      'Twitter',
+                      Icons.chat_bubble_outline,
+                    ),
+                    _buildSocialField(
+                      _instagramController,
+                      'Instagram',
+                      Icons.camera_alt_outlined,
+                    ),
+                    _buildSocialField(
+                      _facebookController,
+                      'Facebook',
+                      Icons.facebook,
+                    ),
+                    _buildSocialField(
+                      _patreonController,
+                      'Patreon',
+                      Icons.monetization_on_outlined,
                     ),
                   ],
                 ),
               ),
             ),
+    );
+  }
+
+  Widget _buildSocialField(
+    TextEditingController controller,
+    String label,
+    IconData icon,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: controller,
+            style: const TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              hintText: 'Identifiant ou lien...',
+              hintStyle: const TextStyle(color: Color(0xFF888888)),
+              filled: true,
+              fillColor: const Color(0xFF1E1E1E),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
+              ),
+              prefixIcon: Icon(icon, color: const Color(0xFF888888)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
