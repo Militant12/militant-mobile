@@ -460,7 +460,7 @@ class ApiService {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data['success'] == true && data['data'] != null) {
-        return data['data']['data'] ?? [];
+        return data['data'] as List<dynamic>;
       }
       return [];
     } else {
@@ -737,7 +737,7 @@ class ApiService {
     String? twitter,
     String? instagram,
     String? facebook,
-    String? patreon,
+    String? tiktok,
     String? mastodon,
   }) async {
     final body = <String, dynamic>{};
@@ -750,7 +750,7 @@ class ApiService {
     if (twitter != null) body['twitter'] = twitter;
     if (instagram != null) body['instagram'] = instagram;
     if (facebook != null) body['facebook'] = facebook;
-    if (patreon != null) body['patreon'] = patreon;
+    if (tiktok != null) body['tiktok'] = tiktok;
     if (mastodon != null) body['mastodon'] = mastodon;
 
     final response = await http.put(

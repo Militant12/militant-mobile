@@ -668,9 +668,9 @@ class _ProfileScreenState extends State<ProfileScreen>
         'url': (v) => v.startsWith('http') ? v : 'https://facebook.com/$v',
       },
       {
-        'key': 'patreon',
-        'icon': Icons.monetization_on_outlined,
-        'url': (v) => v.startsWith('http') ? v : 'https://patreon.com/$v',
+        'key': 'tiktok',
+        'icon': Icons.music_note,
+        'url': (v) => v.startsWith('http') ? v : 'https://tiktok.com/@$v',
       },
     ];
 

@@ -34,7 +34,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            LanguageService.instance.translate('language_title') + ' updated',
+            '${LanguageService.instance.translate('language_title')} updated',
           ),
         ),
       );
@@ -504,9 +504,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Future<void> _updatePreference(String key, bool value) async {
     // Optimistic update
     setState(() {
-      if (key == 'notifications_push')
+      if (key == 'notifications_push') {
         _pushEnabled = value;
-      else if (key == 'notifications_email')
+      } else if (key == 'notifications_email')
         _emailEnabled = value;
       else if (key == 'notifications_likes')
         _likes = value;
@@ -622,7 +622,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return SwitchListTile(
       value: value,
       onChanged: onChanged,
-      activeColor: const Color(0xFFBE1E1E),
+      activeThumbColor: const Color(0xFFBE1E1E),
       tileColor: theme.scaffoldBackgroundColor, // Seamless with background
       title: Text(
         title,
@@ -691,9 +691,9 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
 
   Future<void> _updatePreference(String key, bool value) async {
     setState(() {
-      if (key == 'privacy_private_account')
+      if (key == 'privacy_private_account') {
         _isPrivate = value;
-      else if (key == 'privacy_allow_messages')
+      } else if (key == 'privacy_allow_messages')
         _allowMessages = value;
       else if (key == 'privacy_online_status')
         _showOnlineStatus = value;
@@ -777,7 +777,7 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
     return SwitchListTile(
       value: value,
       onChanged: onChanged,
-      activeColor: const Color(0xFFBE1E1E),
+      activeThumbColor: const Color(0xFFBE1E1E),
       tileColor: theme.scaffoldBackgroundColor,
       title: Text(
         title,

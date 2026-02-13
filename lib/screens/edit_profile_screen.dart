@@ -17,7 +17,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _twitterController = TextEditingController();
   final _instagramController = TextEditingController();
   final _facebookController = TextEditingController();
-  final _patreonController = TextEditingController();
+  final _tiktokController = TextEditingController();
   final _mastodonController = TextEditingController();
   bool _isLoading = true;
   bool _isSaving = false;
@@ -42,7 +42,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _twitterController.text = profile['twitter'] ?? '';
         _instagramController.text = profile['instagram'] ?? '';
         _facebookController.text = profile['facebook'] ?? '';
-        _patreonController.text = profile['patreon'] ?? '';
+        _tiktokController.text = profile['tiktok'] ?? '';
         _mastodonController.text = profile['mastodon'] ?? '';
       });
     } catch (e) {
@@ -70,7 +70,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         twitter: _twitterController.text.trim(),
         instagram: _instagramController.text.trim(),
         facebook: _facebookController.text.trim(),
-        patreon: _patreonController.text.trim(),
+        tiktok: _tiktokController.text.trim(),
         mastodon: _mastodonController.text.trim(),
       );
 
@@ -106,7 +106,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _twitterController.dispose();
     _instagramController.dispose();
     _facebookController.dispose();
-    _patreonController.dispose();
+    _tiktokController.dispose();
     _mastodonController.dispose();
     super.dispose();
   }
@@ -284,9 +284,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       Icons.facebook,
                     ),
                     _buildSocialField(
-                      _patreonController,
-                      'Patreon',
-                      Icons.monetization_on_outlined,
+                      _tiktokController,
+                      'TikTok',
+                      Icons.music_note,
                     ),
                   ],
                 ),
