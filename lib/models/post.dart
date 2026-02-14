@@ -5,6 +5,7 @@ class Post {
   final int userId;
   final String username;
   final String? userAvatar;
+  final String? militantBadge;
   final String content;
   final List<String> mediaUrls;
   final String? mediaType; // 'image' ou 'video'
@@ -23,6 +24,7 @@ class Post {
     required this.userId,
     required this.username,
     this.userAvatar,
+    this.militantBadge,
     required this.content,
     required this.mediaUrls,
     this.mediaType,
@@ -64,6 +66,7 @@ class Post {
       userId: json['user_id'] ?? 0,
       username: json['username'] ?? 'Utilisateur',
       userAvatar: json['avatar'],
+      militantBadge: json['militant_badge'],
       content: json['content'] ?? '',
       mediaUrls: mediaList,
       mediaType: json['media_type'],

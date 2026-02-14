@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../models/post.dart';
 import '../widgets/post_card.dart';
 import '../widgets/profile_stories.dart';
+import '../widgets/militant_badge.dart';
 import 'login_screen.dart';
 import 'edit_profile_screen.dart';
 import 'bookmarks_screen.dart';
@@ -262,6 +263,13 @@ class _ProfileScreenState extends State<ProfileScreen>
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    if (_profile?['militant_badge'] != null) ...[
+                      const SizedBox(width: 8),
+                      MilitantBadge(
+                        badgeId: _profile!['militant_badge'],
+                        size: 28,
+                      ),
+                    ],
                     if (_profile?['is_private'] == 1 ||
                         _profile?['is_private'] == true) ...[
                       const SizedBox(width: 8),

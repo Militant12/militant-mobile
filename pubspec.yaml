@@ -71,6 +71,7 @@ flutter:
   assets:
     - assets/logo.svg
     - assets/offline.html
+    - assets/badges/
     - assets/thumbs-up-red-black.svg
 
   # To add assets to your application, add an assets section, like this:

@@ -6,6 +6,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../screens/post_detail_screen.dart';
 import '../screens/profile_screen.dart';
 import 'video_player_widget.dart';
+import 'linkable_text.dart';
+import 'militant_badge.dart';
 import 'package:share_plus/share_plus.dart';
 
 class PostCard extends StatefulWidget {
@@ -27,6 +29,7 @@ class _PostCardState extends State<PostCard> {
   bool _showTranslation = false;
   bool _isTranslating = false;
   late String _currentContent;
+  List<String> _detectedUrls = [];
 
   @override
   void initState() {
@@ -211,13 +214,25 @@ class _PostCardState extends State<PostCard> {
                               ),
                             );
                           },
-                          child: Text(
-                            widget.post.username,
-                            style: TextStyle(
-                              color: textColor,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                widget.post.username,
+                                style: TextStyle(
+                                  color: textColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              if (widget.post.militantBadge != null) ...[
+                                const SizedBox(width: 6),
+                                MilitantBadge(
+                                  badgeId: widget.post.militantBadge,
+                                  size: 20,
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                         Text(
@@ -235,13 +250,25 @@ class _PostCardState extends State<PostCard> {
               ),
               const SizedBox(height: 12),
 
-              // Contenu
-              Text(
-                _showTranslation && _translatedContent != null
+              // Contenu avec liens cliquables
+              LinkableText(
+                text: _showTranslation && _translatedContent != null
                     ? _translatedContent!
                     : _currentContent,
                 style: TextStyle(color: textColor, fontSize: 15, height: 1.4),
+                onLinkDetected: (url) {
+                  if (!_detectedUrls.contains(url)) {
+                    setState(() {
+                      _detectedUrls.add(url);
+                    });
+                  }
+                },
               ),
+
+              // Cartes de preview pour les liens réseaux sociaux
+              if (_detectedUrls.isNotEmpty) ...[
+                ..._detectedUrls.map((url) => LinkPreviewCard(url: url)),
+              ],
 
               // Bouton traduire
               if (widget.post.content.isNotEmpty) ...[

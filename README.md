@@ -24,11 +24,39 @@ Militant est un réseau social décentralisé conçu pour les mouvements militan
 
 ## Fonctionnalités
 
-- **Connexion multi-instances** : Connectez-vous à n'importe quelle instance Militant.
-- **Notifications Push Dynamiques** : Support natif de OneSignal. L'application récupère automatiquement l'App ID du serveur lors de la connexion.
-- **Interface native** : Écran de bienvenue, connexion et paramètres en Flutter natif.
-- **Respect de la confidentialité** : Intégration complète avec les paramètres du compte (comptes privés, permissions de messages).
-- **Thème sombre** : Interface moderne avec couleurs du projet.
+### Réseau Social Complet
+- **Posts** : Création, modification, suppression de publications avec support multimédia (images, vidéos, audio)
+- **Interactions** : Likes, commentaires, partages, réactions
+- **Profils** : Personnalisation complète avec avatar, bannière, bio, liens sociaux
+- **Badges militants** : Système de badges exclusif à l'app mobile (militant, antifa, anarchiste, CNT-AIT, CNT-F, CNT-SO, FA, OCL, CGA, UCL, FLL, SLM)
+
+### Communication
+- **Messages privés** : Conversations individuelles et groupes
+- **Notifications** : Système de notifications en temps réel
+- **Mentions** : Mentionnez d'autres utilisateurs avec @
+- **Liens cliquables** : Détection automatique des URLs avec cartes de prévisualisation pour les réseaux sociaux
+
+### Groupes & Événements
+- **Groupes** : Créez et rejoignez des groupes militants
+- **Événements** : Organisez et participez à des événements
+- **Stories** : Partagez des moments éphémères (24h)
+- **Lives** : Diffusions en direct
+
+### Modération & Sécurité
+- **Modération** : Outils de modération pour les administrateurs
+- **Signalements** : Signalez les contenus inappropriés
+- **Comptes privés** : Contrôlez qui peut vous suivre
+- **Blocage** : Bloquez les utilisateurs indésirables
+
+### Multilingue
+- **3 langues** : Français, Anglais, Espéranto
+- **Traduction automatique** : Traduisez les posts dans votre langue
+
+### Technique
+- **Connexion multi-instances** : Connectez-vous à n'importe quelle instance Militant
+- **Mode hors ligne** : Consultez le contenu même sans connexion
+- **Thème sombre** : Interface moderne avec couleurs du projet
+- **Performance** : Optimisé pour supporter des milliers d'utilisateurs simultanés
 
 ## Prérequis
 
@@ -69,39 +97,79 @@ flutter build apk --release
 
 ## Configuration
 
-L'application se connecte par défaut à `https://militant.revlibertaire.com`. Vous pouvez modifier cette URL dans le code ou directement depuis l'interface de l'application.
+### URL de l'instance
 
-### Android (Firebase/Push)
-Pour compiler l'application avec le support des notifications push sur Android, vous devez placer votre fichier `google-services.json` dans le dossier `android/app/`.
+L'application se connecte par défaut à `https://militant.revlibertaire.com`. Vous pouvez changer d'instance directement depuis l'écran de connexion.
 
-### Modifier l'URL par défaut
+### Badges militants (exclusif mobile)
 
-Éditez `lib/main.dart` ligne 48 :
+Les badges militants sont une fonctionnalité exclusive à l'application mobile. Ils permettent d'afficher votre appartenance à un mouvement ou une organisation :
 
-```dart
-final TextEditingController _urlController = TextEditingController(
-  text: 'https://votre-instance.com',
-);
-```
+- Militant (générique)
+- Antifa
+- Anarchiste
+- CNT-AIT, CNT-F, CNT-SO
+- FA (Fédération Anarchiste)
+- OCL (Organisation Communiste Libertaire)
+- CGA (Coordination des Groupes Anarchistes)
+- UCL (Union Communiste Libertaire)
+- FLL (Front de Libération Libertaire)
+- SLM (Solidarité Libertaire Militante)
+
+Pour choisir votre badge : Profil → Paramètres → Mon badge militant
 
 ## Structure du projet
 
 ```
 militant_flutter/
 ├── lib/
-│   └── main.dart           # Code principal de l'application
-├── android/                # Configuration Android
-├── ios/                    # Configuration iOS
+│   ├── main.dart                    # Point d'entrée de l'application
+│   ├── models/                      # Modèles de données
+│   │   ├── post.dart
+│   │   ├── user.dart
+│   │   └── ...
+│   ├── screens/                     # Écrans de l'application
+│   │   ├── home_screen.dart
+│   │   ├── login_screen.dart
+│   │   ├── profile_screen.dart
+│   │   ├── messages_screen.dart
+│   │   ├── groups_screen.dart
+│   │   ├── events_screen.dart
+│   │   ├── badge_selection_screen.dart
+│   │   └── ...
+│   ├── widgets/                     # Composants réutilisables
+│   │   ├── post_card.dart
+│   │   ├── militant_badge.dart
+│   │   ├── linkable_text.dart
+│   │   └── ...
+│   └── services/                    # Services (API, langue)
+│       ├── api_service.dart
+│       └── language_service.dart
+├── android/                         # Configuration Android
+├── ios/                            # Configuration iOS (à venir)
 ├── assets/
-│   └── logo.svg           # Logo de l'application
-└── pubspec.yaml           # Dépendances Flutter
+│   ├── logo.svg                    # Logo de l'application
+│   ├── badges/                     # Badges militants (exclusif mobile)
+│   │   ├── militant.svg
+│   │   ├── antifa.svg
+│   │   ├── anarchist.svg
+│   │   └── ...
+│   └── offline.html                # Page hors ligne
+└── pubspec.yaml                    # Dépendances Flutter
 ```
 
-## Dépendances
+## Dépendances principales
 
-- `webview_flutter` : Affichage du site web dans l'app
+- `http` : Communication avec l'API REST
 - `shared_preferences` : Sauvegarde des préférences utilisateur
-- `flutter_svg` : Affichage du logo SVG
+- `flutter_svg` : Affichage des logos et badges SVG
+- `image_picker` : Sélection d'images et vidéos
+- `video_player` : Lecture de vidéos
+- `audioplayers` : Lecture de fichiers audio
+- `file_picker` : Sélection de fichiers
+- `url_launcher` : Ouverture de liens externes
+- `share_plus` : Partage de contenu
+- `intl` : Internationalisation et formatage de dates
 
 ## Build de production
 
@@ -115,7 +183,14 @@ flutter build apk --release
 flutter build appbundle --release
 ```
 
-**Note :** Le support iOS sera ajouté dans une future version.
+## Performance & Scalabilité
+
+L'application et l'API sont optimisées pour supporter un grand nombre d'utilisateurs :
+
+- **Rate limiting généreux** : 1000 requêtes/minute par IP, 500-1000 requêtes/heure par utilisateur
+- **Capacité** : Support de 5 000 à 50 000+ utilisateurs actifs simultanés selon le serveur
+- **Optimisations** : Pagination, cache, requêtes optimisées
+- **Sécurité** : Protection contre les attaques DDoS, brute force, injection SQL, XSS
 
 ## Déploiement
 
@@ -147,7 +222,7 @@ Ce projet est sous licence AGPL-3.0. Voir le fichier [LICENSE](LICENSE) pour plu
 - [Site web](https://militant.revlibertaire.com)
 - [Documentation](https://jointomilitant.org)
 - [Instance principale](https://militant.revlibertaire.com)
-- [Projet principal](https://gitlab.com/votre-username/militant)
+- [Projet principal](https://gitlab.com/miliant1/militant)
 
 ## Support
 

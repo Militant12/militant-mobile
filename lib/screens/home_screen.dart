@@ -53,12 +53,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final api = await ApiService.getInstance();
-      final postsData = await api.getPosts(page: _currentPage);
+      final postsData = await api.getPosts(page: _currentPage).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () => [],
+      );
 
-      setState(() {
-        _posts.addAll(postsData.map((p) => Post.fromJson(p)).toList());
-        _currentPage++;
-      });
+      if (mounted) {
+        setState(() {
+          _posts.addAll(postsData.map((p) => Post.fromJson(p)).toList());
+          _currentPage++;
+        });
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -66,9 +71,11 @@ class _HomeScreenState extends State<HomeScreen> {
         ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
       }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -128,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () async {
                 final result = await Navigator.push(
                   context,
-                  materialPageRoute(builder: (_) => const CreatePostScreen()),
+                  MaterialPageRoute(builder: (_) => const CreatePostScreen()),
                 );
                 if (result == true) {
                   _loadPosts(refresh: true);

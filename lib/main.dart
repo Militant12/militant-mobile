@@ -138,34 +138,29 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _checkAuth() async {
-    // Wait for animation + minimum splash time
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('api_token');
 
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('api_token');
+      // Wait for animation
+      await Future.delayed(const Duration(milliseconds: 800));
 
-    if (mounted) {
-      if (token != null) {
-        // Dynamic initialization of OneSignal
-        try {
-          final api = await ApiService.getInstance();
-          await api.initializeOneSignal();
+      if (!mounted) return;
 
-          // Identify user in OneSignal only on supported platforms
-          if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-            final profile = await api.getProfile();
-            if (profile['id'] != null) {
-              OneSignal.login(profile['id'].toString());
-            }
-          }
-        } catch (e) {
-          print('Erreur initialisation OneSignal au démarrage: $e');
-        }
-
+      // Go directly to appropriate screen based on token presence
+      if (token != null && token.isNotEmpty) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
       } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      }
+    } catch (e) {
+      print('Erreur splash screen: $e');
+      // Always fallback to login on any error
+      if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const LoginScreen()),
         );
