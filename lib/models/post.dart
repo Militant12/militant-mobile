@@ -7,12 +7,16 @@ class Post {
   final String? userAvatar;
   final String content;
   final List<String> mediaUrls;
+  final String? mediaType; // 'image' ou 'video'
   final int likesCount;
   final int commentsCount;
   final int sharesCount;
   final bool isLiked;
   final bool isOnline;
   final DateTime createdAt;
+
+  final String type; // 'post', 'group', 'page'
+  final int? groupId;
 
   Post({
     required this.id,
@@ -21,12 +25,15 @@ class Post {
     this.userAvatar,
     required this.content,
     required this.mediaUrls,
+    this.mediaType,
     required this.likesCount,
     required this.commentsCount,
     required this.sharesCount,
     required this.isLiked,
     required this.isOnline,
     required this.createdAt,
+    this.type = 'post',
+    this.groupId,
   });
 
   factory Post.fromJson(Map<String, dynamic> json) {
@@ -59,6 +66,7 @@ class Post {
       userAvatar: json['avatar'],
       content: json['content'] ?? '',
       mediaUrls: mediaList,
+      mediaType: json['media_type'],
       likesCount: json['likes_count'] ?? 0,
       commentsCount: json['comments_count'] ?? 0,
       sharesCount: json['shares_count'] ?? 0,
@@ -70,6 +78,8 @@ class Post {
           'T',
         ),
       ),
+      type: json['type'] ?? 'post',
+      groupId: json['group_id'],
     );
   }
 }

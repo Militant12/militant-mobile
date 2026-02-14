@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
@@ -122,10 +123,16 @@ class ApiService {
         path = 'uploads/posts/$path';
       } else if (path.startsWith('avatar_')) {
         path = 'uploads/$path';
-      } else if (path.startsWith('story_')) {
+      } else if (path.startsWith('story_') || path.startsWith('stories_')) {
         path = 'uploads/stories/$path';
       } else if (path.startsWith('album_')) {
         path = 'uploads/albums/$path';
+      } else if (path.startsWith('messages_') || path.startsWith('msg_')) {
+        path = 'uploads/messages/$path';
+      } else if (path.startsWith('group_post_')) {
+        path = 'uploads/posts/$path';
+      } else if (path.startsWith('group_')) {
+        path = 'uploads/$path';
       } else {
         path = 'uploads/$path';
       }
@@ -203,19 +210,26 @@ class ApiService {
   Future<Map<String, dynamic>> register(
     String username,
     String email,
-    String password,
-  ) async {
+    String password, {
+    String? cause,
+  }) async {
+    final body = {
+      'username': username,
+      'email': email,
+      'password': password,
+    };
+    
+    if (cause != null) {
+      body['cause'] = cause;
+    }
+    
     final response = await http.post(
       Uri.parse('$apiUrl/v1/auth.php?action=register'),
       headers: _headers,
-      body: jsonEncode({
-        'username': username,
-        'email': email,
-        'password': password,
-      }),
+      body: jsonEncode(body),
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
       throw Exception('Erreur d\'inscription: ${response.statusCode}');
@@ -265,6 +279,23 @@ class ApiService {
       return [];
     } else {
       throw Exception('Erreur de chargement des posts: ${response.statusCode}');
+    }
+  }
+
+  Future<Map<String, dynamic>> getPost(int id) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/posts.php?id=$id'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['success'] == true && data['data'] != null) {
+        return data['data']; // The post object
+      }
+      return data; // Fallback if structure varies
+    } else {
+      throw Exception('Erreur de chargement du post');
     }
   }
 
@@ -385,13 +416,26 @@ class ApiService {
     // Utiliser l'endpoint principal (pas l'API v1)
     final mainUrl = baseUrl.replaceFirst('api.', '');
 
+    // Détecter la langue de l'appareil si targetLang n'est pas fourni
+    String finalTargetLang = targetLang ?? 'fr';
+    if (targetLang == null) {
+      try {
+        // Obtenir la langue du système
+        final locale = WidgetsBinding.instance.platformDispatcher.locale;
+        finalTargetLang = locale.languageCode; // 'fr', 'en', 'es', etc.
+      } catch (e) {
+        // Fallback sur français
+        finalTargetLang = 'fr';
+      }
+    }
+
     final response = await http.post(
       Uri.parse('$mainUrl/ajax/translate.php'),
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         if (token != null) 'Authorization': 'Bearer $token',
       },
-      body: {'text': text, if (targetLang != null) 'target_lang': targetLang},
+      body: {'text': text, 'target_lang': finalTargetLang},
     );
 
     if (response.statusCode == 200) {
@@ -429,6 +473,56 @@ class ApiService {
       return jsonDecode(response.body);
     } else {
       throw Exception('Erreur d\'ajout du commentaire');
+    }
+  }
+
+  Future<List<dynamic>> getGroupPostComments(int postId, {int page = 1}) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/group_comments.php?post_id=$postId&page=$page'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['data'] ?? [];
+    } else {
+      throw Exception('Erreur de chargement des commentaires du groupe');
+    }
+  }
+
+  Future<Map<String, dynamic>> addGroupComment(
+    int postId,
+    String content,
+  ) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/group_comments.php'),
+      headers: _headers,
+      body: jsonEncode({'post_id': postId, 'content': content}),
+    );
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur d\'ajout du commentaire de groupe');
+    }
+  }
+
+  Future<void> updateGroupComment(int commentId, String content) async {
+    final response = await http.put(
+      Uri.parse('$apiUrl/v1/group_comments.php'),
+      headers: _headers,
+      body: jsonEncode({'id': commentId, 'content': content}),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Erreur de modification du commentaire de groupe');
+    }
+  }
+
+  Future<void> deleteGroupComment(int commentId) async {
+    final response = await http.delete(
+      Uri.parse('$apiUrl/v1/group_comments.php?id=$commentId'),
+      headers: _headers,
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Erreur de suppression du commentaire de groupe');
     }
   }
 
@@ -500,29 +594,236 @@ class ApiService {
   Future<List<dynamic>> getMessages({int? userId, int page = 1}) async {
     final url = userId != null
         ? '$apiUrl/v1/messages.php?user_id=$userId&page=$page'
-        : '$apiUrl/v1/message_groups.php?page=$page';
+        : '$apiUrl/v1/messages.php?page=$page';
 
     final response = await http.get(Uri.parse(url), headers: _headers);
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return data['messages'] ?? data['groups'] ?? [];
+      if (data['success'] == true && data['data'] != null) {
+        // Handle paginated response structure: {success: true, data: {data: [...], meta: ...}}
+        if (data['data'] is Map && data['data']['data'] != null) {
+          return data['data']['data'];
+        }
+        // Fallback for simple list or other structures
+        if (data['data'] is List) {
+          return data['data'];
+        }
+      }
+      return data['messages'] ?? []; // Very old fallback
     } else {
       throw Exception('Erreur de chargement des messages');
     }
   }
 
-  Future<Map<String, dynamic>> sendMessage(int userId, String content) async {
+  Future<List<dynamic>> getGroupMessages(int groupId, {int page = 1}) async {
+    final response = await http.get(
+      Uri.parse(
+        '$apiUrl/v1/message_groups.php?path=$groupId/messages&page=$page',
+      ),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['messages'] ?? [];
+    } else {
+      throw Exception('Erreur de chargement des messages du groupe');
+    }
+  }
+
+  Future<Map<String, dynamic>> sendGroupMessage(
+    int groupId,
+    String content, {
+    String? media,
+    String? mediaType,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/message_groups.php?path=$groupId/messages'),
+      headers: _headers,
+      body: jsonEncode({
+        'content': content,
+        'media': media,
+        if (mediaType != null) 'media_type': mediaType,
+      }),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur d\'envoi du message au groupe');
+    }
+  }
+
+  Future<void> deleteGroupMessage(int messageId) async {
+    final response = await http.delete(
+      Uri.parse('$apiUrl/v1/message_groups.php?path=messages/$messageId'),
+      headers: _headers,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors de la suppression du message de groupe');
+    }
+  }
+
+  Future<void> editGroupMessage(int messageId, String content) async {
+    final response = await http.put(
+      Uri.parse('$apiUrl/v1/message_groups.php?path=messages/$messageId'),
+      headers: _headers,
+      body: jsonEncode({'content': content}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors de la modification du message de groupe');
+    }
+  }
+
+  Future<Map<String, dynamic>> getGroupDetails(int groupId) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/message_groups.php?path=$groupId'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['group'];
+    } else {
+      throw Exception('Erreur de chargement des détails du groupe');
+    }
+  }
+
+  Future<void> updateGroupSettings(
+    int groupId, {
+    String? name,
+    int? autoDeleteTime,
+    bool? makeEveryoneAdmin,
+  }) async {
+    final response = await http.put(
+      Uri.parse('$apiUrl/v1/message_groups.php?path=$groupId'),
+      headers: _headers,
+      body: jsonEncode({
+        if (name != null) 'name': name,
+        if (autoDeleteTime != null) 'auto_delete_time': autoDeleteTime,
+        if (makeEveryoneAdmin != null) 'make_everyone_admin': makeEveryoneAdmin,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors de la mise à jour des paramètres du groupe');
+    }
+  }
+
+  Future<void> leaveMessageGroup(int groupId) async {
+    final response = await http.delete(
+      Uri.parse('$apiUrl/v1/message_groups.php?path=$groupId'),
+      headers: _headers,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors de la sortie du groupe');
+    }
+  }
+
+  Future<void> removeMemberFromGroup(int groupId, int userId) async {
+    final response = await http.delete(
+      Uri.parse('$apiUrl/v1/message_groups.php?path=$groupId/members/$userId'),
+      headers: _headers,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors du retrait du membre');
+    }
+  }
+
+  Future<Map<String, dynamic>> sendMessage(
+    int userId,
+    String content, {
+    String? media,
+    String? mediaType,
+  }) async {
     final response = await http.post(
       Uri.parse('$apiUrl/v1/messages.php'),
       headers: _headers,
-      body: jsonEncode({'user_id': userId, 'content': content}),
+      body: jsonEncode({
+        'user_id': userId,
+        'content': content,
+        'media': media,
+        if (mediaType != null) 'media_type': mediaType,
+      }),
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
       throw Exception('Erreur d\'envoi du message: ${response.statusCode}');
+    }
+  }
+
+  Future<void> deleteMessage(int messageId) async {
+    final response = await http.delete(
+      Uri.parse('$apiUrl/v1/messages.php?id=$messageId'),
+      headers: _headers,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors de la suppression du message');
+    }
+  }
+
+  Future<void> editMessage(int messageId, String content) async {
+    final response = await http.put(
+      Uri.parse('$apiUrl/v1/messages.php?id=$messageId'),
+      headers: _headers,
+      body: jsonEncode({'content': content}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors de la modification du message');
+    }
+  }
+
+  Future<String> uploadFile(String filePath, {String type = 'posts'}) async {
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('$apiUrl/v1/upload.php'),
+    );
+    request.headers.addAll(_headers);
+    request.fields['type'] = type;
+    request.files.add(await http.MultipartFile.fromPath('media', filePath));
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final data = jsonDecode(response.body);
+      if (data['success'] == true) {
+        String url = data['url'];
+        // Si l'API retourne un chemin relatif sans le dossier parent, on l'ajoute manuellement
+        // Cela compense le fait que l'API actuelle ne renvoie que le nom du fichier
+        if (!url.contains('/')) {
+          if (type == 'stories') {
+            // Pour les stories, on veut garder JUSTE le nom de fichier
+            // Car l'API et le Web utilisent ce nom pour construire le chemin
+            // Et getImageUrl fera de même
+            // url = 'uploads/stories/$url';
+          } else if (type == 'messages') {
+            url = 'uploads/messages/$url';
+          } else if (type == 'posts') {
+            url = 'uploads/posts/$url';
+          } else if (type == 'event') {
+            url = 'uploads/events/$url';
+          } else if (type == 'album') {
+            url = 'uploads/albums/$url';
+          } else {
+            url = 'uploads/$url';
+          }
+        }
+        return url;
+      } else {
+        throw Exception(data['error'] ?? 'Erreur d\'upload inconnue');
+      }
+    } else {
+      throw Exception('Erreur d\'upload: ${response.statusCode}');
     }
   }
 
@@ -558,6 +859,211 @@ class ApiService {
     }
   }
 
+  Future<List<dynamic>> discoverGroups({int page = 1}) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/groups.php?discover=1&page=$page'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['groups'] ?? [];
+    } else {
+      throw Exception('Erreur de chargement des groupes');
+    }
+  }
+
+  Future<Map<String, dynamic>> createGroup({
+    required String name,
+    String? description,
+    bool isPrivate = false,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/groups.php'),
+      headers: _headers,
+      body: jsonEncode({
+        'action': 'create',
+        'name': name,
+        'description': description ?? '',
+        'privacy': isPrivate ? 'private' : 'public',
+      }),
+    );
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final data = jsonDecode(response.body);
+      throw Exception(data['error'] ?? 'Erreur lors de la création');
+    }
+  }
+
+  Future<Map<String, dynamic>> joinGroup(int groupId) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/groups.php'),
+      headers: _headers,
+      body: jsonEncode({'action': 'join', 'group_id': groupId}),
+    );
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final data = jsonDecode(response.body);
+      throw Exception(data['error'] ?? 'Erreur lors de l\'adhésion au groupe');
+    }
+  }
+
+  Future<Map<String, dynamic>> getSocialGroupDetails(int groupId) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/groups.php?id=$groupId'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      return json['data'] ?? json;
+    } else {
+      throw Exception('Groupe introuvable');
+    }
+  }
+
+  Future<void> updateGroup(
+    int groupId, {
+    String? name,
+    String? description,
+    String? avatar,
+    bool? isPrivate,
+  }) async {
+    final body = {
+      'id': groupId,
+      if (name != null) 'name': name,
+      if (description != null) 'description': description,
+      if (avatar != null) 'avatar': avatar,
+      if (isPrivate != null) 'privacy': isPrivate ? 'private' : 'public',
+    };
+
+    final response = await http.put(
+      Uri.parse('$apiUrl/v1/groups.php'),
+      headers: _headers,
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode != 200) {
+      final error = jsonDecode(response.body);
+      throw Exception(error['error'] ?? 'Erreur de mise à jour du groupe');
+    }
+  }
+
+  Future<List<dynamic>> getGroupPosts(int groupId, {int page = 1}) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/group_posts.php?group_id=$groupId&page=$page'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['posts'] ?? [];
+    } else {
+      throw Exception('Erreur de chargement des publications du groupe');
+    }
+  }
+
+  Future<Map<String, dynamic>> createGroupPost(
+    int groupId,
+    String content, {
+    List<String>? media,
+    String? mediaType,
+  }) async {
+    final body = {
+      'group_id': groupId,
+      'content': content,
+    };
+    
+    if (media != null && media.isNotEmpty) {
+      body['media'] = media.first; // Pour l'instant, un seul média
+      if (mediaType != null) {
+        body['media_type'] = mediaType;
+      }
+    }
+    
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/group_posts.php'),
+      headers: _headers,
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur lors de la création de la publication');
+    }
+  }
+
+  Future<Map<String, dynamic>> updateGroupPost(
+    int postId,
+    String content,
+  ) async {
+    final response = await http.put(
+      Uri.parse('$apiUrl/v1/group_posts.php'),
+      headers: _headers,
+      body: jsonEncode({'id': postId, 'content': content}),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur lors de la modification de la publication');
+    }
+  }
+
+  Future<Map<String, dynamic>> deleteGroupPost(int postId) async {
+    final response = await http.delete(
+      Uri.parse('$apiUrl/v1/group_posts.php?id=$postId'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur lors de la suppression de la publication');
+    }
+  }
+
+  Future<List<dynamic>> getMessageGroups({int page = 1}) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/message_groups.php?page=$page'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['groups'] ?? [];
+    } else {
+      throw Exception('Erreur de chargement des groupes de discussion');
+    }
+  }
+
+  Future<Map<String, dynamic>> createMessageGroup({
+    required String name,
+    String avatar = 'default.svg',
+    List<int> memberIds = const [],
+  }) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/message_groups.php'),
+      headers: _headers,
+      body: jsonEncode({
+        'name': name,
+        'avatar': avatar,
+        'member_ids': memberIds,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur lors de la création du groupe');
+    }
+  }
+
   Future<List<dynamic>> getEvents({int page = 1}) async {
     final response = await http.get(
       Uri.parse('$apiUrl/v1/events.php?page=$page'),
@@ -566,9 +1072,154 @@ class ApiService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return data['events'] ?? [];
+      return data['data'] ?? [];
     } else {
       throw Exception('Erreur de chargement des événements');
+    }
+  }
+
+  Future<void> createEvent({
+    required String title,
+    required String description,
+    required String location,
+    required String eventDate,
+    String? image,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/events.php'),
+      headers: _headers,
+      body: jsonEncode({
+        'title': title,
+        'description': description,
+        'location': location,
+        'event_date': eventDate,
+        'image': image,
+      }),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Erreur de création de l\'événement');
+    }
+  }
+
+  Future<void> deleteEvent(int eventId) async {
+    final response = await http.delete(
+      Uri.parse('$apiUrl/v1/events.php?id=$eventId&action=delete'),
+      headers: _headers,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur de suppression de l\'événement');
+    }
+  }
+
+  Future<Map<String, dynamic>> getEventDetails(int eventId) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/events.php?id=$eventId'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      // L'API retourne les champs directement au premier niveau (pas sous 'data')
+      if (data['data'] != null) {
+        return data['data'];
+      }
+      return data;
+    } else {
+      throw Exception('Erreur de chargement de l\'événement');
+    }
+  }
+
+  Future<void> joinEvent(int eventId) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/events.php'),
+      headers: _headers,
+      body: jsonEncode({'action': 'join', 'event_id': eventId}),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Erreur lors de la participation');
+    }
+  }
+
+  Future<void> leaveEvent(int eventId) async {
+    final response = await http.delete(
+      Uri.parse('$apiUrl/v1/events.php?id=$eventId&action=leave'),
+      headers: _headers,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors de l\'annulation');
+    }
+  }
+
+  // === STORIES ===
+
+  Future<List<dynamic>> getStories() async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/stories.php'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['items'] ?? [];
+    } else {
+      throw Exception('Erreur de chargement des stories');
+    }
+  }
+
+  Future<List<dynamic>> getUserStories(int userId) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/stories.php?user_id=$userId'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['items'] ?? [];
+    } else {
+      throw Exception('Erreur de chargement des stories');
+    }
+  }
+
+  Future<Map<String, dynamic>> createStory({
+    required String media,
+    String? text,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/stories.php'),
+      headers: _headers,
+      body: jsonEncode({'media': media, 'text': text ?? ''}),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      try {
+        final data = jsonDecode(response.body);
+        print('DEBUG createStory success: $data');
+        return data;
+      } catch (e) {
+        print('DEBUG createStory JSON ERROR: ${response.body}');
+        // Si c'est du HTML, on ne peut pas le parser, mais on veut voir ce que c'est
+        throw Exception('Erreur de format API (HTML reçu?): ${response.body}');
+      }
+    } else {
+      print(
+        'DEBUG createStory error: ${response.statusCode} - ${response.body}',
+      );
+      throw Exception('Erreur de création de la story: ${response.body}');
+    }
+  }
+
+  Future<void> deleteStory(int storyId) async {
+    final response = await http.delete(
+      Uri.parse('$apiUrl/v1/stories.php?id=$storyId'),
+      headers: _headers,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur de suppression de la story');
     }
   }
 
@@ -763,6 +1414,20 @@ class ApiService {
       return jsonDecode(response.body);
     } else {
       throw Exception('Erreur de mise à jour du profil');
+    }
+  }
+
+  Future<Map<String, dynamic>> updateMilitantBadge(String? badge) async {
+    final response = await http.put(
+      Uri.parse('$apiUrl/v1/users.php'),
+      headers: _headers,
+      body: jsonEncode({'militant_badge': badge}),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur de mise à jour du badge');
     }
   }
 

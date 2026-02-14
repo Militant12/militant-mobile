@@ -2,34 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 import '../widgets/video_player_widget.dart';
 import '../widgets/audio_player_widget.dart';
 import '../widgets/audio_recorder_widget.dart';
 import '../services/api_service.dart';
+import 'group_settings_screen.dart';
 
-class ChatScreen extends StatefulWidget {
-  final int userId;
-  final String username;
-  final String? avatar;
+class GroupChatScreen extends StatefulWidget {
+  final int groupId;
+  final String groupName;
+  final String? groupAvatar;
 
-  const ChatScreen({
+  const GroupChatScreen({
     super.key,
-    required this.userId,
-    required this.username,
-    this.avatar,
+    required this.groupId,
+    required this.groupName,
+    this.groupAvatar,
   });
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  State<GroupChatScreen> createState() => _GroupChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _GroupChatScreenState extends State<GroupChatScreen> {
   final List<dynamic> _messages = [];
   final TextEditingController _messageController = TextEditingController();
   bool _isLoading = false;
   bool _isSending = false;
   bool _isRecording = false;
-  Map<String, dynamic>? _currentUser;
+  ApiService? _api;
+  Map<String, dynamic>? _groupDetails;
 
   @override
   void initState() {
@@ -43,16 +46,19 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _loadMessages() async {
     setState(() => _isLoading = true);
     try {
-      final api = await ApiService.getInstance();
-      _currentUser = await api.getProfile();
-      final messages = await api.getMessages(userId: widget.userId);
+      _api = await ApiService.getInstance();
+      final messages = await _api!.getGroupMessages(widget.groupId);
+      print('DEBUG: Loaded ${messages.length} messages');
+      if (messages.isNotEmpty) {
+        print('DEBUG: First message: ${messages.first}');
+      }
+      _groupDetails = await _api!.getGroupDetails(widget.groupId);
       setState(() {
         _messages.clear();
-        _messages.addAll(
-          messages,
-        ); // API returns newest first, correct for ListView(reverse:true)
+        _messages.addAll(messages.reversed);
       });
     } catch (e) {
+      print('DEBUG: Error loading messages: $e');
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -71,29 +77,26 @@ class _ChatScreenState extends State<ChatScreen> {
     final tempId = DateTime.now().millisecondsSinceEpoch;
     final tempMessage = {
       'id': tempId,
-      'sender_id': _currentUser?['id'],
-      'receiver_id': widget.userId,
+      'sender_id': 0, // Will be replaced by server data
       'content': content,
       'is_mine': true,
+      'username': 'Moi', // Placeholder
       'created_at': DateTime.now().toIso8601String(),
     };
 
     setState(() {
       _isSending = true;
-      _messages.insert(
-        0,
-        tempMessage,
-      ); // Add at the beginning (bottom of the UI)
+      _messages.insert(0, tempMessage);
     });
     _messageController.clear();
 
     try {
       final api = await ApiService.getInstance();
-      await api.sendMessage(widget.userId, content);
-      await _loadMessages(); // Refresh to get official data and server timestamps
+      await api.sendGroupMessage(widget.groupId, content);
+      await _loadMessages(); // Refresh
     } catch (e) {
       setState(() {
-        _messages.removeAt(0); // Remove optimistic message on error
+        _messages.removeAt(0); // Remove local message
       });
       if (mounted) {
         ScaffoldMessenger.of(
@@ -116,31 +119,72 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             _buildAvatar(),
             const SizedBox(width: 12),
-            Text(
-              widget.username,
-              style: TextStyle(color: theme.textTheme.titleLarge?.color),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _groupDetails?['name'] ?? widget.groupName,
+                    style: TextStyle(
+                      color: theme.textTheme.titleLarge?.color,
+                      fontSize: 16,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (_groupDetails?['auto_delete_time'] != null &&
+                      _groupDetails!['auto_delete_time'] > 0)
+                    Text(
+                      'Éphémère: ${_groupDetails!['auto_delete_time']} min',
+                      style: const TextStyle(
+                        color: Color(0xFFBE1E1E),
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                ],
+              ),
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => GroupSettingsScreen(
+                    groupId: widget.groupId,
+                    groupName: widget.groupName,
+                  ),
+                ),
+              );
+              if (result == true) {
+                _loadMessages();
+              }
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
           Expanded(
-            child: _isLoading
+            child: _isLoading && _messages.isEmpty
                 ? const Center(
                     child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
                   )
                 : _messages.isEmpty
                 ? Center(
                     child: Text(
-                      'Aucun message',
+                      'Aucun message dans ce groupe',
                       style: TextStyle(
                         color: theme.textTheme.bodyMedium?.color,
                       ),
                     ),
                   )
                 : ListView.builder(
-                    reverse: true, // Typically chat is reversed
+                    reverse: true,
                     itemCount: _messages.length,
                     itemBuilder: (context, index) {
                       final message = _messages[index];
@@ -155,51 +199,36 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildAvatar() {
-    return FutureBuilder<ApiService>(
-      future: ApiService.getInstance(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) return const CircleAvatar(radius: 16);
-        final api = snapshot.data!;
-        final url = api.getImageUrl(widget.avatar);
-
-        if (url != null && url.endsWith('.svg')) {
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: SvgPicture.network(
-              url,
-              width: 32,
-              height: 32,
-              fit: BoxFit.cover,
-              placeholderBuilder: (_) =>
-                  const CircularProgressIndicator(strokeWidth: 2),
-            ),
-          );
-        } else if (url != null) {
-          return CircleAvatar(radius: 16, backgroundImage: NetworkImage(url));
-        } else {
-          return CircleAvatar(
-            radius: 16,
-            backgroundColor: const Color(0xFFBE1E1E),
-            child: Text(
-              widget.username.isNotEmpty
-                  ? widget.username[0].toUpperCase()
-                  : '?',
-              style: const TextStyle(color: Colors.white, fontSize: 14),
-            ),
-          );
-        }
-      },
-    );
+    final url = _api?.getImageUrl(widget.groupAvatar);
+    if (url != null && url.endsWith('.svg')) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: SvgPicture.network(
+          url,
+          width: 32,
+          height: 32,
+          fit: BoxFit.cover,
+          placeholderBuilder: (_) =>
+              const CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    } else if (url != null) {
+      return CircleAvatar(radius: 16, backgroundImage: NetworkImage(url));
+    } else {
+      return ClipOval(
+        child: SizedBox(
+          width: 32,
+          height: 32,
+          child: SvgPicture.asset('assets/logo.svg', fit: BoxFit.cover),
+        ),
+      );
+    }
   }
 
   void _showOptions(dynamic message) {
-    bool isMine = message['is_mine'] == true || message['is_mine'] == 1;
-
-    // Fallback if is_mine is missing (e.g. from local update or specific API response)
-    if (!isMine && _currentUser != null && message['sender_id'] != null) {
-      isMine =
-          message['sender_id'].toString() == _currentUser!['id'].toString();
-    }
+    final isMine = message['is_mine'] == true || message['is_mine'] == 1;
+    // We can allow admins to delete other people's messages if needed,
+    // but the backend only checks for role if it's an admin anyway.
 
     showModalBottomSheet(
       context: context,
@@ -257,8 +286,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 );
                 if (confirm == true) {
                   try {
-                    final api = await ApiService.getInstance();
-                    await api.deleteMessage(message['id']);
+                    await _api!.deleteGroupMessage(message['id']);
                     _loadMessages();
                   } catch (e) {
                     ScaffoldMessenger.of(
@@ -310,8 +338,7 @@ class _ChatScreenState extends State<ChatScreen> {
         newContent.isNotEmpty &&
         newContent != message['content']) {
       try {
-        final api = await ApiService.getInstance();
-        await api.editMessage(message['id'], newContent);
+        await _api!.editGroupMessage(message['id'], newContent);
         _loadMessages();
       } catch (e) {
         ScaffoldMessenger.of(
@@ -327,13 +354,20 @@ class _ChatScreenState extends State<ChatScreen> {
 
     final content = message['content'] ?? '';
     final media = message['media'];
+    final username = message['username'] ?? 'Anonyme';
     final isMine = message['is_mine'] == true || message['is_mine'] == 1;
     final createdAt = message['created_at'] ?? '';
     final editedAt = message['edited_at'];
 
     // État de traduction pour ce message
+    final messageId = message['id'].toString();
     final isTranslated = message['_isTranslated'] == true;
     final translatedText = message['_translatedText'];
+
+    // Debug
+    if (media != null) {
+      print('DEBUG _buildMessageBubble: media=$media, content=$content');
+    }
 
     final bubbleColor = isMine
         ? const Color(0xFFBE1E1E)
@@ -348,86 +382,104 @@ class _ChatScreenState extends State<ChatScreen> {
       child: GestureDetector(
         onLongPress: () => _showOptions(message),
         onSecondaryTap: () => _showOptions(message),
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.75,
-          ),
-          decoration: BoxDecoration(
-            color: bubbleColor,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (content.isNotEmpty)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      isTranslated && translatedText != null
-                          ? translatedText
-                          : content,
-                      style: TextStyle(color: textColor, fontSize: 15),
+        child: Column(
+          crossAxisAlignment: isMine
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
+          children: [
+            if (!isMine)
+              Padding(
+                padding: const EdgeInsets.only(left: 20, bottom: 2),
+                child: Text(
+                  username,
+                  style: TextStyle(color: theme.hintColor, fontSize: 12),
+                ),
+              ),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.75,
+              ),
+              decoration: BoxDecoration(
+                color: bubbleColor,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (media != null && media.toString().isNotEmpty)
+                    _buildMedia(media),
+                  if (content.isNotEmpty)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isTranslated && translatedText != null
+                              ? translatedText
+                              : content,
+                          style: TextStyle(color: textColor, fontSize: 15),
+                        ),
+                        // Afficher le bouton traduire pour tous les messages
+                        GestureDetector(
+                          onTap: () => _toggleTranslation(message),
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.translate,
+                                  size: 14,
+                                  color: textColor.withOpacity(0.7),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  isTranslated ? 'Original' : 'Traduire',
+                                  style: TextStyle(
+                                    color: textColor.withOpacity(0.7),
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    // Afficher le bouton traduire pour tous les messages
-                    GestureDetector(
-                      onTap: () => _toggleTranslation(message),
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.translate,
-                              size: 14,
-                              color: textColor.withOpacity(0.7),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              isTranslated ? 'Original' : 'Traduire',
-                              style: TextStyle(
-                                color: textColor.withOpacity(0.7),
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (editedAt != null)
+                        Text(
+                          'Modifié ',
+                          style: TextStyle(
+                            color: textColor.withOpacity(0.5),
+                            fontSize: 9,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      Text(
+                        _formatTime(createdAt),
+                        style: TextStyle(
+                          color: textColor.withOpacity(0.7),
+                          fontSize: 11,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              const SizedBox(height: 4),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (editedAt != null)
-                    Text(
-                      'Modifié ',
-                      style: TextStyle(
-                        color: textColor.withOpacity(0.5),
-                        fontSize: 9,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  Text(
-                    _formatTime(createdAt),
-                    style: TextStyle(
-                      color: textColor.withOpacity(0.7),
-                      fontSize: 11,
-                    ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
   Future<void> _toggleTranslation(dynamic message) async {
+    final messageId = message['id'].toString();
     final isTranslated = message['_isTranslated'] == true;
 
     if (isTranslated) {
@@ -465,52 +517,96 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildMedia(String mediaPath) {
-    return FutureBuilder<ApiService>(
-      future: ApiService.getInstance(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) return const SizedBox.shrink();
-        final url = snapshot.data!.getImageUrl(mediaPath);
-        if (url == null) return const SizedBox.shrink();
+    print('DEBUG _buildMedia called with: $mediaPath');
+    if (_api == null) {
+      print('DEBUG _buildMedia: _api is null');
+      return const SizedBox.shrink();
+    }
+    final url = _api!.getImageUrl(mediaPath);
+    print('DEBUG _buildMedia: url=$url');
+    if (url == null || url.isEmpty) {
+      print('DEBUG _buildMedia: url is null or empty');
+      return const SizedBox.shrink();
+    }
 
-        final lower = url.toLowerCase();
-        final isVideo =
-            lower.endsWith('.mp4') ||
-            lower.endsWith('.mov') ||
-            lower.endsWith('.avi') ||
-            lower.endsWith('.mkv') ||
-            lower.endsWith('.webm') ||
-            lower.endsWith('.ogg') ||
-            lower.contains('video');
+    final lower = url.toLowerCase();
+    final isVideo =
+        lower.endsWith('.mp4') ||
+        lower.endsWith('.mov') ||
+        lower.endsWith('.webm') ||
+        lower.endsWith('.avi') ||
+        lower.endsWith('.mkv') ||
+        lower.contains('video');
 
-        final isAudio =
-            lower.endsWith('.mp3') ||
-            lower.endsWith('.wav') ||
-            lower.endsWith('.ogg') ||
-            lower.endsWith('.m4a') ||
-            lower.endsWith('.aac');
+    final isAudio =
+        lower.endsWith('.mp3') ||
+        lower.endsWith('.wav') ||
+        lower.endsWith('.ogg') ||
+        lower.endsWith('.m4a') ||
+        lower.endsWith('.aac');
 
-        if (isAudio) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: AudioPlayerWidget(audioUrl: url),
-          );
-        }
+    if (isAudio) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8.0),
+        child: AudioPlayerWidget(audioUrl: url),
+      );
+    }
 
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8.0),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: isVideo
-                ? SizedBox(height: 200, child: VideoPlayerWidget(videoUrl: url))
-                : Image.network(
-                    url,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.broken_image, color: Colors.white54),
-                  ),
-          ),
-        );
-      },
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: isVideo
+            ? SizedBox(height: 200, child: VideoPlayerWidget(videoUrl: url))
+            : ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minHeight: 100,
+                  maxHeight: 300,
+                ),
+                child: Image.network(
+                  url,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return SizedBox(
+                      height: 200,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    print('Erreur chargement image: $url - $error');
+                    return Container(
+                      height: 100,
+                      color: Colors.grey[800],
+                      child: const Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.broken_image,
+                              color: Colors.white54,
+                              size: 40,
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'Erreur de chargement',
+                              style: TextStyle(color: Colors.white54),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+      ),
     );
   }
 
@@ -551,7 +647,7 @@ class _ChatScreenState extends State<ChatScreen> {
               controller: _messageController,
               style: TextStyle(color: theme.textTheme.bodyLarge?.color),
               decoration: InputDecoration(
-                hintText: 'Message...',
+                hintText: 'Message au groupe...',
                 hintStyle: TextStyle(color: theme.hintColor),
                 border: InputBorder.none,
               ),
@@ -638,12 +734,12 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _uploadAndSend(String path) async {
     setState(() => _isSending = true);
     try {
-      final api = await ApiService.getInstance();
-      final mediaPath = await api.uploadFile(path, type: 'messages');
+      final mediaPath = await _api!.uploadFile(path, type: 'messages');
+      print('DEBUG: Media uploaded to: $mediaPath');
 
       // Détecter le type de média
       final lower = path.toLowerCase();
-      String? mediaType;
+      String mediaType = 'image';
       if (lower.endsWith('.mp4') ||
           lower.endsWith('.mov') ||
           lower.endsWith('.webm') ||
@@ -658,14 +754,16 @@ class _ChatScreenState extends State<ChatScreen> {
         mediaType = 'audio';
       }
 
-      await api.sendMessage(
-        widget.userId,
+      print('DEBUG: Sending message with media: $mediaPath, type: $mediaType');
+      await _api!.sendGroupMessage(
+        widget.groupId,
         '',
         media: mediaPath,
         mediaType: mediaType,
       );
       _loadMessages();
     } catch (e) {
+      print('DEBUG: Error in _uploadAndSend: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erreur upload: ${e.toString()}')),

@@ -39,6 +39,13 @@ dependencies:
   fvp: any
   url_launcher: ^6.2.5
   onesignal_flutter: ^5.4.1
+  image_picker: ^1.1.2
+  file_picker: ^8.1.5
+  audioplayers: ^6.1.0
+  record: ^6.2.0
+  path_provider: ^2.1.5
+  permission_handler: ^11.3.1
+  share_plus: ^10.0.0
 
 dev_dependencies:
   flutter_test:
@@ -64,6 +71,7 @@ flutter:
   assets:
     - assets/logo.svg
     - assets/offline.html
+    - assets/thumbs-up-red-black.svg
 
   # To add assets to your application, add an assets section, like this:
   # assets:

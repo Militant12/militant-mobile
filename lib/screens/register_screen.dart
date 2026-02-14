@@ -1,32 +1,77 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'home_screen.dart';
-import 'register_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _serverController = TextEditingController(
-    text: 'https://api.militant.revlibertaire.com',
-  );
+  final _confirmPasswordController = TextEditingController();
+  String? _selectedCause;
 
   bool _isLoading = false;
-  bool _showServerField = false;
   String? _errorMessage;
 
-  Future<void> _login() async {
+  final List<Map<String, String>> _causes = [
+    {'value': 'Anarchisme', 'label': 'Anarchisme'},
+    {'value': 'Communisme', 'label': 'Communisme'},
+    {'value': 'Anarcho-syndicalisme', 'label': 'Anarcho-syndicalisme'},
+    {'value': 'Abolition du travail', 'label': 'Abolition du travail'},
+    {'value': 'Décroissance', 'label': 'Décroissance'},
+    {'value': 'Antifa', 'label': 'Antifa'},
+    {'value': 'Squat / ZAD', 'label': 'Squat / ZAD'},
+    {'value': 'No Border', 'label': 'No Border'},
+    {'value': 'Féminisme libertaire', 'label': 'Féminisme libertaire'},
+    {'value': 'Anticolonialisme', 'label': 'Anticolonialisme'},
+    {'value': 'Action directe', 'label': 'Action directe'},
+  ];
+
+  Future<void> _register() async {
+    // Validation
+    if (_usernameController.text.trim().isEmpty) {
+      setState(() {
+        _errorMessage = 'Le nom d\'utilisateur est requis';
+      });
+      return;
+    }
+
+    if (_emailController.text.trim().isEmpty) {
+      setState(() {
+        _errorMessage = 'L\'email est requis';
+      });
+      return;
+    }
+
+    if (_passwordController.text.length < 6) {
+      setState(() {
+        _errorMessage = 'Le mot de passe doit contenir au moins 6 caractères';
+      });
+      return;
+    }
+
+    if (_passwordController.text != _confirmPasswordController.text) {
+      setState(() {
+        _errorMessage = 'Les mots de passe ne correspondent pas';
+      });
+      return;
+    }
+
+    if (_selectedCause == null) {
+      setState(() {
+        _errorMessage = 'Veuillez choisir votre cause principale';
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -34,35 +79,29 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final api = await ApiService.getInstance();
-      api.baseUrl = _serverController.text.trim();
-
-      final result = await api.login(
+      
+      final result = await api.register(
         _usernameController.text.trim(),
+        _emailController.text.trim(),
         _passwordController.text,
+        cause: _selectedCause,
       );
 
       if (result['success'] == true && mounted) {
-        // Dynamic initialization of OneSignal
-        try {
-          // Initialize with server's App ID
-          await api.initializeOneSignal();
-
-          // Login to OneSignal for notifications only on supported platforms
-          if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-            if (result['user'] != null && result['user']['id'] != null) {
-              OneSignal.login(result['user']['id'].toString());
-            }
-          }
-        } catch (e) {
-          print('OneSignal dynamic init error: $e');
-        }
-
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        // Auto-login après inscription
+        final loginResult = await api.login(
+          _usernameController.text.trim(),
+          _passwordController.text,
         );
+
+        if (loginResult['success'] == true && mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          );
+        }
       } else {
         setState(() {
-          _errorMessage = result['message'] ?? 'Erreur de connexion';
+          _errorMessage = result['message'] ?? 'Erreur d\'inscription';
         });
       }
     } catch (e) {
@@ -84,38 +123,49 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: theme.iconTheme.color,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(32.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const SizedBox(height: 60),
+              const SizedBox(height: 20),
 
               // Logo
-              SvgPicture.asset('assets/logo.svg', width: 100, height: 100),
+              SvgPicture.asset('assets/logo.svg', width: 80, height: 80),
               const SizedBox(height: 24),
 
               // Titre
               Text(
-                lang.translate('app_title'),
+                lang.translate('create_account'),
                 style: TextStyle(
                   color:
                       theme.textTheme.displayLarge?.color ??
                       (isDark ? Colors.white : Colors.black),
-                  fontSize: 32,
+                  fontSize: 28,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                'Réseau social militant',
+                lang.translate('join_community'),
                 style: TextStyle(
                   color: isDark ? const Color(0xFFAAAAAA) : Colors.grey[600],
-                  fontSize: 16,
+                  fontSize: 14,
                 ),
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: 32),
 
               // Message d'erreur
               if (_errorMessage != null)
@@ -145,22 +195,69 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
-              // Champ serveur (optionnel)
-              if (_showServerField) ...[
-                _buildTextField(
-                  controller: _serverController,
-                  label: lang.translate('server_label'),
-                  icon: Icons.dns,
-                ),
-                const SizedBox(height: 16),
-              ],
-
               // Champ username
               _buildTextField(
                 controller: _usernameController,
-                label:
-                    '${lang.translate('username_label')} / ${lang.translate('email_label')}',
+                label: lang.translate('username_label'),
                 icon: Icons.person,
+              ),
+              const SizedBox(height: 16),
+
+              // Champ email
+              _buildTextField(
+                controller: _emailController,
+                label: lang.translate('email_label'),
+                icon: Icons.email,
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 16),
+
+              // Champ cause
+              Container(
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[200],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: DropdownButtonFormField<String>(
+                  value: _selectedCause,
+                  decoration: InputDecoration(
+                    labelText: lang.translate('your_main_cause'),
+                    labelStyle: TextStyle(
+                      color: isDark ? const Color(0xFF888888) : Colors.grey[600],
+                    ),
+                    prefixIcon: Icon(
+                      Icons.flag,
+                      color: isDark ? const Color(0xFF888888) : Colors.grey[600],
+                    ),
+                    filled: true,
+                    fillColor: Colors.transparent,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFBE1E1E)),
+                    ),
+                  ),
+                  dropdownColor: isDark ? const Color(0xFF2A2A2A) : Colors.white,
+                  style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+                  items: _causes.map((cause) {
+                    return DropdownMenuItem<String>(
+                      value: cause['value'],
+                      child: Text(cause['label']!),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedCause = value;
+                    });
+                  },
+                ),
               ),
               const SizedBox(height: 16),
 
@@ -171,13 +268,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 icon: Icons.lock,
                 isPassword: true,
               ),
+              const SizedBox(height: 16),
+
+              // Champ confirmation password
+              _buildTextField(
+                controller: _confirmPasswordController,
+                label: lang.translate('confirm_password'),
+                icon: Icons.lock_outline,
+                isPassword: true,
+              ),
               const SizedBox(height: 24),
 
-              // Bouton connexion
+              // Bouton inscription
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : () => _login(),
+                  onPressed: _isLoading ? null : () => _register(),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFBE1E1E),
                     foregroundColor: Colors.white,
@@ -195,9 +301,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             strokeWidth: 2,
                           ),
                         )
-                      : Text(
-                          lang.translate('login_button'),
-                          style: const TextStyle(
+                      : const Text(
+                          'S\'inscrire',
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
@@ -206,28 +312,12 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Bouton changer de serveur
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    _showServerField = !_showServerField;
-                  });
-                },
-                child: Text(
-                  _showServerField
-                      ? 'Masquer le serveur'
-                      : 'Changer de serveur',
-                  style: const TextStyle(color: Color(0xFFBE1E1E)),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Lien vers inscription
+              // Lien vers connexion
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Pas encore de compte ? ',
+                    lang.translate('login_link').split('?')[0] + '? ',
                     style: TextStyle(
                       color: isDark
                           ? const Color(0xFFAAAAAA)
@@ -235,22 +325,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const RegisterScreen(),
-                        ),
-                      );
-                    },
+                    onPressed: () => Navigator.pop(context),
                     style: TextButton.styleFrom(
                       padding: EdgeInsets.zero,
                       minimumSize: const Size(0, 0),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    child: const Text(
-                      'S\'inscrire',
-                      style: TextStyle(
+                    child: Text(
+                      lang.translate('login_button'),
+                      style: const TextStyle(
                         color: Color(0xFFBE1E1E),
                         fontWeight: FontWeight.w600,
                       ),
@@ -270,6 +353,7 @@ class _LoginScreenState extends State<LoginScreen> {
     required String label,
     required IconData icon,
     bool isPassword = false,
+    TextInputType? keyboardType,
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -277,6 +361,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return TextField(
       controller: controller,
       obscureText: isPassword,
+      keyboardType: keyboardType,
       style: TextStyle(color: theme.textTheme.bodyLarge?.color),
       decoration: InputDecoration(
         labelText: label,
@@ -308,8 +393,9 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void dispose() {
     _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
-    _serverController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 }

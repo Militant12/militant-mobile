@@ -4,6 +4,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
 import '../services/theme_manager.dart';
 import '../services/language_service.dart';
+import 'package:url_launcher/url_launcher.dart';
+import './badge_selection_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -54,6 +56,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           _buildOption(
             context,
+            icon: Icons.flag,
+            title: lang.translate('my_militant_badge'),
+            subtitle: lang.translate('select_badge_text'),
+            onTap: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const BadgeSelectionScreen(),
+                ),
+              );
+              if (result != null && mounted) {
+                setState(() {});
+              }
+            },
+          ),
+          _buildOption(
+            context,
             icon: Icons.notifications,
             title: lang.translate('notifications_title'),
             subtitle: lang.translate('subtitle_notifications'),
@@ -90,6 +109,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           _buildOption(
             context,
+            icon: Icons.download,
+            title: lang.translate('export_data_title') == 'export_data_title'
+                ? 'Exporter mes données'
+                : lang.translate('export_data_title'),
+            subtitle:
+                lang.translate('export_data_subtitle') == 'export_data_subtitle'
+                ? 'Télécharger une copie de vos données (JSON)'
+                : lang.translate('export_data_subtitle'),
+            onTap: _exportData,
+          ),
+          _buildOption(
+            context,
             icon: Icons.language,
             title: lang.translate('language_title'),
             subtitle: _getLanguageName(_currentLanguage),
@@ -114,6 +145,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _exportData() async {
+    try {
+      final api = await ApiService.getInstance();
+      final urlString = '${api.apiUrl}/v1/export.php?token=${api.token}';
+      final url = Uri.parse(urlString);
+
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Impossible d\'ouvrir le lien')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+      }
+    }
   }
 
   String _getLanguageName(String code) {
@@ -455,7 +510,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   // Default values
   bool _pushEnabled = true;
-  bool _emailEnabled = false;
+  // bool _emailEnabled = false; // Removed
   bool _likes = true;
   bool _comments = true;
   bool _follows = true;
@@ -475,7 +530,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       if (mounted) {
         setState(() {
           _pushEnabled = _toBool(prefs['notifications_push'], true);
-          _emailEnabled = _toBool(prefs['notifications_email'], false);
+          // _emailEnabled = _toBool(prefs['notifications_email'], false);
           _likes = _toBool(prefs['notifications_likes'], true);
           _comments = _toBool(prefs['notifications_comments'], true);
           _follows = _toBool(prefs['notifications_follows'], true);
@@ -506,16 +561,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     setState(() {
       if (key == 'notifications_push') {
         _pushEnabled = value;
-      } else if (key == 'notifications_email')
-        _emailEnabled = value;
-      else if (key == 'notifications_likes')
+      } else if (key == 'notifications_likes') {
         _likes = value;
-      else if (key == 'notifications_comments')
+      } else if (key == 'notifications_comments') {
         _comments = value;
-      else if (key == 'notifications_follows')
+      } else if (key == 'notifications_follows') {
         _follows = value;
-      else if (key == 'notifications_mentions')
+      } else if (key == 'notifications_mentions') {
         _mentions = value;
+      }
     });
 
     try {
@@ -554,14 +608,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   _pushEnabled,
                   (v) => _updatePreference('notifications_push', v),
                 ),
-                _buildSwitch(
-                  lang.translate('notifications_email'),
-                  lang.translate('notifications_email_subtitle'),
-                  _emailEnabled,
-                  (v) => _updatePreference('notifications_email', v),
-                ),
-
-                if (_pushEnabled || _emailEnabled) ...[
+                if (_pushEnabled) ...[
                   _buildSectionHeader(
                     lang.translate('notifications_interactions_title'),
                   ),

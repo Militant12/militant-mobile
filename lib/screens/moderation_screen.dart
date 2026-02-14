@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../models/report.dart';
+import 'post_detail_screen.dart';
 
 class ModerationScreen extends StatefulWidget {
   const ModerationScreen({super.key});
@@ -9,7 +10,8 @@ class ModerationScreen extends StatefulWidget {
   State<ModerationScreen> createState() => _ModerationScreenState();
 }
 
-class _ModerationScreenState extends State<ModerationScreen> with SingleTickerProviderStateMixin {
+class _ModerationScreenState extends State<ModerationScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final List<Report> _reports = [];
   final List<ModeratorCandidate> _candidates = [];
@@ -28,7 +30,7 @@ class _ModerationScreenState extends State<ModerationScreen> with SingleTickerPr
 
     try {
       final api = await ApiService.getInstance();
-      
+
       // Charger les signalements
       final reportsData = await api.getReports();
       setState(() {
@@ -40,20 +42,24 @@ class _ModerationScreenState extends State<ModerationScreen> with SingleTickerPr
       final candidatesData = await api.getCandidates();
       setState(() {
         _candidates.clear();
-        _candidates.addAll(candidatesData.map((c) => ModeratorCandidate.fromJson(c)).toList());
+        _candidates.addAll(
+          candidatesData.map((c) => ModeratorCandidate.fromJson(c)).toList(),
+        );
       });
 
       // Charger les modérateurs
       final moderatorsData = await api.getModerators();
       setState(() {
         _moderators.clear();
-        _moderators.addAll(moderatorsData.map((m) => ModeratorCandidate.fromJson(m)).toList());
+        _moderators.addAll(
+          moderatorsData.map((m) => ModeratorCandidate.fromJson(m)).toList(),
+        );
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
       }
     } finally {
       setState(() => _isLoading = false);
@@ -64,18 +70,18 @@ class _ModerationScreenState extends State<ModerationScreen> with SingleTickerPr
     try {
       final api = await ApiService.getInstance();
       await api.voteOnReport(reportId, vote);
-      
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Vote enregistré!')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Vote enregistré!')));
         _loadData();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
       }
     }
   }
@@ -84,7 +90,7 @@ class _ModerationScreenState extends State<ModerationScreen> with SingleTickerPr
     try {
       final api = await ApiService.getInstance();
       final result = await api.voteForModerator(userId, vote);
-      
+
       if (mounted) {
         String message = 'Vote enregistré!';
         if (result['elected'] == true) {
@@ -92,17 +98,17 @@ class _ModerationScreenState extends State<ModerationScreen> with SingleTickerPr
         } else if (result['revoked'] == true) {
           message = 'Modérateur·ice révoqué·e par consensus!';
         }
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
         _loadData();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
       }
     }
   }
@@ -127,17 +133,17 @@ class _ModerationScreenState extends State<ModerationScreen> with SingleTickerPr
         ),
       ),
       body: _isLoading
-        ? const Center(
-            child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-          )
-        : TabBarView(
-            controller: _tabController,
-            children: [
-              _buildReportsTab(),
-              _buildCandidatesTab(),
-              _buildModeratorsTab(),
-            ],
-          ),
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
+            )
+          : TabBarView(
+              controller: _tabController,
+              children: [
+                _buildReportsTab(),
+                _buildCandidatesTab(),
+                _buildModeratorsTab(),
+              ],
+            ),
     );
   }
 
@@ -149,10 +155,7 @@ class _ModerationScreenState extends State<ModerationScreen> with SingleTickerPr
           children: [
             Icon(Icons.check_circle, size: 64, color: Colors.green),
             SizedBox(height: 16),
-            Text(
-              'Aucun signalement',
-              style: TextStyle(color: Colors.white70),
-            ),
+            Text('Aucun signalement', style: TextStyle(color: Colors.white70)),
           ],
         ),
       );
@@ -196,7 +199,10 @@ class _ModerationScreenState extends State<ModerationScreen> with SingleTickerPr
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.orange,
                     borderRadius: BorderRadius.circular(4),
@@ -224,7 +230,7 @@ class _ModerationScreenState extends State<ModerationScreen> with SingleTickerPr
               ],
             ),
             const SizedBox(height: 12),
-            
+
             // Contenu signalé
             if (report.postContent != null) ...[
               Container(
@@ -253,7 +259,31 @@ class _ModerationScreenState extends State<ModerationScreen> with SingleTickerPr
               ),
               const SizedBox(height: 12),
             ],
-            
+
+            // Lien vers le post
+            if (report.postId != null) ...[
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            PostDetailScreen(postId: report.postId!),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.open_in_new, size: 16),
+                  label: const Text('Voir le post'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: Colors.white24),
+                  ),
+                ),
+              ),
+            ],
+
             // Description
             if (report.description != null) ...[
               Text(
@@ -266,7 +296,7 @@ class _ModerationScreenState extends State<ModerationScreen> with SingleTickerPr
               ),
               const SizedBox(height: 12),
             ],
-            
+
             // Mon vote
             if (report.myVote != null) ...[
               Container(
@@ -277,7 +307,11 @@ class _ModerationScreenState extends State<ModerationScreen> with SingleTickerPr
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.how_to_vote, color: Color(0xFFBE1E1E), size: 16),
+                    const Icon(
+                      Icons.how_to_vote,
+                      color: Color(0xFFBE1E1E),
+                      size: 16,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       'Tu as voté: ${_getVoteLabel(report.myVote!)}',
@@ -286,7 +320,10 @@ class _ModerationScreenState extends State<ModerationScreen> with SingleTickerPr
                     const Spacer(),
                     TextButton(
                       onPressed: () => _voteOnReport(report.id, 'cancel'),
-                      child: const Text('Annuler', style: TextStyle(color: Colors.white70)),
+                      child: const Text(
+                        'Annuler',
+                        style: TextStyle(color: Colors.white70),
+                      ),
                     ),
                   ],
                 ),
@@ -374,7 +411,7 @@ class _ModerationScreenState extends State<ModerationScreen> with SingleTickerPr
           ),
         ),
         const SizedBox(height: 16),
-        
+
         // Liste des candidats
         if (_candidates.isEmpty)
           const Center(
@@ -411,7 +448,10 @@ class _ModerationScreenState extends State<ModerationScreen> with SingleTickerPr
     );
   }
 
-  Widget _buildCandidateCard(ModeratorCandidate candidate, {bool isModerator = false}) {
+  Widget _buildCandidateCard(
+    ModeratorCandidate candidate, {
+    bool isModerator = false,
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -428,14 +468,14 @@ class _ModerationScreenState extends State<ModerationScreen> with SingleTickerPr
                 radius: 24,
                 backgroundColor: const Color(0xFFBE1E1E),
                 backgroundImage: candidate.avatar != null
-                  ? NetworkImage(candidate.avatar!)
-                  : null,
+                    ? NetworkImage(candidate.avatar!)
+                    : null,
                 child: candidate.avatar == null
-                  ? Text(
-                      candidate.username[0].toUpperCase(),
-                      style: const TextStyle(color: Colors.white),
-                    )
-                  : null,
+                    ? Text(
+                        candidate.username[0].toUpperCase(),
+                        style: const TextStyle(color: Colors.white),
+                      )
+                    : null,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -462,7 +502,7 @@ class _ModerationScreenState extends State<ModerationScreen> with SingleTickerPr
               ),
             ],
           ),
-          
+
           if (candidate.motivation != null) ...[
             const SizedBox(height: 12),
             Text(
@@ -473,9 +513,9 @@ class _ModerationScreenState extends State<ModerationScreen> with SingleTickerPr
               ),
             ),
           ],
-          
+
           const SizedBox(height: 12),
-          
+
           // Votes
           Row(
             children: [
@@ -516,30 +556,30 @@ class _ModerationScreenState extends State<ModerationScreen> with SingleTickerPr
               ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           // Boutons de vote
           Row(
             children: [
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: candidate.myVote == 'for'
-                    ? null
-                    : () => _voteForModerator(candidate.userId, 'for'),
+                      ? null
+                      : () => _voteForModerator(candidate.userId, 'for'),
                   icon: const Icon(Icons.check, size: 16),
                   label: const Text('Pour'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: candidate.myVote == 'for'
-                      ? Colors.white
-                      : Colors.green,
+                        ? Colors.white
+                        : Colors.green,
                     backgroundColor: candidate.myVote == 'for'
-                      ? Colors.green
-                      : null,
+                        ? Colors.green
+                        : null,
                     side: BorderSide(
                       color: candidate.myVote == 'for'
-                        ? Colors.green
-                        : Colors.green.withOpacity(0.5),
+                          ? Colors.green
+                          : Colors.green.withOpacity(0.5),
                     ),
                   ),
                 ),
@@ -548,21 +588,21 @@ class _ModerationScreenState extends State<ModerationScreen> with SingleTickerPr
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: candidate.myVote == 'against'
-                    ? null
-                    : () => _voteForModerator(candidate.userId, 'against'),
+                      ? null
+                      : () => _voteForModerator(candidate.userId, 'against'),
                   icon: const Icon(Icons.close, size: 16),
                   label: Text(isModerator ? 'Révoquer' : 'Contre'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: candidate.myVote == 'against'
-                      ? Colors.white
-                      : Colors.red,
+                        ? Colors.white
+                        : Colors.red,
                     backgroundColor: candidate.myVote == 'against'
-                      ? Colors.red
-                      : null,
+                        ? Colors.red
+                        : null,
                     side: BorderSide(
                       color: candidate.myVote == 'against'
-                        ? Colors.red
-                        : Colors.red.withOpacity(0.5),
+                          ? Colors.red
+                          : Colors.red.withOpacity(0.5),
                     ),
                   ),
                 ),

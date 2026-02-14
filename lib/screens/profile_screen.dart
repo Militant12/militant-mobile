@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../models/post.dart';
 import '../widgets/post_card.dart';
+import '../widgets/profile_stories.dart';
 import 'login_screen.dart';
 import 'edit_profile_screen.dart';
 import 'bookmarks_screen.dart';
@@ -234,26 +236,18 @@ class _ProfileScreenState extends State<ProfileScreen>
                         backgroundImage: NetworkImage(_avatarUrl!),
                         onBackgroundImageError: (_, __) {},
                         child: _avatarUrl == null
-                            ? Text(
-                                username[0].toUpperCase(),
-                                style: TextStyle(
-                                  color: textColor,
-                                  fontSize: 36,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            ? Padding(
+                                padding: const EdgeInsets.all(0.0),
+                                child: SvgPicture.asset('assets/logo.svg'),
                               )
                             : null,
                       )
                     : CircleAvatar(
                         radius: 50,
-                        backgroundColor: const Color(0xFFBE1E1E),
-                        child: Text(
-                          username[0].toUpperCase(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 36,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        backgroundColor: Colors.transparent,
+                        child: Padding(
+                          padding: const EdgeInsets.all(0.0),
+                          child: SvgPicture.asset('assets/logo.svg'),
                         ),
                       ),
                 const SizedBox(height: 16),
@@ -467,6 +461,13 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
             ),
           ] else ...[
+            // Stories
+            if (_profile != null)
+              ProfileStories(
+                userId: _profile!['id'] ?? _profile!['user_id'],
+                isMe: _isMe,
+              ),
+            
             // Onglets
             Container(
               color: theme.cardColor,

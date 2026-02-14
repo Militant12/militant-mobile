@@ -41,11 +41,16 @@ class LanguageService extends ValueNotifier<Locale> {
       'login_button': 'Se connecter',
       'register_link': 'Pas encore de compte ? S\'inscrire',
       'register_title': 'Inscription',
+      'create_account': 'Créer un compte',
+      'join_community': 'Rejoignez la communauté militante',
       'username_label': 'Nom d\'utilisateur',
       'register_button': 'S\'inscrire',
       'login_link': 'Déjà un compte ? Se connecter',
       'password_required': 'Mot de passe requis',
       'email_required': 'Email requis',
+      'confirm_password': 'Confirmer le mot de passe',
+      'your_main_cause': 'Ta cause principale',
+      'choose_cause': 'Choisir une cause',
 
       // Home & Navigation
       'home_title': 'Accueil',
@@ -143,6 +148,18 @@ class LanguageService extends ValueNotifier<Locale> {
       'private_account_subtitle': 'Abonnez-vous pour voir ses publications.',
       'follow': 'Suivre',
       'following_status': 'Suivi',
+
+      // Stories
+      'stories_add': 'Ajouter',
+      'stories_created': 'Story créée',
+      'stories_error': 'Erreur',
+
+      // Badge Selection
+      'my_militant_badge': 'Mon badge militant',
+      'no_badge': 'Aucun badge',
+      'select_badge_text': 'Choisir votre affiliation politique',
+      'export_data_title': 'Exporter mes données',
+      'export_data_subtitle': 'Télécharger une copie de vos données (JSON)',
     },
     'en': {
       // General
@@ -166,11 +183,16 @@ class LanguageService extends ValueNotifier<Locale> {
       'login_button': 'Login',
       'register_link': 'No account? Register',
       'register_title': 'Register',
+      'create_account': 'Create an account',
+      'join_community': 'Join the militant community',
       'username_label': 'Username',
       'register_button': 'Register',
       'login_link': 'Already have an account? Login',
       'password_required': 'Password required',
       'email_required': 'Email required',
+      'confirm_password': 'Confirm password',
+      'your_main_cause': 'Your main cause',
+      'choose_cause': 'Choose a cause',
 
       // Home & Navigation
       'home_title': 'Home',
@@ -266,6 +288,18 @@ class LanguageService extends ValueNotifier<Locale> {
       'private_account_subtitle': 'Follow this account to see their posts.',
       'follow': 'Follow',
       'following_status': 'Following',
+
+      // Stories
+      'stories_add': 'Add',
+      'stories_created': 'Story created',
+      'stories_error': 'Error',
+
+      // Badge Selection
+      'my_militant_badge': 'My militant badge',
+      'no_badge': 'No badge',
+      'select_badge_text': 'Choose your political affiliation',
+      'export_data_title': 'Export my data',
+      'export_data_subtitle': 'Download a copy of your data (JSON)',
     },
     'es': {
       // General
@@ -289,11 +323,16 @@ class LanguageService extends ValueNotifier<Locale> {
       'login_button': 'Iniciar sesión',
       'register_link': '¿No tienes cuenta? Regístrate',
       'register_title': 'Registro',
+      'create_account': 'Crear una cuenta',
+      'join_community': 'Únete a la comunidad militante',
       'username_label': 'Nombre de usuario',
       'register_button': 'Registrarse',
       'login_link': '¿Ya tienes cuenta? Inicia sesión',
       'password_required': 'Contraseña requerida',
       'email_required': 'Correo requerido',
+      'confirm_password': 'Confirmar contraseña',
+      'your_main_cause': 'Tu causa principal',
+      'choose_cause': 'Elegir una causa',
 
       // Home & Navigation
       'home_title': 'Inicio',
@@ -393,6 +432,18 @@ class LanguageService extends ValueNotifier<Locale> {
           'Sigue a esta cuenta para ver sus publicaciones.',
       'follow': 'Seguir',
       'following_status': 'Siguiendo',
+
+      // Stories
+      'stories_add': 'Añadir',
+      'stories_created': 'Historia creada',
+      'stories_error': 'Error',
+
+      // Badge Selection
+      'my_militant_badge': 'Mi insignia militante',
+      'no_badge': 'Sin insignia',
+      'select_badge_text': 'Elige tu afiliación política',
+      'export_data_title': 'Exportar mis datos',
+      'export_data_subtitle': 'Descargar una copia de tus datos (JSON)',
     },
   };
 

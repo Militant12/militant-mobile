@@ -6,9 +6,10 @@ import '../services/language_service.dart';
 import '../widgets/post_card.dart';
 
 class PostDetailScreen extends StatefulWidget {
-  final Post post;
+  final Post? post;
+  final int? postId;
 
-  const PostDetailScreen({super.key, required this.post});
+  const PostDetailScreen({super.key, this.post, this.postId});
 
   @override
   State<PostDetailScreen> createState() => _PostDetailScreenState();
@@ -17,19 +18,64 @@ class PostDetailScreen extends StatefulWidget {
 class _PostDetailScreenState extends State<PostDetailScreen> {
   final List<Comment> _comments = [];
   bool _isLoading = false;
+  int? _currentUserId;
   final TextEditingController _commentController = TextEditingController();
+  Post? _post;
 
   @override
   void initState() {
     super.initState();
-    _loadComments();
+    _post = widget.post;
+    if (_post != null) {
+      _loadComments();
+    } else {
+      _loadPostIfNeeded();
+    }
+    _loadCurrentUser();
+  }
+
+  Future<void> _loadPostIfNeeded() async {
+    if (widget.postId != null) {
+      setState(() => _isLoading = true);
+      try {
+        final api = await ApiService.getInstance();
+        final postData = await api.getPost(widget.postId!);
+        if (mounted) {
+          setState(() {
+            _post = Post.fromJson(postData);
+          });
+          await _loadComments();
+        }
+      } catch (e) {
+        debugPrint('Error loading post: $e');
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _loadCurrentUser() async {
+    try {
+      final api = await ApiService.getInstance();
+      final profile = await api.getProfile();
+      if (mounted) {
+        setState(() {
+          _currentUserId = profile['id'];
+        });
+      }
+    } catch (_) {}
   }
 
   Future<void> _loadComments() async {
     setState(() => _isLoading = true);
     try {
       final api = await ApiService.getInstance();
-      final commentsData = await api.getComments(widget.post.id);
+      List<dynamic> commentsData;
+      if (_post!.type == 'group') {
+        commentsData = await api.getGroupPostComments(_post!.id);
+      } else {
+        commentsData = await api.getComments(_post!.id);
+      }
       setState(() {
         _comments.clear();
         _comments.addAll(commentsData.map((c) => Comment.fromJson(c)).toList());
@@ -51,7 +97,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
     try {
       final api = await ApiService.getInstance();
-      await api.addComment(widget.post.id, content);
+      if (_post!.type == 'group') {
+        await api.addGroupComment(_post!.id, content);
+      } else {
+        await api.addComment(_post!.id, content);
+      }
       _commentController.clear();
       _loadComments();
     } catch (e) {
@@ -68,6 +118,24 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     final theme = Theme.of(context);
     final lang = LanguageService.instance;
 
+    if (_post == null && _isLoading) {
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(title: Text(lang.translate('post_detail_title'))),
+        body: const Center(
+          child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
+        ),
+      );
+    }
+
+    if (_post == null) {
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(title: Text(lang.translate('post_detail_title'))),
+        body: const Center(child: Text('Post introuvable')),
+      );
+    }
+
     final textColor = theme.textTheme.bodyLarge?.color;
     final subtitleColor = theme.textTheme.bodyMedium?.color;
 
@@ -79,7 +147,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           Expanded(
             child: ListView(
               children: [
-                PostCard(post: widget.post),
+                PostCard(post: _post!),
                 Divider(color: theme.dividerColor),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -157,6 +225,36 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                       _formatDate(comment.createdAt),
                       style: TextStyle(color: subtitleColor, fontSize: 12),
                     ),
+                    const Spacer(),
+                    if (_currentUserId != null &&
+                        comment.userId == _currentUserId)
+                      PopupMenuButton<String>(
+                        icon: Icon(
+                          Icons.more_horiz,
+                          size: 16,
+                          color: subtitleColor,
+                        ),
+                        onSelected: (value) async {
+                          if (value == 'delete') {
+                            _deleteComment(comment);
+                          } else if (value == 'edit') {
+                            _editComment(comment);
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'edit',
+                            child: Text('Modifier'),
+                          ),
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Text(
+                              'Supprimer',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
                 const SizedBox(height: 4),
@@ -170,6 +268,92 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _deleteComment(Comment comment) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Supprimer'),
+        content: const Text('Voulez-vous vraiment supprimer ce commentaire ?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        final api = await ApiService.getInstance();
+        if (_post!.type == 'group') {
+          await api.deleteGroupComment(comment.id);
+        } else {
+          // TODO: implement standard delete comment
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Suppression non supportée pour ce type'),
+            ),
+          );
+          return;
+        }
+        _loadComments();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        }
+      }
+    }
+  }
+
+  Future<void> _editComment(Comment comment) async {
+    final controller = TextEditingController(text: comment.content);
+    final newContent = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Modifier'),
+        content: TextField(controller: controller, maxLines: 3),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, controller.text),
+            child: const Text('Enregistrer'),
+          ),
+        ],
+      ),
+    );
+
+    if (newContent != null &&
+        newContent.isNotEmpty &&
+        newContent != comment.content) {
+      try {
+        final api = await ApiService.getInstance();
+        if (_post!.type == 'group') {
+          await api.updateGroupComment(comment.id, newContent);
+        } else {
+          // TODO: standard update
+          return;
+        }
+        _loadComments();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        }
+      }
+    }
   }
 
   String _formatDate(DateTime date) {

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import '../models/post.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../screens/post_detail_screen.dart';
 import '../screens/profile_screen.dart';
 import 'video_player_widget.dart';
+import 'package:share_plus/share_plus.dart';
 
 class PostCard extends StatefulWidget {
   final Post post;
@@ -24,13 +26,23 @@ class _PostCardState extends State<PostCard> {
   String? _translatedContent;
   bool _showTranslation = false;
   bool _isTranslating = false;
+  late String _currentContent;
 
   @override
   void initState() {
     super.initState();
+    _currentContent = widget.post.content;
     _isLiked = widget.post.isLiked;
     _likesCount = widget.post.likesCount;
     _resolveUrls();
+  }
+
+  @override
+  void didUpdateWidget(PostCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.post.content != oldWidget.post.content) {
+      _currentContent = widget.post.content;
+    }
   }
 
   Future<void> _resolveUrls() async {
@@ -149,16 +161,17 @@ class _PostCardState extends State<PostCard> {
                       children: [
                         CircleAvatar(
                           radius: 20,
-                          backgroundColor: const Color(0xFFBE1E1E),
+                          backgroundColor: Colors.transparent,
                           backgroundImage: _avatarUrl != null
                               ? NetworkImage(_avatarUrl!)
                               : null,
                           child: _avatarUrl == null
-                              ? Text(
-                                  widget.post.username[0].toUpperCase(),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
+                              ? Padding(
+                                  padding: const EdgeInsets.all(0.0),
+                                  child: SvgPicture.asset(
+                                    'assets/logo.svg',
+                                    width: 40,
+                                    height: 40,
                                   ),
                                 )
                               : null,
@@ -226,7 +239,7 @@ class _PostCardState extends State<PostCard> {
               Text(
                 _showTranslation && _translatedContent != null
                     ? _translatedContent!
-                    : widget.post.content,
+                    : _currentContent,
                 style: TextStyle(color: textColor, fontSize: 15, height: 1.4),
               ),
 
@@ -266,67 +279,63 @@ class _PostCardState extends State<PostCard> {
               // Médias
               if (_mediaUrl != null) ...[
                 const SizedBox(height: 12),
-                if (_isVideoUrl(_mediaUrl!))
+                if (widget.post.mediaType == 'video' || _isVideoUrl(_mediaUrl!))
                   VideoPlayerWidget(videoUrl: _mediaUrl!)
                 else
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxHeight: 400),
-                      child: Image.network(
-                        _mediaUrl!,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Container(
-                            height: 200,
-                            color: isDark
-                                ? const Color(0xFF2A2A2A)
-                                : Colors.grey[200],
-                            child: Center(
-                              child: CircularProgressIndicator(
-                                value:
-                                    loadingProgress.expectedTotalBytes != null
-                                    ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                    : null,
-                                color: const Color(0xFFBE1E1E),
-                              ),
+                    child: Image.network(
+                      _mediaUrl!,
+                      width: double.infinity,
+                      fit: BoxFit.contain,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          height: 200,
+                          color: isDark
+                              ? const Color(0xFF2A2A2A)
+                              : Colors.grey[200],
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                  : null,
+                              color: const Color(0xFFBE1E1E),
                             ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          print('Erreur chargement image: $error');
-                          print('URL: $_mediaUrl');
-                          return Container(
-                            height: 200,
-                            color: isDark
-                                ? const Color(0xFF2A2A2A)
-                                : Colors.grey[200],
-                            child: Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.broken_image,
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        print('Erreur chargement image: $error');
+                        print('URL: $_mediaUrl');
+                        return Container(
+                          height: 200,
+                          color: isDark
+                              ? const Color(0xFF2A2A2A)
+                              : Colors.grey[200],
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.broken_image,
+                                  color: subtitleColor,
+                                  size: 48,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Image non disponible',
+                                  style: TextStyle(
                                     color: subtitleColor,
-                                    size: 48,
+                                    fontSize: 12,
                                   ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Image non disponible',
-                                    style: TextStyle(
-                                      color: subtitleColor,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        );
+                      },
                     ),
                   ),
               ],
@@ -337,7 +346,7 @@ class _PostCardState extends State<PostCard> {
               Row(
                 children: [
                   _buildActionButton(
-                    icon: _isLiked ? Icons.favorite : Icons.favorite_border,
+                    icon: _isLiked ? Icons.thumb_up : Icons.thumb_up_off_alt,
                     label: _likesCount.toString(),
                     color: _isLiked
                         ? const Color(0xFFBE1E1E)
@@ -470,6 +479,72 @@ class _PostCardState extends State<PostCard> {
   // ... (keep _sharePost and _savePost and _editPost unchanged for now)
 
   Future<void> _sharePost(BuildContext context) async {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: theme.scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(
+                Icons.share,
+                color: isDark ? Colors.white : Colors.black,
+              ),
+              title: Text(
+                'Partager via...',
+                style: TextStyle(color: isDark ? Colors.white : Colors.black),
+              ),
+              onTap: () async {
+                Navigator.pop(context);
+                final api = await ApiService.getInstance();
+                String baseUrl = api.baseUrl;
+                if (baseUrl.endsWith('/api')) {
+                  baseUrl = baseUrl.substring(0, baseUrl.length - 4);
+                } else if (baseUrl.contains('api.')) {
+                  baseUrl = baseUrl.replaceAll('api.', '');
+                }
+
+                String url;
+                if (widget.post.type == 'group') {
+                  url =
+                      '$baseUrl/group_detail.php?id=${widget.post.groupId}#post-${widget.post.id}';
+                } else {
+                  url = '$baseUrl/post.php?id=${widget.post.id}';
+                }
+
+                await Share.share('Regarde ce post sur Militant !\n$url');
+              },
+            ),
+            if (widget.post.type != 'group')
+              ListTile(
+                leading: Icon(
+                  Icons.repeat,
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+                title: Text(
+                  'Republier sur mon mur',
+                  style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                ),
+                onTap: () async {
+                  Navigator.pop(context);
+                  _repostInternal(context);
+                },
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _repostInternal(BuildContext context) async {
     try {
       final api = await ApiService.getInstance();
       await api.sharePost(widget.post.id);
@@ -511,10 +586,84 @@ class _PostCardState extends State<PostCard> {
     }
   }
 
-  void _editPost(BuildContext context) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Fonctionnalité à venir')));
+  void _editPost(BuildContext context) async {
+    final theme = Theme.of(context);
+    final lang = LanguageService.instance;
+    final controller = TextEditingController(text: widget.post.content);
+
+    final newContent = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: theme.cardColor,
+        title: Text(
+          lang.translate('edit'),
+          style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+        ),
+        content: TextField(
+          controller: controller,
+          maxLines: 5,
+          style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+          decoration: InputDecoration(
+            hintText: lang.translate('whats_new'),
+            hintStyle: TextStyle(color: theme.textTheme.bodyMedium?.color),
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              lang.translate('cancel'),
+              style: TextStyle(color: theme.textTheme.bodyMedium?.color),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, controller.text),
+            child: Text(
+              lang.translate('save'),
+              style: const TextStyle(color: Color(0xFFBE1E1E)),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (newContent != null &&
+        newContent.isNotEmpty &&
+        newContent != widget.post.content) {
+      try {
+        final api = await ApiService.getInstance();
+        if (widget.post.type == 'group') {
+          await api.updateGroupPost(widget.post.id, newContent);
+        } else {
+          // TODO: Implement regular post update
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Édition non supportée pour ce type de post'),
+              ),
+            );
+            return;
+          }
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(lang.translate('success'))));
+
+          setState(() {
+            _currentContent = newContent;
+          });
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        }
+      }
+    }
   }
 
   void _reportPost(BuildContext context) {
@@ -617,7 +766,11 @@ class _PostCardState extends State<PostCard> {
     if (confirm == true && mounted) {
       try {
         final api = await ApiService.getInstance();
-        await api.deletePost(widget.post.id);
+        if (widget.post.type == 'group') {
+          await api.deleteGroupPost(widget.post.id);
+        } else {
+          await api.deletePost(widget.post.id);
+        }
 
         if (mounted) {
           ScaffoldMessenger.of(

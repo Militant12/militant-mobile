@@ -3,6 +3,7 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../models/post.dart';
 import '../widgets/post_card.dart';
+import '../widgets/stories_bar.dart';
 import 'moderation_screen.dart';
 import 'profile_screen.dart';
 import 'create_post_screen.dart';
@@ -196,9 +197,13 @@ class _HomeScreenState extends State<HomeScreen> {
               child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
             )
           : ListView.builder(
-              itemCount: _posts.length + 1,
+              itemCount: _posts.length + 2, // +2 pour stories et padding
               itemBuilder: (context, index) {
-                if (index == _posts.length) {
+                if (index == 0) {
+                  return const StoriesBar();
+                }
+                
+                if (index == _posts.length + 1) {
                   if (_isLoading) {
                     return const Padding(
                       padding: EdgeInsets.all(16.0),
@@ -213,7 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   }
                 }
 
-                return PostCard(post: _posts[index]);
+                return PostCard(post: _posts[index - 1]);
               },
             ),
     );

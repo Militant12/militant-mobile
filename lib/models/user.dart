@@ -5,6 +5,8 @@ class User {
   final String? avatar;
   final String? banner;
   final String? bio;
+  final String? cause;
+  final String? militantBadge;
   final int followersCount;
   final int followingCount;
   final bool isFollowing;
@@ -17,6 +19,8 @@ class User {
     this.avatar,
     this.banner,
     this.bio,
+    this.cause,
+    this.militantBadge,
     required this.followersCount,
     required this.followingCount,
     required this.isFollowing,
@@ -31,6 +35,8 @@ class User {
       avatar: json['avatar'],
       banner: json['banner'],
       bio: json['bio'],
+      cause: json['cause'],
+      militantBadge: json['militant_badge'],
       followersCount: json['followers_count'] ?? 0,
       followingCount: json['following_count'] ?? 0,
       isFollowing: json['is_following'] == 1 || json['is_following'] == true,

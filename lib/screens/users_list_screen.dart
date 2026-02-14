@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'profile_screen.dart';
 
 class UsersListScreen extends StatefulWidget {
@@ -130,17 +131,34 @@ class _UsersListScreenState extends State<UsersListScreen> {
                     onTap: () => _navigateToProfile(user['id']),
                     child: Stack(
                       children: [
-                        CircleAvatar(
-                          backgroundColor: const Color(0xFFBE1E1E),
-                          backgroundImage: user['avatar'] != null
-                              ? NetworkImage(api.getImageUrl(user['avatar'])!)
-                              : null,
-                          child: user['avatar'] == null
-                              ? Text(
-                                  (user['username'] ?? 'U')[0].toUpperCase(),
-                                  style: const TextStyle(color: Colors.white),
-                                )
-                              : null,
+                        ClipOval(
+                          child: SizedBox(
+                            width: 40,
+                            height: 40,
+                            child:
+                                (user['avatar'] != null &&
+                                    api.getImageUrl(user['avatar']) != null)
+                                ? Image.network(
+                                    api.getImageUrl(user['avatar'])!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Padding(
+                                        padding: const EdgeInsets.all(0.0),
+                                        child: SvgPicture.asset(
+                                          'assets/logo.svg',
+                                          fit: BoxFit.cover,
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : Padding(
+                                    padding: const EdgeInsets.all(0.0),
+                                    child: SvgPicture.asset(
+                                      'assets/logo.svg',
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                          ),
                         ),
                         if (user['is_online'] == 1 || user['is_online'] == true)
                           Positioned(
