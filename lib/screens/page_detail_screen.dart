@@ -87,40 +87,47 @@ class _PageDetailScreenState extends State<PageDetailScreen>
   }
 
   Future<void> _loadPageDetail() async {
-    setState(() => _isLoading = true);
+    if (mounted) setState(() => _isLoading = true);
     try {
       _api = await ApiService.getInstance();
       final detail = await _api!.getPageDetail(widget.page['id']);
-      final role = detail['user_role'];
+      final role = detail['user_role']?.toString();
       final isAdmin = role == 'admin';
       final isEditor = role == 'admin' || role == 'editor';
 
-      setState(() {
-        _pageDetail = detail;
-        _isFollowed =
-            detail['is_followed'] == 1 || detail['is_followed'] == true;
-        _isAdmin = isAdmin;
-        _isEditor = isEditor;
+      if (mounted) {
+        setState(() {
+          _pageDetail = detail;
+          _isFollowed =
+              detail['is_followed'] == 1 || detail['is_followed'] == true;
+          _isAdmin = isAdmin;
+          _isEditor = isEditor;
 
-        // Setup tabs
-        final tabCount = isAdmin ? 4 : 1;
-        _tabController?.dispose();
-        _tabController = TabController(length: tabCount, vsync: this);
+          // Setup tabs ONLY if length changes or null
+          final tabCount = isAdmin ? 4 : 1;
+          if (_tabController == null || _tabController!.length != tabCount) {
+            _tabController?.dispose();
+            _tabController = TabController(length: tabCount, vsync: this);
+          }
 
-        // Fill settings
-        _nameController.text = detail['name'] ?? '';
-        _descController.text = detail['description'] ?? '';
-        _locationController.text = detail['location'] ?? '';
-        _websiteController.text = detail['website'] ?? '';
-        _twitterController.text = detail['social_twitter'] ?? '';
-        _mastodonController.text = detail['social_mastodon'] ?? '';
-        _instagramController.text = detail['social_instagram'] ?? '';
-        _tiktokController.text = detail['social_tiktok'] ?? '';
-        _facebookController.text = detail['social_facebook'] ?? '';
-        _blueskyController.text = detail['social_bluesky'] ?? '';
-        _selectedCategory = detail['category'] ?? '';
-        _selectedPrivacy = detail['privacy'] ?? 'public';
-      });
+          // Fill settings
+          _nameController.text = detail['name']?.toString() ?? '';
+          _descController.text = detail['description']?.toString() ?? '';
+          _locationController.text = detail['location']?.toString() ?? '';
+          _websiteController.text = detail['website']?.toString() ?? '';
+          _twitterController.text = detail['social_twitter']?.toString() ?? '';
+          _mastodonController.text =
+              detail['social_mastodon']?.toString() ?? '';
+          _instagramController.text =
+              detail['social_instagram']?.toString() ?? '';
+          _tiktokController.text = detail['social_tiktok']?.toString() ?? '';
+          _facebookController.text =
+              detail['social_facebook']?.toString() ?? '';
+          _blueskyController.text = detail['social_bluesky']?.toString() ?? '';
+          _selectedCategory = detail['category']?.toString() ?? '';
+          _selectedPrivacy = detail['privacy']?.toString() ?? 'public';
+        });
+      }
 
       // Load posts
       _loadPosts();
@@ -134,37 +141,38 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           _pageDetail = Map<String, dynamic>.from(widget.page);
           _isAdmin = false;
           _isEditor = false;
-          _tabController?.dispose();
-          _tabController = TabController(length: 1, vsync: this);
+          if (_tabController == null || _tabController!.length != 1) {
+            _tabController?.dispose();
+            _tabController = TabController(length: 1, vsync: this);
+          }
         });
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _loadPosts() async {
+    if (_api == null) _api = await ApiService.getInstance();
     try {
       final posts = await _api!.getPagePosts(widget.page['id']);
-      setState(() => _posts = posts);
+      if (mounted) setState(() => _posts = posts);
     } catch (_) {}
   }
 
   Future<void> _loadFollowers() async {
-    if (_api == null) return;
+    if (_api == null) _api = await ApiService.getInstance();
     try {
       final followers = await _api!.getPageFollowers(widget.page['id']);
-      setState(() => _followers = followers);
-    } catch (e) {
-      print('=== LOAD FOLLOWERS ERROR: $e ===');
-    }
+      if (mounted) setState(() => _followers = followers);
+    } catch (_) {}
   }
 
   Future<void> _loadTeam() async {
-    if (_api == null) return;
+    if (_api == null) _api = await ApiService.getInstance();
     try {
       final team = await _api!.getPageTeam(widget.page['id']);
-      setState(() => _team = team);
+      if (mounted) setState(() => _team = team);
     } catch (_) {}
   }
 
@@ -860,6 +868,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               pinned: true,
               delegate: _SliverTabBarDelegate(
                 TabBar(
+                  key: ValueKey(_tabController.hashCode),
                   controller: _tabController,
                   indicatorColor: const Color(0xFFBE1E1E),
                   labelColor: isDark ? Colors.white : Colors.black,
@@ -878,6 +887,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             : _tabController == null
             ? const SizedBox()
             : TabBarView(
+                key: ValueKey(_tabController.hashCode),
                 controller: _tabController,
                 children: _buildTabViews(),
               ),
@@ -1859,7 +1869,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                   : null),
                       ),
                       child:
-                          (_newAvatar == null && _pageDetail?['avatar'] == null)
+                          _newAvatar == null &&
+                              (_pageDetail?['avatar'] == null ||
+                                  _pageDetail!['avatar'].toString().isEmpty)
                           ? Icon(
                               Icons.camera_alt,
                               color: isDark ? Colors.white54 : Colors.grey,
