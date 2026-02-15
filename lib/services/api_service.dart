@@ -117,7 +117,7 @@ class ApiService {
     }
 
     // Si le chemin ne contient pas de slash, c'est juste un nom de fichier
-    // Il faut ajouter le dossier uploads/posts/
+    // Il faut ajouter le dossier approprié
     if (!path.contains('/')) {
       if (path.startsWith('media_')) {
         path = 'uploads/posts/$path';
@@ -134,8 +134,11 @@ class ApiService {
       } else if (path.startsWith('group_')) {
         path = 'uploads/$path';
       } else {
+        // Par défaut, on suppose que c'est dans uploads/
         path = 'uploads/$path';
       }
+    } else if (path.startsWith('uploads/')) {
+      // Si le chemin commence déjà par uploads/, on ne fait rien
     }
 
     return '$mainUrl/$path';
@@ -281,36 +284,43 @@ class ApiService {
 
   // === POSTS ===
 
-  Future<List<dynamic>> getPosts({int page = 1, int limit = 20}) async {
-    final response = await http.get(
-      Uri.parse('$apiUrl/v1/posts.php?page=$page&limit=$limit'),
-      headers: _headers,
-    );
+  Future<List<dynamic>> getPosts({
+    int page = 1,
+    int limit = 20,
+    int? userId,
+    String? feedType,
+  }) async {
+    String url = '$apiUrl/v1/posts.php?page=$page&per_page=$limit';
+
+    if (userId != null) {
+      url += '&user_id=$userId';
+    }
+
+    if (feedType != null) {
+      url += '&feed_type=$feedType';
+    }
+
+    final response = await http.get(Uri.parse(url), headers: _headers);
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
 
       // Gérer différents formats de réponse
-      if (data['success'] == true) {
+      if (data is Map && data['success'] == true) {
         // Format avec success
-        if (data['data'] != null) {
-          // Format paginé: {success: true, data: {posts: [...], meta: {...}}}
-          if (data['data']['posts'] != null) {
-            return data['data']['posts'];
-          }
-          // Format simple: {success: true, data: [...]}
-          if (data['data'] is List) {
-            return data['data'];
-          }
-        }
-        // Format direct: {success: true, posts: [...]}
         if (data['posts'] != null) {
           return data['posts'];
+        }
+        if (data['data'] != null) {
+          // Format paginé peut-être complexe {data: {posts: []}} ou {data: []}
+          if (data['data'] is List) return data['data'];
+          if (data['data'] is Map && data['data']['posts'] is List)
+            return data['data']['posts'];
         }
       }
 
       // Format sans success: {posts: [...]}
-      if (data['posts'] != null) {
+      if (data is Map && data['posts'] != null) {
         return data['posts'];
       }
 
@@ -380,6 +390,20 @@ class ApiService {
       return jsonDecode(response.body);
     } else {
       throw Exception('Erreur de création du post: ${response.statusCode}');
+    }
+  }
+
+  Future<void> updatePost(int postId, String content) async {
+    final response = await http.put(
+      Uri.parse('$apiUrl/v1/posts.php?id=$postId'),
+      headers: _headers,
+      body: jsonEncode({'content': content}),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return;
+    } else {
+      throw Exception('Erreur de mise à jour du post: ${response.statusCode}');
     }
   }
 
@@ -938,33 +962,45 @@ class ApiService {
     final response = await http.Response.fromStream(streamedResponse);
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      final data = jsonDecode(response.body);
-      if (data['success'] == true) {
-        String url = data['url'];
-        // Si l'API retourne un chemin relatif sans le dossier parent, on l'ajoute manuellement
-        // Cela compense le fait que l'API actuelle ne renvoie que le nom du fichier
-        if (!url.contains('/')) {
-          if (type == 'stories') {
-            // Pour les stories, on veut garder JUSTE le nom de fichier
-            // Car l'API et le Web utilisent ce nom pour construire le chemin
-            // Et getImageUrl fera de même
-            // url = 'uploads/stories/$url';
-          } else if (type == 'messages') {
-            url = 'uploads/messages/$url';
-          } else if (type == 'posts') {
-            url = 'uploads/posts/$url';
-          } else if (type == 'event') {
-            url = 'uploads/events/$url';
-          } else if (type == 'album') {
-            url = 'uploads/albums/$url';
-          } else {
-            url = 'uploads/$url';
+      try {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          String url = data['url'];
+          if (!url.contains('/')) {
+            if (type == 'stories') {
+              // Garder juste le nom de fichier pour les stories
+            } else if (type == 'messages') {
+              // Garder juste le nom de fichier pour les messages aussi !
+              // Le web ajoute le chemin lui-même.
+              // url = 'uploads/messages/$url';
+            } else if (type == 'posts') {
+              url = 'uploads/posts/$url';
+            } else if (type == 'event') {
+              url = 'uploads/events/$url';
+            } else if (type == 'album') {
+              url = 'uploads/albums/$url';
+            } else {
+              url = 'uploads/$url';
+            }
           }
+          return url;
+        } else {
+          throw Exception(data['error'] ?? 'Erreur d\'upload inconnue');
         }
-        return url;
-      } else {
-        throw Exception(data['error'] ?? 'Erreur d\'upload inconnue');
+      } catch (e) {
+        // Si jsonDecode échoue, c'est probablement du HTML ou une erreur PHP brute
+        if (response.body.contains('<br') || response.body.contains('<html>')) {
+          print('Erreur serveur (HTML reçu): ${response.body}');
+          throw Exception(
+            'Erreur serveur: le fichier est peut-être trop volumineux ou le format est refusé.',
+          );
+        }
+        throw Exception('Réponse invalide du serveur: $e');
       }
+    } else if (response.statusCode == 413) {
+      throw Exception(
+        'Fichier trop volumineux (Erreur 413). Essayez un fichier plus petit.',
+      );
     } else {
       throw Exception('Erreur d\'upload: ${response.statusCode}');
     }
@@ -1106,6 +1142,29 @@ class ApiService {
     if (response.statusCode != 200) {
       final error = jsonDecode(response.body);
       throw Exception(error['error'] ?? 'Erreur de mise à jour du groupe');
+    }
+  }
+
+  Future<List<dynamic>> getGroupMembers(int groupId, {int page = 1}) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/groups.php?id=$groupId&members=1&page=$page'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      // Case where paginate uses custom key or default 'data' key
+      if (data['members'] != null) return data['members'];
+      if (data['data'] != null && data['data'] is List) return data['data'];
+      // Sometimes it's wrapped in another 'data' if api_success logic changes
+      if (data['data'] != null && data['data']['members'] != null)
+        return data['data']['members'];
+      if (data['data'] != null && data['data']['data'] != null)
+        return data['data']['data'];
+
+      return [];
+    } else {
+      throw Exception('Erreur de chargement des membres');
     }
   }
 
@@ -1469,7 +1528,7 @@ class ApiService {
   // Liste des candidats
   Future<List<dynamic>> getCandidates() async {
     final response = await http.get(
-      Uri.parse('$apiUrl/v1/moderators.php?action=candidates'),
+      Uri.parse('$apiUrl/v1/moderators.php?type=candidates'),
       headers: _headers,
     );
 
@@ -1484,7 +1543,7 @@ class ApiService {
   // Liste des modérateurs
   Future<List<dynamic>> getModerators() async {
     final response = await http.get(
-      Uri.parse('$apiUrl/v1/moderators.php?action=list'),
+      Uri.parse('$apiUrl/v1/moderators.php?type=moderators'),
       headers: _headers,
     );
 
@@ -1562,6 +1621,20 @@ class ApiService {
       return data['actions'] ?? [];
     } else {
       throw Exception('Erreur de chargement des actions');
+    }
+  }
+
+  // Sanctions transparentes (toutes les sanctions publiques)
+  Future<Map<String, dynamic>> getAllSanctions({int page = 1}) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/sanctions.php?type=all&page=$page'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur de chargement des sanctions');
     }
   }
 

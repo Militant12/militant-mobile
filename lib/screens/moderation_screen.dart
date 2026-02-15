@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
 import '../models/report.dart';
 import '../services/language_service.dart';
@@ -20,6 +21,8 @@ class _ModerationScreenState extends State<ModerationScreen>
   bool _isLoading = false;
   bool _isModerator = false;
   List<Map<String, dynamic>> _actions = [];
+  List<Map<String, dynamic>> _sanctions = [];
+  List<Map<String, dynamic>> _bans = [];
   ApiService? _apiService;
   bool _isCandidate = false;
   int? _currentUserId;
@@ -27,7 +30,7 @@ class _ModerationScreenState extends State<ModerationScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _loadData();
   }
 
@@ -84,6 +87,19 @@ class _ModerationScreenState extends State<ModerationScreen>
         final actionsData = await api.getModeratorActions();
         setState(() {
           _actions = actionsData
+              .map((a) => Map<String, dynamic>.from(a))
+              .toList();
+        });
+      } catch (_) {}
+
+      // Charger les sanctions transparentes
+      try {
+        final sanctionsData = await api.getAllSanctions();
+        setState(() {
+          _sanctions = (sanctionsData['warnings'] as List? ?? [])
+              .map((a) => Map<String, dynamic>.from(a))
+              .toList();
+          _bans = (sanctionsData['bans'] as List? ?? [])
               .map((a) => Map<String, dynamic>.from(a))
               .toList();
         });
@@ -149,20 +165,27 @@ class _ModerationScreenState extends State<ModerationScreen>
   @override
   Widget build(BuildContext context) {
     final lang = LanguageService.instance;
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: Text(lang.translate('mod_title')),
+        backgroundColor: theme.appBarTheme.backgroundColor,
+        title: Text(
+          lang.translate('mod_title'),
+          style: TextStyle(color: theme.textTheme.titleLarge?.color),
+        ),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: const Color(0xFFBE1E1E),
           labelColor: const Color(0xFFBE1E1E),
-          unselectedLabelColor: Colors.grey,
+          // En mode clair, gris, en mode sombre, gris clair
+          unselectedLabelColor: theme.unselectedWidgetColor,
           tabs: [
             Tab(text: lang.translate('mod_tab_reports')),
             Tab(text: lang.translate('mod_tab_candidates')),
             Tab(text: lang.translate('mod_tab_moderators')),
+            Tab(text: lang.translate('mod_tab_sanctions')),
           ],
         ),
       ),
@@ -176,6 +199,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                 _buildReportsTab(),
                 _buildCandidatesTab(),
                 _buildModeratorsTab(),
+                _buildSanctionsTab(),
               ],
             ),
     );
@@ -891,6 +915,318 @@ class _ModerationScreenState extends State<ModerationScreen>
     );
   }
 
+  Widget _buildSanctionsTab() {
+    final lang = LanguageService.instance;
+    final allSanctions = <Map<String, dynamic>>[];
+
+    // Combiner warnings et bans avec un type
+    for (final w in _sanctions) {
+      allSanctions.add({...w, '_type': 'warning'});
+    }
+    for (final b in _bans) {
+      allSanctions.add({...b, '_type': 'ban'});
+    }
+
+    // Trier par date décroissante
+    allSanctions.sort((a, b) {
+      final dateA = a['created_at'] ?? '';
+      final dateB = b['created_at'] ?? '';
+      return dateB.toString().compareTo(dateA.toString());
+    });
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // En-tête
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.orange.withOpacity(0.3)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.gavel, size: 20, color: Colors.orange),
+                  const SizedBox(width: 8),
+                  Text(
+                    lang.translate('mod_sanctions_title'),
+                    style: const TextStyle(
+                      color: Colors.orange,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                lang.translate('mod_sanctions_desc'),
+                style: const TextStyle(color: Colors.white38, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Statistiques
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      '${_sanctions.length}',
+                      style: const TextStyle(
+                        color: Colors.orange,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      lang.translate('mod_sanction_warning'),
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFBE1E1E).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      '${_bans.length}',
+                      style: const TextStyle(
+                        color: Color(0xFFBE1E1E),
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      lang.translate('mod_sanction_ban'),
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        // Liste
+        if (allSanctions.isEmpty)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                children: [
+                  const Icon(Icons.check_circle, size: 48, color: Colors.green),
+                  const SizedBox(height: 12),
+                  Text(
+                    lang.translate('mod_no_sanctions'),
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          ...allSanctions.map((s) => _buildSanctionCard(s)),
+      ],
+    );
+  }
+
+  Widget _buildSanctionCard(Map<String, dynamic> sanction) {
+    final lang = LanguageService.instance;
+    final isBan = sanction['_type'] == 'ban';
+    final color = isBan ? const Color(0xFFBE1E1E) : Colors.orange;
+    final label = isBan
+        ? lang.translate('mod_sanction_ban')
+        : lang.translate('mod_sanction_warning');
+    final icon = isBan ? Icons.block : Icons.warning_amber;
+
+    final targetUsername = sanction['target_username'] ?? '?';
+    final targetAvatar = sanction['target_avatar'];
+    final issuedBy =
+        sanction['issued_by_username'] ?? sanction['banned_by_username'] ?? '?';
+    final reason = sanction['reason'] ?? '';
+    final dateStr = sanction['created_at'] ?? '';
+
+    // Time ago
+    String timeAgo = '';
+    try {
+      final date = DateTime.parse(dateStr.replaceAll(' ', 'T'));
+      final diff = DateTime.now().difference(date);
+      if (diff.inDays > 0) {
+        timeAgo = 'il y a ${diff.inDays}j';
+      } else if (diff.inHours > 0) {
+        timeAgo = 'il y a ${diff.inHours}h';
+      } else {
+        timeAgo = 'il y a ${diff.inMinutes}min';
+      }
+    } catch (_) {}
+
+    // Ban expiry
+    String? expiryInfo;
+    if (isBan) {
+      if (sanction['is_permanent'] == 1 || sanction['is_permanent'] == true) {
+        expiryInfo = lang.translate('mod_sanction_permanent');
+      } else if (sanction['expires_at'] != null) {
+        expiryInfo =
+            '${lang.translate('mod_sanction_until')} ${sanction['expires_at']}';
+      }
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.15)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Avatar de la personne sanctionnée
+          CircleAvatar(
+            radius: 20,
+            backgroundColor: color.withOpacity(0.2),
+            backgroundImage:
+                _apiService != null &&
+                    targetAvatar != null &&
+                    targetAvatar != 'default.svg' &&
+                    _apiService!.getImageUrl(targetAvatar) != null
+                ? NetworkImage(_apiService!.getImageUrl(targetAvatar)!)
+                : null,
+            child:
+                _apiService == null ||
+                    targetAvatar == null ||
+                    targetAvatar == 'default.svg' ||
+                    _apiService!.getImageUrl(targetAvatar) == null
+                ? ClipOval(
+                    child: SvgPicture.asset(
+                      'assets/logo.svg',
+                      width: 40,
+                      height: 40,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                : null,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Label + target
+                Row(
+                  children: [
+                    Icon(icon, size: 16, color: color),
+                    const SizedBox(width: 6),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        color: color,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '→ ',
+                      style: TextStyle(color: Colors.white38, fontSize: 13),
+                    ),
+                    Flexible(
+                      child: Text(
+                        targetUsername,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                // Motif
+                if (reason.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      reason,
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                // Expiry info for bans
+                if (expiryInfo != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        expiryInfo,
+                        style: TextStyle(
+                          color: color,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                // Date + who
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    '${lang.translate('mod_sanction_by')} $issuedBy · $timeAgo',
+                    style: const TextStyle(color: Colors.white24, fontSize: 11),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildActionItem(Map<String, dynamic> action) {
     final isWarning = action['action_type'] == 'warning';
     final color = isWarning ? Colors.orange : const Color(0xFFBE1E1E);
@@ -1018,13 +1354,25 @@ class _ModerationScreenState extends State<ModerationScreen>
               CircleAvatar(
                 radius: 24,
                 backgroundColor: const Color(0xFFBE1E1E),
-                backgroundImage: candidate.avatar != null
-                    ? NetworkImage(candidate.avatar!)
+                backgroundImage:
+                    _apiService != null &&
+                        candidate.avatar != null &&
+                        candidate.avatar != 'default.svg' &&
+                        _apiService!.getImageUrl(candidate.avatar) != null
+                    ? NetworkImage(_apiService!.getImageUrl(candidate.avatar)!)
                     : null,
-                child: candidate.avatar == null
-                    ? Text(
-                        candidate.username[0].toUpperCase(),
-                        style: const TextStyle(color: Colors.white),
+                child:
+                    _apiService == null ||
+                        candidate.avatar == null ||
+                        candidate.avatar == 'default.svg' ||
+                        _apiService!.getImageUrl(candidate.avatar) == null
+                    ? ClipOval(
+                        child: SvgPicture.asset(
+                          'assets/logo.svg',
+                          width: 48,
+                          height: 48,
+                          fit: BoxFit.cover,
+                        ),
                       )
                     : null,
               ),
@@ -1110,64 +1458,90 @@ class _ModerationScreenState extends State<ModerationScreen>
 
           const SizedBox(height: 12),
 
-          // Boutons de vote
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: candidate.myVote == 'for'
-                      ? null
-                      : () => _voteForModerator(candidate.userId, 'for'),
-                  icon: const Icon(Icons.check, size: 16),
-                  label: Text(
-                    LanguageService.instance.translate('mod_vote_for'),
+          // Boutons de vote (masqués pour sa propre candidature)
+          if (candidate.userId == _currentUserId)
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFBE1E1E).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.person, color: Color(0xFFBE1E1E), size: 16),
+                  SizedBox(width: 8),
+                  Text(
+                    'C\'est ta candidature',
+                    style: TextStyle(
+                      color: Color(0xFFBE1E1E),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
                   ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: candidate.myVote == 'for'
-                        ? Colors.white
-                        : Colors.green,
-                    backgroundColor: candidate.myVote == 'for'
-                        ? Colors.green
-                        : null,
-                    side: BorderSide(
-                      color: candidate.myVote == 'for'
+                ],
+              ),
+            )
+          else
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: candidate.myVote == 'for'
+                        ? null
+                        : () => _voteForModerator(candidate.userId, 'for'),
+                    icon: const Icon(Icons.check, size: 16),
+                    label: Text(
+                      LanguageService.instance.translate('mod_vote_for'),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: candidate.myVote == 'for'
+                          ? Colors.white
+                          : Colors.green,
+                      backgroundColor: candidate.myVote == 'for'
                           ? Colors.green
-                          : Colors.green.withOpacity(0.5),
+                          : null,
+                      side: BorderSide(
+                        color: candidate.myVote == 'for'
+                            ? Colors.green
+                            : Colors.green.withOpacity(0.5),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: candidate.myVote == 'against'
-                      ? null
-                      : () => _voteForModerator(candidate.userId, 'against'),
-                  icon: const Icon(Icons.close, size: 16),
-                  label: Text(
-                    isModerator
-                        ? LanguageService.instance.translate('mod_vote_revoke')
-                        : LanguageService.instance.translate(
-                            'mod_vote_against',
-                          ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: candidate.myVote == 'against'
-                        ? Colors.white
-                        : Colors.red,
-                    backgroundColor: candidate.myVote == 'against'
-                        ? Colors.red
-                        : null,
-                    side: BorderSide(
-                      color: candidate.myVote == 'against'
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: candidate.myVote == 'against'
+                        ? null
+                        : () => _voteForModerator(candidate.userId, 'against'),
+                    icon: const Icon(Icons.close, size: 16),
+                    label: Text(
+                      isModerator
+                          ? LanguageService.instance.translate(
+                              'mod_vote_revoke',
+                            )
+                          : LanguageService.instance.translate(
+                              'mod_vote_against',
+                            ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: candidate.myVote == 'against'
+                          ? Colors.white
+                          : Colors.red,
+                      backgroundColor: candidate.myVote == 'against'
                           ? Colors.red
-                          : Colors.red.withOpacity(0.5),
+                          : null,
+                      side: BorderSide(
+                        color: candidate.myVote == 'against'
+                            ? Colors.red
+                            : Colors.red.withOpacity(0.5),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
         ],
       ),
     );

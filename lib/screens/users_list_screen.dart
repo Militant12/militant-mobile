@@ -6,6 +6,7 @@ import 'chat_screen.dart';
 
 class UsersListScreen extends StatefulWidget {
   final int? userId;
+  final int? groupId;
   final String title;
   final String type; // 'followers' or 'following'
   final bool showAppBar;
@@ -13,6 +14,7 @@ class UsersListScreen extends StatefulWidget {
   const UsersListScreen({
     super.key,
     this.userId,
+    this.groupId,
     required this.title,
     required this.type,
     this.showAppBar = true,
@@ -56,6 +58,8 @@ class _UsersListScreenState extends State<UsersListScreen> {
       if (widget.type == 'friends') {
         final result = await api.getFriends(type: 'friends', page: _page);
         users = result['friends'] ?? result['data'] ?? [];
+      } else if (widget.type == 'members' && widget.groupId != null) {
+        users = await api.getGroupMembers(widget.groupId!, page: _page);
       } else {
         users = await api.getFollows(
           userId: widget.userId,

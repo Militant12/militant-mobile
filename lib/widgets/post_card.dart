@@ -43,7 +43,17 @@ class _PostCardState extends State<PostCard> {
   @override
   void didUpdateWidget(PostCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.post.content != oldWidget.post.content) {
+    // Si l'objet Post change (ex: recyclage dans ListView), on doit tout mettre à jour
+    if (widget.post.id != oldWidget.post.id) {
+      _currentContent = widget.post.content;
+      _isLiked = widget.post.isLiked;
+      _likesCount = widget.post.likesCount;
+      _translatedContent = null;
+      _showTranslation = false;
+      _detectedUrls.clear();
+      _resolveUrls();
+    } else if (widget.post.content != oldWidget.post.content) {
+      // Si c'est le même post mais contenu édité
       _currentContent = widget.post.content;
     }
   }
@@ -147,6 +157,25 @@ class _PostCardState extends State<PostCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Bandeau de partage
+              if (widget.post.sharedByUsername != null) ...[
+                Row(
+                  children: [
+                    const Icon(Icons.repeat, size: 16, color: Colors.white38),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${widget.post.sharedByUsername} a partagé',
+                      style: const TextStyle(
+                        color: Colors.white38,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
+
               // En-tête (avatar + nom + date)
               Row(
                 children: [
@@ -256,7 +285,7 @@ class _PostCardState extends State<PostCard> {
                           ),
                         ),
                         Text(
-                          _formatDate(widget.post.createdAt),
+                          _formatDate(widget.post.feedDate),
                           style: TextStyle(color: subtitleColor, fontSize: 13),
                         ),
                       ],
@@ -529,7 +558,7 @@ class _PostCardState extends State<PostCard> {
               ),
               onTap: () {
                 Navigator.pop(context);
-                _deletePost(context);
+                _deletePost();
               },
             ),
             const SizedBox(height: 8),
@@ -650,6 +679,7 @@ class _PostCardState extends State<PostCard> {
   }
 
   void _editPost(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
     final theme = Theme.of(context);
     final lang = LanguageService.instance;
     final controller = TextEditingController(text: widget.post.content);
@@ -699,21 +729,13 @@ class _PostCardState extends State<PostCard> {
         if (widget.post.type == 'group') {
           await api.updateGroupPost(widget.post.id, newContent);
         } else {
-          // TODO: Implement regular post update
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Édition non supportée pour ce type de post'),
-              ),
-            );
-            return;
-          }
+          await api.updatePost(widget.post.id, newContent);
         }
 
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(lang.translate('success'))));
+          messenger.showSnackBar(
+            SnackBar(content: Text(lang.translate('success'))),
+          );
 
           setState(() {
             _currentContent = newContent;
@@ -721,9 +743,9 @@ class _PostCardState extends State<PostCard> {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+          messenger.showSnackBar(
+            SnackBar(content: Text('Erreur: ${e.toString()}')),
+          );
         }
       }
     }
@@ -789,30 +811,30 @@ class _PostCardState extends State<PostCard> {
     );
   }
 
-  Future<void> _deletePost(BuildContext context) async {
-    final theme = Theme.of(context);
+  Future<void> _deletePost() async {
+    final messenger = ScaffoldMessenger.of(
+      context,
+    ); // Capture context safe reference immediately
     final lang = LanguageService.instance;
-    final textColor = theme.textTheme.bodyLarge?.color;
-    final subtitleColor = theme.textTheme.bodyMedium?.color;
 
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: theme.cardColor,
+        backgroundColor: const Color(0xFF1E1E1E),
         title: Text(
           lang.translate('delete'),
-          style: TextStyle(color: textColor),
+          style: const TextStyle(color: Colors.white),
         ),
         content: Text(
-          lang.translate('delete_post_confirm'),
-          style: TextStyle(color: subtitleColor),
+          lang.translate('delete_confirm'),
+          style: const TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: Text(
               lang.translate('cancel'),
-              style: TextStyle(color: subtitleColor),
+              style: const TextStyle(color: Colors.white70),
             ),
           ),
           TextButton(
@@ -836,17 +858,17 @@ class _PostCardState extends State<PostCard> {
         }
 
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(lang.translate('success'))));
+          messenger.showSnackBar(
+            SnackBar(content: Text(lang.translate('success'))),
+          );
           // Call the onDeleted callback if provided
           widget.onDeleted?.call();
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+          messenger.showSnackBar(
+            SnackBar(content: Text('Erreur: ${e.toString()}')),
+          );
         }
       }
     }

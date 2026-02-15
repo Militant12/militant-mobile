@@ -5,6 +5,7 @@ import '../models/post.dart';
 import '../widgets/post_card.dart';
 import 'create_post_screen.dart';
 import '../widgets/linkable_text.dart';
+import 'users_list_screen.dart';
 
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
@@ -25,6 +26,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
   int _currentPage = 1;
   ApiService? _api;
   Map<String, dynamic>? _groupData;
+  List<dynamic> _previewMembers = []; // For the members preview
 
   @override
   void initState() {
@@ -32,6 +34,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     _groupData = widget.group;
     _loadPosts();
     _loadGroupInfo();
+    _loadMembersPreview();
   }
 
   Future<void> _loadPosts({bool refresh = false}) async {
@@ -69,7 +72,26 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
         ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _loadMembersPreview() async {
+    try {
+      if (_api == null) _api = await ApiService.getInstance();
+      // Fetch members just for preview count/avatars
+      final members = await _api!.getGroupMembers(_groupData!['id']);
+      if (mounted) {
+        setState(() {
+          _previewMembers = members;
+          // Also update count if possible
+          if (_groupData != null) {
+            _groupData!['members_count'] = members.length;
+          }
+        });
+      }
+    } catch (e) {
+      print('Error loading members: $e');
     }
   }
 
@@ -81,6 +103,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
         _groupData!['is_member'] = 1;
       });
       _loadPosts(refresh: true);
+      _loadMembersPreview(); // Reload members to show self
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -119,15 +142,6 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       final data = await _api!.getSocialGroupDetails(_groupData!['id']);
       if (mounted) {
         setState(() {
-          // Merge data to keep existing fields if needed, but API usually returns full object
-          // But beware of missing fields.
-          // Let's just update fields we care about or replace _groupData if structure matches.
-          // _groupData is Map<String, dynamic>.
-          // The API returns the group object including role.
-
-          // Preserve some local state if any? No.
-          // But ensure we don't lose 'is_member' logic if API returns '1'/'0' vs true/false.
-          // API v1/groups returns 1/0 for is_member. Flutter checks == 1 || == true.
           _groupData = data;
         });
       }
@@ -366,7 +380,10 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     final avatar = _groupData!['avatar'];
     final isMember =
         _groupData!['is_member'] == 1 || _groupData!['is_member'] == true;
+    final membersCount = _groupData!['members_count'] ?? _previewMembers.length;
+    final privacy = _groupData!['privacy'] == 'private' ? 'Privé' : 'Public';
 
+    // Facebook style Header
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: RefreshIndicator(
@@ -375,31 +392,218 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
         child: CustomScrollView(
           slivers: [
             SliverAppBar(
-              expandedHeight: 200,
+              expandedHeight: 220,
               pinned: true,
+              backgroundColor: theme.scaffoldBackgroundColor,
+              leading: Container(
+                margin: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black.withOpacity(0.5),
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
               actions: [
                 if (_groupData!['role'] != null)
-                  IconButton(
-                    icon: const Icon(Icons.settings),
-                    onPressed: _showEditGroupDialog,
+                  Container(
+                    margin: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.black.withOpacity(0.5),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.settings, color: Colors.white),
+                      onPressed: _showEditGroupDialog,
+                    ),
                   ),
-                IconButton(
-                  icon: const Icon(Icons.share),
-                  onPressed: _shareGroup,
-                ),
               ],
               flexibleSpace: FlexibleSpaceBar(
-                title: Text(name),
-                background: _buildHeaderBackground(avatar),
+                background: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    _buildHeaderBackground(avatar),
+                    // Optional: Gradient for better visibility if we had text here
+                    // But we moved text below.
+                  ],
+                ),
               ),
             ),
             SliverToBoxAdapter(
-              child: Padding(
+              child: Container(
+                color: theme.scaffoldBackgroundColor,
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Title
+                    Text(
+                      name,
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w800,
+                        color: theme.textTheme.titleLarge?.color,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Stats Row
+                    Row(
+                      children: [
+                        Icon(
+                          _groupData!['privacy'] == 'private'
+                              ? Icons.lock
+                              : Icons.public,
+                          size: 16,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$privacy · $membersCount membres',
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Buttons Row
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: isMember ? () {} : _joinGroup,
+                            icon: Icon(
+                              isMember ? Icons.check : Icons.group_add,
+                              size: 18,
+                            ),
+                            label: Text(isMember ? 'Membre' : 'Rejoindre'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: isMember
+                                  ? (isDark
+                                        ? Colors.grey[800]
+                                        : Colors.grey[200])
+                                  : const Color(0xFFBE1E1E),
+                              foregroundColor: isMember
+                                  ? theme.textTheme.bodyLarge?.color
+                                  : Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: _shareGroup,
+                            icon: const Icon(Icons.share, size: 18),
+                            label: const Text('Partager'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: isDark
+                                  ? Colors.grey[800]
+                                  : Colors.grey[200],
+                              foregroundColor: theme.textTheme.bodyLarge?.color,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              iconColor: theme.iconTheme.color,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Members Link / Preview
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => UsersListScreen(
+                              groupId: int.parse(_groupData!['id'].toString()),
+                              type: 'members',
+                              title: 'Membres',
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: theme.dividerColor,
+                              width: 0.5,
+                            ),
+                            top: BorderSide(
+                              color: theme.dividerColor,
+                              width: 0.5,
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 80,
+                              height: 30,
+                              child: Stack(
+                                children: [
+                                  for (
+                                    int i = 0;
+                                    i <
+                                        (_previewMembers.length > 3
+                                            ? 3
+                                            : _previewMembers.length);
+                                    i++
+                                  )
+                                    Positioned(
+                                      left: i * 20.0,
+                                      child: Container(
+                                        width: 30,
+                                        height: 30,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color:
+                                                theme.scaffoldBackgroundColor,
+                                            width: 2,
+                                          ),
+                                          color: Colors.grey[300],
+                                        ),
+                                        child: ClipOval(
+                                          child: _buildMemberAvatar(
+                                            _previewMembers[i],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            const Text('Voir les membres'),
+                            const Spacer(),
+                            const Icon(
+                              Icons.arrow_forward_ios,
+                              size: 16,
+                              color: Colors.grey,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
                     if (description.isNotEmpty) ...[
+                      const SizedBox(height: 16),
                       LinkableText(
                         text: description,
                         style: TextStyle(
@@ -407,24 +611,12 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                           fontSize: 16,
                         ),
                       ),
-                      const SizedBox(height: 16),
                     ],
-                    if (!isMember)
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _joinGroup,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFBE1E1E),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
-                          child: const Text('Rejoindre le groupe'),
-                        ),
-                      )
-                    else
+
+                    const SizedBox(height: 16),
+                    if (isMember)
                       const Text(
-                        'Publications du groupe',
+                        'Publications',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -485,6 +677,19 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
             )
           : null,
     );
+  }
+
+  Widget _buildMemberAvatar(dynamic member) {
+    if (member['avatar'] != null) {
+      final url = _api?.getImageUrl(member['avatar']);
+      if (url != null) {
+        if (url.endsWith('.svg')) {
+          return SvgPicture.network(url, fit: BoxFit.cover);
+        }
+        return Image.network(url, fit: BoxFit.cover);
+      }
+    }
+    return SvgPicture.asset('assets/logo.svg', fit: BoxFit.cover);
   }
 
   Widget _buildHeaderBackground(String? avatar) {

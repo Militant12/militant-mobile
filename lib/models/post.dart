@@ -16,6 +16,8 @@ class Post {
   final bool isOnline;
   final bool isModerator;
   final DateTime createdAt;
+  final String? sharedByUsername;
+  final DateTime feedDate;
 
   final String type; // 'post', 'group', 'page'
   final int? groupId;
@@ -36,6 +38,8 @@ class Post {
     required this.isOnline,
     this.isModerator = false,
     required this.createdAt,
+    this.sharedByUsername,
+    required this.feedDate,
     this.type = 'post',
     this.groupId,
   });
@@ -83,6 +87,14 @@ class Post {
           ' ',
           'T',
         ),
+      ),
+      sharedByUsername: json['shared_by_username'],
+      feedDate: DateTime.parse(
+        (json['feed_date'] ??
+                json['created_at'] ??
+                DateTime.now().toIso8601String())
+            .toString()
+            .replaceAll(' ', 'T'),
       ),
       type: json['type'] ?? 'post',
       groupId: json['group_id'],

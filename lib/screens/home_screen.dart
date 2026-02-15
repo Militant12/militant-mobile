@@ -1,18 +1,9 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
-import '../services/language_service.dart';
-import '../models/post.dart';
-import '../widgets/post_card.dart';
-import '../widgets/stories_bar.dart';
-import 'moderation_screen.dart';
-import 'profile_screen.dart';
-import 'create_post_screen.dart';
-import 'notifications_screen.dart';
-import 'search_screen.dart';
+import 'home_feed_screen.dart';
 import 'messages_screen.dart';
-import 'groups_screen.dart';
-import 'events_screen.dart';
-import 'pages_screen.dart';
+import 'profile_screen.dart';
+
+import 'community_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,243 +13,65 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List<Post> _posts = [];
-  bool _isLoading = false;
-  bool _hasMore = true;
-  int _currentPage = 1;
   int _selectedIndex = 0;
-  late List<Widget> _screens;
-  final ScrollController _scrollController = ScrollController();
+  // Définition directe des écrans et destinations
+  late final List<Widget> _screens;
+  late final List<NavigationDestination> _destinations;
 
   @override
   void initState() {
     super.initState();
+    _initScreens();
+  }
+
+  void _initScreens() {
     _screens = [
-      const SizedBox.shrink(), // Placeholder, updated in build
-      const GroupsScreen(),
-      const EventsScreen(),
-      const PagesScreen(),
+      const HomeFeedScreen(),
+      const CommunityScreen(), // Menu grille
       const MessagesScreen(),
       const ProfileScreen(),
     ];
-    _scrollController.addListener(_onScroll);
-    _loadPosts();
-  }
 
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 300) {
-      if (!_isLoading && _hasMore) {
-        _loadPosts();
-      }
-    }
-  }
-
-  Future<void> _loadPosts({bool refresh = false}) async {
-    if (_isLoading) return;
-    if (!refresh && !_hasMore) return;
-
-    setState(() {
-      _isLoading = true;
-      if (refresh) {
-        _posts.clear();
-        _currentPage = 1;
-        _hasMore = true;
-      }
-    });
-
-    try {
-      final api = await ApiService.getInstance();
-      final postsData = await api
-          .getPosts(page: _currentPage)
-          .timeout(const Duration(seconds: 10), onTimeout: () => []);
-
-      if (mounted) {
-        setState(() {
-          final newPosts = postsData.map((p) => Post.fromJson(p)).toList();
-          _posts.addAll(newPosts);
-          _currentPage++;
-          if (newPosts.isEmpty) {
-            _hasMore = false;
-          }
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
+    _destinations = const [
+      NavigationDestination(
+        icon: Icon(Icons.home_outlined),
+        selectedIcon: Icon(Icons.home),
+        label: 'Accueil',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.grid_view_outlined),
+        selectedIcon: Icon(Icons.grid_view),
+        label: 'Communauté',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.message_outlined),
+        selectedIcon: Icon(Icons.message),
+        label: 'Messages',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.person_outline),
+        selectedIcon: Icon(Icons.person),
+        label: 'Profil',
+      ),
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final lang = LanguageService.instance;
-    final isDark = theme.brightness == Brightness.dark;
-    final iconColor = theme.iconTheme.color;
-
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        elevation: 0,
-        title: const Text(
-          'Militant',
-          style: TextStyle(
-            color: Color(0xFFBE1E1E),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.search, color: iconColor),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const SearchScreen()),
-              );
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.shield, color: iconColor),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ModerationScreen()),
-              );
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.notifications_outlined, color: iconColor),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-              );
-            },
-          ),
-        ],
+      body: IndexedStack(
+        index: _selectedIndex < _screens.length ? _selectedIndex : 0,
+        children: _screens,
       ),
-      body: _selectedIndex == 0
-          ? _buildHomeContent()
-          : _screens[_selectedIndex],
-      floatingActionButton: _selectedIndex == 0
-          ? FloatingActionButton(
-              onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const CreatePostScreen()),
-                );
-                if (result == true) {
-                  _loadPosts(refresh: true);
-                }
-              },
-              backgroundColor: const Color(0xFFBE1E1E),
-              child: const Icon(Icons.add, color: Colors.white),
-            )
-          : null,
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedIndex < _screens.length ? _selectedIndex : 0,
+        onDestinationSelected: (index) {
           setState(() {
             _selectedIndex = index;
-            _screens = [
-              const SizedBox.shrink(),
-              const GroupsScreen(),
-              const EventsScreen(),
-              const PagesScreen(),
-              const MessagesScreen(),
-              const ProfileScreen(),
-            ];
           });
         },
-        backgroundColor: theme.cardColor,
-        selectedItemColor: const Color(0xFFBE1E1E),
-        unselectedItemColor: isDark ? const Color(0xFF888888) : Colors.grey,
-        type: BottomNavigationBarType.fixed,
-        items: [
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.home),
-            label: lang.translate('home_title'),
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.group),
-            label: lang.translate('groups_title'),
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.event),
-            label: lang.translate('events_title'),
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.flag),
-            label: lang.translate('pages_title'),
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.message),
-            label: lang.translate('messages_title'),
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.person),
-            label: lang.translate('profile_title'),
-          ),
-        ],
+        destinations: _destinations,
       ),
-    );
-  }
-
-  MaterialPageRoute materialPageRoute({
-    required Widget Function(BuildContext) builder,
-  }) {
-    return MaterialPageRoute(builder: builder);
-  }
-
-  Widget _buildHomeContent() {
-    return RefreshIndicator(
-      onRefresh: () => _loadPosts(refresh: true),
-      color: const Color(0xFFBE1E1E),
-      child: _posts.isEmpty && _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-            )
-          : ListView.builder(
-              controller: _scrollController,
-              itemCount: _posts.length + 2, // +2 pour stories et footer
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return const StoriesBar();
-                }
-
-                if (index == _posts.length + 1) {
-                  if (_isLoading) {
-                    return const Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          color: Color(0xFFBE1E1E),
-                        ),
-                      ),
-                    );
-                  } else {
-                    return const SizedBox(height: 80);
-                  }
-                }
-
-                return PostCard(post: _posts[index - 1]);
-              },
-            ),
     );
   }
 }

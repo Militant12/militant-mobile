@@ -151,9 +151,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
   }
 
   Future<void> _loadFollowers() async {
+    if (_api == null) return;
     try {
       final followers = await _api!.getPageFollowers(widget.page['id']);
-      print('=== LOAD FOLLOWERS: Got ${followers.length} followers ===');
       setState(() => _followers = followers);
     } catch (e) {
       print('=== LOAD FOLLOWERS ERROR: $e ===');
@@ -161,6 +161,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
   }
 
   Future<void> _loadTeam() async {
+    if (_api == null) return;
     try {
       final team = await _api!.getPageTeam(widget.page['id']);
       setState(() => _team = team);
@@ -485,7 +486,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
         'social_bluesky': _blueskyController.text.trim(),
       };
 
-      if (_newAvatar != null) {
+      if (_newAvatar != null && _api != null) {
         final avatarPath = await _api!.uploadFile(
           _newAvatar!.path,
           type: 'pages',
@@ -493,7 +494,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
         settings['avatar'] = avatarPath.split('/').last;
       }
 
-      if (_newCover != null) {
+      if (_newCover != null && _api != null) {
         final coverPath = await _api!.uploadFile(
           _newCover!.path,
           type: 'pages',
@@ -501,7 +502,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
         settings['cover_image'] = coverPath.split('/').last;
       }
 
-      await _api!.updatePageSettings(widget.page['id'], settings);
+      if (_api != null) {
+        await _api!.updatePageSettings(widget.page['id'], settings);
+      }
 
       setState(() {
         _newAvatar = null;
@@ -861,19 +864,8 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                   indicatorColor: const Color(0xFFBE1E1E),
                   labelColor: isDark ? Colors.white : Colors.black,
                   unselectedLabelColor: isDark ? Colors.white54 : Colors.grey,
-                  isScrollable: _isAdmin,
-                  tabs: [
-                    const Tab(text: 'Publications'),
-                    if (_tabController != null && _tabController!.length > 1)
-                      Tab(
-                        text:
-                            'Abonnés (${_pageDetail?['followers_count'] ?? _followers.length})',
-                      ),
-                    if (_tabController != null && _tabController!.length > 2)
-                      const Tab(text: 'Équipe'),
-                    if (_tabController != null && _tabController!.length > 3)
-                      const Tab(text: 'Paramètres'),
-                  ],
+                  isScrollable: (_tabController?.length ?? 1) > 3,
+                  tabs: _buildTabs(),
                 ),
                 isDark ? const Color(0xFF1E1E1E) : Colors.white,
               ),
@@ -887,15 +879,37 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             ? const SizedBox()
             : TabBarView(
                 controller: _tabController,
-                children: [
-                  _buildPostsTab(),
-                  if (_isAdmin) _buildFollowersTab(),
-                  if (_isAdmin) _buildTeamTab(),
-                  if (_isAdmin) _buildSettingsTab(),
-                ],
+                children: _buildTabViews(),
               ),
       ),
     );
+  }
+
+  List<Widget> _buildTabs() {
+    final List<Widget> tabs = [const Tab(text: 'Publications')];
+    if (_tabController != null) {
+      if (_tabController!.length > 1) {
+        tabs.add(
+          Tab(
+            text:
+                'Abonnés (${_pageDetail?['followers_count'] ?? _followers.length})',
+          ),
+        );
+      }
+      if (_tabController!.length > 2) tabs.add(const Tab(text: 'Équipe'));
+      if (_tabController!.length > 3) tabs.add(const Tab(text: 'Paramètres'));
+    }
+    return tabs;
+  }
+
+  List<Widget> _buildTabViews() {
+    final List<Widget> views = [_buildPostsTab()];
+    if (_tabController != null) {
+      if (_tabController!.length > 1) views.add(_buildFollowersTab());
+      if (_tabController!.length > 2) views.add(_buildTeamTab());
+      if (_tabController!.length > 3) views.add(_buildSettingsTab());
+    }
+    return views;
   }
 
   Widget _buildDefaultCover() {
@@ -928,33 +942,62 @@ class _PageDetailScreenState extends State<PageDetailScreen>
 
   Widget _buildSocialLinks(Map<String, dynamic> page, bool isDark) {
     final links = <Widget>[];
-    final socials = {
-      'social_facebook': Icons.facebook,
-      'social_twitter': Icons.alternate_email,
-      'social_instagram': Icons.camera_alt,
-      'social_mastodon': Icons.public,
-      'social_tiktok': Icons.music_note,
-      'social_bluesky': Icons.cloud,
-    };
 
-    for (final entry in socials.entries) {
-      final value = page[entry.key]?.toString() ?? '';
+    void addLink(String key, IconData icon, Color color, String baseUrl) {
+      final value = page[key]?.toString() ?? '';
       if (value.isNotEmpty) {
+        String url = value;
+        if (!url.startsWith('http')) {
+          url = '$baseUrl$value';
+        }
         links.add(
           InkWell(
-            onTap: () => _launchUrl(value),
+            onTap: () => _launchUrl(url),
             child: Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: Icon(
-                entry.value,
-                color: isDark ? Colors.white54 : Colors.grey[600],
-                size: 20,
-              ),
+              padding: const EdgeInsets.only(right: 12),
+              child: Icon(icon, color: color, size: 24),
             ),
           ),
         );
       }
     }
+
+    addLink(
+      'social_facebook',
+      Icons.facebook,
+      const Color(0xFF1877F2),
+      'https://facebook.com/',
+    );
+    addLink(
+      'social_twitter',
+      Icons.alternate_email,
+      isDark ? Colors.white : Colors.black,
+      'https://twitter.com/',
+    );
+    addLink(
+      'social_instagram',
+      Icons.camera_alt,
+      const Color(0xFFE1306C),
+      'https://instagram.com/',
+    );
+    addLink(
+      'social_mastodon',
+      Icons.public,
+      const Color(0xFF6364FF),
+      '',
+    ); // Mastodon often full URL
+    addLink(
+      'social_tiktok',
+      Icons.music_note,
+      isDark ? Colors.white : Colors.black,
+      'https://tiktok.com/@',
+    );
+    addLink(
+      'social_bluesky',
+      Icons.cloud,
+      const Color(0xFF0560FF),
+      'https://bsky.app/profile/',
+    );
 
     final location = page['location']?.toString() ?? '';
     final website = page['website']?.toString() ?? '';
@@ -965,23 +1008,23 @@ class _PageDetailScreenState extends State<PageDetailScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         if (location.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.only(bottom: 4),
+            padding: const EdgeInsets.only(bottom: 8),
             child: Row(
               children: [
                 Icon(
                   Icons.location_on,
-                  size: 14,
+                  size: 16,
                   color: isDark ? Colors.white38 : Colors.grey,
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: 6),
                 Text(
                   location,
                   style: TextStyle(
                     color: isDark ? Colors.white54 : Colors.grey,
-                    fontSize: 13,
+                    fontSize: 14,
                   ),
                 ),
               ],
@@ -991,21 +1034,21 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           InkWell(
             onTap: () => _launchUrl(website),
             child: Padding(
-              padding: const EdgeInsets.only(bottom: 4),
+              padding: const EdgeInsets.only(bottom: 12),
               child: Row(
                 children: [
                   Icon(
                     Icons.link,
-                    size: 14,
+                    size: 16,
                     color: isDark ? Colors.white38 : Colors.grey,
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 6),
                   Flexible(
                     child: Text(
                       website,
                       style: const TextStyle(
                         color: Color(0xFFBE1E1E),
-                        fontSize: 13,
+                        fontSize: 14,
                         decoration: TextDecoration.underline,
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -1015,7 +1058,11 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               ),
             ),
           ),
-        if (links.isNotEmpty) Row(children: links),
+        if (links.isNotEmpty)
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(children: links),
+          ),
       ],
     );
   }
@@ -1802,7 +1849,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                             : (_pageDetail?['avatar'] != null && _api != null
                                   ? DecorationImage(
                                       image: NetworkImage(
-                                        _api!.getImageUrl(
+                                        _api?.getImageUrl(
                                               _pageDetail!['avatar'],
                                             ) ??
                                             '',
@@ -1873,7 +1920,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                         _api != null
                                     ? DecorationImage(
                                         image: NetworkImage(
-                                          _api!.getImageUrl(
+                                          _api?.getImageUrl(
                                                 _pageDetail!['cover_image'],
                                               ) ??
                                               '',
