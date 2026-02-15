@@ -147,12 +147,17 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
 
   Future<void> _fetchMetadata() async {
     // 1. Détection de plateforme connue (AI & Réseaux sociaux)
-    _platform = _detectPlatform(widget.url);
+    String normalizedUrl = widget.url;
+    if (!normalizedUrl.startsWith('http://') &&
+        !normalizedUrl.startsWith('https://')) {
+      normalizedUrl = 'https://$normalizedUrl';
+    }
+    _platform = _detectPlatform(normalizedUrl);
 
     try {
       // 2. Essayer de récupérer les métadonnées OpenGraph
       final response = await http
-          .get(Uri.parse(widget.url))
+          .get(Uri.parse(normalizedUrl))
           .timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {

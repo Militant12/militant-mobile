@@ -424,11 +424,21 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                                 r'https?://[^\s]+|www\.[^\s]+',
                                 caseSensitive: false,
                               );
-                              final match = urlPattern.firstMatch(content);
-                              if (match != null) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(top: 8.0),
-                                  child: LinkPreviewCard(url: match.group(0)!),
+                              final matches = urlPattern.allMatches(content);
+                              if (matches.isNotEmpty) {
+                                return Column(
+                                  children: matches
+                                      .map(
+                                        (match) => Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 8.0,
+                                          ),
+                                          child: LinkPreviewCard(
+                                            url: match.group(0)!,
+                                          ),
+                                        ),
+                                      )
+                                      .toList(),
                                 );
                               }
                               return const SizedBox.shrink();
@@ -728,6 +738,48 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                 );
                 if (result != null && result.files.single.path != null) {
                   _uploadAndSend(result.files.single.path!);
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.link, color: Colors.white),
+              title: const Text('Lien', style: TextStyle(color: Colors.white)),
+              onTap: () async {
+                Navigator.pop(context);
+                final controller = TextEditingController();
+                final url = await showDialog<String>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    backgroundColor: const Color(0xFF1E1E1E),
+                    title: const Text(
+                      'Partager un lien',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    content: TextField(
+                      controller: controller,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        hintText: 'https://...',
+                        hintStyle: TextStyle(color: Colors.white38),
+                      ),
+                      autofocus: true,
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Annuler'),
+                      ),
+                      TextButton(
+                        onPressed: () =>
+                            Navigator.pop(context, controller.text.trim()),
+                        child: const Text('Partager'),
+                      ),
+                    ],
+                  ),
+                );
+                if (url != null && url.isNotEmpty) {
+                  _messageController.text = url;
+                  _sendMessage();
                 }
               },
             ),

@@ -31,6 +31,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isSending = false;
   bool _isRecording = false;
   Map<String, dynamic>? _currentUser;
+  ApiService? _api;
 
   @override
   void initState() {
@@ -44,9 +45,9 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _loadMessages() async {
     setState(() => _isLoading = true);
     try {
-      final api = await ApiService.getInstance();
-      _currentUser = await api.getProfile();
-      final messages = await api.getMessages(userId: widget.userId);
+      _api = await ApiService.getInstance();
+      _currentUser = await _api!.getProfile();
+      final messages = await _api!.getMessages(userId: widget.userId);
       setState(() {
         _messages.clear();
         _messages.addAll(
@@ -362,6 +363,8 @@ class _ChatScreenState extends State<ChatScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (media != null && media.toString().isNotEmpty)
+                _buildMedia(media),
               if (content.isNotEmpty)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -379,11 +382,19 @@ class _ChatScreenState extends State<ChatScreen> {
                             r'https?://[^\s]+|www\.[^\s]+',
                             caseSensitive: false,
                           );
-                          final match = urlPattern.firstMatch(content);
-                          if (match != null) {
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: LinkPreviewCard(url: match.group(0)!),
+                          final matches = urlPattern.allMatches(content);
+                          if (matches.isNotEmpty) {
+                            return Column(
+                              children: matches
+                                  .map(
+                                    (match) => Padding(
+                                      padding: const EdgeInsets.only(top: 8.0),
+                                      child: LinkPreviewCard(
+                                        url: match.group(0)!,
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
                             );
                           }
                           return const SizedBox.shrink();
@@ -483,52 +494,80 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildMedia(String mediaPath) {
-    return FutureBuilder<ApiService>(
-      future: ApiService.getInstance(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) return const SizedBox.shrink();
-        final url = snapshot.data!.getImageUrl(mediaPath);
-        if (url == null) return const SizedBox.shrink();
+    if (_api == null) return const SizedBox.shrink();
+    final url = _api!.getImageUrl(mediaPath);
+    if (url == null || url.isEmpty) return const SizedBox.shrink();
 
-        final lower = url.toLowerCase();
-        final isVideo =
-            lower.endsWith('.mp4') ||
-            lower.endsWith('.mov') ||
-            lower.endsWith('.avi') ||
-            lower.endsWith('.mkv') ||
-            lower.endsWith('.webm') ||
-            lower.endsWith('.ogg') ||
-            lower.contains('video');
+    final lower = url.toLowerCase();
+    final isVideo =
+        lower.endsWith('.mp4') ||
+        lower.endsWith('.mov') ||
+        lower.endsWith('.avi') ||
+        lower.endsWith('.mkv') ||
+        lower.endsWith('.webm') ||
+        lower.endsWith('.ogg') ||
+        lower.contains('video');
 
-        final isAudio =
-            lower.endsWith('.mp3') ||
-            lower.endsWith('.wav') ||
-            lower.endsWith('.ogg') ||
-            lower.endsWith('.m4a') ||
-            lower.endsWith('.aac');
+    final isAudio =
+        lower.endsWith('.mp3') ||
+        lower.endsWith('.wav') ||
+        lower.endsWith('.ogg') ||
+        lower.endsWith('.m4a') ||
+        lower.endsWith('.aac');
 
-        if (isAudio) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: AudioPlayerWidget(audioUrl: url),
-          );
-        }
+    if (isAudio) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8.0),
+        child: AudioPlayerWidget(audioUrl: url),
+      );
+    }
 
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8.0),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: isVideo
-                ? SizedBox(height: 200, child: VideoPlayerWidget(videoUrl: url))
-                : Image.network(
-                    url,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.broken_image, color: Colors.white54),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: isVideo
+            ? SizedBox(height: 200, child: VideoPlayerWidget(videoUrl: url))
+            : Image.network(
+                url,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return SizedBox(
+                    height: 200,
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                            : null,
+                      ),
+                    ),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) => Container(
+                  height: 100,
+                  color: Colors.grey[800],
+                  child: const Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.broken_image,
+                          color: Colors.white54,
+                          size: 40,
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Erreur de chargement',
+                          style: TextStyle(color: Colors.white54),
+                        ),
+                      ],
+                    ),
                   ),
-          ),
-        );
-      },
+                ),
+              ),
+      ),
     );
   }
 
@@ -637,6 +676,48 @@ class _ChatScreenState extends State<ChatScreen> {
                 );
                 if (result != null && result.files.single.path != null) {
                   _uploadAndSend(result.files.single.path!);
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.link, color: Colors.white),
+              title: const Text('Lien', style: TextStyle(color: Colors.white)),
+              onTap: () async {
+                Navigator.pop(context);
+                final controller = TextEditingController();
+                final url = await showDialog<String>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    backgroundColor: const Color(0xFF1E1E1E),
+                    title: const Text(
+                      'Partager un lien',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    content: TextField(
+                      controller: controller,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        hintText: 'https://...',
+                        hintStyle: TextStyle(color: Colors.white38),
+                      ),
+                      autofocus: true,
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Annuler'),
+                      ),
+                      TextButton(
+                        onPressed: () =>
+                            Navigator.pop(context, controller.text.trim()),
+                        child: const Text('Partager'),
+                      ),
+                    ],
+                  ),
+                );
+                if (url != null && url.isNotEmpty) {
+                  _messageController.text = url;
+                  _sendMessage();
                 }
               },
             ),

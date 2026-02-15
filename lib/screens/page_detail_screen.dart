@@ -51,6 +51,8 @@ class _PageDetailScreenState extends State<PageDetailScreen>
   final _blueskyController = TextEditingController();
   String _selectedCategory = '';
   String _selectedPrivacy = 'public';
+  File? _newAvatar;
+  File? _newCover;
 
   @override
   void initState() {
@@ -127,10 +129,15 @@ class _PageDetailScreenState extends State<PageDetailScreen>
         _loadTeam();
       }
     } catch (e) {
-      setState(() {
-        _pageDetail = Map<String, dynamic>.from(widget.page);
-        _tabController = TabController(length: 1, vsync: this);
-      });
+      if (mounted) {
+        setState(() {
+          _pageDetail = Map<String, dynamic>.from(widget.page);
+          _isAdmin = false;
+          _isEditor = false;
+          _tabController?.dispose();
+          _tabController = TabController(length: 1, vsync: this);
+        });
+      }
     } finally {
       setState(() => _isLoading = false);
     }
@@ -461,8 +468,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
   }
 
   Future<void> _saveSettings() async {
+    setState(() => _isUploading = true);
     try {
-      await _api!.updatePageSettings(widget.page['id'], {
+      final settings = {
         'name': _nameController.text.trim(),
         'description': _descController.text.trim(),
         'category': _selectedCategory,
@@ -475,7 +483,31 @@ class _PageDetailScreenState extends State<PageDetailScreen>
         'social_tiktok': _tiktokController.text.trim(),
         'social_facebook': _facebookController.text.trim(),
         'social_bluesky': _blueskyController.text.trim(),
+      };
+
+      if (_newAvatar != null) {
+        final avatarPath = await _api!.uploadFile(
+          _newAvatar!.path,
+          type: 'pages',
+        );
+        settings['avatar'] = avatarPath.split('/').last;
+      }
+
+      if (_newCover != null) {
+        final coverPath = await _api!.uploadFile(
+          _newCover!.path,
+          type: 'pages',
+        );
+        settings['cover_image'] = coverPath.split('/').last;
+      }
+
+      await _api!.updatePageSettings(widget.page['id'], settings);
+
+      setState(() {
+        _newAvatar = null;
+        _newCover = null;
       });
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Paramètres enregistrés !')),
@@ -488,6 +520,8 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           context,
         ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
       }
+    } finally {
+      if (mounted) setState(() => _isUploading = false);
     }
   }
 
@@ -830,13 +864,15 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                   isScrollable: _isAdmin,
                   tabs: [
                     const Tab(text: 'Publications'),
-                    if (_isAdmin)
+                    if (_tabController != null && _tabController!.length > 1)
                       Tab(
                         text:
                             'Abonnés (${_pageDetail?['followers_count'] ?? _followers.length})',
                       ),
-                    if (_isAdmin) const Tab(text: 'Équipe'),
-                    if (_isAdmin) const Tab(text: 'Paramètres'),
+                    if (_tabController != null && _tabController!.length > 2)
+                      const Tab(text: 'Équipe'),
+                    if (_tabController != null && _tabController!.length > 3)
+                      const Tab(text: 'Paramètres'),
                   ],
                 ),
                 isDark ? const Color(0xFF1E1E1E) : Colors.white,
@@ -1736,6 +1772,166 @@ class _PageDetailScreenState extends State<PageDetailScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Logo and Cover pickers
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () async {
+                  final picked = await _picker.pickImage(
+                    source: ImageSource.gallery,
+                  );
+                  if (picked != null) {
+                    setState(() => _newAvatar = File(picked.path));
+                  }
+                },
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? const Color(0xFF2A2A2A)
+                            : Colors.grey[200],
+                        shape: BoxShape.circle,
+                        image: _newAvatar != null
+                            ? DecorationImage(
+                                image: FileImage(_newAvatar!),
+                                fit: BoxFit.cover,
+                              )
+                            : (_pageDetail?['avatar'] != null && _api != null
+                                  ? DecorationImage(
+                                      image: NetworkImage(
+                                        _api!.getImageUrl(
+                                              _pageDetail!['avatar'],
+                                            ) ??
+                                            '',
+                                      ),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : null),
+                      ),
+                      child:
+                          (_newAvatar == null && _pageDetail?['avatar'] == null)
+                          ? Icon(
+                              Icons.camera_alt,
+                              color: isDark ? Colors.white54 : Colors.grey,
+                            )
+                          : null,
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFBE1E1E),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isDark
+                                ? const Color(0xFF121212)
+                                : Colors.white,
+                            width: 2,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.edit,
+                          color: Colors.white,
+                          size: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () async {
+                    final picked = await _picker.pickImage(
+                      source: ImageSource.gallery,
+                    );
+                    if (picked != null) {
+                      setState(() => _newCover = File(picked.path));
+                    }
+                  },
+                  child: Stack(
+                    children: [
+                      Container(
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF2A2A2A)
+                              : Colors.grey[200],
+                          borderRadius: BorderRadius.circular(8),
+                          image: _newCover != null
+                              ? DecorationImage(
+                                  image: FileImage(_newCover!),
+                                  fit: BoxFit.cover,
+                                )
+                              : (_pageDetail?['cover_image'] != null &&
+                                        _api != null
+                                    ? DecorationImage(
+                                        image: NetworkImage(
+                                          _api!.getImageUrl(
+                                                _pageDetail!['cover_image'],
+                                              ) ??
+                                              '',
+                                        ),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : null),
+                        ),
+                        child:
+                            (_newCover == null &&
+                                _pageDetail?['cover_image'] == null)
+                            ? Center(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.image,
+                                      color: isDark
+                                          ? Colors.white54
+                                          : Colors.grey,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Ajouter une couverture',
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? Colors.white54
+                                            : Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : null,
+                      ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.black54,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.edit,
+                            color: Colors.white,
+                            size: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
           _settingsField('Nom de la page', _nameController, isDark),
           const SizedBox(height: 12),
 
