@@ -1721,68 +1721,96 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        Container(
-                          margin: const EdgeInsets.only(top: 2),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 1,
-                          ),
-                          decoration: BoxDecoration(
-                            color: member['role'] == 'admin'
-                                ? const Color(0xFFBE1E1E)
-                                : Colors.grey,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            member['role'] == 'admin' ? 'Admin' : 'Éditeur',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
+                        GestureDetector(
+                          onTap: _isAdmin
+                              ? () => _changeMemberRole(member)
+                              : null,
+                          child: Container(
+                            margin: const EdgeInsets.only(top: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: member['role'] == 'admin'
+                                  ? const Color(0xFFBE1E1E)
+                                  : Colors.grey,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  member['role'] == 'admin'
+                                      ? 'Admin'
+                                      : 'Éditeur',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                if (_isAdmin)
+                                  const Padding(
+                                    padding: EdgeInsets.only(left: 4),
+                                    child: Icon(
+                                      Icons.edit,
+                                      size: 10,
+                                      color: Colors.white70,
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.red, size: 20),
-                    onPressed: () async {
-                      final confirm = await showDialog<bool>(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: const Text('Retirer ce membre ?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(ctx, false),
-                              child: const Text('Annuler'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(ctx, true),
-                              child: const Text(
-                                'Retirer',
-                                style: TextStyle(color: Colors.red),
+                  if (_isAdmin &&
+                      member['user_id'].toString() != _currentUserId.toString())
+                    IconButton(
+                      icon: const Icon(
+                        Icons.close,
+                        color: Colors.red,
+                        size: 20,
+                      ),
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('Retirer ce membre ?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, false),
+                                child: const Text('Annuler'),
                               ),
-                            ),
-                          ],
-                        ),
-                      );
-                      if (confirm == true) {
-                        try {
-                          await _api!.removeTeamMember(
-                            widget.page['id'],
-                            member['user_id'],
-                          );
-                          _loadTeam();
-                        } catch (e) {
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(e.toString())),
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, true),
+                                child: const Text(
+                                  'Retirer',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirm == true) {
+                          try {
+                            await _api!.removeTeamMember(
+                              widget.page['id'],
+                              member['user_id'],
                             );
+                            _loadTeam();
+                          } catch (e) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(e.toString())),
+                              );
+                            }
                           }
                         }
-                      }
-                    },
-                  ),
+                      },
+                    ),
                 ],
               ),
             ),
@@ -1806,6 +1834,57 @@ class _PageDetailScreenState extends State<PageDetailScreen>
         ],
       ),
     );
+  }
+
+  Future<void> _changeMemberRole(dynamic member) async {
+    final String currentRole = member['role'];
+    final String targetRole = currentRole == 'admin' ? 'editor' : 'admin';
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(
+          targetRole == 'admin'
+              ? 'Nommer ${member['username']} admin ?'
+              : 'Rétrograder ${member['username']} au rôle d\'éditeur ?',
+        ),
+        content: Text(
+          targetRole == 'admin'
+              ? 'Les admins ont plein contrôle sur la page et les membres.'
+              : 'Les éditeurs peuvent publier mais pas gérer les membres ni les paramètres.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(targetRole == 'admin' ? 'Nommer Admin' : 'Rétrograder'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        await _api!.updateTeamMemberRole(
+          widget.page['id'],
+          member['user_id'],
+          targetRole,
+        );
+        _loadTeam();
+        if (member['user_id'].toString() == _currentUserId.toString()) {
+          _loadPageDetail();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(e.toString())));
+        }
+      }
+    }
   }
 
   // ==================== SETTINGS TAB ====================

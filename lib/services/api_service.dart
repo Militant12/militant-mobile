@@ -2099,6 +2099,29 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> updateTeamMemberRole(
+    int pageId,
+    int userId,
+    String role,
+  ) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/pages.php'),
+      headers: _headers,
+      body: jsonEncode({
+        'action': 'update_team_role',
+        'page_id': pageId,
+        'user_id': userId,
+        'role': role,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur lors du changement de rôle');
+    }
+  }
+
   Future<Map<String, dynamic>> removeTeamMember(int pageId, int userId) async {
     final response = await http.delete(
       Uri.parse('$apiUrl/v1/pages.php'),
