@@ -12,6 +12,7 @@ import 'search_screen.dart';
 import 'messages_screen.dart';
 import 'groups_screen.dart';
 import 'events_screen.dart';
+import 'pages_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,9 +24,11 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final List<Post> _posts = [];
   bool _isLoading = false;
+  bool _hasMore = true;
   int _currentPage = 1;
   int _selectedIndex = 0;
   late List<Widget> _screens;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -34,34 +37,56 @@ class _HomeScreenState extends State<HomeScreen> {
       const SizedBox.shrink(), // Placeholder, updated in build
       const GroupsScreen(),
       const EventsScreen(),
+      const PagesScreen(),
       const MessagesScreen(),
       const ProfileScreen(),
     ];
+    _scrollController.addListener(_onScroll);
     _loadPosts();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 300) {
+      if (!_isLoading && _hasMore) {
+        _loadPosts();
+      }
+    }
   }
 
   Future<void> _loadPosts({bool refresh = false}) async {
     if (_isLoading) return;
+    if (!refresh && !_hasMore) return;
 
     setState(() {
       _isLoading = true;
       if (refresh) {
         _posts.clear();
         _currentPage = 1;
+        _hasMore = true;
       }
     });
 
     try {
       final api = await ApiService.getInstance();
-      final postsData = await api.getPosts(page: _currentPage).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () => [],
-      );
+      final postsData = await api
+          .getPosts(page: _currentPage)
+          .timeout(const Duration(seconds: 10), onTimeout: () => []);
 
       if (mounted) {
         setState(() {
-          _posts.addAll(postsData.map((p) => Post.fromJson(p)).toList());
+          final newPosts = postsData.map((p) => Post.fromJson(p)).toList();
+          _posts.addAll(newPosts);
           _currentPage++;
+          if (newPosts.isEmpty) {
+            _hasMore = false;
+          }
         });
       }
     } catch (e) {
@@ -154,6 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox.shrink(),
               const GroupsScreen(),
               const EventsScreen(),
+              const PagesScreen(),
               const MessagesScreen(),
               const ProfileScreen(),
             ];
@@ -175,6 +201,10 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: const Icon(Icons.event),
             label: lang.translate('events_title'),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.flag),
+            label: lang.translate('pages_title'),
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.message),
@@ -204,12 +234,13 @@ class _HomeScreenState extends State<HomeScreen> {
               child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
             )
           : ListView.builder(
-              itemCount: _posts.length + 2, // +2 pour stories et padding
+              controller: _scrollController,
+              itemCount: _posts.length + 2, // +2 pour stories et footer
               itemBuilder: (context, index) {
                 if (index == 0) {
                   return const StoriesBar();
                 }
-                
+
                 if (index == _posts.length + 1) {
                   if (_isLoading) {
                     return const Padding(

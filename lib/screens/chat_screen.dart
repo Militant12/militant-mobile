@@ -6,6 +6,7 @@ import '../widgets/video_player_widget.dart';
 import '../widgets/audio_player_widget.dart';
 import '../widgets/audio_recorder_widget.dart';
 import '../services/api_service.dart';
+import '../widgets/linkable_text.dart';
 
 class ChatScreen extends StatefulWidget {
   final int userId;
@@ -365,12 +366,29 @@ class _ChatScreenState extends State<ChatScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      isTranslated && translatedText != null
+                    LinkableText(
+                      text: isTranslated && translatedText != null
                           ? translatedText
                           : content,
                       style: TextStyle(color: textColor, fontSize: 15),
                     ),
+                    if (content.isNotEmpty)
+                      Builder(
+                        builder: (context) {
+                          final urlPattern = RegExp(
+                            r'https?://[^\s]+|www\.[^\s]+',
+                            caseSensitive: false,
+                          );
+                          final match = urlPattern.firstMatch(content);
+                          if (match != null) {
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: LinkPreviewCard(url: match.group(0)!),
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
                     // Afficher le bouton traduire pour tous les messages
                     GestureDetector(
                       onTap: () => _toggleTranslation(message),

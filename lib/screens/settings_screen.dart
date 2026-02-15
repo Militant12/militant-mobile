@@ -6,6 +6,7 @@ import '../services/theme_manager.dart';
 import '../services/language_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import './badge_selection_screen.dart';
+import './two_factor_settings_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -62,9 +63,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onTap: () async {
               final result = await Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const BadgeSelectionScreen(),
-                ),
+                MaterialPageRoute(builder: (_) => const BadgeSelectionScreen()),
               );
               if (result != null && mounted) {
                 setState(() {});
@@ -92,6 +91,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
+              );
+            },
+          ),
+          _buildOption(
+            context,
+            icon: Icons.security,
+            title: lang.translate('two_factor_title'),
+            subtitle: lang.translate('two_factor_subtitle'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const TwoFactorSettingsScreen(),
+                ),
               );
             },
           ),

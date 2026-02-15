@@ -4,6 +4,7 @@ import '../models/comment.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../widgets/post_card.dart';
+import '../widgets/linkable_text.dart';
 
 class PostDetailScreen extends StatefulWidget {
   final Post? post;
@@ -99,6 +100,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       final api = await ApiService.getInstance();
       if (_post!.type == 'group') {
         await api.addGroupComment(_post!.id, content);
+      } else if (_post!.type == 'page') {
+        await api.commentOnPagePost(_post!.id, content);
       } else {
         await api.addComment(_post!.id, content);
       }
@@ -258,8 +261,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  comment.content,
+                LinkableText(
+                  text: comment.content,
                   style: TextStyle(color: textColor, fontSize: 14),
                 ),
               ],
@@ -294,14 +297,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         final api = await ApiService.getInstance();
         if (_post!.type == 'group') {
           await api.deleteGroupComment(comment.id);
+        } else if (_post!.type == 'page') {
+          await api.deletePageComment(comment.id);
         } else {
-          // TODO: implement standard delete comment
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Suppression non supportée pour ce type'),
-            ),
-          );
-          return;
+          await api.deleteComment(comment.id);
         }
         _loadComments();
       } catch (e) {
@@ -341,9 +340,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         final api = await ApiService.getInstance();
         if (_post!.type == 'group') {
           await api.updateGroupComment(comment.id, newContent);
+        } else if (_post!.type == 'page') {
+          await api.updatePageComment(comment.id, newContent);
         } else {
-          // TODO: standard update
-          return;
+          await api.updateComment(comment.id, newContent);
         }
         _loadComments();
       } catch (e) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 import 'group_detail_screen.dart';
 
 class GroupsScreen extends StatefulWidget {
@@ -211,7 +212,10 @@ class _GroupsScreenState extends State<GroupsScreen>
       backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text('Groupes', style: TextStyle(color: Colors.white)),
+        title: Text(
+          LanguageService.instance.translate('groups_title'),
+          style: const TextStyle(color: Colors.white),
+        ),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: const Color(0xFFBE1E1E),
@@ -224,7 +228,9 @@ class _GroupsScreenState extends State<GroupsScreen>
                 children: [
                   const Icon(Icons.group, size: 18),
                   const SizedBox(width: 6),
-                  Text('Mes groupes (${_myGroups.length})'),
+                  Text(
+                    '${LanguageService.instance.translate('groups_title')} (${_myGroups.length})',
+                  ),
                 ],
               ),
             ),
@@ -234,7 +240,12 @@ class _GroupsScreenState extends State<GroupsScreen>
                 children: [
                   const Icon(Icons.explore, size: 18),
                   const SizedBox(width: 6),
-                  const Text('Découvrir'),
+                  Text(
+                    LanguageService.instance.translate('discover_title') ==
+                            'discover_title'
+                        ? 'Découvrir'
+                        : LanguageService.instance.translate('discover_title'),
+                  ),
                 ],
               ),
             ),

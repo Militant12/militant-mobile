@@ -2,17 +2,20 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'profile_screen.dart';
+import 'chat_screen.dart';
 
 class UsersListScreen extends StatefulWidget {
   final int? userId;
   final String title;
   final String type; // 'followers' or 'following'
+  final bool showAppBar;
 
   const UsersListScreen({
     super.key,
     this.userId,
     required this.title,
     required this.type,
+    this.showAppBar = true,
   });
 
   @override
@@ -48,11 +51,18 @@ class _UsersListScreenState extends State<UsersListScreen> {
     setState(() => _isLoading = true);
     try {
       final api = await ApiService.getInstance();
-      final users = await api.getFollows(
-        userId: widget.userId,
-        type: widget.type,
-        page: _page,
-      );
+      List<dynamic> users;
+
+      if (widget.type == 'friends') {
+        final result = await api.getFriends(type: 'friends', page: _page);
+        users = result['friends'] ?? result['data'] ?? [];
+      } else {
+        users = await api.getFollows(
+          userId: widget.userId,
+          type: widget.type,
+          page: _page,
+        );
+      }
 
       setState(() {
         if (users.isEmpty) {
@@ -80,10 +90,12 @@ class _UsersListScreenState extends State<UsersListScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Text(widget.title),
-        backgroundColor: theme.appBarTheme.backgroundColor,
-      ),
+      appBar: widget.showAppBar
+          ? AppBar(
+              title: Text(widget.title),
+              backgroundColor: theme.appBarTheme.backgroundColor,
+            )
+          : null,
       body: _users.isEmpty && _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
@@ -194,6 +206,26 @@ class _UsersListScreenState extends State<UsersListScreen> {
                     style: TextStyle(color: theme.textTheme.bodyMedium?.color),
                   ),
                   onTap: () => _navigateToProfile(user['id']),
+                  trailing: widget.type == 'friends'
+                      ? IconButton(
+                          icon: const Icon(
+                            Icons.message,
+                            color: Color(0xFFBE1E1E),
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ChatScreen(
+                                  userId: user['id'],
+                                  username: user['username'],
+                                  avatar: user['avatar'],
+                                ),
+                              ),
+                            );
+                          },
+                        )
+                      : null,
                 );
               },
             ),

@@ -14,6 +14,7 @@ class Post {
   final int sharesCount;
   final bool isLiked;
   final bool isOnline;
+  final bool isModerator;
   final DateTime createdAt;
 
   final String type; // 'post', 'group', 'page'
@@ -33,6 +34,7 @@ class Post {
     required this.sharesCount,
     required this.isLiked,
     required this.isOnline,
+    this.isModerator = false,
     required this.createdAt,
     this.type = 'post',
     this.groupId,
@@ -75,6 +77,7 @@ class Post {
       sharesCount: json['shares_count'] ?? 0,
       isLiked: json['is_liked'] == 1 || json['is_liked'] == true,
       isOnline: json['is_online'] == 1 || json['is_online'] == true,
+      isModerator: json['is_moderator'] == 1 || json['is_moderator'] == true,
       createdAt: DateTime.parse(
         (json['created_at'] ?? DateTime.now().toIso8601String()).replaceAll(
           ' ',

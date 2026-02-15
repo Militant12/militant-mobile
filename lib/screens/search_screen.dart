@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
 import 'profile_screen.dart';
+import 'post_detail_screen.dart';
+import '../widgets/linkable_text.dart';
+import 'chat_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -13,7 +17,7 @@ class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   final List<dynamic> _results = [];
   bool _isLoading = false;
-  String _selectedTab = 'users'; // users, posts, groups
+  String _selectedTab = 'users'; // users, posts
 
   Future<void> _search(String query) async {
     if (query.trim().isEmpty) {
@@ -75,7 +79,6 @@ class _SearchScreenState extends State<SearchScreen> {
               children: [
                 _buildTab('Utilisateurs', 'users'),
                 _buildTab('Posts', 'posts'),
-                _buildTab('Groupes', 'groups'),
               ],
             ),
           ),
@@ -95,7 +98,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         const SizedBox(height: 16),
                         Text(
                           _searchController.text.isEmpty
-                              ? 'Recherchez des utilisateurs, posts ou groupes'
+                              ? 'Recherchez des utilisateurs ou des posts'
                               : 'Aucun résultat',
                           style: TextStyle(
                             color: Colors.grey[600],
@@ -155,80 +158,274 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildResultItem(dynamic item) {
-    final type = item['type'] ?? _selectedTab;
+    if (_selectedTab == 'posts') {
+      return InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PostDetailScreen(postId: item['id']),
+            ),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: const BoxDecoration(
+            border: Border(bottom: BorderSide(color: Colors.white10)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  FutureBuilder<ApiService>(
+                    future: ApiService.getInstance(),
+                    builder: (context, snapshot) {
+                      final avatarUrl = snapshot.hasData
+                          ? snapshot.data!.getImageUrl(item['user_avatar'])
+                          : null;
 
-    if (type == 'post' || type == 'posts') {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: Colors.white10)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              item['description'] ?? item['username'] ?? '',
-              style: const TextStyle(color: Color(0xFF888888), fontSize: 12),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              item['name'] ?? item['content'] ?? '',
-              style: const TextStyle(color: Colors.white),
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.network(
+                          avatarUrl ?? '',
+                          width: 40,
+                          height: 40,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            width: 40,
+                            height: 40,
+                            padding: const EdgeInsets.all(2),
+                            child: SvgPicture.asset('assets/logo.svg'),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '@${item['username'] ?? 'utilisateur'}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        item['created_at'] != null
+                            ? _formatDate(item['created_at'])
+                            : '',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              LinkableText(
+                text: item['content'] ?? '',
+                style: const TextStyle(color: Colors.white, fontSize: 15),
+              ),
+              if (item['media_url'] != null &&
+                  item['media_url'].isNotEmpty) ...[
+                const SizedBox(height: 12),
+                FutureBuilder<ApiService>(
+                  future: ApiService.getInstance(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) return const SizedBox.shrink();
+                    final mediaUrl = snapshot.data!.getImageUrl(
+                      item['media_url'],
+                    );
+                    if (mediaUrl == null) return const SizedBox.shrink();
+                    return ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        mediaUrl,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            height: 200,
+                            width: double.infinity,
+                            color: Colors.grey[900],
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                color: Color(0xFFBE1E1E),
+                              ),
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) =>
+                            const SizedBox.shrink(),
+                      ),
+                    );
+                  },
+                ),
+              ],
+              if (item['image'] != null && item['image'].isNotEmpty) ...[
+                const SizedBox(height: 12),
+                FutureBuilder<ApiService>(
+                  future: ApiService.getInstance(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) return const SizedBox.shrink();
+                    final imageUrl = snapshot.data!.getImageUrl(item['image']);
+                    if (imageUrl == null) return const SizedBox.shrink();
+                    return ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        imageUrl,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            height: 200,
+                            width: double.infinity,
+                            color: Colors.grey[900],
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                color: Color(0xFFBE1E1E),
+                              ),
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) =>
+                            const SizedBox.shrink(),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ],
+          ),
         ),
       );
     }
 
-    // User result
+    // User or Group result
+    final name = item['name'] ?? item['username'] ?? 'Inconnu';
+    final subtitle = item['bio'] ?? item['description'] ?? '';
+    final avatarUrl = item['avatar'];
+
     return ListTile(
-      leading: Stack(
-        children: [
-          CircleAvatar(
-            backgroundColor: const Color(0xFFBE1E1E),
-            child: Text(
-              ((item['name'] ?? item['username'] ?? 'U')[0]).toUpperCase(),
-              style: const TextStyle(color: Colors.white),
-            ),
-          ),
-          if (item['is_online'] == 1 || item['is_online'] == true)
-            Positioned(
-              right: 0,
-              bottom: 0,
-              child: Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: Colors.green,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF1E1E1E), width: 2),
+      leading: FutureBuilder<ApiService>(
+        future: ApiService.getInstance(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return Container(
+              width: 40,
+              height: 40,
+              padding: const EdgeInsets.all(2),
+              decoration: const BoxDecoration(shape: BoxShape.circle),
+              child: SvgPicture.asset('assets/logo.svg'),
+            );
+          }
+
+          final url = snapshot.data!.getImageUrl(avatarUrl);
+
+          return Stack(
+            children: [
+              ClipOval(
+                child: Image.network(
+                  url ?? '',
+                  width: 40,
+                  height: 40,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    width: 40,
+                    height: 40,
+                    padding: const EdgeInsets.all(2),
+                    alignment: Alignment.center,
+                    child: SvgPicture.asset('assets/logo.svg'),
+                  ),
                 ),
               ),
-            ),
-        ],
+              if (_selectedTab == 'users' &&
+                  (item['is_online'] == 1 || item['is_online'] == true))
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: const Color(0xFF1E1E1E),
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
       ),
       title: Text(
-        item['name'] ?? item['username'] ?? 'Utilisateur',
-        style: const TextStyle(color: Colors.white),
+        name,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
       ),
-      subtitle: Text(
-        item['description'] ?? item['bio'] ?? '',
-        style: const TextStyle(color: Color(0xFF888888)),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
+      subtitle: subtitle.isNotEmpty
+          ? Text(
+              subtitle,
+              style: const TextStyle(color: Color(0xFF888888)),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            )
+          : null,
       onTap: () {
-        final userId = item['id'];
-        if (userId != null) {
+        if (_selectedTab == 'users') {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => ProfileScreen(userId: userId)),
+            MaterialPageRoute(
+              builder: (_) => ProfileScreen(userId: item['id']),
+            ),
           );
         }
       },
+      trailing:
+          _selectedTab == 'users' &&
+              (item['is_friend'] == 1 || item['is_friend'] == true)
+          ? IconButton(
+              icon: const Icon(Icons.message, color: Color(0xFFBE1E1E)),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ChatScreen(
+                      userId: item['id'],
+                      username: item['username'] ?? item['name'],
+                      avatar: item['avatar'] ?? item['image'],
+                    ),
+                  ),
+                );
+              },
+            )
+          : null,
     );
+  }
+
+  String _formatDate(String dateStr) {
+    try {
+      final date = DateTime.parse(dateStr);
+      final now = DateTime.now();
+      final diff = now.difference(date);
+
+      if (diff.inMinutes < 1) return 'À l\'instant';
+      if (diff.inMinutes < 60) return '${diff.inMinutes}m';
+      if (diff.inHours < 24) return '${diff.inHours}h';
+      return '${date.day}/${date.month}';
+    } catch (_) {
+      return '';
+    }
   }
 
   @override

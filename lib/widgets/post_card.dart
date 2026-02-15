@@ -29,7 +29,7 @@ class _PostCardState extends State<PostCard> {
   bool _showTranslation = false;
   bool _isTranslating = false;
   late String _currentContent;
-  List<String> _detectedUrls = [];
+  final Set<String> _detectedUrls = {};
 
   @override
   void initState() {
@@ -232,6 +232,26 @@ class _PostCardState extends State<PostCard> {
                                   size: 20,
                                 ),
                               ],
+                              if (widget.post.isModerator) ...[
+                                const SizedBox(width: 4),
+                                Tooltip(
+                                  message: 'Modérateur·ice élu·e',
+                                  child: Container(
+                                    padding: const EdgeInsets.all(2),
+                                    decoration: BoxDecoration(
+                                      color: const Color(
+                                        0xFFBE1E1E,
+                                      ).withOpacity(0.15),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: const Icon(
+                                      Icons.shield,
+                                      size: 16,
+                                      color: Color(0xFFBE1E1E),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -256,10 +276,26 @@ class _PostCardState extends State<PostCard> {
                     ? _translatedContent!
                     : _currentContent,
                 style: TextStyle(color: textColor, fontSize: 15, height: 1.4),
-                onLinkDetected: (url) {
-                  if (!_detectedUrls.contains(url)) {
-                    setState(() {
-                      _detectedUrls.add(url);
+                onLinksDetected: (urls) {
+                  // Filtrer les nouvelles URLs pour éviter les rebuilds inutiles
+                  final newUrls = urls
+                      .where((u) => !_detectedUrls.contains(u))
+                      .toList();
+
+                  if (newUrls.isNotEmpty) {
+                    // Reporter le setState après le build pour éviter l'erreur
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) {
+                        // Double check inside callback
+                        final urlsToAdd = newUrls
+                            .where((u) => !_detectedUrls.contains(u))
+                            .toList();
+                        if (urlsToAdd.isNotEmpty) {
+                          setState(() {
+                            _detectedUrls.addAll(urlsToAdd);
+                          });
+                        }
+                      }
                     });
                   }
                 },

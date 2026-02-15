@@ -19,7 +19,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickMedia() async {
-    final source = await showDialog<ImageSource>(
+    // Retourne un Map avec 'source' et 'isVideo'
+    final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Theme.of(context).brightness == Brightness.dark
@@ -30,54 +31,90 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_library, color: Color(0xFFBE1E1E)),
+              leading: const Icon(
+                Icons.photo_library,
+                color: Color(0xFFBE1E1E),
+              ),
               title: const Text('Image de la galerie'),
-              onTap: () => Navigator.pop(context, ImageSource.gallery),
+              onTap: () => Navigator.pop(context, {
+                'source': ImageSource.gallery,
+                'isVideo': false,
+              }),
             ),
             ListTile(
               leading: const Icon(Icons.videocam, color: Color(0xFFBE1E1E)),
               title: const Text('Vidéo de la galerie'),
-              onTap: () => Navigator.pop(context, ImageSource.gallery),
+              onTap: () => Navigator.pop(context, {
+                'source': ImageSource.gallery,
+                'isVideo': true,
+              }),
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt, color: Color(0xFFBE1E1E)),
               title: const Text('Prendre une photo'),
-              onTap: () => Navigator.pop(context, ImageSource.camera),
+              onTap: () => Navigator.pop(context, {
+                'source': ImageSource.camera,
+                'isVideo': false,
+              }),
+            ),
+            ListTile(
+              leading: const Icon(Icons.videocam, color: Color(0xFFBE1E1E)),
+              title: const Text('Filmer une vidéo'),
+              onTap: () => Navigator.pop(context, {
+                'source': ImageSource.camera,
+                'isVideo': true,
+              }),
             ),
           ],
         ),
       ),
     );
 
-    if (source != null) {
+    if (result != null) {
+      final ImageSource source = result['source'];
+      final bool isVideo = result['isVideo'];
+
       try {
-        final XFile? pickedFile = await _picker.pickImage(source: source);
+        print('=== PICK MEDIA: Source: $source, isVideo: $isVideo ===');
+
+        XFile? pickedFile;
+        if (isVideo) {
+          pickedFile = await _picker.pickVideo(source: source);
+        } else {
+          pickedFile = await _picker.pickImage(source: source);
+        }
+
+        print('=== PICK MEDIA: Fichier sélectionné: ${pickedFile?.path} ===');
+
         if (pickedFile != null) {
+          final file = File(pickedFile.path);
+          final fileSize = await file.length();
+          print(
+            '=== PICK MEDIA: Taille: $fileSize bytes, Extension: ${pickedFile.path.split('.').last} ===',
+          );
+
           setState(() {
-            _mediaFile = File(pickedFile.path);
+            _mediaFile = file;
           });
+        } else {
+          print('=== PICK MEDIA: Aucun fichier sélectionné ===');
         }
       } catch (e) {
-        // Try video if image fails
-        try {
-          final XFile? pickedFile = await _picker.pickVideo(source: source);
-          if (pickedFile != null) {
-            setState(() {
-              _mediaFile = File(pickedFile.path);
-            });
-          }
-        } catch (e) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Erreur: ${e.toString()}')),
-            );
-          }
+        print('=== PICK MEDIA: Erreur: $e ===');
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
         }
       }
     }
   }
 
   Future<void> _createPost() async {
+    print('=== CREATE POST: Début ===');
+    print('=== CREATE POST: Contenu: ${_contentController.text.trim()} ===');
+    print('=== CREATE POST: Média file: ${_mediaFile?.path} ===');
+
     if (_contentController.text.trim().isEmpty && _mediaFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Ajoutez du contenu ou un média')),
@@ -89,27 +126,31 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
     try {
       final api = await ApiService.getInstance();
-      
+
       String? mediaUrl;
       String? mediaType;
-      
+
       if (_mediaFile != null) {
+        print('=== CREATE POST: Upload du média ===');
         // Upload media
         final ext = _mediaFile!.path.split('.').last.toLowerCase();
         final isVideo = ['mp4', 'webm', 'mov', 'avi'].contains(ext);
         mediaType = isVideo ? 'video' : 'image';
-        
-        mediaUrl = await api.uploadFile(
-          _mediaFile!.path,
-          type: widget.groupId != null ? 'group_post' : 'post',
-        );
-        
+
+        print('=== CREATE POST: Extension: $ext, Type: $mediaType ===');
+
+        mediaUrl = await api.uploadFile(_mediaFile!.path, type: 'posts');
+
+        print('=== CREATE POST: URL retournée: $mediaUrl ===');
+
         // Extract just the filename from the returned path
         if (mediaUrl.contains('/')) {
           mediaUrl = mediaUrl.split('/').last;
         }
+
+        print('=== CREATE POST: URL finale: $mediaUrl ===');
       }
-      
+
       if (widget.groupId != null) {
         await api.createGroupPost(
           widget.groupId!,
@@ -121,6 +162,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         await api.createPost(
           _contentController.text.trim(),
           mediaUrls: mediaUrl != null ? [mediaUrl] : null,
+          mediaType: mediaType,
         );
       }
 
@@ -257,9 +299,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               color: theme.brightness == Brightness.dark
                   ? const Color(0xFF2A2A2A)
                   : Colors.grey[200],
-              border: Border(
-                top: BorderSide(color: theme.dividerColor),
-              ),
+              border: Border(top: BorderSide(color: theme.dividerColor)),
             ),
             child: Row(
               children: [

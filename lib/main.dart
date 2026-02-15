@@ -139,26 +139,37 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _checkAuth() async {
     try {
+      print('=== SPLASH: Début vérification auth ===');
       final prefs = await SharedPreferences.getInstance();
+      print('=== SPLASH: SharedPreferences chargé ===');
+      
       final token = prefs.getString('api_token');
+      final baseUrl = prefs.getString('base_url');
+      
+      print('=== SPLASH: Token = ${token != null ? "présent" : "absent"} ===');
+      print('=== SPLASH: BaseURL = $baseUrl ===');
 
       // Wait for animation
       await Future.delayed(const Duration(milliseconds: 800));
+      print('=== SPLASH: Animation terminée ===');
 
       if (!mounted) return;
 
-      // Go directly to appropriate screen based on token presence
-      if (token != null && token.isNotEmpty) {
+      // Simple check: if we have token AND base_url, go to HomeScreen
+      // HomeScreen will handle any errors and redirect to login if needed
+      if (token != null && token.isNotEmpty && baseUrl != null && baseUrl.isNotEmpty) {
+        print('=== SPLASH: Token et URL présents, navigation vers HomeScreen ===');
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
       } else {
+        print('=== SPLASH: Pas de token ou base_url, navigation vers LoginScreen ===');
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const LoginScreen()),
         );
       }
     } catch (e) {
-      print('Erreur splash screen: $e');
+      print('=== SPLASH: Erreur: $e ===');
       // Always fallback to login on any error
       if (mounted) {
         Navigator.of(context).pushReplacement(

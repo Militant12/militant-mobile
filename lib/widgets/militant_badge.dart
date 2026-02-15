@@ -13,25 +13,18 @@ class MilitantBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('=== MILITANT BADGE ===');
-    print('badgeId: $badgeId');
-    
     if (badgeId == null || badgeId!.isEmpty) {
-      print('Badge vide ou null');
       return const SizedBox.shrink();
     }
 
     final badgePath = _getBadgePath(badgeId!);
-    print('badgePath: $badgePath');
     
     if (badgePath == null) {
-      print('Aucun chemin trouvé pour le badge: $badgeId');
       return const SizedBox.shrink();
     }
 
     // Déterminer si c'est un SVG ou une image
     final isSvg = badgePath.endsWith('.svg');
-    print('isSvg: $isSvg');
 
     return Container(
       width: size,

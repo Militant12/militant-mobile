@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 import 'create_event_screen.dart';
 import 'event_detail_screen.dart';
 
@@ -46,7 +47,10 @@ class _EventsScreenState extends State<EventsScreen> {
       backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text('Événements', style: TextStyle(color: Colors.white)),
+        title: Text(
+          LanguageService.instance.translate('events_title'),
+          style: const TextStyle(color: Colors.white),
+        ),
       ),
       body: _isLoading
           ? const Center(

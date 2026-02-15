@@ -54,12 +54,17 @@ class LanguageService extends ValueNotifier<Locale> {
 
       // Home & Navigation
       'home_title': 'Accueil',
-      'messages_title': 'Messages',
-      'profile_title': 'Mon Profil',
-      'settings_title': 'Paramètres',
+      'messages_title': 'Chat',
+      'profile_title': 'Profil',
+      'settings_title': 'Réglages',
       'groups_title': 'Groupes',
-      'events_title': 'Événements',
-      'notifications_title': 'Notifications',
+      'events_title': 'Events',
+      'pages_title': 'Pages',
+      'notifications_title': 'Notifs',
+      'friends_title': 'Amis',
+      'friend_requests': 'Demandes',
+      'accept': 'Accepter',
+      'decline': 'Refuser',
       'search_hint': 'Rechercher...',
 
       // Posts
@@ -155,11 +160,51 @@ class LanguageService extends ValueNotifier<Locale> {
       'stories_error': 'Erreur',
 
       // Badge Selection
-      'my_militant_badge': 'Mon badge militant',
+      'my_militant_badge': 'Badge militant',
       'no_badge': 'Aucun badge',
-      'select_badge_text': 'Choisir votre affiliation politique',
-      'export_data_title': 'Exporter mes données',
-      'export_data_subtitle': 'Télécharger une copie de vos données (JSON)',
+      'select_badge_text': 'Choisir affiliation',
+      'export_data_title': 'Exporter données',
+      'export_data_subtitle': 'Copie JSON',
+      'two_factor_title': 'Authentification (2FA)',
+      'two_factor_subtitle': 'Code TOTP',
+
+      // Moderation
+      'mod_title': 'Modération',
+      'mod_tab_reports': 'Signalements',
+      'mod_tab_candidates': 'Candidats',
+      'mod_tab_moderators': 'Modérateurs',
+      'mod_principles_title': 'Principes de modération',
+      'mod_principles_text':
+          '• Égalité totale\n• Pas de hiérarchie\n• Décisions par consensus (70%)\n• Tout le monde peut voter\n• Modérateurs révocables',
+      'mod_apply_btn': 'Se porter candidat·e',
+      'mod_apply_dialog_title': 'Se porter candidat·e',
+      'mod_apply_dialog_desc':
+          'Explique pourquoi tu souhaites devenir modérateur·ice :',
+      'mod_apply_hint': 'Ta motivation...',
+      'mod_apply_send': 'Envoyer',
+      'mod_apply_cancel': 'Annuler',
+      'mod_apply_success': 'Candidature envoyée !',
+      'mod_vote_remove': 'Supprimer',
+      'mod_vote_warn': 'Avertir',
+      'mod_vote_keep': 'Garder',
+      'mod_action_direct_delete': 'Suppr. directe',
+      'mod_action_warn': 'Avertir',
+      'mod_action_title': 'Actions modérateur',
+      'mod_transparency_title': 'Transparence des actions',
+      'mod_transparency_desc':
+          'Toutes les actions des modérateurs sont publiques',
+      'mod_no_reports': 'Aucun signalement en attente',
+      'mod_no_candidates': 'Aucun candidat',
+      'mod_no_moderators': 'Aucun modérateur élu',
+      'mod_vote_for': 'Pour',
+      'mod_vote_against': 'Contre',
+      'mod_vote_revoke': 'Révoquer',
+      'mod_confirm_delete_title': 'Suppression directe',
+      'mod_confirm_delete_text':
+          'Supprimer ce post immédiatement ?\nCette action est irréversible.',
+      'mod_confirm_warn_title': 'Avertir l\'utilisateur',
+      'mod_confirm_warn_text':
+          'Envoyer un avertissement officiel à cet utilisateur ?',
     },
     'en': {
       // General
@@ -196,12 +241,17 @@ class LanguageService extends ValueNotifier<Locale> {
 
       // Home & Navigation
       'home_title': 'Home',
-      'messages_title': 'Messages',
-      'profile_title': 'My Profile',
+      'messages_title': 'Chat',
+      'profile_title': 'Profile',
       'settings_title': 'Settings',
       'groups_title': 'Groups',
       'events_title': 'Events',
-      'notifications_title': 'Notifications',
+      'pages_title': 'Pages',
+      'notifications_title': 'Notifs',
+      'friends_title': 'Friends',
+      'friend_requests': 'Requests',
+      'accept': 'Accept',
+      'decline': 'Decline',
       'search_hint': 'Search...',
 
       // Posts
@@ -295,11 +345,48 @@ class LanguageService extends ValueNotifier<Locale> {
       'stories_error': 'Error',
 
       // Badge Selection
-      'my_militant_badge': 'My militant badge',
+      'my_militant_badge': 'Badge',
       'no_badge': 'No badge',
-      'select_badge_text': 'Choose your political affiliation',
-      'export_data_title': 'Export my data',
-      'export_data_subtitle': 'Download a copy of your data (JSON)',
+      'select_badge_text': 'Affiliation',
+      'export_data_title': 'Export',
+      'export_data_subtitle': 'JSON Download',
+      'two_factor_title': '2FA Auth.',
+      'two_factor_subtitle': 'TOTP Code',
+
+      // Moderation
+      'mod_title': 'Moderation',
+      'mod_tab_reports': 'Reports',
+      'mod_tab_candidates': 'Candidates',
+      'mod_tab_moderators': 'Moderators',
+      'mod_principles_title': 'Moderation Principles',
+      'mod_principles_text':
+          '• Total equality\n• No hierarchy\n• Consensus decisions (70%)\n• Everyone can vote\n• Revocable moderators',
+      'mod_apply_btn': 'Apply for Moderator',
+      'mod_apply_dialog_title': 'Apply for Moderator',
+      'mod_apply_dialog_desc': 'Explain why you want to become a moderator:',
+      'mod_apply_hint': 'Your motivation...',
+      'mod_apply_send': 'Send',
+      'mod_apply_cancel': 'Cancel',
+      'mod_apply_success': 'Application sent!',
+      'mod_vote_remove': 'Remove',
+      'mod_vote_warn': 'Warn',
+      'mod_vote_keep': 'Keep',
+      'mod_action_direct_delete': 'Direct Delete',
+      'mod_action_warn': 'Warn',
+      'mod_action_title': 'Moderator Actions',
+      'mod_transparency_title': 'Action Transparency',
+      'mod_transparency_desc': 'All moderator actions are public',
+      'mod_no_reports': 'No pending reports',
+      'mod_no_candidates': 'No candidates',
+      'mod_no_moderators': 'No elected moderators',
+      'mod_vote_for': 'For',
+      'mod_vote_against': 'Against',
+      'mod_vote_revoke': 'Revoke',
+      'mod_confirm_delete_title': 'Direct Delete',
+      'mod_confirm_delete_text':
+          'Delete this post immediately?\nThis action is irreversible.',
+      'mod_confirm_warn_title': 'Warn User',
+      'mod_confirm_warn_text': 'Send an official warning to this user?',
     },
     'es': {
       // General
@@ -336,12 +423,17 @@ class LanguageService extends ValueNotifier<Locale> {
 
       // Home & Navigation
       'home_title': 'Inicio',
-      'messages_title': 'Mensajes',
-      'profile_title': 'Mi Perfil',
+      'messages_title': 'Chat',
+      'profile_title': 'Perfil',
       'settings_title': 'Ajustes',
       'groups_title': 'Grupos',
       'events_title': 'Eventos',
-      'notifications_title': 'Notificaciones',
+      'pages_title': 'Páginas',
+      'notifications_title': 'Notif.',
+      'friends_title': 'Amigos',
+      'friend_requests': 'Solicit.',
+      'accept': 'Aceptar',
+      'decline': 'Rechazar',
       'search_hint': 'Buscar...',
 
       // Posts
@@ -439,11 +531,13 @@ class LanguageService extends ValueNotifier<Locale> {
       'stories_error': 'Error',
 
       // Badge Selection
-      'my_militant_badge': 'Mi insignia militante',
+      'my_militant_badge': 'Insignia',
       'no_badge': 'Sin insignia',
-      'select_badge_text': 'Elige tu afiliación política',
-      'export_data_title': 'Exportar mis datos',
-      'export_data_subtitle': 'Descargar una copia de tus datos (JSON)',
+      'select_badge_text': 'Afiliación',
+      'export_data_title': 'Exportar',
+      'export_data_subtitle': 'Copia JSON',
+      'two_factor_title': 'Autenticación (2FA)',
+      'two_factor_subtitle': 'Código TOTP',
     },
   };
 

@@ -8,6 +8,7 @@ import '../widgets/audio_player_widget.dart';
 import '../widgets/audio_recorder_widget.dart';
 import '../services/api_service.dart';
 import 'group_settings_screen.dart';
+import '../widgets/linkable_text.dart';
 
 class GroupChatScreen extends StatefulWidget {
   final int groupId;
@@ -360,14 +361,10 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     final editedAt = message['edited_at'];
 
     // État de traduction pour ce message
-    final messageId = message['id'].toString();
     final isTranslated = message['_isTranslated'] == true;
     final translatedText = message['_translatedText'];
 
-    // Debug
-    if (media != null) {
-      print('DEBUG _buildMessageBubble: media=$media, content=$content');
-    }
+    // Debug skipped
 
     final bubbleColor = isMine
         ? const Color(0xFFBE1E1E)
@@ -414,12 +411,29 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          isTranslated && translatedText != null
+                        LinkableText(
+                          text: isTranslated && translatedText != null
                               ? translatedText
                               : content,
                           style: TextStyle(color: textColor, fontSize: 15),
                         ),
+                        if (content.isNotEmpty)
+                          Builder(
+                            builder: (context) {
+                              final urlPattern = RegExp(
+                                r'https?://[^\s]+|www\.[^\s]+',
+                                caseSensitive: false,
+                              );
+                              final match = urlPattern.firstMatch(content);
+                              if (match != null) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: LinkPreviewCard(url: match.group(0)!),
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            },
+                          ),
                         // Afficher le bouton traduire pour tous les messages
                         GestureDetector(
                           onTap: () => _toggleTranslation(message),
@@ -479,7 +493,6 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   }
 
   Future<void> _toggleTranslation(dynamic message) async {
-    final messageId = message['id'].toString();
     final isTranslated = message['_isTranslated'] == true;
 
     if (isTranslated) {

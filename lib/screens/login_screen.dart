@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
@@ -22,8 +23,10 @@ class _LoginScreenState extends State<LoginScreen> {
     text: 'https://api.militant.revlibertaire.com',
   );
 
+  final _totpController = TextEditingController();
   bool _isLoading = false;
   bool _showServerField = false;
+  bool _requires2FA = false;
   String? _errorMessage;
 
   Future<void> _login() async {
@@ -39,9 +42,22 @@ class _LoginScreenState extends State<LoginScreen> {
       final result = await api.login(
         _usernameController.text.trim(),
         _passwordController.text,
+        totp: _requires2FA ? _totpController.text.trim() : null,
       );
 
+      if (result['two_factor_required'] == true) {
+        setState(() {
+          _requires2FA = true;
+          _isLoading = false;
+          _errorMessage = null;
+        });
+        return;
+      }
+
       if (result['success'] == true && mounted) {
+        // Sauvegarder l'URL du serveur pour la persistance de session
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('base_url', _serverController.text.trim());
         // Dynamic initialization of OneSignal
         try {
           // Initialize with server's App ID
@@ -155,22 +171,61 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 16),
               ],
 
-              // Champ username
-              _buildTextField(
-                controller: _usernameController,
-                label:
-                    '${lang.translate('username_label')} / ${lang.translate('email_label')}',
-                icon: Icons.person,
-              ),
-              const SizedBox(height: 16),
+              // Champ username/password ou TOTP
+              if (!_requires2FA) ...[
+                // Champ username
+                _buildTextField(
+                  controller: _usernameController,
+                  label:
+                      '${lang.translate('username_label')} / ${lang.translate('email_label')}',
+                  icon: Icons.person,
+                ),
+                const SizedBox(height: 16),
 
-              // Champ password
-              _buildTextField(
-                controller: _passwordController,
-                label: lang.translate('password_label'),
-                icon: Icons.lock,
-                isPassword: true,
-              ),
+                // Champ password
+                _buildTextField(
+                  controller: _passwordController,
+                  label: lang.translate('password_label'),
+                  icon: Icons.lock,
+                  isPassword: true,
+                ),
+              ] else ...[
+                Text(
+                  'Double authentification requise',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Entrez le code généré par votre application d\'authentification.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                _buildTextField(
+                  controller: _totpController,
+                  label: 'Code de validation',
+                  icon: Icons.security,
+                  keyboardType: TextInputType.number,
+                ),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _requires2FA = false;
+                      _totpController.clear();
+                    });
+                  },
+                  child: const Text(
+                    'Retour aux identifiants',
+                    style: TextStyle(color: Color(0xFFBE1E1E)),
+                  ),
+                ),
+              ],
               const SizedBox(height: 24),
 
               // Bouton connexion
@@ -270,6 +325,7 @@ class _LoginScreenState extends State<LoginScreen> {
     required String label,
     required IconData icon,
     bool isPassword = false,
+    TextInputType keyboardType = TextInputType.text,
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -277,6 +333,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return TextField(
       controller: controller,
       obscureText: isPassword,
+      keyboardType: keyboardType,
       style: TextStyle(color: theme.textTheme.bodyLarge?.color),
       decoration: InputDecoration(
         labelText: label,

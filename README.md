@@ -43,7 +43,11 @@ Militant est un réseau social décentralisé conçu pour les mouvements militan
 - **Lives** : Diffusions en direct
 
 ### Modération & Sécurité
-- **Modération** : Outils de modération pour les administrateurs
+- **Modération Démocratique** : Système révolutionnaire où les modérateurs sont élus par vote (70% consensus)
+- **Transparence** : Journal public de toutes les actions de modération
+- **Candidature** : Tout utilisateur peut se porter candidat et retirer sa candidature
+- **Révocation** : Les modérateurs peuvent être révoqués par vote populaire
+- **Actions** : Suppression directe et avertissements pour les élus
 - **Signalements** : Signalez les contenus inappropriés
 - **Comptes privés** : Contrôlez qui peut vous suivre
 - **Blocage** : Bloquez les utilisateurs indésirables

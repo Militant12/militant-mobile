@@ -10,8 +10,11 @@ import 'edit_profile_screen.dart';
 import 'bookmarks_screen.dart';
 import 'settings_screen.dart';
 import 'users_list_screen.dart';
+import 'friends_screen.dart';
 import '../services/language_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../widgets/linkable_text.dart';
+import 'chat_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final int? userId;
@@ -31,6 +34,9 @@ class _ProfileScreenState extends State<ProfileScreen>
   int _selectedTab = 0;
   bool _isFollowing = false;
   bool _isMe = false;
+  bool _isFriend = false;
+  int? _sentRequestId;
+  int? _receivedRequestId;
 
   @override
   void initState() {
@@ -57,6 +63,9 @@ class _ProfileScreenState extends State<ProfileScreen>
         _isMe = widget.userId == null || widget.userId == myProfile['id'];
         _isFollowing =
             profile['is_following'] == 1 || profile['is_following'] == true;
+        _isFriend = profile['is_friend'] == 1 || profile['is_friend'] == true;
+        _sentRequestId = profile['sent_request_id'];
+        _receivedRequestId = profile['received_request_id'];
         _avatarUrl = api.getImageUrl(profile['avatar']);
       });
 
@@ -108,6 +117,114 @@ class _ProfileScreenState extends State<ProfileScreen>
       }
     } finally {
       setState(() => _isLoadingPosts = false);
+    }
+  }
+
+  Future<void> _sendFriendRequest() async {
+    if (_profile == null || _isMe) return;
+    try {
+      final api = await ApiService.getInstance();
+      final result = await api.sendFriendRequest(
+        widget.userId ?? _profile!['id'],
+      );
+      setState(() => _sentRequestId = result['request_id']);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Demande d\'ami envoyée')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+      }
+    }
+  }
+
+  Future<void> _acceptFriendRequest() async {
+    try {
+      final api = await ApiService.getInstance();
+      if (_receivedRequestId != null) {
+        await api.handleFriendRequest(_receivedRequestId!, 'accept');
+        setState(() {
+          _isFriend = true;
+          _receivedRequestId = null;
+        });
+        _loadProfile();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+      }
+    }
+  }
+
+  Future<void> _unfriend() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        title: const Text(
+          'Retirer des amis',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          'Voulez-vous vraiment retirer cette personne de vos amis ?',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text(
+              'Annuler',
+              style: TextStyle(color: Colors.white70),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Retirer',
+              style: TextStyle(color: Color(0xFFBE1E1E)),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        final api = await ApiService.getInstance();
+        await api.unfriend(widget.userId ?? _profile!['id']);
+        setState(() => _isFriend = false);
+        _loadProfile();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        }
+      }
+    }
+  }
+
+  Future<void> _rejectFriendRequest() async {
+    try {
+      final api = await ApiService.getInstance();
+      if (_receivedRequestId != null) {
+        await api.handleFriendRequest(_receivedRequestId!, 'reject');
+        setState(() {
+          _receivedRequestId = null;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+      }
     }
   }
 
@@ -325,8 +442,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                 if (_profile?['bio'] != null &&
                     _profile!['bio'].isNotEmpty) ...[
                   const SizedBox(height: 16),
-                  Text(
-                    _profile!['bio'],
+                  LinkableText(
+                    text: _profile!['bio'],
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: textColor?.withOpacity(0.7),
@@ -411,6 +528,19 @@ class _ProfileScreenState extends State<ProfileScreen>
               },
             ),
             _buildOption(
+              icon: Icons.people,
+              title: lang.translate('friends_title'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        FriendsScreen(userId: widget.userId ?? _profile!['id']),
+                  ),
+                );
+              },
+            ),
+            _buildOption(
               icon: Icons.bookmark,
               title: lang.translate('saved_posts_title'),
               onTap: () {
@@ -421,21 +551,157 @@ class _ProfileScreenState extends State<ProfileScreen>
               },
             ),
           ] else ...[
-            // Follow button could go here
             Padding(
-              padding: const EdgeInsets.all(16),
-              child: ElevatedButton(
-                onPressed: _toggleFollow,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _isFollowing
-                      ? Colors.grey
-                      : const Color(0xFFBE1E1E),
-                ),
-                child: Text(
-                  _isFollowing
-                      ? lang.translate('following_status')
-                      : lang.translate('follow'),
-                ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Column(
+                children: [
+                  if (_isFriend)
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _unfriend,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: isDark
+                                  ? const Color(0xFF2A2A2A)
+                                  : Colors.grey[200],
+                              minimumSize: const Size(double.infinity, 45),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.check,
+                                  size: 20,
+                                  color: theme.iconTheme.color,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Amis',
+                                  style: TextStyle(color: textColor),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ChatScreen(
+                                    userId: widget.userId ?? _profile!['id'],
+                                    username: _profile!['username'],
+                                    avatar: _profile!['avatar'],
+                                  ),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFBE1E1E),
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(double.infinity, 45),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.message,
+                                  size: 20,
+                                  color: Colors.white,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Message',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  else if (_sentRequestId != null)
+                    ElevatedButton(
+                      onPressed: null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isDark
+                            ? const Color(0xFF2A2A2A)
+                            : Colors.grey[200],
+                        minimumSize: const Size(double.infinity, 45),
+                      ),
+                      child: const Text('Demande envoyée'),
+                    )
+                  else if (_receivedRequestId != null)
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _acceptFriendRequest,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFBE1E1E),
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(double.infinity, 45),
+                            ),
+                            child: Text(lang.translate('accept')),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _rejectFriendRequest,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: isDark
+                                  ? const Color(0xFF2A2A2A)
+                                  : Colors.grey[200],
+                              minimumSize: const Size(double.infinity, 45),
+                            ),
+                            child: Text(
+                              lang.translate('decline'),
+                              style: TextStyle(color: textColor),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    ElevatedButton(
+                      onPressed: _sendFriendRequest,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFBE1E1E),
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 45),
+                      ),
+                      child: const Text('Ajouter un ami'),
+                    ),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: _toggleFollow,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _isFollowing
+                          ? (isDark
+                                ? const Color(0xFF2A2A2A)
+                                : Colors.grey[200])
+                          : Colors.transparent,
+                      side: _isFollowing
+                          ? null
+                          : const BorderSide(color: Color(0xFFBE1E1E)),
+                      minimumSize: const Size(double.infinity, 40),
+                    ),
+                    child: Text(
+                      _isFollowing
+                          ? lang.translate('following_status')
+                          : lang.translate('follow'),
+                      style: TextStyle(
+                        color: _isFollowing
+                            ? textColor
+                            : const Color(0xFFBE1E1E),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -444,7 +710,8 @@ class _ProfileScreenState extends State<ProfileScreen>
           if ((_profile?['is_private'] == 1 ||
                   _profile?['is_private'] == true) &&
               !_isMe &&
-              !_isFollowing) ...[
+              !_isFollowing &&
+              !_isFriend) ...[
             Padding(
               padding: const EdgeInsets.all(48),
               child: Column(
@@ -475,7 +742,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 userId: _profile!['id'] ?? _profile!['user_id'],
                 isMe: _isMe,
               ),
-            
+
             // Onglets
             Container(
               color: theme.cardColor,

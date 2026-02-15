@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../models/post.dart';
 import '../widgets/post_card.dart';
 import 'create_post_screen.dart';
+import '../widgets/linkable_text.dart';
 
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
@@ -142,6 +143,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     );
     bool isPrivate = _groupData!['privacy'] == 'private';
     File? newAvatar;
+    File? newCover;
     final picker = ImagePicker();
 
     showDialog(
@@ -214,6 +216,56 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
+                GestureDetector(
+                  onTap: () async {
+                    final picked = await picker.pickImage(
+                      source: ImageSource.gallery,
+                    );
+                    if (picked != null) {
+                      setDialogState(() {
+                        newCover = File(picked.path);
+                      });
+                    }
+                  },
+                  child: Container(
+                    height: 100,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2A2A2A),
+                      borderRadius: BorderRadius.circular(8),
+                      image: newCover != null
+                          ? DecorationImage(
+                              image: FileImage(newCover!),
+                              fit: BoxFit.cover,
+                            )
+                          : (_groupData!['cover_image'] != null &&
+                                _groupData!['cover_image']
+                                    .toString()
+                                    .isNotEmpty)
+                          ? DecorationImage(
+                              image: NetworkImage(
+                                _api!.getImageUrl(_groupData!['cover_image'])!,
+                              ),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.camera_alt, color: Colors.white70),
+                          SizedBox(height: 4),
+                          Text(
+                            'Changer la couverture',
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 TextField(
                   controller: nameController,
                   style: const TextStyle(color: Colors.white),
@@ -264,12 +316,16 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                       newAvatar!.path,
                       type: 'group',
                     );
-                    // Extract just the filename if the API returns a full path
-                    // Because database expects filename for consistency with other parts
-                    // But wait, upload.php returns relative path.
-                    // Let's store what uploadFile returns, but clean it if needed.
-                    // Actually, let's keep it simple: store the filename if possible.
                     avatarPath = uploadUrl.split('/').last;
+                  }
+
+                  String? coverPath;
+                  if (newCover != null) {
+                    final uploadUrl = await _api!.uploadFile(
+                      newCover!.path,
+                      type: 'group',
+                    );
+                    coverPath = uploadUrl.split('/').last;
                   }
 
                   await _api!.updateGroup(
@@ -277,6 +333,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                     name: nameController.text,
                     description: descController.text,
                     avatar: avatarPath,
+                    coverImage: coverPath,
                     isPrivate: isPrivate,
                   );
 
@@ -343,8 +400,8 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (description.isNotEmpty) ...[
-                      Text(
-                        description,
+                      LinkableText(
+                        text: description,
                         style: TextStyle(
                           color: isDark ? Colors.white70 : Colors.black87,
                           fontSize: 16,
@@ -431,6 +488,19 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
   }
 
   Widget _buildHeaderBackground(String? avatar) {
+    // We utilize the cover_image if available, otherwise fallback to avatar, then color.
+    final coverImage = _groupData?['cover_image'];
+    final coverUrl = _api?.getImageUrl(coverImage);
+
+    if (coverUrl != null && coverUrl.isNotEmpty) {
+      return Image.network(
+        coverUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(color: Colors.grey[900]),
+      );
+    }
+
+    // Fallback to existing avatar logic or plain color
     final url = _api?.getImageUrl(avatar);
     if (url != null) {
       if (url.endsWith('.svg')) {
