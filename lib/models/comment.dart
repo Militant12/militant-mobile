@@ -54,7 +54,9 @@ class Comment {
           ?.map((r) => Comment.fromJson(r))
           .toList() ?? [],
       reactionsCount: json['reactions_count'] ?? 0,
-      hasReacted: json['has_reacted'] ?? false,
+      hasReacted: (json['has_reacted'] is int) 
+          ? (json['has_reacted'] as int) > 0 
+          : (json['has_reacted'] ?? false),
     );
   }
 }
