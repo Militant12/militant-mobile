@@ -72,6 +72,8 @@ class _PostCardState extends State<PostCard> {
 
   Future<void> _toggleLike() async {
     final bool previouslyLiked = _isLiked;
+    final int previousLikesCount = _likesCount;
+    
     setState(() {
       _isLiked = !_isLiked;
       _likesCount += _isLiked ? 1 : -1;
@@ -79,25 +81,40 @@ class _PostCardState extends State<PostCard> {
 
     try {
       final api = await ApiService.getInstance();
-      if (previouslyLiked) {
-        await api.unlikePost(widget.post.id);
+      
+      // Vérifier le type de post pour utiliser la bonne API
+      if (widget.post.type == 'group') {
+        // Post de groupe
+        if (previouslyLiked) {
+          await api.removeGroupPostReaction(widget.post.id);
+        } else {
+          await api.reactToGroupPost(widget.post.id, 'like');
+        }
+      } else if (widget.post.type == 'page') {
+        // Post de page
+        if (previouslyLiked) {
+          // Pour les pages, on envoie la même réaction pour toggle
+          await api.reactToPagePost(widget.post.id, 'like');
+        } else {
+          await api.reactToPagePost(widget.post.id, 'like');
+        }
       } else {
-        await api.likePost(widget.post.id);
+        // Post normal
+        if (previouslyLiked) {
+          await api.unlikePost(widget.post.id);
+        } else {
+          await api.likePost(widget.post.id);
+        }
       }
     } catch (e) {
       // Annuler en cas d'erreur
       if (mounted) {
         setState(() {
           _isLiked = previouslyLiked;
-          _likesCount += previouslyLiked
-              ? 0
-              : 0; // It's safer to just reload or handle properly
-          // Let's just reset to previous state
+          _likesCount = previousLikesCount;
         });
-        _likesCount = previouslyLiked
-            ? widget.post.likesCount
-            : widget.post.likesCount;
       }
+      debugPrint('Error toggling like: $e');
     }
   }
 

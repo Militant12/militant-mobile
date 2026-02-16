@@ -75,13 +75,24 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       List<dynamic> commentsData;
       if (_post!.type == 'group') {
         commentsData = await api.getGroupPostComments(_post!.id);
+        debugPrint('Group comments loaded: ${commentsData.length} root comments');
       } else {
         commentsData = await api.getComments(_post!.id);
+        debugPrint('Comments loaded: ${commentsData.length} root comments');
       }
       if (mounted) {
         setState(() {
           _comments.clear();
-          _comments.addAll(commentsData.map((c) => Comment.fromJson(c)).toList());
+          _comments.addAll(commentsData.map((c) {
+            try {
+              return Comment.fromJson(c);
+            } catch (e) {
+              debugPrint('Error parsing comment: $e');
+              debugPrint('Comment data: $c');
+              rethrow;
+            }
+          }).toList());
+          debugPrint('Total comments in list: ${_comments.length}');
         });
       }
     } catch (e, stackTrace) {

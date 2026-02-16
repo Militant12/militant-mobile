@@ -524,9 +524,11 @@ class ApiService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
+      debugPrint('Comments API response: ${response.body}');
       return data['data'] ??
           []; // paginate() returns 'data' by default if not specified
     } else {
+      debugPrint('Comments API error: ${response.statusCode} - ${response.body}');
       throw Exception('Erreur de chargement des commentaires');
     }
   }
@@ -590,8 +592,10 @@ class ApiService {
     );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
+      debugPrint('Group comments API response: ${response.body}');
       return data['data'] ?? [];
     } else {
+      debugPrint('Group comments API error: ${response.statusCode} - ${response.body}');
       throw Exception('Erreur de chargement des commentaires du groupe');
     }
   }
@@ -1241,6 +1245,31 @@ class ApiService {
       return jsonDecode(response.body);
     } else {
       throw Exception('Erreur lors de la modification de la publication');
+    }
+  }
+
+  Future<Map<String, dynamic>> reactToGroupPost(int postId, String reactionType) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/group_reactions.php'),
+      headers: _headers,
+      body: jsonEncode({'post_id': postId, 'reaction_type': reactionType}),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur lors de la réaction');
+    }
+  }
+
+  Future<void> removeGroupPostReaction(int postId) async {
+    final response = await http.delete(
+      Uri.parse('$apiUrl/v1/group_reactions.php?post_id=$postId'),
+      headers: _headers,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors de la suppression de la réaction');
     }
   }
 
