@@ -8,6 +8,8 @@ class Comment {
   final DateTime createdAt;
   final int? parentId;
   final List<Comment> replies;
+  final int reactionsCount;
+  final bool hasReacted;
 
   Comment({
     required this.id,
@@ -19,6 +21,8 @@ class Comment {
     required this.createdAt,
     this.parentId,
     this.replies = const [],
+    this.reactionsCount = 0,
+    this.hasReacted = false,
   });
 
   factory Comment.fromJson(Map<String, dynamic> json) {
@@ -49,6 +53,8 @@ class Comment {
       replies: (json['replies'] as List?)
           ?.map((r) => Comment.fromJson(r))
           .toList() ?? [],
+      reactionsCount: json['reactions_count'] ?? 0,
+      hasReacted: json['has_reacted'] ?? false,
     );
   }
 }

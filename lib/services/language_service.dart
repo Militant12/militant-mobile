@@ -185,6 +185,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'stories_add': 'Ajouter',
       'stories_created': 'Story créée',
       'stories_error': 'Erreur',
+      'stories_title': 'Stories',
 
       // Badge Selection
       'my_militant_badge': 'Badge militant',
@@ -689,6 +690,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'stories_add': 'Add',
       'stories_created': 'Story created',
       'stories_error': 'Error',
+      'stories_title': 'Stories',
 
       // Badge Selection
       'my_militant_badge': 'Badge',
@@ -1194,6 +1196,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'stories_add': 'Añadir',
       'stories_created': 'Historia creada',
       'stories_error': 'Error',
+      'stories_title': 'Historias',
 
       // Badge Selection
       'my_militant_badge': 'Insignia',

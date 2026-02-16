@@ -565,10 +565,13 @@ class ApiService {
       body: jsonEncode({'content': content}),
     );
 
+    debugPrint('Update comment response status: ${response.statusCode}');
+    debugPrint('Update comment response body: ${response.body}');
+
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      throw Exception('Erreur de modification du commentaire');
+      throw Exception('Erreur de modification du commentaire: ${response.body}');
     }
   }
 
@@ -631,8 +634,12 @@ class ApiService {
       headers: _headers,
       body: jsonEncode({'id': commentId, 'content': content}),
     );
+    
+    debugPrint('Update group comment response status: ${response.statusCode}');
+    debugPrint('Update group comment response body: ${response.body}');
+    
     if (response.statusCode != 200) {
-      throw Exception('Erreur de modification du commentaire de groupe');
+      throw Exception('Erreur de modification du commentaire de groupe: ${response.body}');
     }
   }
 
@@ -643,6 +650,48 @@ class ApiService {
     );
     if (response.statusCode != 200) {
       throw Exception('Erreur de suppression du commentaire de groupe');
+    }
+  }
+
+  // === RÉACTIONS SUR COMMENTAIRES ===
+
+  Future<Map<String, dynamic>> reactToComment(
+    int commentId,
+    String commentType, {
+    String reactionType = 'like',
+  }) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/comment_reactions.php'),
+      headers: _headers,
+      body: jsonEncode({
+        'comment_id': commentId,
+        'comment_type': commentType,
+        'reaction_type': reactionType,
+      }),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur de réaction au commentaire');
+    }
+  }
+
+  Future<Map<String, dynamic>> removeCommentReaction(
+    int commentId,
+    String commentType,
+  ) async {
+    final response = await http.delete(
+      Uri.parse(
+        '$apiUrl/v1/comment_reactions.php?comment_id=$commentId&comment_type=$commentType',
+      ),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur de suppression de réaction');
     }
   }
 

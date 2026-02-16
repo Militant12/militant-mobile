@@ -159,6 +159,16 @@ class _SplashScreenState extends State<SplashScreen>
       // HomeScreen will handle any errors and redirect to login if needed
       if (token != null && token.isNotEmpty && baseUrl != null && baseUrl.isNotEmpty) {
         print('=== SPLASH: Token et URL présents, navigation vers HomeScreen ===');
+        
+        // Initialize OneSignal push notifications
+        try {
+          final api = await ApiService.getInstance();
+          await api.initializeOneSignal();
+          print('=== SPLASH: OneSignal initialisé ===');
+        } catch (e) {
+          print('=== SPLASH: Erreur initialisation OneSignal: $e ===');
+        }
+        
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );

@@ -338,23 +338,49 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                       style: TextStyle(color: textColor, fontSize: 14),
                     ),
                     const SizedBox(height: 4),
-                    // Bouton Répondre
-                    TextButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          _replyingTo = comment;
-                        });
-                      },
-                      icon: Icon(Icons.reply, size: 14, color: subtitleColor),
-                      label: Text(
-                        lang.translate('reply'),
-                        style: TextStyle(color: subtitleColor, fontSize: 12),
-                      ),
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        minimumSize: const Size(0, 0),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
+                    // Boutons Répondre et Réaction
+                    Row(
+                      children: [
+                        TextButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _replyingTo = comment;
+                            });
+                          },
+                          icon: Icon(Icons.reply, size: 14, color: subtitleColor),
+                          label: Text(
+                            lang.translate('reply'),
+                            style: TextStyle(color: subtitleColor, fontSize: 12),
+                          ),
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Bouton de réaction (pouce)
+                        TextButton.icon(
+                          onPressed: () => _toggleCommentReaction(comment),
+                          icon: Icon(
+                            Icons.thumb_up,
+                            size: 14,
+                            color: comment.hasReacted ? const Color(0xFFBE1E1E) : subtitleColor,
+                          ),
+                          label: Text(
+                            comment.reactionsCount > 0 ? '${comment.reactionsCount}' : '',
+                            style: TextStyle(
+                              color: comment.hasReacted ? const Color(0xFFBE1E1E) : subtitleColor,
+                              fontSize: 12,
+                            ),
+                          ),
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -370,19 +396,20 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   }
 
   Future<void> _deleteComment(Comment comment) async {
+    final lang = LanguageService.instance;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Supprimer'),
-        content: const Text('Voulez-vous vraiment supprimer ce commentaire ?'),
+        title: Text(lang.translate('delete')),
+        content: Text(lang.translate('delete_post_confirm')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler'),
+            child: Text(lang.translate('cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
+            child: Text(lang.translate('delete'), style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -398,32 +425,34 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         } else {
           await api.deleteComment(comment.id);
         }
-        _loadComments();
+        await _loadComments();
       } catch (e) {
+        debugPrint('Error deleting comment: $e');
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+          ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: ${e.toString()}')));
         }
       }
     }
   }
 
   Future<void> _editComment(Comment comment) async {
+    final lang = LanguageService.instance;
     final controller = TextEditingController(text: comment.content);
     final newContent = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Modifier'),
+        title: Text(lang.translate('edit')),
         content: TextField(controller: controller, maxLines: 3),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(lang.translate('cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, controller.text),
-            child: const Text('Enregistrer'),
+            child: Text(lang.translate('save')),
           ),
         ],
       ),
@@ -441,13 +470,42 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         } else {
           await api.updateComment(comment.id, newContent);
         }
-        _loadComments();
+        await _loadComments();
       } catch (e) {
+        debugPrint('Error editing comment: $e');
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+          ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: ${e.toString()}')));
         }
+      }
+    }
+  }
+
+  Future<void> _toggleCommentReaction(Comment comment) async {
+    try {
+      final api = await ApiService.getInstance();
+      String commentType = 'post';
+      if (_post!.type == 'group') {
+        commentType = 'group';
+      } else if (_post!.type == 'page') {
+        commentType = 'page';
+      }
+
+      if (comment.hasReacted) {
+        await api.removeCommentReaction(comment.id, commentType);
+      } else {
+        await api.reactToComment(comment.id, commentType);
+      }
+
+      // Recharger les commentaires pour mettre à jour l'état
+      await _loadComments();
+    } catch (e) {
+      debugPrint('Error toggling comment reaction: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erreur lors de la réaction')),
+        );
       }
     }
   }
