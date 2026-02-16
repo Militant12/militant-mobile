@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 
 class CreateEventScreen extends StatefulWidget {
   const CreateEventScreen({super.key});
@@ -81,10 +82,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   }
 
   Future<void> _submit() async {
+    final lang = LanguageService.instance;
     if (!_formKey.currentState!.validate()) return;
     if (_selectedDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez sélectionner une date')),
+        SnackBar(content: Text(lang.translate('date_required'))),
       );
       return;
     }
@@ -124,13 +126,13 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         Navigator.pop(context, true);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Événement créé')));
+        ).showSnackBar(SnackBar(content: Text(lang.translate('event_created'))));
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(SnackBar(content: Text('${lang.translate('error_loading')}: ${e.toString()}')));
       }
     } finally {
       if (mounted) {
@@ -141,13 +143,14 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguageService.instance;
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text(
-          'Créer un événement',
-          style: TextStyle(color: Colors.white),
+        title: Text(
+          lang.translate('create_event_title'),
+          style: const TextStyle(color: Colors.white),
         ),
         leading: IconButton(
           icon: const Icon(Icons.close, color: Colors.white),
@@ -165,9 +168,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                       color: Color(0xFFBE1E1E),
                     ),
                   )
-                : const Text(
-                    'Créer',
-                    style: TextStyle(color: Color(0xFFBE1E1E), fontSize: 16),
+                : Text(
+                    lang.translate('create'),
+                    style: const TextStyle(color: Color(0xFFBE1E1E), fontSize: 16),
                   ),
           ),
         ],
@@ -222,18 +225,18 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: Colors.white10),
                   ),
-                  child: const Column(
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.add_photo_alternate,
                         size: 48,
                         color: Color(0xFF888888),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Text(
-                        'Ajouter une image',
-                        style: TextStyle(color: Color(0xFF888888)),
+                        lang.translate('add_image'),
+                        style: const TextStyle(color: Color(0xFF888888)),
                       ),
                     ],
                   ),
@@ -245,19 +248,19 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
             TextFormField(
               controller: _titleController,
               style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Titre',
-                labelStyle: TextStyle(color: Color(0xFF888888)),
-                enabledBorder: OutlineInputBorder(
+              decoration: InputDecoration(
+                labelText: lang.translate('event_title_label'),
+                labelStyle: const TextStyle(color: Color(0xFF888888)),
+                enabledBorder: const OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.white10),
                 ),
-                focusedBorder: OutlineInputBorder(
+                focusedBorder: const OutlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFFBE1E1E)),
                 ),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Le titre est requis';
+                  return lang.translate('title_required');
                 }
                 return null;
               },
@@ -269,13 +272,13 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               controller: _descriptionController,
               style: const TextStyle(color: Colors.white),
               maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                labelStyle: TextStyle(color: Color(0xFF888888)),
-                enabledBorder: OutlineInputBorder(
+              decoration: InputDecoration(
+                labelText: lang.translate('event_description_label'),
+                labelStyle: const TextStyle(color: Color(0xFF888888)),
+                enabledBorder: const OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.white10),
                 ),
-                focusedBorder: OutlineInputBorder(
+                focusedBorder: const OutlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFFBE1E1E)),
                 ),
               ),
@@ -286,14 +289,14 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
             TextFormField(
               controller: _locationController,
               style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Lieu',
-                labelStyle: TextStyle(color: Color(0xFF888888)),
-                prefixIcon: Icon(Icons.location_on, color: Color(0xFF888888)),
-                enabledBorder: OutlineInputBorder(
+              decoration: InputDecoration(
+                labelText: lang.translate('event_location_label'),
+                labelStyle: const TextStyle(color: Color(0xFF888888)),
+                prefixIcon: const Icon(Icons.location_on, color: Color(0xFF888888)),
+                enabledBorder: const OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.white10),
                 ),
-                focusedBorder: OutlineInputBorder(
+                focusedBorder: const OutlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFFBE1E1E)),
                 ),
               ),
@@ -315,7 +318,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     const SizedBox(width: 12),
                     Text(
                       _selectedDate == null
-                          ? 'Sélectionner une date'
+                          ? lang.translate('select_date')
                           : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
                       style: TextStyle(
                         color: _selectedDate == null
@@ -344,7 +347,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     const SizedBox(width: 12),
                     Text(
                       _selectedTime == null
-                          ? 'Sélectionner une heure (optionnel)'
+                          ? lang.translate('select_time')
                           : '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}',
                       style: TextStyle(
                         color: _selectedTime == null

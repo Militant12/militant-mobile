@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 import '../models/post.dart';
 import '../widgets/post_card.dart';
 import 'create_post_screen.dart';
@@ -67,9 +68,10 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       });
     } catch (e) {
       if (mounted) {
+        final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(SnackBar(content: Text('${lang.translate('group_detail_error')}: ${e.toString()}')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -114,7 +116,8 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
   }
 
   Future<void> _shareGroup() async {
-    final String groupName = _groupData!['name'] ?? 'Groupe';
+    final lang = LanguageService.instance;
+    final String groupName = _groupData!['name'] ?? lang.translate('group');
     final int groupId = _groupData!['id'];
 
     if (_api == null) {
@@ -133,7 +136,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
 
     final String url = '$baseUrl/group_detail.php?id=$groupId';
 
-    await Share.share('Rejoins le groupe "$groupName" sur Militant !\n$url');
+    await Share.share('${lang.translate('join')} "$groupName" sur Militant !\n$url');
   }
 
   Future<void> _loadGroupInfo() async {
@@ -151,6 +154,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
   }
 
   void _showEditGroupDialog() {
+    final lang = LanguageService.instance;
     final nameController = TextEditingController(text: _groupData!['name']);
     final descController = TextEditingController(
       text: _groupData!['description'],
@@ -165,9 +169,9 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           backgroundColor: const Color(0xFF1E1E1E),
-          title: const Text(
-            'Paramètres du groupe',
-            style: TextStyle(color: Colors.white),
+          title: Text(
+            lang.translate('group_settings_title'),
+            style: const TextStyle(color: Colors.white),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -268,11 +272,11 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.camera_alt, color: Colors.white70),
-                          SizedBox(height: 4),
+                          const Icon(Icons.camera_alt, color: Colors.white70),
+                          const SizedBox(height: 4),
                           Text(
-                            'Changer la couverture',
-                            style: TextStyle(color: Colors.white70),
+                            lang.translate('change_cover'),
+                            style: const TextStyle(color: Colors.white70),
                           ),
                         ],
                       ),
@@ -283,28 +287,28 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                 TextField(
                   controller: nameController,
                   style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(
-                    labelText: 'Nom',
+                  decoration: InputDecoration(
+                    labelText: lang.translate('group_name'),
                     filled: true,
-                    fillColor: Color(0xFF2A2A2A),
+                    fillColor: const Color(0xFF2A2A2A),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: descController,
                   style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(
-                    labelText: 'Description',
+                  decoration: InputDecoration(
+                    labelText: lang.translate('description'),
                     filled: true,
-                    fillColor: Color(0xFF2A2A2A),
+                    fillColor: const Color(0xFF2A2A2A),
                   ),
                   maxLines: 3,
                 ),
                 const SizedBox(height: 12),
                 SwitchListTile(
-                  title: const Text(
-                    'Privé',
-                    style: TextStyle(color: Colors.white),
+                  title: Text(
+                    lang.translate('group_privacy'),
+                    style: const TextStyle(color: Colors.white),
                   ),
                   value: isPrivate,
                   onChanged: (val) => setDialogState(() => isPrivate = val),
@@ -316,9 +320,9 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text(
-                'Annuler',
-                style: TextStyle(color: Colors.white54),
+              child: Text(
+                lang.translate('cancel'),
+                style: const TextStyle(color: Colors.white54),
               ),
             ),
             ElevatedButton(
@@ -363,7 +367,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                 backgroundColor: const Color(0xFFBE1E1E),
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Enregistrer'),
+              child: Text(lang.translate('save')),
             ),
           ],
         ),
@@ -373,15 +377,16 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguageService.instance;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final name = _groupData!['name'] ?? 'Groupe';
+    final name = _groupData!['name'] ?? lang.translate('group');
     final description = _groupData!['description'] ?? '';
     final avatar = _groupData!['avatar'];
     final isMember =
         _groupData!['is_member'] == 1 || _groupData!['is_member'] == true;
     final membersCount = _groupData!['members_count'] ?? _previewMembers.length;
-    final privacy = _groupData!['privacy'] == 'private' ? 'Privé' : 'Public';
+    final privacy = _groupData!['privacy'] == 'private' ? lang.translate('private') : lang.translate('public');
 
     // Facebook style Header
     return Scaffold(
@@ -461,7 +466,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '$privacy · $membersCount membres',
+                          '$privacy · $membersCount ${membersCount > 1 ? lang.translate('members') : lang.translate('member')}',
                           style: const TextStyle(
                             color: Colors.grey,
                             fontWeight: FontWeight.w500,
@@ -481,7 +486,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                               isMember ? Icons.check : Icons.group_add,
                               size: 18,
                             ),
-                            label: Text(isMember ? 'Membre' : 'Rejoindre'),
+                            label: Text(isMember ? lang.translate('joined') : lang.translate('join')),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: isMember
                                   ? (isDark
@@ -504,7 +509,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                           child: ElevatedButton.icon(
                             onPressed: _shareGroup,
                             icon: const Icon(Icons.share, size: 18),
-                            label: const Text('Partager'),
+                            label: Text(lang.translate('share')),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: isDark
                                   ? Colors.grey[800]
@@ -532,7 +537,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                             builder: (_) => UsersListScreen(
                               groupId: int.parse(_groupData!['id'].toString()),
                               type: 'members',
-                              title: 'Membres',
+                              title: lang.translate('members_title'),
                             ),
                           ),
                         );
@@ -590,7 +595,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                                 ],
                               ),
                             ),
-                            const Text('Voir les membres'),
+                            Text(lang.translate('view_members')),
                             const Spacer(),
                             const Icon(
                               Icons.arrow_forward_ios,
@@ -615,9 +620,9 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
 
                     const SizedBox(height: 16),
                     if (isMember)
-                      const Text(
-                        'Publications',
-                        style: TextStyle(
+                      Text(
+                        lang.translate('publications_title'),
+                        style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
@@ -634,7 +639,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                             ? const CircularProgressIndicator(
                                 color: Color(0xFFBE1E1E),
                               )
-                            : const Text('Aucune publication pour le moment'),
+                            : Text(lang.translate('no_posts_yet')),
                       ),
                     )
                   : SliverList(

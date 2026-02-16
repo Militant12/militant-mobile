@@ -21,11 +21,12 @@ class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key, this.userId});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  State<ProfileScreen> createState() => ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen>
+class ProfileScreenState extends State<ProfileScreen>
     with SingleTickerProviderStateMixin {
+
   Map<String, dynamic>? _profile;
   final List<Post> _posts = [];
   bool _isLoading = true;
@@ -50,7 +51,15 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   String? _avatarUrl;
 
+  // Public method to refresh profile from outside
+  void refreshProfile() {
+    if (mounted) {
+      _loadProfile();
+    }
+  }
+
   Future<void> _loadProfile() async {
+    final lang = LanguageService.instance;
     setState(() => _isLoading = true);
     try {
       final api = await ApiService.getInstance();
@@ -66,7 +75,11 @@ class _ProfileScreenState extends State<ProfileScreen>
         _isFriend = profile['is_friend'] == 1 || profile['is_friend'] == true;
         _sentRequestId = profile['sent_request_id'];
         _receivedRequestId = profile['received_request_id'];
-        _avatarUrl = api.getImageUrl(profile['avatar']);
+        // Add timestamp to force image reload and bypass cache
+        final avatarUrl = api.getImageUrl(profile['avatar']);
+        _avatarUrl = avatarUrl != null 
+            ? '$avatarUrl?t=${DateTime.now().millisecondsSinceEpoch}' 
+            : null;
       });
 
       // Load posts if allowed
@@ -77,9 +90,9 @@ class _ProfileScreenState extends State<ProfileScreen>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
+        );
       }
     } finally {
       setState(() => _isLoading = false);
@@ -87,6 +100,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   Future<void> _loadUserPosts(int userId) async {
+    final lang = LanguageService.instance;
     setState(() => _isLoadingPosts = true);
     try {
       final api = await ApiService.getInstance();
@@ -111,9 +125,9 @@ class _ProfileScreenState extends State<ProfileScreen>
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
+        );
       }
     } finally {
       setState(() => _isLoadingPosts = false);
@@ -121,6 +135,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   Future<void> _sendFriendRequest() async {
+    final lang = LanguageService.instance;
     if (_profile == null || _isMe) return;
     try {
       final api = await ApiService.getInstance();
@@ -129,20 +144,21 @@ class _ProfileScreenState extends State<ProfileScreen>
       );
       setState(() => _sentRequestId = result['request_id']);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Demande d\'ami envoyée')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${lang.translate('friend_request_sent')}')),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
+        );
       }
     }
   }
 
   Future<void> _acceptFriendRequest() async {
+    final lang = LanguageService.instance;
     try {
       final api = await ApiService.getInstance();
       if (_receivedRequestId != null) {
@@ -155,25 +171,26 @@ class _ProfileScreenState extends State<ProfileScreen>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
+        );
       }
     }
   }
 
   Future<void> _unfriend() async {
+    final lang = LanguageService.instance;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text(
-          'Retirer des amis',
-          style: TextStyle(color: Colors.white),
+        title: Text(
+          lang.translate('remove_from_friends'),
+          style: const TextStyle(color: Colors.white),
         ),
-        content: const Text(
-          'Voulez-vous vraiment retirer cette personne de vos amis ?',
-          style: TextStyle(color: Colors.white70),
+        content: Text(
+          lang.translate('remove_friend_confirm'),
+          style: const TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
@@ -185,9 +202,9 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              'Retirer',
-              style: TextStyle(color: Color(0xFFBE1E1E)),
+            child: Text(
+              lang.translate('remove'),
+              style: const TextStyle(color: Color(0xFFBE1E1E)),
             ),
           ),
         ],
@@ -202,15 +219,16 @@ class _ProfileScreenState extends State<ProfileScreen>
         _loadProfile();
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
+          );
         }
       }
     }
   }
 
   Future<void> _rejectFriendRequest() async {
+    final lang = LanguageService.instance;
     try {
       final api = await ApiService.getInstance();
       if (_receivedRequestId != null) {
@@ -221,14 +239,15 @@ class _ProfileScreenState extends State<ProfileScreen>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
+        );
       }
     }
   }
 
   Future<void> _toggleFollow() async {
+    final lang = LanguageService.instance;
     if (_profile == null || _isMe) return;
 
     try {
@@ -250,22 +269,26 @@ class _ProfileScreenState extends State<ProfileScreen>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
+        );
       }
     }
   }
 
   Future<void> _logout() async {
+    final lang = LanguageService.instance;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text('Déconnexion', style: TextStyle(color: Colors.white)),
-        content: const Text(
-          'Voulez-vous vraiment vous déconnecter ?',
-          style: TextStyle(color: Colors.white70),
+        title: Text(
+          lang.translate('logout_question'),
+          style: const TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          lang.translate('logout_confirm'),
+          style: const TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
@@ -510,21 +533,30 @@ class _ProfileScreenState extends State<ProfileScreen>
             _buildOption(
               icon: Icons.edit,
               title: lang.translate('edit_profile_title'),
-              onTap: () {
-                Navigator.push(
+              onTap: () async {
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const EditProfileScreen()),
-                ).then((_) => _loadProfile());
+                );
+                if (result == true && mounted) {
+                  await _loadProfile();
+                  setState(() {});
+                }
               },
             ),
             _buildOption(
               icon: Icons.settings,
               title: lang.translate('settings_title'),
-              onTap: () {
-                Navigator.push(
+              onTap: () async {
+                await Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const SettingsScreen()),
                 );
+                // Refresh profile after returning from settings
+                if (mounted) {
+                  await _loadProfile();
+                  setState(() {});
+                }
               },
             ),
             _buildOption(
@@ -577,7 +609,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'Amis',
+                                  lang.translate('friends'),
                                   style: TextStyle(color: textColor),
                                 ),
                               ],
@@ -604,18 +636,18 @@ class _ProfileScreenState extends State<ProfileScreen>
                               foregroundColor: Colors.white,
                               minimumSize: const Size(double.infinity, 45),
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.message,
                                   size: 20,
                                   color: Colors.white,
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'Message',
-                                  style: TextStyle(color: Colors.white),
+                                  lang.translate('message'),
+                                  style: const TextStyle(color: Colors.white),
                                 ),
                               ],
                             ),
@@ -632,7 +664,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                             : Colors.grey[200],
                         minimumSize: const Size(double.infinity, 45),
                       ),
-                      child: const Text('Demande envoyée'),
+                      child: Text(lang.translate('friend_request_sent')),
                     )
                   else if (_receivedRequestId != null)
                     Row(
@@ -674,7 +706,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                         foregroundColor: Colors.white,
                         minimumSize: const Size(double.infinity, 45),
                       ),
-                      child: const Text('Ajouter un ami'),
+                      child: Text(lang.translate('add_friend')),
                     ),
                   const SizedBox(height: 8),
                   ElevatedButton(
@@ -915,56 +947,72 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   Widget _buildSocialRow() {
+    final lang = LanguageService.instance;
     if (_profile == null) return const SizedBox.shrink();
 
     final socials = [
       {
         'key': 'mastodon',
         'icon': Icons.alternate_email,
-        'url': (v) => v.startsWith('http') ? v : 'https://$v',
+        'url': 'https://\$value',
       },
       {
-        'key': 'github',
-        'icon': Icons.code,
-        'url': (v) => v.startsWith('http') ? v : 'https://github.com/$v',
+        'key': 'bluesky',
+        'icon': Icons.cloud,
+        'url': 'https://bsky.app/profile/\$value',
       },
       {
         'key': 'twitter',
         'icon': Icons.chat_bubble_outline,
-        'url': (v) => v.startsWith('http') ? v : 'https://twitter.com/$v',
+        'url': 'https://twitter.com/\$value',
       },
       {
         'key': 'instagram',
         'icon': Icons.camera_alt_outlined,
-        'url': (v) => v.startsWith('http') ? v : 'https://instagram.com/$v',
+        'url': 'https://instagram.com/\$value',
       },
       {
         'key': 'facebook',
         'icon': Icons.facebook,
-        'url': (v) => v.startsWith('http') ? v : 'https://facebook.com/$v',
+        'url': 'https://facebook.com/\$value',
       },
       {
         'key': 'tiktok',
         'icon': Icons.music_note,
-        'url': (v) => v.startsWith('http') ? v : 'https://tiktok.com/@$v',
+        'url': 'https://tiktok.com/@\$value',
       },
     ];
 
     List<Widget> icons = [];
     for (var social in socials) {
-      final value = _profile![social['key']];
+      final value = _profile![social['key'] as String];
       if (value != null && value.toString().isNotEmpty) {
         icons.add(
           IconButton(
             icon: Icon(social['icon'] as IconData, size: 24),
             color: const Color(0xFFBE1E1E),
             onPressed: () async {
-              final urlString = (social['url'] as String Function(String))(
-                value.toString(),
-              );
-              final url = Uri.parse(urlString);
-              if (await canLaunchUrl(url)) {
-                await launchUrl(url, mode: LaunchMode.externalApplication);
+              try {
+                final urlTemplate = social['url'] as String;
+                final urlString = value.toString().startsWith('http')
+                    ? value.toString()
+                    : urlTemplate.replaceAll('\$value', value.toString());
+                final url = Uri.parse(urlString);
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                } else {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('${lang.translate('cannot_open_url')}: $urlString')),
+                    );
+                  }
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
+                  );
+                }
               }
             },
           ),

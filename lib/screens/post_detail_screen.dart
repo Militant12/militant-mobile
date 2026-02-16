@@ -22,6 +22,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   int? _currentUserId;
   final TextEditingController _commentController = TextEditingController();
   Post? _post;
+  Comment? _replyingTo; // Pour suivre à quel commentaire on répond
 
   @override
   void initState() {
@@ -77,18 +78,24 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       } else {
         commentsData = await api.getComments(_post!.id);
       }
-      setState(() {
-        _comments.clear();
-        _comments.addAll(commentsData.map((c) => Comment.fromJson(c)).toList());
-      });
-    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _comments.clear();
+          _comments.addAll(commentsData.map((c) => Comment.fromJson(c)).toList());
+        });
+      }
+    } catch (e, stackTrace) {
+      debugPrint('Error loading comments: $e');
+      debugPrint('Stack trace: $stackTrace');
       if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -99,14 +106,31 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     try {
       final api = await ApiService.getInstance();
       if (_post!.type == 'group') {
-        await api.addGroupComment(_post!.id, content);
+        await api.addGroupComment(_post!.id, content, parentId: _replyingTo?.id);
       } else if (_post!.type == 'page') {
         await api.commentOnPagePost(_post!.id, content);
       } else {
-        await api.addComment(_post!.id, content);
+        await api.addComment(_post!.id, content, parentId: _replyingTo?.id);
       }
       _commentController.clear();
-      _loadComments();
+      setState(() => _replyingTo = null); // Réinitialiser la réponse
+      
+      // Recharger les commentaires ET le post pour mettre à jour le compteur
+      await _loadComments();
+      
+      // Recharger le post pour avoir le compteur à jour
+      if (_post != null) {
+        try {
+          final postData = await api.getPost(_post!.id);
+          if (postData.isNotEmpty && mounted) {
+            setState(() {
+              _post = Post.fromJson(postData);
+            });
+          }
+        } catch (e) {
+          // Si le rechargement échoue, on continue quand même
+        }
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -178,7 +202,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                     ),
                   )
                 else
-                  ..._comments.map((comment) => _buildCommentItem(comment)),
+                  ..._comments.map((comment) => _buildCommentItem(comment, depth: 0)),
               ],
             ),
           ),
@@ -188,88 +212,149 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     );
   }
 
-  Widget _buildCommentItem(Comment comment) {
+  Widget _buildCommentItem(Comment comment, {int depth = 0}) {
+    final lang = LanguageService.instance;
     final theme = Theme.of(context);
     final textColor = theme.textTheme.bodyLarge?.color;
     final subtitleColor = theme.textTheme.bodyMedium?.color;
+    final maxDepth = 3; // Limite de profondeur pour l'indentation
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CircleAvatar(
-            radius: 16,
-            backgroundColor: const Color(0xFFBE1E1E),
-            child: Text(
-              comment.username.isNotEmpty
-                  ? comment.username[0].toUpperCase()
-                  : '?',
-              style: const TextStyle(color: Colors.white, fontSize: 12),
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(
+            left: depth > 0 ? (depth * 24.0).clamp(0, maxDepth * 24.0) : 16,
+            right: 16,
+            top: 8,
+            bottom: 4,
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              FutureBuilder<ApiService>(
+                future: ApiService.getInstance(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return CircleAvatar(
+                      radius: 16,
+                      backgroundColor: const Color(0xFFBE1E1E),
+                      child: Text(
+                        comment.username.isNotEmpty
+                            ? comment.username[0].toUpperCase()
+                            : '?',
+                        style: const TextStyle(color: Colors.white, fontSize: 12),
+                      ),
+                    );
+                  }
+
+                  final avatarUrl = snapshot.data!.getImageUrl(comment.userAvatar);
+                  
+                  if (avatarUrl != null && avatarUrl.isNotEmpty) {
+                    return CircleAvatar(
+                      radius: 16,
+                      backgroundImage: NetworkImage(avatarUrl),
+                      backgroundColor: const Color(0xFFBE1E1E),
+                      onBackgroundImageError: (_, __) {},
+                      child: null,
+                    );
+                  }
+
+                  return CircleAvatar(
+                    radius: 16,
+                    backgroundColor: const Color(0xFFBE1E1E),
+                    child: Text(
+                      comment.username.isNotEmpty
+                          ? comment.username[0].toUpperCase()
+                          : '?',
+                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      comment.username,
-                      style: TextStyle(
-                        color: textColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _formatDate(comment.createdAt),
-                      style: TextStyle(color: subtitleColor, fontSize: 12),
-                    ),
-                    const Spacer(),
-                    if (_currentUserId != null &&
-                        comment.userId == _currentUserId)
-                      PopupMenuButton<String>(
-                        icon: Icon(
-                          Icons.more_horiz,
-                          size: 16,
-                          color: subtitleColor,
+                    Row(
+                      children: [
+                        Text(
+                          comment.username,
+                          style: TextStyle(
+                            color: textColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
                         ),
-                        onSelected: (value) async {
-                          if (value == 'delete') {
-                            _deleteComment(comment);
-                          } else if (value == 'edit') {
-                            _editComment(comment);
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'edit',
-                            child: Text('Modifier'),
-                          ),
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Text(
-                              'Supprimer',
-                              style: TextStyle(color: Colors.red),
+                        const SizedBox(width: 8),
+                        Text(
+                          _formatDate(comment.createdAt),
+                          style: TextStyle(color: subtitleColor, fontSize: 12),
+                        ),
+                        const Spacer(),
+                        if (_currentUserId != null &&
+                            comment.userId == _currentUserId)
+                          PopupMenuButton<String>(
+                            icon: Icon(
+                              Icons.more_horiz,
+                              size: 16,
+                              color: subtitleColor,
                             ),
+                            onSelected: (value) async {
+                              if (value == 'delete') {
+                                _deleteComment(comment);
+                              } else if (value == 'edit') {
+                                _editComment(comment);
+                              }
+                            },
+                            itemBuilder: (context) => [
+                              PopupMenuItem(
+                                value: 'edit',
+                                child: Text(lang.translate('edit')),
+                              ),
+                              PopupMenuItem(
+                                value: 'delete',
+                                child: Text(lang.translate('delete')),
+                              ),
+                            ],
                           ),
-                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    LinkableText(
+                      text: comment.content,
+                      style: TextStyle(color: textColor, fontSize: 14),
+                    ),
+                    const SizedBox(height: 4),
+                    // Bouton Répondre
+                    TextButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _replyingTo = comment;
+                        });
+                      },
+                      icon: Icon(Icons.reply, size: 14, color: subtitleColor),
+                      label: Text(
+                        lang.translate('reply'),
+                        style: TextStyle(color: subtitleColor, fontSize: 12),
                       ),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(0, 0),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                LinkableText(
-                  text: comment.content,
-                  style: TextStyle(color: textColor, fontSize: 14),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+        // Afficher les réponses de manière récursive
+        if (comment.replies.isNotEmpty)
+          ...comment.replies.map((reply) => _buildCommentItem(reply, depth: depth + 1)),
+      ],
     );
   }
 
@@ -388,22 +473,60 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         color: theme.cardColor,
         border: Border(top: BorderSide(color: theme.dividerColor)),
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: TextField(
-              controller: _commentController,
-              style: TextStyle(color: theme.textTheme.bodyLarge?.color),
-              decoration: InputDecoration(
-                hintText: lang.translate('comment_hint'),
-                hintStyle: TextStyle(color: theme.hintColor),
-                border: InputBorder.none,
+          // Indicateur de réponse
+          if (_replyingTo != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              color: theme.dividerColor.withOpacity(0.3),
+              child: Row(
+                children: [
+                  Icon(Icons.reply, size: 16, color: theme.textTheme.bodyMedium?.color),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      lang.translate('reply_to').replaceAll('{username}', _replyingTo!.username),
+                      style: TextStyle(
+                        color: theme.textTheme.bodyMedium?.color,
+                        fontSize: 12,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.close, size: 16, color: theme.textTheme.bodyMedium?.color),
+                    onPressed: () {
+                      setState(() {
+                        _replyingTo = null;
+                      });
+                    },
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
               ),
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.send, color: Color(0xFFBE1E1E)),
-            onPressed: () => _submitComment(),
+          // Champ de saisie
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _commentController,
+                  style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+                  decoration: InputDecoration(
+                    hintText: lang.translate('comment_hint'),
+                    hintStyle: TextStyle(color: theme.hintColor),
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.send, color: Color(0xFFBE1E1E)),
+                onPressed: () => _submitComment(),
+              ),
+            ],
           ),
         ],
       ),

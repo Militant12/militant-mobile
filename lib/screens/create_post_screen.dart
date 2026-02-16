@@ -26,7 +26,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         backgroundColor: Theme.of(context).brightness == Brightness.dark
             ? const Color(0xFF1E1E1E)
             : Colors.white,
-        title: const Text('Choisir un média'),
+        title: Text(LanguageService.instance.translate('choose_media')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -35,7 +35,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 Icons.photo_library,
                 color: Color(0xFFBE1E1E),
               ),
-              title: const Text('Image de la galerie'),
+              title: Text(LanguageService.instance.translate('image_from_gallery')),
               onTap: () => Navigator.pop(context, {
                 'source': ImageSource.gallery,
                 'isVideo': false,
@@ -43,7 +43,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.videocam, color: Color(0xFFBE1E1E)),
-              title: const Text('Vidéo de la galerie'),
+              title: Text(LanguageService.instance.translate('video_from_gallery')),
               onTap: () => Navigator.pop(context, {
                 'source': ImageSource.gallery,
                 'isVideo': true,
@@ -51,7 +51,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt, color: Color(0xFFBE1E1E)),
-              title: const Text('Prendre une photo'),
+              title: Text(LanguageService.instance.translate('take_photo')),
               onTap: () => Navigator.pop(context, {
                 'source': ImageSource.camera,
                 'isVideo': false,
@@ -59,7 +59,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.videocam, color: Color(0xFFBE1E1E)),
-              title: const Text('Filmer une vidéo'),
+              title: Text(LanguageService.instance.translate('record_video')),
               onTap: () => Navigator.pop(context, {
                 'source': ImageSource.camera,
                 'isVideo': true,
@@ -111,13 +111,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   }
 
   Future<void> _createPost() async {
+    final lang = LanguageService.instance;
     print('=== CREATE POST: Début ===');
     print('=== CREATE POST: Contenu: ${_contentController.text.trim()} ===');
     print('=== CREATE POST: Média file: ${_mediaFile?.path} ===');
 
     if (_contentController.text.trim().isEmpty && _mediaFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ajoutez du contenu ou un média')),
+        SnackBar(content: Text(lang.translate('add_content_or_media'))),
       );
       return;
     }
@@ -171,9 +172,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
+        );
       }
     } finally {
       if (mounted) {

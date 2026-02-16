@@ -7,6 +7,13 @@ class User {
   final String? bio;
   final String? cause;
   final String? militantBadge;
+  final String? website;
+  final String? twitter;
+  final String? instagram;
+  final String? mastodon;
+  final String? facebook;
+  final String? tiktok;
+  final String? bluesky;
   final int followersCount;
   final int followingCount;
   final bool isFollowing;
@@ -21,6 +28,13 @@ class User {
     this.bio,
     this.cause,
     this.militantBadge,
+    this.website,
+    this.twitter,
+    this.instagram,
+    this.mastodon,
+    this.facebook,
+    this.tiktok,
+    this.bluesky,
     required this.followersCount,
     required this.followingCount,
     required this.isFollowing,
@@ -37,6 +51,13 @@ class User {
       bio: json['bio'],
       cause: json['cause'],
       militantBadge: json['militant_badge'],
+      website: json['website'],
+      twitter: json['twitter'],
+      instagram: json['instagram'],
+      mastodon: json['mastodon'],
+      facebook: json['facebook'],
+      tiktok: json['tiktok'],
+      bluesky: json['bluesky'],
       followersCount: json['followers_count'] ?? 0,
       followingCount: json['following_count'] ?? 0,
       isFollowing: json['is_following'] == 1 || json['is_following'] == true,

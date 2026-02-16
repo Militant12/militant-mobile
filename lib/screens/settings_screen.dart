@@ -7,6 +7,7 @@ import '../services/language_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import './badge_selection_screen.dart';
 import './two_factor_settings_screen.dart';
+import './edit_profile_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -57,6 +58,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           _buildOption(
             context,
+            icon: Icons.person,
+            title: lang.translate('edit_profile_title'),
+            subtitle: lang.translate('edit_profile_subtitle'),
+            onTap: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+              );
+              if (result == true && mounted) {
+                // Trigger a rebuild to refresh any cached data
+                setState(() {});
+              }
+            },
+          ),
+          _buildOption(
+            context,
             icon: Icons.flag,
             title: lang.translate('my_militant_badge'),
             subtitle: lang.translate('select_badge_text'),
@@ -65,7 +82,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 context,
                 MaterialPageRoute(builder: (_) => const BadgeSelectionScreen()),
               );
-              if (result != null && mounted) {
+              if (result == true && mounted) {
+                // Trigger a rebuild to refresh any cached data
                 setState(() {});
               }
             },
@@ -75,11 +93,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             icon: Icons.notifications,
             title: lang.translate('notifications_title'),
             subtitle: lang.translate('subtitle_notifications'),
-            onTap: () {
-              Navigator.push(
+            onTap: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const NotificationsScreen()),
               );
+              // Refresh after notification settings change
+              if (mounted) {
+                setState(() {});
+              }
             },
           ),
           _buildOption(
@@ -113,11 +135,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             icon: Icons.privacy_tip,
             title: lang.translate('privacy_title'),
             subtitle: lang.translate('subtitle_privacy'),
-            onTap: () {
-              Navigator.push(
+            onTap: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const PrivacyScreen()),
               );
+              // Refresh after privacy settings change
+              if (mounted) {
+                setState(() {});
+              }
             },
           ),
           _buildOption(
@@ -161,6 +187,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _exportData() async {
+    final lang = LanguageService.instance;
     try {
       final api = await ApiService.getInstance();
       final urlString = '${api.apiUrl}/v1/export.php?token=${api.token}';
@@ -171,15 +198,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Impossible d\'ouvrir le lien')),
+            SnackBar(content: Text(lang.translate('cannot_open_link'))),
           );
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${lang.translate('error_generic')}: $e')),
+        );
       }
     }
   }
@@ -338,6 +365,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showAboutDialog(BuildContext context) {
+    final lang = LanguageService.instance;
     showAboutDialog(
       context: context,
       applicationName: 'Militant',
@@ -348,9 +376,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         height: 80,
       ),
       children: [
-        const Text('Le réseau social de combat.'),
+        Text(lang.translate('social_network')),
         const SizedBox(height: 16),
-        const Text('© 2026 Militant Inc.'),
+        Text(lang.translate('copyright')),
       ],
     );
   }
@@ -379,6 +407,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   }
 
   Future<void> _changePassword() async {
+    final lang = LanguageService.instance;
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
@@ -391,7 +420,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Mot de passe modifié avec succès')),
+          SnackBar(content: Text(lang.translate('password_changed'))),
         );
         Navigator.pop(context);
       }
@@ -536,6 +565,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Future<void> _loadPreferences() async {
+    final lang = LanguageService.instance;
     try {
       final api = await ApiService.getInstance();
       final prefs = await api.getPreferences();
@@ -555,7 +585,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur chargement: ${e.toString()}')),
+          SnackBar(content: Text('${lang.translate('loading_error')}: ${e.toString()}')),
         );
       }
     }

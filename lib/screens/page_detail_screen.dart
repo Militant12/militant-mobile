@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:io';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../widgets/linkable_text.dart';
 
@@ -537,6 +538,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
   }
 
   void _showAddTeamMemberDialog() {
+    final lang = LanguageService.instance;
     final usernameController = TextEditingController();
     String role = 'editor';
 
@@ -548,7 +550,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               ? const Color(0xFF1E1E1E)
               : Colors.white,
           title: Text(
-            'Ajouter un membre',
+            lang.translate('add_member'),
             style: TextStyle(
               color: Theme.of(context).brightness == Brightness.dark
                   ? Colors.white
@@ -647,7 +649,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 backgroundColor: const Color(0xFFBE1E1E),
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Ajouter'),
+              child: Text(lang.translate('add')),
             ),
           ],
         ),
@@ -657,6 +659,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguageService.instance;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final page = _pageDetail ?? widget.page;
@@ -770,18 +773,18 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                       color: Colors.black87,
                                       borderRadius: BorderRadius.circular(4),
                                     ),
-                                    child: const Row(
+                                    child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(
+                                        const Icon(
                                           Icons.lock,
                                           color: Colors.white70,
                                           size: 12,
                                         ),
-                                        SizedBox(width: 2),
+                                        const SizedBox(width: 2),
                                         Text(
-                                          'Privée',
-                                          style: TextStyle(
+                                          lang.translate('private'),
+                                          style: const TextStyle(
                                             color: Colors.white70,
                                             fontSize: 11,
                                           ),
@@ -896,18 +899,19 @@ class _PageDetailScreenState extends State<PageDetailScreen>
   }
 
   List<Widget> _buildTabs() {
-    final List<Widget> tabs = [const Tab(text: 'Publications')];
+    final lang = LanguageService.instance;
+    final List<Widget> tabs = [Tab(text: lang.translate('publications'))];
     if (_tabController != null) {
       if (_tabController!.length > 1) {
         tabs.add(
           Tab(
             text:
-                'Abonnés (${_pageDetail?['followers_count'] ?? _followers.length})',
+                '${lang.translate('followers')} (${_pageDetail?['followers_count'] ?? _followers.length})',
           ),
         );
       }
-      if (_tabController!.length > 2) tabs.add(const Tab(text: 'Équipe'));
-      if (_tabController!.length > 3) tabs.add(const Tab(text: 'Paramètres'));
+      if (_tabController!.length > 2) tabs.add(Tab(text: lang.translate('team')));
+      if (_tabController!.length > 3) tabs.add(Tab(text: lang.translate('parameters')));
     }
     return tabs;
   }
@@ -1079,6 +1083,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
 
   // ==================== POSTS TAB ====================
   Widget _buildPostsTab() {
+    final lang = LanguageService.instance;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return RefreshIndicator(
@@ -1177,7 +1182,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                           Icons.photo_camera,
                           color: isDark ? Colors.white54 : Colors.grey[600],
                         ),
-                        tooltip: 'Ajouter un média',
+                        tooltip: lang.translate('add_media'),
                       ),
                       IconButton(
                         onPressed: _isUploading
@@ -1530,7 +1535,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             ),
             const SizedBox(height: 12),
             Text(
-              'Aucun abonné',
+              LanguageService.instance.translate('no_followers'),
               style: TextStyle(
                 color: isDark ? const Color(0xFF888888) : Colors.grey,
                 fontSize: 16,
@@ -1548,6 +1553,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
         padding: const EdgeInsets.all(12),
         itemCount: _followers.length,
         itemBuilder: (context, index) {
+          final lang = LanguageService.instance;
           final follower = _followers[index];
           return Container(
             margin: const EdgeInsets.only(bottom: 8),
@@ -1619,7 +1625,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                     final confirm = await showDialog<bool>(
                       context: context,
                       builder: (ctx) => AlertDialog(
-                        title: const Text('Retirer cet abonné ?'),
+                        title: Text(lang.translate('remove_follower_title')),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(ctx, false),
@@ -1627,9 +1633,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                           ),
                           TextButton(
                             onPressed: () => Navigator.pop(ctx, true),
-                            child: const Text(
-                              'Retirer',
-                              style: TextStyle(color: Colors.red),
+                            child: Text(
+                              lang.translate('remove_member'),
+                              style: const TextStyle(color: Colors.red),
                             ),
                           ),
                         ],
@@ -1662,6 +1668,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
 
   // ==================== TEAM TAB ====================
   Widget _buildTeamTab() {
+    final lang = LanguageService.instance;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return RefreshIndicator(
@@ -1679,7 +1686,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              'Les admins peuvent tout faire. Les éditeurs peuvent publier mais pas modifier les paramètres.',
+              lang.translate('admin_editor_description'),
               style: TextStyle(
                 color: isDark ? Colors.white38 : Colors.grey,
                 fontSize: 13,
@@ -1689,10 +1696,12 @@ class _PageDetailScreenState extends State<PageDetailScreen>
 
           // Team list
           ..._team.map(
-            (member) => Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
+            (member) {
+              final lang = LanguageService.instance;
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -1778,7 +1787,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                         final confirm = await showDialog<bool>(
                           context: context,
                           builder: (ctx) => AlertDialog(
-                            title: const Text('Retirer ce membre ?'),
+                            title: Text(lang.translate('remove_member_title')),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(ctx, false),
@@ -1786,9 +1795,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                               ),
                               TextButton(
                                 onPressed: () => Navigator.pop(ctx, true),
-                                child: const Text(
-                                  'Retirer',
-                                  style: TextStyle(color: Colors.red),
+                                child: Text(
+                                  lang.translate('remove_member'),
+                                  style: const TextStyle(color: Colors.red),
                                 ),
                               ),
                             ],
@@ -1813,7 +1822,8 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                     ),
                 ],
               ),
-            ),
+            );
+          },
           ),
 
           // Add member button
@@ -1821,7 +1831,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           ElevatedButton.icon(
             onPressed: _showAddTeamMemberDialog,
             icon: const Icon(Icons.person_add),
-            label: const Text('Ajouter un membre'),
+            label: Text(lang.translate('add_member')),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFBE1E1E),
               foregroundColor: Colors.white,
@@ -1840,27 +1850,28 @@ class _PageDetailScreenState extends State<PageDetailScreen>
     final String currentRole = member['role'];
     final String targetRole = currentRole == 'admin' ? 'editor' : 'admin';
 
+    final lang = LanguageService.instance;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(
           targetRole == 'admin'
-              ? 'Nommer ${member['username']} admin ?'
-              : 'Rétrograder ${member['username']} au rôle d\'éditeur ?',
+              ? lang.translate('promote_to_admin_question').replaceAll('{username}', member['username'])
+              : lang.translate('demote_to_editor_question').replaceAll('{username}', member['username']),
         ),
         content: Text(
           targetRole == 'admin'
-              ? 'Les admins ont plein contrôle sur la page et les membres.'
-              : 'Les éditeurs peuvent publier mais pas gérer les membres ni les paramètres.',
+              ? lang.translate('admin_full_control')
+              : lang.translate('editor_limited_access'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Annuler'),
+            child: Text(lang.translate('cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text(targetRole == 'admin' ? 'Nommer Admin' : 'Rétrograder'),
+            child: Text(targetRole == 'admin' ? lang.translate('promote_to_admin') : lang.translate('demote_to_editor')),
           ),
         ],
       ),
@@ -1889,6 +1900,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
 
   // ==================== SETTINGS TAB ====================
   Widget _buildSettingsTab() {
+    final lang = LanguageService.instance;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final categories = [
       '',
@@ -2035,7 +2047,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
-                                      'Ajouter une couverture',
+                                      lang.translate('add_cover'),
                                       style: TextStyle(
                                         color: isDark
                                             ? Colors.white54
@@ -2070,12 +2082,12 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             ],
           ),
           const SizedBox(height: 20),
-          _settingsField('Nom de la page', _nameController, isDark),
+          _settingsField(lang.translate('page_name'), _nameController, isDark),
           const SizedBox(height: 12),
 
           // Category
           Text(
-            'Catégorie',
+            lang.translate('category'),
             style: TextStyle(
               color: isDark ? Colors.white : Colors.black,
               fontWeight: FontWeight.w600,
@@ -2126,14 +2138,14 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             value: _selectedPrivacy,
             dropdownColor: isDark ? const Color(0xFF2A2A2A) : Colors.white,
             style: TextStyle(color: isDark ? Colors.white : Colors.black),
-            items: const [
-              DropdownMenuItem(
+            items: [
+              const DropdownMenuItem(
                 value: 'public',
                 child: Text('Publique - Tout le monde peut voir'),
               ),
               DropdownMenuItem(
                 value: 'private',
-                child: Text('Privée - Abonnés uniquement'),
+                child: Text(lang.translate('private_followers_only')),
               ),
             ],
             onChanged: (val) =>
@@ -2567,7 +2579,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                   : _comments.isEmpty
                   ? Center(
                       child: Text(
-                        'Aucun commentaire',
+                        LanguageService.instance.translate('no_comments'),
                         style: TextStyle(
                           color: isDark ? Colors.white38 : Colors.grey,
                         ),

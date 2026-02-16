@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 
 class EventDetailScreen extends StatefulWidget {
   final int eventId;
@@ -33,10 +34,11 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       }
     } catch (e) {
       if (mounted) {
+        final lang = LanguageService.instance;
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+        ).showSnackBar(SnackBar(content: Text('${lang.translate('error_loading')}: $e')));
       }
     }
   }
@@ -58,9 +60,10 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       await _loadEvent();
     } catch (e) {
       if (mounted) {
+        final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+        ).showSnackBar(SnackBar(content: Text('${lang.translate('error_loading')}: $e')));
       }
     } finally {
       if (mounted) setState(() => _isJoining = false);
@@ -75,6 +78,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguageService.instance;
     if (_isLoading) {
       return Scaffold(
         backgroundColor: const Color(0xFF121212),
@@ -101,10 +105,10 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             onPressed: () => Navigator.pop(context),
           ),
         ),
-        body: const Center(
+        body: Center(
           child: Text(
-            'Événement introuvable',
-            style: TextStyle(color: Colors.white),
+            lang.translate('event_not_found'),
+            style: const TextStyle(color: Colors.white),
           ),
         ),
       );
@@ -205,7 +209,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Organisé par ',
+                            '${lang.translate('organized_by')} ',
                             style: TextStyle(
                               color: Colors.grey[500],
                               fontSize: 14,
@@ -256,7 +260,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Date et heure',
+                                    lang.translate('date_and_time'),
                                     style: TextStyle(
                                       color: Colors.grey[500],
                                       fontSize: 12,
@@ -306,7 +310,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Lieu',
+                                      lang.translate('location'),
                                       style: TextStyle(
                                         color: Colors.grey[500],
                                         fontSize: 12,
@@ -355,7 +359,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Participants',
+                                    lang.translate('participants'),
                                     style: TextStyle(
                                       color: Colors.grey[500],
                                       fontSize: 12,
@@ -363,7 +367,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    '$participantsCount participant${participantsCount > 1 ? 's' : ''}',
+                                    '$participantsCount ${participantsCount > 1 ? lang.translate('participant_count_plural') : lang.translate('participant_count')}',
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 15,
@@ -402,7 +406,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                               color: Colors.white,
                             ),
                       label: Text(
-                        isParticipating ? 'Vous participez ✓' : 'Participer',
+                        isParticipating ? lang.translate('participating_status') : lang.translate('participate_button'),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -429,9 +433,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   // Description
                   if (_event!['description'] != null &&
                       _event!['description'].toString().isNotEmpty) ...[
-                    const Text(
-                      'À propos de cet événement',
-                      style: TextStyle(
+                    Text(
+                      lang.translate('about_event'),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -483,31 +487,32 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   }
 
   String _formatDate(String? dateStr) {
-    if (dateStr == null) return 'Date inconnue';
+    final lang = LanguageService.instance;
+    if (dateStr == null) return lang.translate('unknown_date');
     try {
       final date = DateTime.parse(dateStr.replaceAll(' ', 'T'));
       final months = [
-        'janvier',
-        'février',
-        'mars',
-        'avril',
-        'mai',
-        'juin',
-        'juillet',
-        'août',
-        'septembre',
-        'octobre',
-        'novembre',
-        'décembre',
+        lang.translate('january'),
+        lang.translate('february'),
+        lang.translate('march'),
+        lang.translate('april'),
+        lang.translate('may'),
+        lang.translate('june'),
+        lang.translate('july'),
+        lang.translate('august'),
+        lang.translate('september'),
+        lang.translate('october'),
+        lang.translate('november'),
+        lang.translate('december'),
       ];
       final days = [
-        'Lundi',
-        'Mardi',
-        'Mercredi',
-        'Jeudi',
-        'Vendredi',
-        'Samedi',
-        'Dimanche',
+        lang.translate('monday'),
+        lang.translate('tuesday'),
+        lang.translate('wednesday'),
+        lang.translate('thursday'),
+        lang.translate('friday'),
+        lang.translate('saturday'),
+        lang.translate('sunday'),
       ];
 
       final dayName = days[date.weekday - 1];

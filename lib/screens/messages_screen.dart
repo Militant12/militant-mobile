@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 import 'chat_screen.dart';
 import 'group_chat_screen.dart';
 import 'create_message_group_screen.dart';
@@ -65,37 +66,41 @@ class _MessagesScreenState extends State<MessagesScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    return ValueListenableBuilder<Locale>(
+      valueListenable: LanguageService.instance,
+      builder: (context, locale, child) {
+        final theme = Theme.of(context);
+        final isDark = theme.brightness == Brightness.dark;
+        final lang = LanguageService.instance;
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text('Messages'),
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: const Color(0xFFBE1E1E),
-          labelColor: const Color(0xFFBE1E1E),
-          unselectedLabelColor: isDark ? Colors.white70 : Colors.black54,
-          tabs: const [
-            Tab(text: 'Discussions'),
-            Tab(text: 'Groupes'),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildConversationsList(_conversations, isPrivate: true),
-          _buildConversationsList(_groupConversations, isPrivate: false),
-        ],
-      ),
-      floatingActionButton: _tabController.index == 1
-          ? FloatingActionButton(
-              onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
+        return Scaffold(
+          backgroundColor: theme.scaffoldBackgroundColor,
+          appBar: AppBar(
+            title: Text(lang.translate('messages_title')),
+            bottom: TabBar(
+              controller: _tabController,
+              indicatorColor: const Color(0xFFBE1E1E),
+              labelColor: const Color(0xFFBE1E1E),
+              unselectedLabelColor: isDark ? Colors.white70 : Colors.black54,
+              tabs: [
+                Tab(text: lang.translate('discussions')),
+                Tab(text: lang.translate('groups')),
+              ],
+            ),
+          ),
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildConversationsList(_conversations, isPrivate: true),
+              _buildConversationsList(_groupConversations, isPrivate: false),
+            ],
+          ),
+          floatingActionButton: _tabController.index == 1
+              ? FloatingActionButton(
+                  onPressed: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
                     builder: (_) => const CreateMessageGroupScreen(),
                   ),
                 );
@@ -107,6 +112,8 @@ class _MessagesScreenState extends State<MessagesScreen>
               child: const Icon(Icons.add, color: Colors.white),
             )
           : null,
+        );
+      },
     );
   }
 

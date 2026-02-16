@@ -531,11 +531,19 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> addComment(int postId, String content) async {
+  Future<Map<String, dynamic>> addComment(int postId, String content, {int? parentId}) async {
+    final body = {
+      'post_id': postId,
+      'content': content,
+    };
+    if (parentId != null) {
+      body['parent_id'] = parentId;
+    }
+    
     final response = await http.post(
       Uri.parse('$apiUrl/v1/comments.php'),
       headers: _headers,
-      body: jsonEncode({'post_id': postId, 'content': content}),
+      body: jsonEncode(body),
     );
 
     if (response.statusCode == 201 || response.statusCode == 200) {
@@ -590,12 +598,21 @@ class ApiService {
 
   Future<Map<String, dynamic>> addGroupComment(
     int postId,
-    String content,
-  ) async {
+    String content, {
+    int? parentId,
+  }) async {
+    final body = {
+      'post_id': postId,
+      'content': content,
+    };
+    if (parentId != null) {
+      body['parent_id'] = parentId;
+    }
+    
     final response = await http.post(
       Uri.parse('$apiUrl/v1/group_comments.php'),
       headers: _headers,
-      body: jsonEncode({'post_id': postId, 'content': content}),
+      body: jsonEncode(body),
     );
     if (response.statusCode == 201) {
       return jsonDecode(response.body);
@@ -1676,28 +1693,26 @@ class ApiService {
   Future<Map<String, dynamic>> updateProfile({
     String? bio,
     String? website,
-    String? location,
     String? avatar,
     String? banner,
-    String? github,
     String? twitter,
     String? instagram,
     String? facebook,
     String? tiktok,
     String? mastodon,
+    String? bluesky,
   }) async {
     final body = <String, dynamic>{};
     if (bio != null) body['bio'] = bio;
     if (website != null) body['website'] = website;
-    if (location != null) body['location'] = location;
     if (avatar != null) body['avatar'] = avatar;
     if (banner != null) body['banner'] = banner;
-    if (github != null) body['github'] = github;
     if (twitter != null) body['twitter'] = twitter;
     if (instagram != null) body['instagram'] = instagram;
     if (facebook != null) body['facebook'] = facebook;
     if (tiktok != null) body['tiktok'] = tiktok;
     if (mastodon != null) body['mastodon'] = mastodon;
+    if (bluesky != null) body['bluesky'] = bluesky;
 
     final response = await http.put(
       Uri.parse('$apiUrl/v1/users.php'),

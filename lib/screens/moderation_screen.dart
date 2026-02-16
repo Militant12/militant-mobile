@@ -121,16 +121,18 @@ class _ModerationScreenState extends State<ModerationScreen>
       await api.voteOnReport(reportId, vote);
 
       if (mounted) {
+        final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Vote enregistré!')));
+        ).showSnackBar(SnackBar(content: Text(lang.translate('mod_vote_recorded'))));
         _loadData();
       }
     } catch (e) {
       if (mounted) {
+        final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: ${e.toString()}')));
       }
     }
   }
@@ -141,11 +143,12 @@ class _ModerationScreenState extends State<ModerationScreen>
       final result = await api.voteForModerator(userId, vote);
 
       if (mounted) {
-        String message = 'Vote enregistré!';
+        final lang = LanguageService.instance;
+        String message = lang.translate('mod_vote_recorded');
         if (result['elected'] == true) {
-          message = 'Modérateur·ice élu·e par consensus!';
+          message = lang.translate('mod_elected_consensus');
         } else if (result['revoked'] == true) {
-          message = 'Modérateur·ice révoqué·e par consensus!';
+          message = lang.translate('mod_revoked_consensus');
         }
 
         ScaffoldMessenger.of(
@@ -155,9 +158,10 @@ class _ModerationScreenState extends State<ModerationScreen>
       }
     } catch (e) {
       if (mounted) {
+        final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: ${e.toString()}')));
       }
     }
   }
@@ -167,41 +171,46 @@ class _ModerationScreenState extends State<ModerationScreen>
     final lang = LanguageService.instance;
     final theme = Theme.of(context);
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: theme.appBarTheme.backgroundColor,
-        title: Text(
-          lang.translate('mod_title'),
-          style: TextStyle(color: theme.textTheme.titleLarge?.color),
-        ),
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: const Color(0xFFBE1E1E),
-          labelColor: const Color(0xFFBE1E1E),
-          // En mode clair, gris, en mode sombre, gris clair
-          unselectedLabelColor: theme.unselectedWidgetColor,
-          tabs: [
-            Tab(text: lang.translate('mod_tab_reports')),
-            Tab(text: lang.translate('mod_tab_candidates')),
-            Tab(text: lang.translate('mod_tab_moderators')),
-            Tab(text: lang.translate('mod_tab_sanctions')),
-          ],
-        ),
-      ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-            )
-          : TabBarView(
+    return ValueListenableBuilder<Locale>(
+      valueListenable: lang,
+      builder: (context, locale, child) {
+        return Scaffold(
+          backgroundColor: theme.scaffoldBackgroundColor,
+          appBar: AppBar(
+            backgroundColor: theme.appBarTheme.backgroundColor,
+            title: Text(
+              lang.translate('mod_title'),
+              style: TextStyle(color: theme.textTheme.titleLarge?.color),
+            ),
+            bottom: TabBar(
               controller: _tabController,
-              children: [
-                _buildReportsTab(),
-                _buildCandidatesTab(),
-                _buildModeratorsTab(),
-                _buildSanctionsTab(),
+              indicatorColor: const Color(0xFFBE1E1E),
+              labelColor: const Color(0xFFBE1E1E),
+              // En mode clair, gris, en mode sombre, gris clair
+              unselectedLabelColor: theme.unselectedWidgetColor,
+              tabs: [
+                Tab(text: lang.translate('mod_tab_reports')),
+                Tab(text: lang.translate('mod_tab_candidates')),
+                Tab(text: lang.translate('mod_tab_moderators')),
+                Tab(text: lang.translate('mod_tab_sanctions')),
               ],
             ),
+          ),
+          body: _isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
+                )
+              : TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildReportsTab(),
+                    _buildCandidatesTab(),
+                    _buildModeratorsTab(),
+                    _buildSanctionsTab(),
+                  ],
+                ),
+        );
+      },
     );
   }
 
@@ -283,7 +292,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'par ${report.reporterUsername}',
+                    '${lang.translate('mod_sanction_by')} ${report.reporterUsername}',
                     style: const TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                 ),
@@ -555,8 +564,8 @@ class _ModerationScreenState extends State<ModerationScreen>
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Post supprimé par action de modérateur'),
+          SnackBar(
+            content: Text(lang.translate('mod_post_deleted_action')),
           ),
         );
         _loadData();
@@ -565,7 +574,7 @@ class _ModerationScreenState extends State<ModerationScreen>
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(SnackBar(content: Text('${lang.translate('error_loading')}: ${e.toString()}')));
       }
     }
   }
@@ -676,7 +685,7 @@ class _ModerationScreenState extends State<ModerationScreen>
             icon: Icon(_isCandidate ? Icons.cancel : Icons.how_to_vote),
             label: Text(
               _isCandidate
-                  ? 'Annuler ma candidature'
+                  ? lang.translate('mod_cancel_candidacy')
                   : lang.translate('mod_apply_btn'),
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
@@ -791,28 +800,29 @@ class _ModerationScreenState extends State<ModerationScreen>
   }
 
   Future<void> _confirmCancelCandidacy() async {
+    final lang = LanguageService.instance;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text(
-          'Annuler la candidature ?',
-          style: TextStyle(color: Colors.white),
+        title: Text(
+          lang.translate('mod_cancel_candidacy_question'),
+          style: const TextStyle(color: Colors.white),
         ),
-        content: const Text(
-          'Veux-tu vraiment retirer ta candidature ?\nTu perdras tous les votes reçus.',
-          style: TextStyle(color: Colors.white70),
+        content: Text(
+          lang.translate('mod_cancel_candidacy_warning'),
+          style: const TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Non', style: TextStyle(color: Colors.white54)),
+            child: Text(lang.translate('cancel'), style: const TextStyle(color: Colors.white54)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text(
-              'Oui, retirer',
-              style: TextStyle(color: Colors.red),
+            child: Text(
+              lang.translate('mod_cancel_candidacy'),
+              style: const TextStyle(color: Colors.red),
             ),
           ),
         ],
@@ -829,16 +839,18 @@ class _ModerationScreenState extends State<ModerationScreen>
       final api = await ApiService.getInstance();
       await api.cancelCandidacy();
       if (mounted) {
+        final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Candidature annulée.')));
+        ).showSnackBar(SnackBar(content: Text(lang.translate('mod_candidacy_cancelled'))));
         _loadData();
       }
     } catch (e) {
       if (mounted) {
+        final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+        ).showSnackBar(SnackBar(content: Text('${lang.translate('error_loading')}: $e')));
       }
     }
   }
@@ -897,12 +909,12 @@ class _ModerationScreenState extends State<ModerationScreen>
               const SizedBox(height: 12),
 
               if (_actions.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                   child: Center(
                     child: Text(
-                      'Aucune action enregistrée',
-                      style: TextStyle(color: Colors.white38),
+                      lang.translate('mod_no_actions'),
+                      style: const TextStyle(color: Colors.white38),
                     ),
                   ),
                 )
@@ -1339,6 +1351,7 @@ class _ModerationScreenState extends State<ModerationScreen>
     ModeratorCandidate candidate, {
     bool isModerator = false,
   }) {
+    final lang = LanguageService.instance;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -1466,14 +1479,14 @@ class _ModerationScreenState extends State<ModerationScreen>
                 color: const Color(0xFFBE1E1E).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.person, color: Color(0xFFBE1E1E), size: 16),
-                  SizedBox(width: 8),
+                  const Icon(Icons.person, color: Color(0xFFBE1E1E), size: 16),
+                  const SizedBox(width: 8),
                   Text(
-                    'C\'est ta candidature',
-                    style: TextStyle(
+                    lang.translate('mod_your_candidacy'),
+                    style: const TextStyle(
                       color: Color(0xFFBE1E1E),
                       fontWeight: FontWeight.bold,
                       fontSize: 13,

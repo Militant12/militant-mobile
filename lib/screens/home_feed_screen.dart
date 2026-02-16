@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 import '../models/post.dart';
 import '../widgets/post_card.dart';
 import '../widgets/stories_bar.dart';
@@ -34,49 +35,52 @@ class _HomeFeedScreenState extends State<HomeFeedScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Militant'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'Découvrir'),
-            Tab(text: 'Abonnements'),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SearchScreen()),
-              );
-            },
+    return ValueListenableBuilder<Locale>(
+      valueListenable: LanguageService.instance,
+      builder: (context, locale, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(LanguageService.instance.translate('app_title')),
+            bottom: TabBar(
+              controller: _tabController,
+              tabs: [
+                Tab(text: LanguageService.instance.translate('discover')),
+                Tab(text: LanguageService.instance.translate('subscriptions')),
+              ],
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.search),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SearchScreen()),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.notifications),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NotificationsScreen(),
+                    ),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.message),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const MessagesScreen()),
+                  );
+                },
+              ),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.notifications),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const NotificationsScreen(),
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.message),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const MessagesScreen()),
-              );
-            },
-          ),
-        ],
-      ),
-      body: TabBarView(
+          body: TabBarView(
         controller: _tabController,
         children: [
           // Tab 1: Découvrir (Global)
@@ -106,6 +110,8 @@ class _HomeFeedScreenState extends State<HomeFeedScreen>
         },
         child: const Icon(Icons.add),
       ),
+        );
+      },
     );
   }
 }

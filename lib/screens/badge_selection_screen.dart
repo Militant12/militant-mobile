@@ -38,6 +38,7 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
   }
 
   Future<void> _loadCurrentBadge() async {
+    final lang = LanguageService.instance;
     try {
       final api = await ApiService.getInstance();
       final profile = await api.getProfile();
@@ -50,13 +51,14 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: ${e.toString()}')),
+          SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
         );
       }
     }
   }
 
   Future<void> _saveBadge() async {
+    final lang = LanguageService.instance;
     if (_selectedBadge == _currentBadge) {
       Navigator.pop(context);
       return;
@@ -70,7 +72,7 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Badge mis à jour avec succès')),
+          SnackBar(content: Text(lang.translate('badge_updated'))),
         );
         Navigator.pop(context, true);
       }
@@ -78,7 +80,7 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
       setState(() => _isSaving = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: ${e.toString()}')),
+          SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
         );
       }
     }

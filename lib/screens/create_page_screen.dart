@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 
 class CreatePageScreen extends StatefulWidget {
   const CreatePageScreen({super.key});
@@ -14,24 +15,28 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
   String _selectedCategory = '';
   bool _isLoading = false;
 
-  final List<Map<String, dynamic>> _categories = [
-    {'value': 'Syndicat', 'icon': Icons.groups, 'label': 'Syndicat'},
-    {'value': 'Collectif', 'icon': Icons.people, 'label': 'Collectif'},
-    {'value': 'Association', 'icon': Icons.handshake, 'label': 'Association'},
-    {'value': 'Média', 'icon': Icons.newspaper, 'label': 'Média'},
-    {'value': 'Squat / Lieu', 'icon': Icons.home, 'label': 'Squat / Lieu'},
-    {'value': 'Infokiosque', 'icon': Icons.menu_book, 'label': 'Infokiosque'},
-    {'value': 'Artiste', 'icon': Icons.brush, 'label': 'Artiste'},
-    {'value': 'Projet', 'icon': Icons.rocket_launch, 'label': 'Projet'},
-    {'value': 'Autre', 'icon': Icons.more_horiz, 'label': 'Autre'},
-  ];
+  List<Map<String, dynamic>> _getCategories() {
+    final lang = LanguageService.instance;
+    return [
+      {'value': 'Syndicat', 'icon': Icons.groups, 'label': lang.translate('category_union')},
+      {'value': 'Collectif', 'icon': Icons.people, 'label': lang.translate('category_collective')},
+      {'value': 'Association', 'icon': Icons.handshake, 'label': lang.translate('category_association')},
+      {'value': 'Média', 'icon': Icons.newspaper, 'label': lang.translate('category_media')},
+      {'value': 'Squat / Lieu', 'icon': Icons.home, 'label': lang.translate('category_squat')},
+      {'value': 'Infokiosque', 'icon': Icons.menu_book, 'label': lang.translate('category_infokiosk')},
+      {'value': 'Artiste', 'icon': Icons.brush, 'label': lang.translate('category_artist')},
+      {'value': 'Projet', 'icon': Icons.rocket_launch, 'label': lang.translate('category_project')},
+      {'value': 'Autre', 'icon': Icons.more_horiz, 'label': lang.translate('category_other')},
+    ];
+  }
 
   Future<void> _createPage() async {
+    final lang = LanguageService.instance;
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Le nom est obligatoire')));
+      ).showSnackBar(SnackBar(content: Text(lang.translate('name_required'))));
       return;
     }
 
@@ -45,7 +50,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Page créée avec succès !')),
+          SnackBar(content: Text(lang.translate('page_created'))),
         );
         Navigator.pop(context, true);
       }
@@ -62,15 +67,17 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguageService.instance;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final categories = _getCategories();
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF121212) : Colors.grey[50],
       appBar: AppBar(
         backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         title: Text(
-          'Créer une page',
+          lang.translate('create_page_title'),
           style: TextStyle(color: isDark ? Colors.white : Colors.black),
         ),
         iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
@@ -98,7 +105,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
             const SizedBox(height: 8),
             Center(
               child: Text(
-                'Créez une page pour votre cause',
+                lang.translate('create_page_for_cause'),
                 style: TextStyle(
                   color: isDark ? const Color(0xFF888888) : Colors.grey[600],
                   fontSize: 14,
@@ -109,7 +116,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
 
             // Name field
             Text(
-              'Nom *',
+              lang.translate('name_field'),
               style: TextStyle(
                 color: isDark ? Colors.white : Colors.black,
                 fontWeight: FontWeight.w600,
@@ -120,7 +127,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
               controller: _nameController,
               style: TextStyle(color: isDark ? Colors.white : Colors.black),
               decoration: InputDecoration(
-                hintText: 'Nom de la page',
+                hintText: lang.translate('page_name_hint'),
                 hintStyle: TextStyle(
                   color: isDark ? Colors.white38 : Colors.grey,
                 ),
@@ -140,7 +147,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
 
             // Category
             Text(
-              'Catégorie',
+              lang.translate('category_field'),
               style: TextStyle(
                 color: isDark ? Colors.white : Colors.black,
                 fontWeight: FontWeight.w600,
@@ -150,7 +157,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _categories.map((cat) {
+              children: categories.map((cat) {
                 final isSelected = _selectedCategory == cat['value'];
                 return FilterChip(
                   selected: isSelected,
@@ -195,7 +202,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
 
             // Description
             Text(
-              'Description',
+              lang.translate('description_field'),
               style: TextStyle(
                 color: isDark ? Colors.white : Colors.black,
                 fontWeight: FontWeight.w600,
@@ -207,7 +214,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
               maxLines: 4,
               style: TextStyle(color: isDark ? Colors.white : Colors.black),
               decoration: InputDecoration(
-                hintText: 'Décrivez votre page...',
+                hintText: lang.translate('describe_page_hint'),
                 hintStyle: TextStyle(
                   color: isDark ? Colors.white38 : Colors.grey,
                 ),
@@ -236,7 +243,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
                         ),
                       )
                     : const Icon(Icons.add),
-                label: Text(_isLoading ? 'Création...' : 'Créer la page'),
+                label: Text(_isLoading ? lang.translate('creating') : lang.translate('create_page_button')),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFBE1E1E),
                   foregroundColor: Colors.white,

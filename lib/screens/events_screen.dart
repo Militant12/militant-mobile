@@ -57,19 +57,19 @@ class _EventsScreenState extends State<EventsScreen> {
               child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
             )
           : _events.isEmpty
-          ? const Center(
+          ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.event_outlined,
                     size: 64,
                     color: Color(0xFF888888),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
-                    'Aucun événement',
-                    style: TextStyle(color: Color(0xFF888888), fontSize: 16),
+                    LanguageService.instance.translate('no_events'),
+                    style: const TextStyle(color: Color(0xFF888888), fontSize: 16),
                   ),
                 ],
               ),
@@ -102,7 +102,8 @@ class _EventsScreenState extends State<EventsScreen> {
   }
 
   Widget _buildEventItem(dynamic event) {
-    final title = event['title'] ?? 'Événement';
+    final lang = LanguageService.instance;
+    final title = event['title'] ?? lang.translate('event');
     final description = event['description'] ?? '';
     final date = event['event_date'] ?? '';
     final location = event['location'] ?? '';
@@ -224,9 +225,9 @@ class _EventsScreenState extends State<EventsScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.delete, color: Color(0xFFBE1E1E)),
-              title: const Text(
-                'Supprimer',
-                style: TextStyle(color: Colors.white),
+              title: Text(
+                LanguageService.instance.translate('delete'),
+                style: const TextStyle(color: Colors.white),
               ),
               onTap: () {
                 Navigator.pop(context);
@@ -240,31 +241,32 @@ class _EventsScreenState extends State<EventsScreen> {
   }
 
   Future<void> _confirmDelete(dynamic event) async {
+    final lang = LanguageService.instance;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text(
-          'Supprimer l\'événement',
-          style: TextStyle(color: Colors.white),
+        title: Text(
+          lang.translate('delete_event'),
+          style: const TextStyle(color: Colors.white),
         ),
-        content: const Text(
-          'Êtes-vous sûr de vouloir supprimer cet événement ?',
-          style: TextStyle(color: Color(0xFF888888)),
+        content: Text(
+          lang.translate('delete_event_confirm'),
+          style: const TextStyle(color: Color(0xFF888888)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text(
-              'Annuler',
-              style: TextStyle(color: Color(0xFF888888)),
+            child: Text(
+              lang.translate('cancel'),
+              style: const TextStyle(color: Color(0xFF888888)),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              'Supprimer',
-              style: TextStyle(color: Color(0xFFBE1E1E)),
+            child: Text(
+              lang.translate('delete'),
+              style: const TextStyle(color: Color(0xFFBE1E1E)),
             ),
           ),
         ],
@@ -281,13 +283,13 @@ class _EventsScreenState extends State<EventsScreen> {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text('Événement supprimé')));
+          ).showSnackBar(SnackBar(content: Text(lang.translate('event_deleted'))));
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+          ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: ${e.toString()}')));
         }
       }
     }
@@ -304,20 +306,21 @@ class _EventsScreenState extends State<EventsScreen> {
 
   String _getMonth(String dateStr) {
     try {
+      final lang = LanguageService.instance;
       final date = DateTime.parse(dateStr.replaceAll(' ', 'T'));
-      const months = [
-        'JAN',
-        'FÉV',
-        'MAR',
-        'AVR',
-        'MAI',
-        'JUN',
-        'JUL',
-        'AOÛ',
-        'SEP',
-        'OCT',
-        'NOV',
-        'DÉC',
+      final months = [
+        lang.translate('month_jan'),
+        lang.translate('month_feb'),
+        lang.translate('month_mar'),
+        lang.translate('month_apr'),
+        lang.translate('month_may'),
+        lang.translate('month_jun'),
+        lang.translate('month_jul'),
+        lang.translate('month_aug'),
+        lang.translate('month_sep'),
+        lang.translate('month_oct'),
+        lang.translate('month_nov'),
+        lang.translate('month_dec'),
       ];
       return months[date.month - 1];
     } catch (e) {

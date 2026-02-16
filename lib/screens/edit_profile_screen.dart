@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -10,17 +13,22 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _bioController = TextEditingController();
-  final _websiteController = TextEditingController();
-  final _locationController = TextEditingController();
-  final _githubController = TextEditingController();
-  final _twitterController = TextEditingController();
-  final _instagramController = TextEditingController();
-  final _facebookController = TextEditingController();
-  final _tiktokController = TextEditingController();
-  final _mastodonController = TextEditingController();
   bool _isLoading = true;
   bool _isSaving = false;
+  File? _avatarFile;
+  String? _currentAvatarUrl;
+
+  // Controllers for profile fields
+  final _bioController = TextEditingController();
+  final _websiteController = TextEditingController();
+  
+  // Controllers for social links
+  final _twitterController = TextEditingController();
+  final _instagramController = TextEditingController();
+  final _mastodonController = TextEditingController();
+  final _facebookController = TextEditingController();
+  final _tiktokController = TextEditingController();
+  final _blueskyController = TextEditingController();
 
   @override
   void initState() {
@@ -28,124 +36,143 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _loadProfile();
   }
 
-  Future<void> _loadProfile() async {
-    setState(() => _isLoading = true);
-    try {
-      final api = await ApiService.getInstance();
-      final profile = await api.getProfile();
-
-      setState(() {
-        _bioController.text = profile['bio'] ?? '';
-        _websiteController.text = profile['website'] ?? '';
-        _locationController.text = profile['location'] ?? '';
-        _githubController.text = profile['github'] ?? '';
-        _twitterController.text = profile['twitter'] ?? '';
-        _instagramController.text = profile['instagram'] ?? '';
-        _facebookController.text = profile['facebook'] ?? '';
-        _tiktokController.text = profile['tiktok'] ?? '';
-        _mastodonController.text = profile['mastodon'] ?? '';
-      });
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
-      }
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _saveProfile() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _isSaving = true);
-    try {
-      final api = await ApiService.getInstance();
-      await api.updateProfile(
-        bio: _bioController.text.trim(),
-        website: _websiteController.text.trim(),
-        location: _locationController.text.trim(),
-        github: _githubController.text.trim(),
-        twitter: _twitterController.text.trim(),
-        instagram: _instagramController.text.trim(),
-        facebook: _facebookController.text.trim(),
-        tiktok: _tiktokController.text.trim(),
-        mastodon: _mastodonController.text.trim(),
-      );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profil mis à jour avec succès'),
-            backgroundColor: Color(0xFF2E7D32),
-          ),
-        );
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur: ${e.toString()}'),
-            backgroundColor: const Color(0xFFBE1E1E),
-          ),
-        );
-      }
-    } finally {
-      setState(() => _isSaving = false);
-    }
-  }
-
   @override
   void dispose() {
     _bioController.dispose();
     _websiteController.dispose();
-    _locationController.dispose();
-    _githubController.dispose();
     _twitterController.dispose();
     _instagramController.dispose();
+    _mastodonController.dispose();
     _facebookController.dispose();
     _tiktokController.dispose();
-    _mastodonController.dispose();
+    _blueskyController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadProfile() async {
+    final lang = LanguageService.instance;
+    try {
+      final api = await ApiService.getInstance();
+      final profile = await api.getProfile();
+      
+      setState(() {
+        _bioController.text = profile['bio'] ?? '';
+        _websiteController.text = profile['website'] ?? '';
+        _twitterController.text = profile['twitter'] ?? '';
+        _instagramController.text = profile['instagram'] ?? '';
+        _mastodonController.text = profile['mastodon'] ?? '';
+        _facebookController.text = profile['facebook'] ?? '';
+        _tiktokController.text = profile['tiktok'] ?? '';
+        _blueskyController.text = profile['bluesky'] ?? '';
+        _currentAvatarUrl = profile['avatar'] != null 
+            ? api.getImageUrl(profile['avatar']) 
+            : null;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
+  Future<void> _pickAvatar() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 800,
+      maxHeight: 800,
+      imageQuality: 85,
+    );
+
+    if (pickedFile != null) {
+      setState(() {
+        _avatarFile = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<void> _saveProfile() async {
+    final lang = LanguageService.instance;
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isSaving = true);
+    
+    try {
+      final api = await ApiService.getInstance();
+      
+      String? avatarPath;
+      
+      // Upload avatar if changed
+      if (_avatarFile != null) {
+        avatarPath = await api.uploadFile(_avatarFile!.path, type: 'avatar');
+      }
+      
+      await api.updateProfile(
+        bio: _bioController.text.trim(),
+        website: _websiteController.text.trim(),
+        avatar: avatarPath,
+        twitter: _twitterController.text.trim(),
+        instagram: _instagramController.text.trim(),
+        mastodon: _mastodonController.text.trim(),
+        facebook: _facebookController.text.trim(),
+        tiktok: _tiktokController.text.trim(),
+        bluesky: _blueskyController.text.trim(),
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(lang.translate('profile_updated'))),
+        );
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final lang = LanguageService.instance;
+    final isDark = theme.brightness == Brightness.dark;
+    final inputColor = theme.textTheme.bodyLarge?.color;
+    final labelColor = isDark ? Colors.white70 : Colors.black54;
+    final borderColor = isDark ? Colors.white30 : Colors.black26;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text(
-          'Modifier le profil',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: Text(lang.translate('edit_profile_title')),
         actions: [
-          if (_isSaving)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(16.0),
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    color: Color(0xFFBE1E1E),
-                    strokeWidth: 2,
-                  ),
-                ),
-              ),
-            )
-          else
+          if (!_isLoading)
             TextButton(
-              onPressed: _saveProfile,
-              child: const Text(
-                'Enregistrer',
-                style: TextStyle(
-                  color: Color(0xFFBE1E1E),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              onPressed: _isSaving ? null : _saveProfile,
+              child: _isSaving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Color(0xFFBE1E1E),
+                      ),
+                    )
+                  : Text(
+                      lang.translate('save_button'),
+                      style: const TextStyle(
+                        color: Color(0xFFBE1E1E),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
             ),
         ],
       ),
@@ -153,183 +180,195 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ? const Center(
               child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
             )
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Biographie',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _bioController,
-                      maxLines: 4,
-                      maxLength: 500,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        hintText: 'Parlez de vous...',
-                        hintStyle: const TextStyle(color: Color(0xFF888888)),
-                        filled: true,
-                        fillColor: const Color(0xFF1E1E1E),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
+          : Form(
+              key: _formKey,
+              child: ListView(
+                padding: const EdgeInsets.all(16.0),
+                children: [
+                  // Avatar section
+                  Center(
+                    child: Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 60,
+                          backgroundColor: isDark
+                              ? const Color(0xFF2A2A2A)
+                              : Colors.grey[200],
+                          backgroundImage: _avatarFile != null
+                              ? FileImage(_avatarFile!)
+                              : (_currentAvatarUrl != null
+                                  ? NetworkImage(_currentAvatarUrl!)
+                                  : null) as ImageProvider?,
+                          child: _avatarFile == null && _currentAvatarUrl == null
+                              ? Icon(
+                                  Icons.person,
+                                  size: 60,
+                                  color: labelColor,
+                                )
+                              : null,
                         ),
-                        counterStyle: const TextStyle(color: Color(0xFF888888)),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Site web',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _websiteController,
-                      keyboardType: TextInputType.url,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        hintText: 'https://example.com',
-                        hintStyle: const TextStyle(color: Color(0xFF888888)),
-                        filled: true,
-                        fillColor: const Color(0xFF1E1E1E),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: CircleAvatar(
+                            radius: 20,
+                            backgroundColor: const Color(0xFFBE1E1E),
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.camera_alt,
+                                size: 20,
+                                color: Colors.white,
+                              ),
+                              onPressed: _pickAvatar,
+                            ),
+                          ),
                         ),
-                        prefixIcon: const Icon(
-                          Icons.link,
-                          color: Color(0xFF888888),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty) {
-                          if (!value.startsWith('http://') &&
-                              !value.startsWith('https://')) {
-                            return 'L\'URL doit commencer par http:// ou https://';
-                          }
-                        }
-                        return null;
-                      },
+                      ],
                     ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Localisation',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // Bio section
+                  _buildSectionHeader(lang.translate('profile_info_title')),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _bioController,
+                    maxLines: 4,
+                    maxLength: 500,
+                    style: TextStyle(color: inputColor),
+                    decoration: InputDecoration(
+                      labelText: lang.translate('bio_label'),
+                      hintText: lang.translate('bio_hint'),
+                      labelStyle: TextStyle(color: labelColor),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: borderColor),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _locationController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        hintText: 'Ville, Pays',
-                        hintStyle: const TextStyle(color: Color(0xFF888888)),
-                        filled: true,
-                        fillColor: const Color(0xFF1E1E1E),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
-                        prefixIcon: const Icon(
-                          Icons.location_on,
-                          color: Color(0xFF888888),
-                        ),
+                      focusedBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xFFBE1E1E)),
                       ),
                     ),
-                    const SizedBox(height: 32),
-                    const Text(
-                      'Réseaux Sociaux',
-                      style: TextStyle(
-                        color: Color(0xFFBE1E1E),
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _websiteController,
+                    style: TextStyle(color: inputColor),
+                    decoration: InputDecoration(
+                      labelText: lang.translate('website_label'),
+                      hintText: 'https://example.com',
+                      labelStyle: TextStyle(color: labelColor),
+                      prefixIcon: Icon(Icons.link, color: labelColor),
+                      enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: borderColor),
+                      ),
+                      focusedBorder: const UnderlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xFFBE1E1E)),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    _buildSocialField(
-                      _mastodonController,
-                      'Mastodon',
-                      Icons.alternate_email,
-                    ),
-                    _buildSocialField(_githubController, 'GitHub', Icons.code),
-                    _buildSocialField(
-                      _twitterController,
-                      'Twitter',
-                      Icons.chat_bubble_outline,
-                    ),
-                    _buildSocialField(
-                      _instagramController,
-                      'Instagram',
-                      Icons.camera_alt_outlined,
-                    ),
-                    _buildSocialField(
-                      _facebookController,
-                      'Facebook',
-                      Icons.facebook,
-                    ),
-                    _buildSocialField(
-                      _tiktokController,
-                      'TikTok',
-                      Icons.music_note,
-                    ),
-                  ],
-                ),
+                  ),
+                  
+                  // Social links section
+                  const SizedBox(height: 32),
+                  _buildSectionHeader(lang.translate('social_links_title')),
+                  const SizedBox(height: 8),
+                  _buildSocialField(
+                    controller: _twitterController,
+                    label: 'Twitter / X',
+                    hint: '@username',
+                    icon: Icons.alternate_email,
+                    inputColor: inputColor,
+                    labelColor: labelColor,
+                    borderColor: borderColor,
+                  ),
+                  _buildSocialField(
+                    controller: _instagramController,
+                    label: 'Instagram',
+                    hint: '@username',
+                    icon: Icons.camera_alt,
+                    inputColor: inputColor,
+                    labelColor: labelColor,
+                    borderColor: borderColor,
+                  ),
+                  _buildSocialField(
+                    controller: _mastodonController,
+                    label: 'Mastodon',
+                    hint: '@username@instance.social',
+                    icon: Icons.public,
+                    inputColor: inputColor,
+                    labelColor: labelColor,
+                    borderColor: borderColor,
+                  ),
+                  _buildSocialField(
+                    controller: _facebookController,
+                    label: 'Facebook',
+                    hint: 'username',
+                    icon: Icons.facebook,
+                    inputColor: inputColor,
+                    labelColor: labelColor,
+                    borderColor: borderColor,
+                  ),
+                  _buildSocialField(
+                    controller: _tiktokController,
+                    label: 'TikTok',
+                    hint: '@username',
+                    icon: Icons.music_note,
+                    inputColor: inputColor,
+                    labelColor: labelColor,
+                    borderColor: borderColor,
+                  ),
+                  _buildSocialField(
+                    controller: _blueskyController,
+                    label: 'Bluesky',
+                    hint: '@username.bsky.social',
+                    icon: Icons.cloud,
+                    inputColor: inputColor,
+                    labelColor: labelColor,
+                    borderColor: borderColor,
+                  ),
+                  const SizedBox(height: 32),
+                ],
               ),
             ),
     );
   }
 
-  Widget _buildSocialField(
-    TextEditingController controller,
-    String label,
-    IconData icon,
-  ) {
+  Widget _buildSectionHeader(String title) {
+    return Text(
+      title.toUpperCase(),
+      style: const TextStyle(
+        color: Color(0xFFBE1E1E),
+        fontSize: 12,
+        fontWeight: FontWeight.bold,
+        letterSpacing: 1.0,
+      ),
+    );
+  }
+
+  Widget _buildSocialField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    required Color? inputColor,
+    required Color labelColor,
+    required Color borderColor,
+  }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: TextFormField(
+        controller: controller,
+        style: TextStyle(color: inputColor),
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          labelStyle: TextStyle(color: labelColor),
+          prefixIcon: Icon(icon, color: labelColor),
+          enabledBorder: UnderlineInputBorder(
+            borderSide: BorderSide(color: borderColor),
           ),
-          const SizedBox(height: 8),
-          TextFormField(
-            controller: controller,
-            style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              hintText: 'Identifiant ou lien...',
-              hintStyle: const TextStyle(color: Color(0xFF888888)),
-              filled: true,
-              fillColor: const Color(0xFF1E1E1E),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide.none,
-              ),
-              prefixIcon: Icon(icon, color: const Color(0xFF888888)),
-            ),
+          focusedBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Color(0xFFBE1E1E)),
           ),
-        ],
+        ),
       ),
     );
   }

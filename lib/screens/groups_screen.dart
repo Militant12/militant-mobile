@@ -46,9 +46,10 @@ class _GroupsScreenState extends State<GroupsScreen>
       });
     } catch (e) {
       if (mounted) {
+        final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(SnackBar(content: Text('${lang.translate('error_loading')}: ${e.toString()}')));
       }
     } finally {
       setState(() => _isLoading = false);
@@ -56,6 +57,7 @@ class _GroupsScreenState extends State<GroupsScreen>
   }
 
   void _showCreateGroupDialog() {
+    final lang = LanguageService.instance;
     final nameController = TextEditingController();
     final descController = TextEditingController();
     bool isPrivate = false;
@@ -65,11 +67,11 @@ class _GroupsScreenState extends State<GroupsScreen>
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           backgroundColor: const Color(0xFF1E1E1E),
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.group_add, color: Color(0xFFBE1E1E)),
-              SizedBox(width: 8),
-              Text('Créer un groupe', style: TextStyle(color: Colors.white)),
+              const Icon(Icons.group_add, color: Color(0xFFBE1E1E)),
+              const SizedBox(width: 8),
+              Text(lang.translate('create_group_title'), style: const TextStyle(color: Colors.white)),
             ],
           ),
           content: SingleChildScrollView(
@@ -80,7 +82,7 @@ class _GroupsScreenState extends State<GroupsScreen>
                   controller: nameController,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    labelText: 'Nom du groupe *',
+                    labelText: lang.translate('group_name_label'),
                     labelStyle: const TextStyle(color: Colors.white54),
                     filled: true,
                     fillColor: const Color(0xFF2A2A2A),
@@ -96,7 +98,7 @@ class _GroupsScreenState extends State<GroupsScreen>
                   style: const TextStyle(color: Colors.white),
                   maxLines: 3,
                   decoration: InputDecoration(
-                    labelText: 'Description',
+                    labelText: lang.translate('group_description_label'),
                     labelStyle: const TextStyle(color: Colors.white54),
                     filled: true,
                     fillColor: const Color(0xFF2A2A2A),
@@ -108,13 +110,13 @@ class _GroupsScreenState extends State<GroupsScreen>
                 ),
                 const SizedBox(height: 12),
                 SwitchListTile(
-                  title: const Text(
-                    'Groupe privé',
-                    style: TextStyle(color: Colors.white),
+                  title: Text(
+                    lang.translate('group_private_label'),
+                    style: const TextStyle(color: Colors.white),
                   ),
-                  subtitle: const Text(
-                    'Seuls les membres approuvés peuvent voir le contenu',
-                    style: TextStyle(color: Colors.white38, fontSize: 12),
+                  subtitle: Text(
+                    lang.translate('group_private_subtitle'),
+                    style: const TextStyle(color: Colors.white38, fontSize: 12),
                   ),
                   value: isPrivate,
                   activeColor: const Color(0xFFBE1E1E),
@@ -127,9 +129,9 @@ class _GroupsScreenState extends State<GroupsScreen>
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text(
-                'Annuler',
-                style: TextStyle(color: Colors.white54),
+              child: Text(
+                lang.translate('cancel'),
+                style: const TextStyle(color: Colors.white54),
               ),
             ),
             ElevatedButton(
@@ -146,7 +148,7 @@ class _GroupsScreenState extends State<GroupsScreen>
                   _loadGroups();
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Groupe créé !')),
+                      SnackBar(content: Text(lang.translate('group_created_success'))),
                     );
                     // Navigate to the new group
                     if (result['id'] != null) {
@@ -179,7 +181,7 @@ class _GroupsScreenState extends State<GroupsScreen>
                 backgroundColor: const Color(0xFFBE1E1E),
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Créer'),
+              child: Text(LanguageService.instance.translate('create')),
             ),
           ],
         ),
@@ -189,12 +191,13 @@ class _GroupsScreenState extends State<GroupsScreen>
 
   Future<void> _joinGroup(dynamic group) async {
     try {
+      final lang = LanguageService.instance;
       final api = await ApiService.getInstance();
       await api.joinGroup(group['id']);
       _loadGroups();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Vous avez rejoint ${group['name']}')),
+          SnackBar(content: Text('${lang.translate('joined_group')} ${group['name']}')),
         );
       }
     } catch (e) {
@@ -240,12 +243,7 @@ class _GroupsScreenState extends State<GroupsScreen>
                 children: [
                   const Icon(Icons.explore, size: 18),
                   const SizedBox(width: 6),
-                  Text(
-                    LanguageService.instance.translate('discover_title') ==
-                            'discover_title'
-                        ? 'Découvrir'
-                        : LanguageService.instance.translate('discover_title'),
-                  ),
+                  Text(LanguageService.instance.translate('discover')),
                 ],
               ),
             ),
@@ -269,6 +267,7 @@ class _GroupsScreenState extends State<GroupsScreen>
   }
 
   Widget _buildMyGroupsTab() {
+    final lang = LanguageService.instance;
     if (_myGroups.isEmpty) {
       return Center(
         child: Column(
@@ -280,20 +279,20 @@ class _GroupsScreenState extends State<GroupsScreen>
               color: Color(0xFF888888),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Aucun groupe',
-              style: TextStyle(color: Color(0xFF888888), fontSize: 16),
+            Text(
+              lang.translate('no_groups_message'),
+              style: const TextStyle(color: Color(0xFF888888), fontSize: 16),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Rejoignez ou créez un groupe !',
-              style: TextStyle(color: Color(0xFF666666), fontSize: 14),
+            Text(
+              lang.translate('no_groups_subtitle'),
+              style: const TextStyle(color: Color(0xFF666666), fontSize: 14),
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () => _tabController.animateTo(1),
               icon: const Icon(Icons.explore),
-              label: const Text('Découvrir des groupes'),
+              label: Text(lang.translate('discover_groups')),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFBE1E1E),
                 foregroundColor: Colors.white,
@@ -319,21 +318,22 @@ class _GroupsScreenState extends State<GroupsScreen>
   }
 
   Widget _buildDiscoverTab() {
+    final lang = LanguageService.instance;
     if (_discoverGroups.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.search_off, size: 64, color: Color(0xFF888888)),
-            SizedBox(height: 16),
+            const Icon(Icons.search_off, size: 64, color: Color(0xFF888888)),
+            const SizedBox(height: 16),
             Text(
-              'Aucun groupe à découvrir',
-              style: TextStyle(color: Color(0xFF888888), fontSize: 16),
+              lang.translate('no_discover_groups'),
+              style: const TextStyle(color: Color(0xFF888888), fontSize: 16),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
-              'Vous êtes membre de tous les groupes !',
-              style: TextStyle(color: Color(0xFF666666), fontSize: 14),
+              lang.translate('all_groups_joined'),
+              style: const TextStyle(color: Color(0xFF666666), fontSize: 14),
             ),
           ],
         ),
@@ -355,7 +355,8 @@ class _GroupsScreenState extends State<GroupsScreen>
   }
 
   Widget _buildGroupItem(dynamic group, {required bool isMember}) {
-    final name = group['name'] ?? 'Groupe';
+    final lang = LanguageService.instance;
+    final name = group['name'] ?? lang.translate('group');
     final description = group['description'] ?? '';
     final membersCount = group['members_count'] ?? 0;
     final postsCount = group['posts_count'] ?? 0;
@@ -406,14 +407,14 @@ class _GroupsScreenState extends State<GroupsScreen>
                             color: Colors.white10,
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.lock, color: Colors.white54, size: 12),
-                              SizedBox(width: 2),
+                              const Icon(Icons.lock, color: Colors.white54, size: 12),
+                              const SizedBox(width: 2),
                               Text(
-                                'Privé',
-                                style: TextStyle(
+                                lang.translate('private'),
+                                style: const TextStyle(
                                   color: Colors.white54,
                                   fontSize: 11,
                                 ),
@@ -445,7 +446,7 @@ class _GroupsScreenState extends State<GroupsScreen>
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '$membersCount membre${membersCount > 1 ? 's' : ''}',
+                        '$membersCount ${membersCount > 1 ? lang.translate('members') : lang.translate('member')}',
                         style: const TextStyle(
                           color: Color(0xFF888888),
                           fontSize: 12,
@@ -459,7 +460,7 @@ class _GroupsScreenState extends State<GroupsScreen>
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '$postsCount post${postsCount > 1 ? 's' : ''}',
+                        '$postsCount ${postsCount > 1 ? lang.translate('posts_count_plural') : lang.translate('posts_count')}',
                         style: const TextStyle(
                           color: Color(0xFF888888),
                           fontSize: 12,
@@ -485,7 +486,10 @@ class _GroupsScreenState extends State<GroupsScreen>
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
-                child: const Text('Rejoindre', style: TextStyle(fontSize: 13)),
+                child: Text(
+                  LanguageService.instance.translate('join'),
+                  style: const TextStyle(fontSize: 13),
+                ),
               ),
             ],
           ],

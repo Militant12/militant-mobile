@@ -10,76 +10,81 @@ class CommunityScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final translate = LanguageService.instance.translate;
+    return ValueListenableBuilder<Locale>(
+      valueListenable: LanguageService.instance,
+      builder: (context, locale, child) {
+        final theme = Theme.of(context);
+        final isDark = theme.brightness == Brightness.dark;
+        final translate = LanguageService.instance.translate;
 
-    // Couleurs adaptées au thème
-    final backgroundColor = theme.scaffoldBackgroundColor;
-    final textColor = theme.textTheme.bodyLarge?.color ?? Colors.black;
+        // Couleurs adaptées au thème
+        final backgroundColor = theme.scaffoldBackgroundColor;
+        final textColor = theme.textTheme.bodyLarge?.color ?? Colors.black;
 
-    return Scaffold(
-      backgroundColor: backgroundColor,
-      appBar: AppBar(
-        title: Text(translate('community_tab_title')),
-        backgroundColor: theme.appBarTheme.backgroundColor,
-        elevation: 0,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 24.0),
-            child: Text(
-              translate('explore_mobilize_title'),
-              style: TextStyle(
-                color: textColor,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+        return Scaffold(
+          backgroundColor: backgroundColor,
+          appBar: AppBar(
+            title: Text(translate('community_tab_title')),
+            backgroundColor: theme.appBarTheme.backgroundColor,
+            elevation: 0,
+          ),
+          body: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 24.0),
+                child: Text(
+                  translate('explore_mobilize_title'),
+                  style: TextStyle(
+                    color: textColor,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-            ),
+              _buildMenuCard(
+                context,
+                translate('groups_title'),
+                translate('groups_desc'),
+                Icons.group,
+                const GroupsScreen(),
+                const Color(0xFFBE1E1E), // Militant Red (Brand)
+                isDark,
+              ),
+              const SizedBox(height: 16),
+              _buildMenuCard(
+                context,
+                translate('events_title'),
+                translate('events_desc'),
+                Icons.event,
+                const EventsScreen(),
+                Colors.orange[800]!,
+                isDark,
+              ),
+              const SizedBox(height: 16),
+              _buildMenuCard(
+                context,
+                translate('pages_title'),
+                translate('pages_desc'),
+                Icons.flag,
+                const PagesScreen(),
+                Colors.blue[700]!, // Blue but handled with Black Flag logic
+                isDark,
+              ),
+              const SizedBox(height: 16),
+              _buildMenuCard(
+                context,
+                translate('mod_title'), // Uses existing key
+                translate('moderation_desc'),
+                Icons.security,
+                const ModerationScreen(),
+                Colors.purple[700]!,
+                isDark,
+              ),
+            ],
           ),
-          _buildMenuCard(
-            context,
-            translate('groups_title'),
-            translate('groups_desc'),
-            Icons.group,
-            const GroupsScreen(),
-            const Color(0xFFBE1E1E), // Militant Red (Brand)
-            isDark,
-          ),
-          const SizedBox(height: 16),
-          _buildMenuCard(
-            context,
-            translate('events_title'),
-            translate('events_desc'),
-            Icons.event,
-            const EventsScreen(),
-            Colors.orange[800]!,
-            isDark,
-          ),
-          const SizedBox(height: 16),
-          _buildMenuCard(
-            context,
-            translate('pages_title'),
-            translate('pages_desc'),
-            Icons.flag,
-            const PagesScreen(),
-            Colors.blue[700]!, // Blue but handled with Black Flag logic
-            isDark,
-          ),
-          const SizedBox(height: 16),
-          _buildMenuCard(
-            context,
-            translate('mod_title'), // Uses existing key
-            translate('moderation_desc'),
-            Icons.security,
-            const ModerationScreen(),
-            Colors.purple[700]!,
-            isDark,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 

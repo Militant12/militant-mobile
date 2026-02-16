@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'home_feed_screen.dart';
 import 'messages_screen.dart';
 import 'profile_screen.dart';
-
 import 'community_screen.dart';
+import '../services/language_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,16 +12,32 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _selectedIndex = 0;
-  // Définition directe des écrans et destinations
+  // Définition directe des écrans
   late final List<Widget> _screens;
-  late final List<NavigationDestination> _destinations;
+  final GlobalKey<ProfileScreenState> _profileKey = GlobalKey<ProfileScreenState>();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initScreens();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // Refresh profile when app resumes
+    if (state == AppLifecycleState.resumed) {
+      _profileKey.currentState?.refreshProfile();
+    }
   }
 
   void _initScreens() {
@@ -29,29 +45,32 @@ class _HomeScreenState extends State<HomeScreen> {
       const HomeFeedScreen(),
       const CommunityScreen(), // Menu grille
       const MessagesScreen(),
-      const ProfileScreen(),
+      ProfileScreen(key: _profileKey),
     ];
+  }
 
-    _destinations = const [
+  List<NavigationDestination> _buildDestinations() {
+    final lang = LanguageService.instance;
+    return [
       NavigationDestination(
-        icon: Icon(Icons.home_outlined),
-        selectedIcon: Icon(Icons.home),
-        label: 'Accueil',
+        icon: const Icon(Icons.home_outlined),
+        selectedIcon: const Icon(Icons.home),
+        label: lang.translate('home_title'),
       ),
       NavigationDestination(
-        icon: Icon(Icons.grid_view_outlined),
-        selectedIcon: Icon(Icons.grid_view),
-        label: 'Communauté',
+        icon: const Icon(Icons.grid_view_outlined),
+        selectedIcon: const Icon(Icons.grid_view),
+        label: lang.translate('community_tab_title'),
       ),
       NavigationDestination(
-        icon: Icon(Icons.message_outlined),
-        selectedIcon: Icon(Icons.message),
-        label: 'Messages',
+        icon: const Icon(Icons.message_outlined),
+        selectedIcon: const Icon(Icons.message),
+        label: lang.translate('messages_title'),
       ),
       NavigationDestination(
-        icon: Icon(Icons.person_outline),
-        selectedIcon: Icon(Icons.person),
-        label: 'Profil',
+        icon: const Icon(Icons.person_outline),
+        selectedIcon: const Icon(Icons.person),
+        label: lang.translate('profile_title'),
       ),
     ];
   }
@@ -70,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _selectedIndex = index;
           });
         },
-        destinations: _destinations,
+        destinations: _buildDestinations(),
       ),
     );
   }

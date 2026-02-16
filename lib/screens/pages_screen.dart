@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 import 'page_detail_screen.dart';
 import 'create_page_screen.dart';
 
@@ -56,9 +57,10 @@ class _PagesScreenState extends State<PagesScreen>
       });
     } catch (e) {
       if (mounted) {
+        final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(SnackBar(content: Text('${lang.translate('error_loading')}: ${e.toString()}')));
       }
     } finally {
       setState(() => _isLoading = false);
@@ -67,13 +69,14 @@ class _PagesScreenState extends State<PagesScreen>
 
   Future<void> _followPage(dynamic page) async {
     try {
+      final lang = LanguageService.instance;
       final api = await ApiService.getInstance();
       await api.followPage(page['id']);
       _loadPages();
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Vous suivez ${page['name']}')));
+        ).showSnackBar(SnackBar(content: Text('${lang.translate('following_page')} ${page['name']}')));
       }
     } catch (e) {
       if (mounted) {
@@ -86,6 +89,7 @@ class _PagesScreenState extends State<PagesScreen>
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguageService.instance;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -94,7 +98,7 @@ class _PagesScreenState extends State<PagesScreen>
       appBar: AppBar(
         backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         title: Text(
-          'Pages',
+          lang.translate('pages_title'),
           style: TextStyle(color: isDark ? Colors.white : Colors.black),
         ),
         bottom: TabBar(
@@ -110,7 +114,7 @@ class _PagesScreenState extends State<PagesScreen>
                 children: [
                   const Icon(Icons.flag, size: 18),
                   const SizedBox(width: 6),
-                  Text('Mes pages (${_myPages.length})'),
+                  Text('${lang.translate('my_pages')} (${_myPages.length})'),
                 ],
               ),
             ),
@@ -120,17 +124,17 @@ class _PagesScreenState extends State<PagesScreen>
                 children: [
                   const Icon(Icons.favorite, size: 18),
                   const SizedBox(width: 6),
-                  Text('Suivies (${_followedPages.length})'),
+                  Text('${lang.translate('followed_pages')} (${_followedPages.length})'),
                 ],
               ),
             ),
-            const Tab(
+            Tab(
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.explore, size: 18),
-                  SizedBox(width: 6),
-                  Text('Découvrir'),
+                  const Icon(Icons.explore, size: 18),
+                  const SizedBox(width: 6),
+                  Text(lang.translate('discover')),
                 ],
               ),
             ),
@@ -166,6 +170,7 @@ class _PagesScreenState extends State<PagesScreen>
   }
 
   Widget _buildMyPagesTab() {
+    final lang = LanguageService.instance;
     if (_myPages.isEmpty) {
       return Center(
         child: Column(
@@ -180,7 +185,7 @@ class _PagesScreenState extends State<PagesScreen>
             ),
             const SizedBox(height: 16),
             Text(
-              'Aucune page',
+              lang.translate('no_pages_message'),
               style: TextStyle(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? const Color(0xFF888888)
@@ -190,7 +195,7 @@ class _PagesScreenState extends State<PagesScreen>
             ),
             const SizedBox(height: 8),
             Text(
-              'Créez une page pour votre cause !',
+              lang.translate('create_page_subtitle'),
               style: TextStyle(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? const Color(0xFF666666)
@@ -208,7 +213,7 @@ class _PagesScreenState extends State<PagesScreen>
                 if (result == true) _loadPages();
               },
               icon: const Icon(Icons.add),
-              label: const Text('Créer une page'),
+              label: Text(lang.translate('create_page_button')),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFBE1E1E),
                 foregroundColor: Colors.white,
@@ -226,13 +231,14 @@ class _PagesScreenState extends State<PagesScreen>
         padding: const EdgeInsets.only(top: 8),
         itemCount: _myPages.length,
         itemBuilder: (context, index) {
-          return _buildPageItem(_myPages[index], showBadge: 'Admin');
+          return _buildPageItem(_myPages[index], showBadge: lang.translate('admin_badge'));
         },
       ),
     );
   }
 
   Widget _buildFollowedPagesTab() {
+    final lang = LanguageService.instance;
     if (_followedPages.isEmpty) {
       return Center(
         child: Column(
@@ -247,7 +253,7 @@ class _PagesScreenState extends State<PagesScreen>
             ),
             const SizedBox(height: 16),
             Text(
-              'Aucune page suivie',
+              lang.translate('no_followed_pages'),
               style: TextStyle(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? const Color(0xFF888888)
@@ -259,7 +265,7 @@ class _PagesScreenState extends State<PagesScreen>
             ElevatedButton.icon(
               onPressed: () => _tabController.animateTo(2),
               icon: const Icon(Icons.explore),
-              label: const Text('Découvrir des pages'),
+              label: Text(lang.translate('discover_pages')),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFBE1E1E),
                 foregroundColor: Colors.white,
@@ -284,6 +290,7 @@ class _PagesScreenState extends State<PagesScreen>
   }
 
   Widget _buildDiscoverTab() {
+    final lang = LanguageService.instance;
     if (_discoverPages.isEmpty) {
       return Center(
         child: Column(
@@ -298,7 +305,7 @@ class _PagesScreenState extends State<PagesScreen>
             ),
             const SizedBox(height: 16),
             Text(
-              'Aucune page à découvrir',
+              lang.translate('no_discover_pages'),
               style: TextStyle(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? const Color(0xFF888888)
@@ -332,9 +339,10 @@ class _PagesScreenState extends State<PagesScreen>
     String? showBadge,
     bool showFollow = false,
   }) {
+    final lang = LanguageService.instance;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final name = page['name'] ?? 'Page';
+    final name = page['name'] ?? lang.translate('page');
     final description = page['description'] ?? '';
     final category = page['category'] ?? '';
     final followersCount =
@@ -443,7 +451,7 @@ class _PagesScreenState extends State<PagesScreen>
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '$followersCount abonné${followersCount > 1 ? 's' : ''}',
+                        '$followersCount ${followersCount > 1 ? lang.translate('followers_count_plural') : lang.translate('followers_count')}',
                         style: TextStyle(
                           color: isDark ? const Color(0xFF888888) : Colors.grey,
                           fontSize: 12,
@@ -469,7 +477,7 @@ class _PagesScreenState extends State<PagesScreen>
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
-                child: const Text('Suivre', style: TextStyle(fontSize: 13)),
+                child: Text(lang.translate('follow_button'), style: const TextStyle(fontSize: 13)),
               ),
             ],
           ],

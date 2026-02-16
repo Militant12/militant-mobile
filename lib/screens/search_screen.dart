@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 import 'profile_screen.dart';
 import 'post_detail_screen.dart';
 import '../widgets/linkable_text.dart';
@@ -40,9 +41,10 @@ class _SearchScreenState extends State<SearchScreen> {
       });
     } catch (e) {
       if (mounted) {
+        final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: ${e.toString()}')));
       }
     } finally {
       setState(() => _isLoading = false);
@@ -51,23 +53,28 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF121212),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: TextField(
-          controller: _searchController,
-          autofocus: true,
-          style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(
-            hintText: 'Rechercher...',
-            hintStyle: TextStyle(color: Color(0xFF888888)),
-            border: InputBorder.none,
+    final lang = LanguageService.instance;
+    
+    return ValueListenableBuilder<Locale>(
+      valueListenable: lang,
+      builder: (context, locale, child) {
+        return Scaffold(
+          backgroundColor: const Color(0xFF121212),
+          appBar: AppBar(
+            backgroundColor: const Color(0xFF1E1E1E),
+            title: TextField(
+              controller: _searchController,
+              autofocus: true,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: lang.translate('search_hint'),
+                hintStyle: const TextStyle(color: Color(0xFF888888)),
+                border: InputBorder.none,
+              ),
+              onChanged: _search,
+            ),
           ),
-          onChanged: _search,
-        ),
-      ),
-      body: Column(
+          body: Column(
         children: [
           // Onglets
           Container(
@@ -77,8 +84,8 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
             child: Row(
               children: [
-                _buildTab('Utilisateurs', 'users'),
-                _buildTab('Posts', 'posts'),
+                _buildTab(lang.translate('users_tab'), 'users'),
+                _buildTab(lang.translate('posts_tab'), 'posts'),
               ],
             ),
           ),
@@ -98,8 +105,8 @@ class _SearchScreenState extends State<SearchScreen> {
                         const SizedBox(height: 16),
                         Text(
                           _searchController.text.isEmpty
-                              ? 'Recherchez des utilisateurs ou des posts'
-                              : 'Aucun résultat',
+                              ? lang.translate('search_users_posts')
+                              : lang.translate('no_results'),
                           style: TextStyle(
                             color: Colors.grey[600],
                             fontSize: 16,
@@ -117,10 +124,13 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
         ],
       ),
+        );
+      },
     );
   }
 
   Widget _buildTab(String label, String value) {
+    final lang = LanguageService.instance;
     final isSelected = _selectedTab == value;
     return Expanded(
       child: InkWell(
@@ -207,7 +217,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '@${item['username'] ?? 'utilisateur'}',
+                        '@${item['username'] ?? LanguageService.instance.translate('unknown_user')}',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 15,
@@ -307,7 +317,8 @@ class _SearchScreenState extends State<SearchScreen> {
     }
 
     // User or Group result
-    final name = item['name'] ?? item['username'] ?? 'Inconnu';
+    final lang = LanguageService.instance;
+    final name = item['name'] ?? item['username'] ?? lang.translate('unknown_user');
     final subtitle = item['bio'] ?? item['description'] ?? '';
     final avatarUrl = item['avatar'];
 
@@ -415,13 +426,14 @@ class _SearchScreenState extends State<SearchScreen> {
 
   String _formatDate(String dateStr) {
     try {
+      final lang = LanguageService.instance;
       final date = DateTime.parse(dateStr);
       final now = DateTime.now();
       final diff = now.difference(date);
 
-      if (diff.inMinutes < 1) return 'À l\'instant';
-      if (diff.inMinutes < 60) return '${diff.inMinutes}m';
-      if (diff.inHours < 24) return '${diff.inHours}h';
+      if (diff.inMinutes < 1) return lang.translate('just_now');
+      if (diff.inMinutes < 60) return '${diff.inMinutes}${lang.translate('minutes_short')}';
+      if (diff.inHours < 24) return '${diff.inHours}${lang.translate('hours_short')}';
       return '${date.day}/${date.month}';
     } catch (_) {
       return '';

@@ -6,6 +6,8 @@ class Comment {
   final String? userAvatar;
   final String content;
   final DateTime createdAt;
+  final int? parentId;
+  final List<Comment> replies;
 
   Comment({
     required this.id,
@@ -15,9 +17,26 @@ class Comment {
     this.userAvatar,
     required this.content,
     required this.createdAt,
+    this.parentId,
+    this.replies = const [],
   });
 
   factory Comment.fromJson(Map<String, dynamic> json) {
+    DateTime parseDate(dynamic dateValue) {
+      if (dateValue == null) return DateTime.now();
+      try {
+        if (dateValue is String) {
+          // Remplacer l'espace par T pour le format ISO
+          final dateStr = dateValue.replaceAll(' ', 'T');
+          return DateTime.parse(dateStr);
+        }
+        return DateTime.now();
+      } catch (e) {
+        print('Error parsing date: $dateValue - $e');
+        return DateTime.now();
+      }
+    }
+
     return Comment(
       id: json['id'] ?? 0,
       postId: json['post_id'] ?? 0,
@@ -25,9 +44,11 @@ class Comment {
       username: json['username'] ?? 'Utilisateur',
       userAvatar: json['avatar'],
       content: json['content'] ?? '',
-      createdAt: DateTime.parse(
-        (json['created_at'] ?? DateTime.now().toIso8601String()).replaceAll(' ', 'T'),
-      ),
+      createdAt: parseDate(json['created_at']),
+      parentId: json['parent_id'],
+      replies: (json['replies'] as List?)
+          ?.map((r) => Comment.fromJson(r))
+          .toList() ?? [],
     );
   }
 }
