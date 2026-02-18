@@ -6,7 +6,9 @@ import '../widgets/video_player_widget.dart';
 import '../widgets/audio_player_widget.dart';
 import '../widgets/audio_recorder_widget.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 import '../widgets/linkable_text.dart';
+import 'call_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   final int userId;
@@ -124,6 +126,46 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ],
         ),
+        actions: [
+          // Bouton appel audio
+          IconButton(
+            icon: const Icon(Icons.call),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => CallScreen(
+                    recipientId: widget.userId,
+                    recipientName: widget.username,
+                    recipientAvatar: _api?.getImageUrl(widget.avatar),
+                    isVideo: false,
+                    isIncoming: false,
+                  ),
+                ),
+              );
+            },
+            tooltip: LanguageService.instance.translate('call_audio'),
+          ),
+          // Bouton appel vidéo
+          IconButton(
+            icon: const Icon(Icons.videocam),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => CallScreen(
+                    recipientId: widget.userId,
+                    recipientName: widget.username,
+                    recipientAvatar: _api?.getImageUrl(widget.avatar),
+                    isVideo: true,
+                    isIncoming: false,
+                  ),
+                ),
+              );
+            },
+            tooltip: LanguageService.instance.translate('call_video'),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -364,7 +406,7 @@ class _ChatScreenState extends State<ChatScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (media != null && media.toString().isNotEmpty)
-                _buildMedia(media),
+                _buildMedia(media, isMine),
               if (content.isNotEmpty)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -493,7 +535,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Widget _buildMedia(String mediaPath) {
+  Widget _buildMedia(String mediaPath, bool isMine) {
     if (_api == null) return const SizedBox.shrink();
     final url = _api!.getImageUrl(mediaPath);
     if (url == null || url.isEmpty) return const SizedBox.shrink();
@@ -518,7 +560,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (isAudio) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 8.0),
-        child: AudioPlayerWidget(audioUrl: url),
+        child: AudioPlayerWidget(audioUrl: url, isMine: isMine),
       );
     }
 

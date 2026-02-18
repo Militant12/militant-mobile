@@ -7,8 +7,11 @@ import '../widgets/video_player_widget.dart';
 import '../widgets/audio_player_widget.dart';
 import '../widgets/audio_recorder_widget.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 import 'group_settings_screen.dart';
 import '../widgets/linkable_text.dart';
+import 'call_screen.dart';
+import 'group_call_screen.dart';
 
 class GroupChatScreen extends StatefulWidget {
   final int groupId;
@@ -149,6 +152,42 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           ],
         ),
         actions: [
+          // Bouton appel audio de groupe
+          IconButton(
+            icon: const Icon(Icons.call),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => GroupCallScreen(
+                    groupId: widget.groupId,
+                    groupName: widget.groupName,
+                    isVideo: false,
+                    isIncoming: false,
+                  ),
+                ),
+              );
+            },
+            tooltip: LanguageService.instance.translate('call_group_audio'),
+          ),
+          // Bouton appel vidéo de groupe
+          IconButton(
+            icon: const Icon(Icons.videocam),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => GroupCallScreen(
+                    groupId: widget.groupId,
+                    groupName: widget.groupName,
+                    isVideo: true,
+                    isIncoming: false,
+                  ),
+                ),
+              );
+            },
+            tooltip: LanguageService.instance.translate('call_group_video'),
+          ),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () async {
@@ -406,7 +445,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (media != null && media.toString().isNotEmpty)
-                    _buildMedia(media),
+                    _buildMedia(media, isMine),
                   if (content.isNotEmpty)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -539,7 +578,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     }
   }
 
-  Widget _buildMedia(String mediaPath) {
+  Widget _buildMedia(String mediaPath, bool isMine) {
     print('DEBUG _buildMedia called with: $mediaPath');
     if (_api == null) {
       print('DEBUG _buildMedia: _api is null');
@@ -571,7 +610,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     if (isAudio) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 8.0),
-        child: AudioPlayerWidget(audioUrl: url),
+        child: AudioPlayerWidget(audioUrl: url, isMine: isMine),
       );
     }
 

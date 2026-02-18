@@ -44,8 +44,17 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# APK files - too large for Git
+*.apk
+*.aab
+
 # Signing keys - NEVER COMMIT THESE!
 android/key.properties
 *.jks
 *.keystore
 MOTS_DE_PASSE_KEYSTORE.txt
+
+# Documentation and notes files
+A_FAIRE.txt
+GITLAB_VARIABLES.txt
+RESUME_RAPIDE.txt

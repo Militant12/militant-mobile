@@ -2311,4 +2311,223 @@ class ApiService {
       throw Exception('Erreur de modification du commentaire');
     }
   }
+
+  // === CALLS (FLUTTER EXCLUSIVE) ===
+  
+  // Headers avec le flag Flutter exclusif
+  Map<String, String> get _flutterHeaders => {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'X-Flutter-App': 'militant-flutter-v1', // Header exclusif Flutter
+    if (token != null) 'Authorization': 'Bearer $token',
+  };
+
+  Future<Map<String, dynamic>> initiateCall(
+    int recipientId,
+    String callType,
+    String offerSdp,
+  ) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/calls.php?action=initiate'),
+      headers: _flutterHeaders,
+      body: jsonEncode({
+        'recipient_id': recipientId,
+        'call_type': callType,
+        'offer': offerSdp,
+      }),
+    );
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      try {
+        return jsonDecode(response.body);
+      } catch (e) {
+        throw Exception('L\'API des appels n\'est pas encore déployée. Veuillez réessayer plus tard.');
+      }
+    } else {
+      try {
+        final error = jsonDecode(response.body);
+        throw Exception(error['error'] ?? 'Erreur lors de l\'initiation de l\'appel');
+      } catch (e) {
+        throw Exception('L\'API des appels n\'est pas encore disponible (code ${response.statusCode})');
+      }
+    }
+  }
+
+  Future<Map<String, dynamic>> answerCall(String callId, String answerSdp) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/calls.php?action=answer'),
+      headers: _flutterHeaders,
+      body: jsonEncode({
+        'call_id': callId,
+        'answer': answerSdp,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur lors de la réponse à l\'appel');
+    }
+  }
+
+  Future<void> sendIceCandidate(String callId, Map<String, dynamic> candidate) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/calls.php?action=ice_candidate'),
+      headers: _flutterHeaders,
+      body: jsonEncode({
+        'call_id': callId,
+        'candidate': candidate,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors de l\'envoi du ICE candidate');
+    }
+  }
+
+  Future<void> rejectCall(String callId) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/calls.php?action=reject'),
+      headers: _flutterHeaders,
+      body: jsonEncode({'call_id': callId}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors du rejet de l\'appel');
+    }
+  }
+
+  Future<void> endCall(String callId) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/calls.php?action=end'),
+      headers: _flutterHeaders,
+      body: jsonEncode({'call_id': callId}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors de la fin de l\'appel');
+    }
+  }
+
+  Future<Map<String, dynamic>> pollCallUpdates(
+    String callId,
+    String? lastPoll,
+  ) async {
+    String url = '$apiUrl/v1/calls.php?action=poll&call_id=$callId';
+    if (lastPoll != null) {
+      url += '&last_poll=${Uri.encodeComponent(lastPoll)}';
+    }
+
+    final response = await http.get(Uri.parse(url), headers: _flutterHeaders);
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur lors du polling');
+    }
+  }
+
+  Future<List<dynamic>> getCallHistory({int page = 1}) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/calls.php?action=history&page=$page'),
+      headers: _flutterHeaders,
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['data'] ?? [];
+    } else {
+      throw Exception('Erreur de chargement de l\'historique des appels');
+    }
+  }
+
+  Future<void> restartIce(String callId, String newOfferSdp) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/calls.php?action=ice_restart'),
+      headers: _flutterHeaders,
+      body: jsonEncode({
+        'call_id': callId,
+        'offer': newOfferSdp,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors du redémarrage ICE');
+    }
+  }
+
+  // === GROUP CALLS ===
+
+  Future<Map<String, dynamic>> initiateGroupCall(
+    int groupId,
+    String callType,
+    String offerSdp,
+  ) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/calls.php?action=initiate'),
+      headers: _flutterHeaders,
+      body: jsonEncode({
+        'group_id': groupId,
+        'call_type': callType,
+        'offer': offerSdp,
+      }),
+    );
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final error = jsonDecode(response.body);
+      throw Exception(error['error'] ?? 'Erreur lors de l\'initiation de l\'appel de groupe');
+    }
+  }
+
+  Future<Map<String, dynamic>> joinGroupCall(String callId, String offerSdp) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/calls.php?action=join'),
+      headers: _flutterHeaders,
+      body: jsonEncode({
+        'call_id': callId,
+        'offer': offerSdp,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur lors de la jonction à l\'appel de groupe');
+    }
+  }
+
+  Future<void> sendPeerOffer(String callId, int toUserId, String offerSdp) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/calls.php?action=peer_offer'),
+      headers: _flutterHeaders,
+      body: jsonEncode({
+        'call_id': callId,
+        'to_user_id': toUserId,
+        'offer': offerSdp,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors de l\'envoi de l\'offre au pair');
+    }
+  }
+
+  Future<void> sendPeerAnswer(String callId, int toUserId, String answerSdp) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/calls.php?action=peer_answer'),
+      headers: _flutterHeaders,
+      body: jsonEncode({
+        'call_id': callId,
+        'to_user_id': toUserId,
+        'answer': answerSdp,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors de l\'envoi de la réponse au pair');
+    }
+  }
 }
+

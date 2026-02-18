@@ -6,6 +6,7 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../widgets/linkable_text.dart';
+import '../widgets/video_player_widget.dart';
 
 class PageDetailScreen extends StatefulWidget {
   final dynamic page;
@@ -1370,19 +1371,15 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           if (post['media'] != null) ...[
             const SizedBox(height: 8),
             if (post['media_type'] == 'video')
-              Container(
-                height: 200,
-                width: double.infinity,
-                margin: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: Colors.black,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Center(
-                  child: Icon(
-                    Icons.play_circle_fill,
-                    color: Colors.white,
-                    size: 48,
+                  child: SizedBox(
+                    height: 200,
+                    child: VideoPlayerWidget(
+                      videoUrl: _api?.getImageUrl('uploads/posts/${post['media']}') ?? '',
+                    ),
                   ),
                 ),
               )
