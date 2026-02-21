@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class AudioRecorderWidget extends StatefulWidget {
   final Function(File audioFile) onRecordingComplete;
@@ -38,22 +37,11 @@ class _AudioRecorderWidgetState extends State<AudioRecorderWidget> {
 
   Future<void> _startRecording() async {
     try {
-      // Demander la permission
-      final status = await Permission.microphone.request();
-      if (!status.isGranted) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Permission microphone refusée')),
-          );
-          widget.onCancel();
-        }
-        return;
-      }
-
-      // Vérifier si le microphone est disponible
+      // Vérifier si le microphone est disponible (demande auto la permission sur mobile, et renvoie true sur Linux)
       if (await _audioRecorder.hasPermission()) {
         final tempDir = await getTemporaryDirectory();
-        final path = '${tempDir.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
+        final path =
+            '${tempDir.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
 
         await _audioRecorder.start(
           const RecordConfig(encoder: AudioEncoder.aacLc),
@@ -71,9 +59,9 @@ class _AudioRecorderWidgetState extends State<AudioRecorderWidget> {
     } catch (e) {
       print('Erreur enregistrement: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
         widget.onCancel();
       }
     }
@@ -102,9 +90,9 @@ class _AudioRecorderWidgetState extends State<AudioRecorderWidget> {
     } catch (e) {
       print('Erreur arrêt enregistrement: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
       }
     }
   }

@@ -4,6 +4,7 @@ import 'messages_screen.dart';
 import 'profile_screen.dart';
 import 'community_screen.dart';
 import '../services/language_service.dart';
+import '../widgets/incoming_call_banner.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,7 +17,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _selectedIndex = 0;
   // Définition directe des écrans
   late final List<Widget> _screens;
-  final GlobalKey<ProfileScreenState> _profileKey = GlobalKey<ProfileScreenState>();
+  final GlobalKey<ProfileScreenState> _profileKey =
+      GlobalKey<ProfileScreenState>();
 
   @override
   void initState() {
@@ -78,9 +80,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex < _screens.length ? _selectedIndex : 0,
-        children: _screens,
+      body: Stack(
+        children: [
+          IndexedStack(
+            index: _selectedIndex < _screens.length ? _selectedIndex : 0,
+            children: _screens,
+          ),
+          // Bannière d'appel entrant — visible dans toute l'app, démarre automatiquement
+          const IncomingCallBanner(),
+        ],
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex < _screens.length ? _selectedIndex : 0,

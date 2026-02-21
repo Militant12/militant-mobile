@@ -53,62 +53,107 @@ class _CallScreenState extends State<CallScreen> {
   }
 
   void _setupCallService() async {
-    final apiService = await ApiService.getInstance();
-    _callService = CallService(apiService: apiService);
+    try {
+      final apiService = await ApiService.getInstance();
+      _callService = CallService(apiService: apiService);
 
-    _callService.onLocalStream = (stream) {
-      setState(() {
-        _localRenderer.srcObject = stream;
-      });
-    };
+      _callService.onLocalStream = (stream) {
+        if (mounted) {
+          setState(() {
+            _localRenderer.srcObject = stream;
+          });
+        }
+      };
 
-    _callService.onRemoteStream = (stream) {
-      setState(() {
-        _remoteRenderer.srcObject = stream;
-        _isConnected = true;
-        _isRinging = false;
-        _callStatus = LanguageService.instance.translate('call_active');
-      });
-    };
+      _callService.onRemoteStream = (stream) {
+        if (mounted) {
+          setState(() {
+            _remoteRenderer.srcObject = stream;
+            _isConnected = true;
+            _isRinging = false;
+            _callStatus = LanguageService.instance.translate('call_active');
+          });
+        }
+      };
 
-    _callService.onCallEnded = (reason) {
-      if (mounted) {
-        Navigator.pop(context);
-      }
-    };
+      _callService.onCallEnded = (reason) async {
+        if (!mounted) return;
+        // Annuler les vidéos locales proprement
+        setState(() {
+          _isConnected = false;
+          _callStatus = '📵 Appel terminé';
+        });
+        // Attendre 2s pour que l'utilisateur voie le message
+        await Future.delayed(const Duration(seconds: 2));
+        if (mounted) Navigator.pop(context);
+      };
 
-    _callService.onCallRejected = (reason) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(LanguageService.instance.translate('call_rejected'))),
-        );
-        Navigator.pop(context);
-      }
-    };
-
-    _callService.onNetworkChange = (message) {
-      if (mounted) {
-        setState(() => _callStatus = LanguageService.instance.translate('call_network_reconnecting'));
+      _callService.onCallRejected = (reason) async {
+        if (!mounted) return;
+        setState(() => _callStatus = '❌ Appel refusé');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(message),
-            duration: Duration(seconds: 2),
+            content: Text(LanguageService.instance.translate('call_rejected')),
+            backgroundColor: Colors.red.shade700,
+            duration: const Duration(seconds: 2),
           ),
         );
-      }
-    };
+        await Future.delayed(const Duration(seconds: 2));
+        if (mounted) Navigator.pop(context);
+      };
 
-    // Initier ou répondre à l'appel
-    try {
-      if (widget.isIncoming && widget.callId != null && widget.offerSdp != null) {
-        setState(() => _callStatus = LanguageService.instance.translate('call_connecting'));
-        await _callService.answerCall(
-          widget.callId!,
-          widget.offerSdp!,
-          widget.isVideo ? 'video' : 'audio',
-        );
+      _callService.onNetworkChange = (message) {
+        if (mounted) {
+          setState(
+            () => _callStatus = LanguageService.instance.translate(
+              'call_network_reconnecting',
+            ),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(message), duration: Duration(seconds: 2)),
+          );
+        }
+      };
+
+      // Initier ou répondre à l'appel
+      if (widget.isIncoming && widget.callId != null) {
+        if (mounted) {
+          setState(
+            () => _callStatus = LanguageService.instance.translate(
+              'call_connecting',
+            ),
+          );
+        }
+
+        String remoteSdp = widget.offerSdp ?? '';
+
+        // Si le SDP n'est pas fourni (cas CallKit), on le récupère via l'API
+        if (remoteSdp.isEmpty) {
+          try {
+            final callInfo = await apiService.getCallInfo(widget.callId!);
+            remoteSdp = callInfo['offer_sdp'] ?? '';
+          } catch (e) {
+            print('Erreur récupération infos appel: $e');
+            if (mounted) Navigator.pop(context);
+            return;
+          }
+        }
+
+        if (remoteSdp.isNotEmpty) {
+          await _callService.answerCall(
+            widget.callId!,
+            remoteSdp,
+            widget.isVideo ? 'video' : 'audio',
+          );
+        }
       } else if (!widget.isIncoming && widget.recipientId != null) {
-        setState(() => _callStatus = LanguageService.instance.translate('call_ringing'));
+        if (mounted) {
+          setState(
+            () => _callStatus = LanguageService.instance.translate(
+              'call_ringing',
+            ),
+          );
+        }
         if (widget.isVideo) {
           await _callService.initiateVideoCall(widget.recipientId!);
         } else {
@@ -116,15 +161,36 @@ class _CallScreenState extends State<CallScreen> {
         }
       }
     } catch (e) {
+      print('Erreur lors de la configuration de l\'appel: $e');
       if (mounted) {
+        String errorMessage = e.toString().replaceAll('Exception: ', '');
+
+        // Messages d'erreur plus clairs
+        if (errorMessage.contains('Permission') ||
+            errorMessage.contains('permission')) {
+          errorMessage =
+              'Permission refusée. Veuillez autoriser l\'accès au microphone et à la caméra.';
+        } else if (errorMessage.contains('NotFoundError') ||
+            errorMessage.contains('not found')) {
+          errorMessage = 'Aucun microphone ou caméra trouvé sur cet appareil.';
+        } else if (errorMessage.contains('NotAllowedError')) {
+          errorMessage =
+              'Accès refusé. Veuillez autoriser les permissions dans les paramètres.';
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString().replaceAll('Exception: ', '')),
+            content: Text(errorMessage),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 5),
           ),
         );
-        Navigator.pop(context);
+
+        // Attendre un peu avant de fermer pour que l'utilisateur puisse lire le message
+        await Future.delayed(Duration(milliseconds: 500));
+        if (mounted) {
+          Navigator.pop(context);
+        }
       }
     }
   }
@@ -175,10 +241,7 @@ class _CallScreenState extends State<CallScreen> {
                   const SizedBox(height: 8),
                   Text(
                     _callStatus,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 16,
-                    ),
+                    style: const TextStyle(color: Colors.white70, fontSize: 16),
                   ),
                 ],
               ),
@@ -266,10 +329,7 @@ class _CallScreenState extends State<CallScreen> {
               ),
             ),
           const SizedBox(height: 40),
-          if (_isRinging)
-            const CircularProgressIndicator(
-              color: Colors.white,
-            ),
+          if (_isRinging) const CircularProgressIndicator(color: Colors.white),
         ],
       ),
     );
@@ -298,7 +358,10 @@ class _CallScreenState extends State<CallScreen> {
   void dispose() {
     _localRenderer.dispose();
     _remoteRenderer.dispose();
-    _callService.cleanup();
+    // Nettoyer le service d'appel de manière asynchrone
+    _callService.cleanup().catchError((e) {
+      print('Erreur lors du nettoyage du service d\'appel: $e');
+    });
     super.dispose();
   }
 }

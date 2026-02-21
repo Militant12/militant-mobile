@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import '../services/api_service.dart';
 
 class TwoFactorSettingsScreen extends StatefulWidget {
@@ -215,10 +216,39 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                   const SizedBox(height: 32),
                   if (!_isEnabled && _secret != null) ...[
                     const Text(
-                      '1. Scannez ou copiez le secret',
+                      '1. Scannez le QR code avec votre authentificateur',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: QrImageView(
+                          data: _otpauthUrl!,
+                          version: QrVersions.auto,
+                          size: 200.0,
+                          backgroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Ou copiez le secret manuellement:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -232,7 +262,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                               _secret!,
                               style: const TextStyle(
                                 fontFamily: 'monospace',
-                                fontSize: 18,
+                                fontSize: 16,
                                 letterSpacing: 2,
                               ),
                             ),
@@ -247,20 +277,6 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                             },
                           ),
                         ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: () async {
-                        if (await canLaunchUrl(Uri.parse(_otpauthUrl!))) {
-                          await launchUrl(Uri.parse(_otpauthUrl!));
-                        }
-                      },
-                      icon: const Icon(Icons.open_in_new),
-                      label: const Text('Ouvrir dans l\'authentificateur'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 32),

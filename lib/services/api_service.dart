@@ -528,20 +528,23 @@ class ApiService {
       return data['data'] ??
           []; // paginate() returns 'data' by default if not specified
     } else {
-      debugPrint('Comments API error: ${response.statusCode} - ${response.body}');
+      debugPrint(
+        'Comments API error: ${response.statusCode} - ${response.body}',
+      );
       throw Exception('Erreur de chargement des commentaires');
     }
   }
 
-  Future<Map<String, dynamic>> addComment(int postId, String content, {int? parentId}) async {
-    final body = {
-      'post_id': postId,
-      'content': content,
-    };
+  Future<Map<String, dynamic>> addComment(
+    int postId,
+    String content, {
+    int? parentId,
+  }) async {
+    final body = {'post_id': postId, 'content': content};
     if (parentId != null) {
       body['parent_id'] = parentId;
     }
-    
+
     final response = await http.post(
       Uri.parse('$apiUrl/v1/comments.php'),
       headers: _headers,
@@ -571,7 +574,9 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      throw Exception('Erreur de modification du commentaire: ${response.body}');
+      throw Exception(
+        'Erreur de modification du commentaire: ${response.body}',
+      );
     }
   }
 
@@ -598,7 +603,9 @@ class ApiService {
       debugPrint('Group comments API response: ${response.body}');
       return data['data'] ?? [];
     } else {
-      debugPrint('Group comments API error: ${response.statusCode} - ${response.body}');
+      debugPrint(
+        'Group comments API error: ${response.statusCode} - ${response.body}',
+      );
       throw Exception('Erreur de chargement des commentaires du groupe');
     }
   }
@@ -608,14 +615,11 @@ class ApiService {
     String content, {
     int? parentId,
   }) async {
-    final body = {
-      'post_id': postId,
-      'content': content,
-    };
+    final body = {'post_id': postId, 'content': content};
     if (parentId != null) {
       body['parent_id'] = parentId;
     }
-    
+
     final response = await http.post(
       Uri.parse('$apiUrl/v1/group_comments.php'),
       headers: _headers,
@@ -634,12 +638,14 @@ class ApiService {
       headers: _headers,
       body: jsonEncode({'id': commentId, 'content': content}),
     );
-    
+
     debugPrint('Update group comment response status: ${response.statusCode}');
     debugPrint('Update group comment response body: ${response.body}');
-    
+
     if (response.statusCode != 200) {
-      throw Exception('Erreur de modification du commentaire de groupe: ${response.body}');
+      throw Exception(
+        'Erreur de modification du commentaire de groupe: ${response.body}',
+      );
     }
   }
 
@@ -793,9 +799,8 @@ class ApiService {
 
   Future<Map<String, dynamic>> handleFriendRequest(
     int requestId,
-    String action,
+    String action, // 'accept' or 'reject'
   ) async {
-    // action: 'accept' or 'reject'
     final response = await http.post(
       Uri.parse('$apiUrl/v1/friends.php'),
       headers: _headers,
@@ -805,8 +810,26 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      final error = jsonDecode(response.body)['error'] ?? 'Erreur';
-      throw Exception(error);
+      throw Exception('Erreur de traitement de la demande'); // Message d'erreur
+    }
+  }
+
+  // === APPELS ===
+
+  Future<Map<String, dynamic>> getCallInfo(String callId) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/calls.php?action=poll&call_id=$callId'),
+      headers: _flutterHeaders,
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['success'] == true && data['data'] != null) {
+        return data['data']['call'] ?? {};
+      }
+      return data;
+    } else {
+      throw Exception('Impossible de récupérer les infos de l\'appel');
     }
   }
 
@@ -1297,7 +1320,10 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> reactToGroupPost(int postId, String reactionType) async {
+  Future<Map<String, dynamic>> reactToGroupPost(
+    int postId,
+    String reactionType,
+  ) async {
     final response = await http.post(
       Uri.parse('$apiUrl/v1/group_reactions.php'),
       headers: _headers,
@@ -2313,7 +2339,7 @@ class ApiService {
   }
 
   // === CALLS (FLUTTER EXCLUSIVE) ===
-  
+
   // Headers avec le flag Flutter exclusif
   Map<String, String> get _flutterHeaders => {
     'Content-Type': 'application/json',
@@ -2339,45 +2365,54 @@ class ApiService {
 
     if (response.statusCode == 201 || response.statusCode == 200) {
       try {
-        return jsonDecode(response.body);
+        final body = jsonDecode(response.body);
+        // Backend wraps response in {success, data:{...}}
+        return (body['data'] as Map<String, dynamic>?) ?? body;
       } catch (e) {
-        throw Exception('L\'API des appels n\'est pas encore déployée. Veuillez réessayer plus tard.');
+        throw Exception(
+          'L\'API des appels n\'est pas encore déployée. Veuillez réessayer plus tard.',
+        );
       }
     } else {
       try {
         final error = jsonDecode(response.body);
-        throw Exception(error['error'] ?? 'Erreur lors de l\'initiation de l\'appel');
+        throw Exception(
+          error['error'] ?? 'Erreur lors de l\'initiation de l\'appel',
+        );
       } catch (e) {
-        throw Exception('L\'API des appels n\'est pas encore disponible (code ${response.statusCode})');
+        throw Exception(
+          'L\'API des appels n\'est pas encore disponible (code ${response.statusCode})',
+        );
       }
     }
   }
 
-  Future<Map<String, dynamic>> answerCall(String callId, String answerSdp) async {
+  Future<Map<String, dynamic>> answerCall(
+    String callId,
+    String answerSdp,
+  ) async {
     final response = await http.post(
       Uri.parse('$apiUrl/v1/calls.php?action=answer'),
       headers: _flutterHeaders,
-      body: jsonEncode({
-        'call_id': callId,
-        'answer': answerSdp,
-      }),
+      body: jsonEncode({'call_id': callId, 'answer': answerSdp}),
     );
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      final body = jsonDecode(response.body);
+      return (body['data'] as Map<String, dynamic>?) ?? body;
     } else {
       throw Exception('Erreur lors de la réponse à l\'appel');
     }
   }
 
-  Future<void> sendIceCandidate(String callId, Map<String, dynamic> candidate) async {
+  Future<void> sendIceCandidate(
+    String callId,
+    Map<String, dynamic> candidate,
+  ) async {
     final response = await http.post(
       Uri.parse('$apiUrl/v1/calls.php?action=ice_candidate'),
       headers: _flutterHeaders,
-      body: jsonEncode({
-        'call_id': callId,
-        'candidate': candidate,
-      }),
+      body: jsonEncode({'call_id': callId, 'candidate': candidate}),
     );
 
     if (response.statusCode != 200) {
@@ -2394,6 +2429,18 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception('Erreur lors du rejet de l\'appel');
+    }
+  }
+
+  Future<void> leaveGroupCall(String callId) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/calls.php?action=leave'),
+      headers: _flutterHeaders,
+      body: jsonEncode({'call_id': callId}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors de la sortie de l\'appel de groupe');
     }
   }
 
@@ -2421,7 +2468,12 @@ class ApiService {
     final response = await http.get(Uri.parse(url), headers: _flutterHeaders);
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      final body = jsonDecode(response.body);
+      // Backend wraps response in {success, data:{call, ice_candidates, ...}}
+      if (body['success'] == true && body['data'] != null) {
+        return Map<String, dynamic>.from(body['data']);
+      }
+      return body;
     } else {
       throw Exception('Erreur lors du polling');
     }
@@ -2434,8 +2486,12 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['data'] ?? [];
+      final body = jsonDecode(response.body);
+      // Backend wraps in {success, data:{data:[...], total, ...}} (paginated)
+      final inner = body['data'];
+      if (inner is Map && inner['data'] is List) return inner['data'];
+      if (inner is List) return inner;
+      return [];
     } else {
       throw Exception('Erreur de chargement de l\'historique des appels');
     }
@@ -2445,14 +2501,13 @@ class ApiService {
     final response = await http.post(
       Uri.parse('$apiUrl/v1/calls.php?action=ice_restart'),
       headers: _flutterHeaders,
-      body: jsonEncode({
-        'call_id': callId,
-        'offer': newOfferSdp,
-      }),
+      body: jsonEncode({'call_id': callId, 'offer': newOfferSdp}),
     );
 
     if (response.statusCode != 200) {
-      throw Exception('Erreur lors du redémarrage ICE');
+      throw Exception(
+        'Erreur lors du redémarrage ICE: ${response.statusCode} - ${response.body}',
+      );
     }
   }
 
@@ -2474,31 +2529,41 @@ class ApiService {
     );
 
     if (response.statusCode == 201 || response.statusCode == 200) {
-      return jsonDecode(response.body);
+      final body = jsonDecode(response.body);
+      // Backend wraps response in {success, data:{...}}
+      return (body['data'] as Map<String, dynamic>?) ?? body;
     } else {
       final error = jsonDecode(response.body);
-      throw Exception(error['error'] ?? 'Erreur lors de l\'initiation de l\'appel de groupe');
+      throw Exception(
+        error['error'] ?? 'Erreur lors de l\'initiation de l\'appel de groupe',
+      );
     }
   }
 
-  Future<Map<String, dynamic>> joinGroupCall(String callId, String offerSdp) async {
+  Future<Map<String, dynamic>> joinGroupCall(
+    String callId,
+    String offerSdp,
+  ) async {
     final response = await http.post(
       Uri.parse('$apiUrl/v1/calls.php?action=join'),
       headers: _flutterHeaders,
-      body: jsonEncode({
-        'call_id': callId,
-        'offer': offerSdp,
-      }),
+      body: jsonEncode({'call_id': callId, 'offer': offerSdp}),
     );
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      final body = jsonDecode(response.body);
+      // Backend wraps response in {success, data:{...}}
+      return (body['data'] as Map<String, dynamic>?) ?? body;
     } else {
       throw Exception('Erreur lors de la jonction à l\'appel de groupe');
     }
   }
 
-  Future<void> sendPeerOffer(String callId, int toUserId, String offerSdp) async {
+  Future<void> sendPeerOffer(
+    String callId,
+    int toUserId,
+    String offerSdp,
+  ) async {
     final response = await http.post(
       Uri.parse('$apiUrl/v1/calls.php?action=peer_offer'),
       headers: _flutterHeaders,
@@ -2514,7 +2579,11 @@ class ApiService {
     }
   }
 
-  Future<void> sendPeerAnswer(String callId, int toUserId, String answerSdp) async {
+  Future<void> sendPeerAnswer(
+    String callId,
+    int toUserId,
+    String answerSdp,
+  ) async {
     final response = await http.post(
       Uri.parse('$apiUrl/v1/calls.php?action=peer_answer'),
       headers: _flutterHeaders,
@@ -2530,4 +2599,3 @@ class ApiService {
     }
   }
 }
-

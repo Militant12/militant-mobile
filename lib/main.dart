@@ -10,6 +10,9 @@ import 'screens/home_screen.dart';
 import 'services/theme_manager.dart';
 import 'services/language_service.dart';
 import 'services/api_service.dart';
+import 'services/incoming_call_service.dart';
+import 'services/message_notification_service.dart';
+import 'widgets/incoming_call_banner.dart';
 
 // Import OneSignal
 import 'package:onesignal_flutter/onesignal_flutter.dart';
@@ -43,6 +46,7 @@ class MilitantApp extends StatelessWidget {
           valueListenable: LanguageService.instance,
           builder: (context, locale, __) {
             return MaterialApp(
+              navigatorKey: appNavigatorKey,
               title: 'Militant',
               locale: locale,
               themeMode: mode,
@@ -142,10 +146,10 @@ class _SplashScreenState extends State<SplashScreen>
       print('=== SPLASH: Début vérification auth ===');
       final prefs = await SharedPreferences.getInstance();
       print('=== SPLASH: SharedPreferences chargé ===');
-      
+
       final token = prefs.getString('api_token');
       final baseUrl = prefs.getString('base_url');
-      
+
       print('=== SPLASH: Token = ${token != null ? "présent" : "absent"} ===');
       print('=== SPLASH: BaseURL = $baseUrl ===');
 
@@ -157,23 +161,34 @@ class _SplashScreenState extends State<SplashScreen>
 
       // Simple check: if we have token AND base_url, go to HomeScreen
       // HomeScreen will handle any errors and redirect to login if needed
-      if (token != null && token.isNotEmpty && baseUrl != null && baseUrl.isNotEmpty) {
-        print('=== SPLASH: Token et URL présents, navigation vers HomeScreen ===');
-        
-        // Initialize OneSignal push notifications
+      if (token != null &&
+          token.isNotEmpty &&
+          baseUrl != null &&
+          baseUrl.isNotEmpty) {
+        print(
+          '=== SPLASH: Token et URL présents, navigation vers HomeScreen ===',
+        );
+
+        // Initialiser OneSignal, appels entrants, messages et bannière
         try {
           final api = await ApiService.getInstance();
           await api.initializeOneSignal();
-          print('=== SPLASH: OneSignal initialisé ===');
+          await IncomingCallService.instance.initialize();
+          await MessageNotificationService.instance.initialize();
+          // Démarrer le listener global d'appels — la bannière apparaît dans tous les chats
+          IncomingCallController.instance.startListening();
+          print('=== SPLASH: OneSignal + appels entrants initialises ===');
         } catch (e) {
-          print('=== SPLASH: Erreur initialisation OneSignal: $e ===');
+          print('=== SPLASH: Erreur init OneSignal/appels entrants: $e ===');
         }
-        
+
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
       } else {
-        print('=== SPLASH: Pas de token ou base_url, navigation vers LoginScreen ===');
+        print(
+          '=== SPLASH: Pas de token ou base_url, navigation vers LoginScreen ===',
+        );
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const LoginScreen()),
         );

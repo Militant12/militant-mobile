@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
@@ -9,6 +10,7 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../widgets/linkable_text.dart';
 import 'call_screen.dart';
+import '../widgets/incoming_call_banner.dart';
 
 class ChatScreen extends StatefulWidget {
   final int userId;
@@ -34,6 +36,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isRecording = false;
   Map<String, dynamic>? _currentUser;
   ApiService? _api;
+  StreamSubscription<IncomingCallData?>? _callEndSub;
 
   @override
   void initState() {
@@ -42,6 +45,15 @@ class _ChatScreenState extends State<ChatScreen> {
       setState(() {}); // Rebuild pour afficher/cacher le bouton micro
     });
     _loadMessages();
+    // Rafraîchir le chat quand un appel se termine (pour afficher le message système)
+    _callEndSub = IncomingCallController.instance.stream.listen((event) {
+      if (event == null && mounted) {
+        // null = appel terminé/rejeté — recharger après 1s (laisse le temps au serveur)
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) _loadMessages();
+        });
+      }
+    });
   }
 
   Future<void> _loadMessages() async {
@@ -142,7 +154,9 @@ class _ChatScreenState extends State<ChatScreen> {
                     isIncoming: false,
                   ),
                 ),
-              );
+              ).then(
+                (_) => _loadMessages(),
+              ); // Rafraîchir le chat après l'appel
             },
             tooltip: LanguageService.instance.translate('call_audio'),
           ),
@@ -161,38 +175,48 @@ class _ChatScreenState extends State<ChatScreen> {
                     isIncoming: false,
                   ),
                 ),
-              );
+              ).then(
+                (_) => _loadMessages(),
+              ); // Rafraîchir le chat après l'appel
             },
             tooltip: LanguageService.instance.translate('call_video'),
           ),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-                  )
-                : _messages.isEmpty
-                ? Center(
-                    child: Text(
-                      'Aucun message',
-                      style: TextStyle(
-                        color: theme.textTheme.bodyMedium?.color,
+          Column(
+            children: [
+              Expanded(
+                child: _isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFFBE1E1E),
+                        ),
+                      )
+                    : _messages.isEmpty
+                    ? Center(
+                        child: Text(
+                          'Aucun message',
+                          style: TextStyle(
+                            color: theme.textTheme.bodyMedium?.color,
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        reverse: true,
+                        itemCount: _messages.length,
+                        itemBuilder: (context, index) {
+                          final message = _messages[index];
+                          return _buildMessageBubble(message);
+                        },
                       ),
-                    ),
-                  )
-                : ListView.builder(
-                    reverse: true, // Typically chat is reversed
-                    itemCount: _messages.length,
-                    itemBuilder: (context, index) {
-                      final message = _messages[index];
-                      return _buildMessageBubble(message);
-                    },
-                  ),
+              ),
+              _buildMessageInput(),
+            ],
           ),
-          _buildMessageInput(),
+          // Bannière d'appel entrant (affichée au-dessus du chat)
+          IncomingCallBanner(peerId: widget.userId),
         ],
       ),
     );
@@ -828,6 +852,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    _callEndSub?.cancel();
     _messageController.dispose();
     super.dispose();
   }

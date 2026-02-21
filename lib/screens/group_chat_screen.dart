@@ -12,6 +12,7 @@ import 'group_settings_screen.dart';
 import '../widgets/linkable_text.dart';
 import 'call_screen.dart';
 import 'group_call_screen.dart';
+import '../widgets/incoming_call_banner.dart';
 
 class GroupChatScreen extends StatefulWidget {
   final int groupId;
@@ -207,32 +208,40 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           ),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: _isLoading && _messages.isEmpty
-                ? const Center(
-                    child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-                  )
-                : _messages.isEmpty
-                ? Center(
-                    child: Text(
-                      'Aucun message dans ce groupe',
-                      style: TextStyle(
-                        color: theme.textTheme.bodyMedium?.color,
+          Column(
+            children: [
+              Expanded(
+                child: _isLoading && _messages.isEmpty
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFFBE1E1E),
+                        ),
+                      )
+                    : _messages.isEmpty
+                    ? Center(
+                        child: Text(
+                          'Aucun message dans ce groupe',
+                          style: TextStyle(
+                            color: theme.textTheme.bodyMedium?.color,
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        reverse: true,
+                        itemCount: _messages.length,
+                        itemBuilder: (context, index) {
+                          final message = _messages[index];
+                          return _buildMessageBubble(message);
+                        },
                       ),
-                    ),
-                  )
-                : ListView.builder(
-                    reverse: true,
-                    itemCount: _messages.length,
-                    itemBuilder: (context, index) {
-                      final message = _messages[index];
-                      return _buildMessageBubble(message);
-                    },
-                  ),
+              ),
+              _buildMessageInput(),
+            ],
           ),
-          _buildMessageInput(),
+          // Bannière d'appel entrant (affichée au-dessus du chat de groupe)
+          IncomingCallBanner(groupId: widget.groupId),
         ],
       ),
     );

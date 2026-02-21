@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
+import '../services/incoming_call_service.dart';
 import '../services/language_service.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'home_screen.dart';
@@ -71,6 +72,12 @@ class _LoginScreenState extends State<LoginScreen> {
           }
         } catch (e) {
           print('OneSignal dynamic init error: $e');
+        }
+
+        try {
+          await IncomingCallService.instance.initialize();
+        } catch (e) {
+          print('Incoming call init error: $e');
         }
 
         Navigator.of(context).pushReplacement(

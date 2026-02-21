@@ -60,10 +60,11 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
       final renderer = RTCVideoRenderer();
       await renderer.initialize();
       renderer.srcObject = stream;
-      
+
       setState(() {
         _remoteRenderers[userId] = renderer;
-        _callStatus = LanguageService.instance.translate('call_participant_count')
+        _callStatus = LanguageService.instance
+            .translate('call_participant_count')
             .replaceAll('{count}', '${_remoteRenderers.length}');
       });
     };
@@ -74,16 +75,20 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
         renderer.dispose();
         setState(() {
           _remoteRenderers.remove(userId);
-          _callStatus = LanguageService.instance.translate('call_participant_count')
+          _callStatus = LanguageService.instance
+              .translate('call_participant_count')
               .replaceAll('{count}', '${_remoteRenderers.length}');
         });
       }
     };
 
-    _callService.onCallEnded = (reason) {
-      if (mounted) {
-        Navigator.pop(context);
-      }
+    _callService.onCallEnded = (reason) async {
+      if (!mounted) return;
+      setState(() {
+        _callStatus = '📵 Appel terminé';
+      });
+      await Future.delayed(const Duration(seconds: 2));
+      if (mounted) Navigator.pop(context);
     };
 
     _callService.onParticipantsChanged = (participants) {
@@ -94,25 +99,30 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
 
     _callService.onNetworkChange = (message) {
       if (mounted) {
-        setState(() => _callStatus = LanguageService.instance.translate('call_network_reconnecting'));
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(message),
-            duration: Duration(seconds: 2),
+        setState(
+          () => _callStatus = LanguageService.instance.translate(
+            'call_network_reconnecting',
           ),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message), duration: Duration(seconds: 2)),
         );
       }
     };
 
     // Initier ou rejoindre l'appel
     if (widget.isIncoming && widget.callId != null) {
-      setState(() => _callStatus = LanguageService.instance.translate('call_joining'));
+      setState(
+        () => _callStatus = LanguageService.instance.translate('call_joining'),
+      );
       await _callService.joinCall(
         widget.callId!,
         widget.isVideo ? 'video' : 'audio',
       );
     } else if (!widget.isIncoming && widget.groupId != null) {
-      setState(() => _callStatus = LanguageService.instance.translate('call_ringing'));
+      setState(
+        () => _callStatus = LanguageService.instance.translate('call_ringing'),
+      );
       if (widget.isVideo) {
         await _callService.initiateVideoCall(widget.groupId!);
       } else {
@@ -149,10 +159,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
                   const SizedBox(height: 8),
                   Text(
                     _callStatus,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 16,
-                    ),
+                    style: const TextStyle(color: Colors.white70, fontSize: 16),
                   ),
                 ],
               ),
@@ -224,11 +231,9 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
   Widget _buildVideoGrid() {
     final allRenderers = [
       {'userId': 0, 'renderer': _localRenderer, 'isLocal': true},
-      ..._remoteRenderers.entries.map((e) => {
-        'userId': e.key,
-        'renderer': e.value,
-        'isLocal': false,
-      }),
+      ..._remoteRenderers.entries.map(
+        (e) => {'userId': e.key, 'renderer': e.value, 'isLocal': false},
+      ),
     ];
 
     if (!widget.isVideo || allRenderers.isEmpty) {
@@ -237,7 +242,11 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
 
     // Calculer la grille (2x2, 3x3, etc.)
     final count = allRenderers.length;
-    final columns = count <= 1 ? 1 : count <= 4 ? 2 : 3;
+    final columns = count <= 1
+        ? 1
+        : count <= 4
+        ? 2
+        : 3;
     final rows = (count / columns).ceil();
 
     return GridView.builder(
@@ -287,18 +296,11 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.group,
-            size: 80,
-            color: Colors.white54,
-          ),
+          Icon(Icons.group, size: 80, color: Colors.white54),
           SizedBox(height: 20),
           Text(
             LanguageService.instance.translate('call_group_audio'),
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-            ),
+            style: TextStyle(color: Colors.white, fontSize: 20),
           ),
         ],
       ),
@@ -317,7 +319,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                LanguageService.instance.translate('call_participants') + 
+                LanguageService.instance.translate('call_participants') +
                     ' (${_participants.length + 1})',
                 style: TextStyle(
                   color: Colors.white,
