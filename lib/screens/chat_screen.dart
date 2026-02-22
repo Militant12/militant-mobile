@@ -7,9 +7,7 @@ import '../widgets/video_player_widget.dart';
 import '../widgets/audio_player_widget.dart';
 import '../widgets/audio_recorder_widget.dart';
 import '../services/api_service.dart';
-import '../services/language_service.dart';
 import '../widgets/linkable_text.dart';
-import 'call_screen.dart';
 import '../widgets/incoming_call_banner.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -139,6 +137,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         ),
         actions: [
+          /* Boutons d'appels temporairement désactivés
           // Bouton appel audio
           IconButton(
             icon: const Icon(Icons.call),
@@ -181,6 +180,7 @@ class _ChatScreenState extends State<ChatScreen> {
             },
             tooltip: LanguageService.instance.translate('call_video'),
           ),
+          */
         ],
       ),
       body: Stack(

@@ -7,11 +7,9 @@ import '../widgets/video_player_widget.dart';
 import '../widgets/audio_player_widget.dart';
 import '../widgets/audio_recorder_widget.dart';
 import '../services/api_service.dart';
-import '../services/language_service.dart';
 import 'group_settings_screen.dart';
 import '../widgets/linkable_text.dart';
 import 'call_screen.dart';
-import 'group_call_screen.dart';
 import '../widgets/incoming_call_banner.dart';
 
 class GroupChatScreen extends StatefulWidget {
@@ -153,6 +151,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           ],
         ),
         actions: [
+          /* Boutons d'appels temporairement désactivés
           // Bouton appel audio de groupe
           IconButton(
             icon: const Icon(Icons.call),
@@ -189,6 +188,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             },
             tooltip: LanguageService.instance.translate('call_group_video'),
           ),
+          */
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () async {
