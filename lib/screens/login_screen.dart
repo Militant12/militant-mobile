@@ -67,7 +67,9 @@ class _LoginScreenState extends State<LoginScreen> {
           // Login to OneSignal for notifications only on supported platforms
           if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
             if (result['user'] != null && result['user']['id'] != null) {
-              OneSignal.login(result['user']['id'].toString());
+              final userId = result['user']['id'].toString();
+              print('OneSignal Login with User ID: $userId');
+              OneSignal.login(userId);
             }
           }
         } catch (e) {

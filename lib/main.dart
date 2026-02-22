@@ -177,6 +177,15 @@ class _SplashScreenState extends State<SplashScreen>
           await MessageNotificationService.instance.initialize();
           // Démarrer le listener global d'appels — la bannière apparaît dans tous les chats
           IncomingCallController.instance.startListening();
+          // Login to OneSignal if we have the user ID from storage
+          if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+            final userIdStr = prefs.getInt('user_id')?.toString();
+            if (userIdStr != null && userIdStr.isNotEmpty) {
+              print('=== SPLASH: OneSignal Login with User ID: $userIdStr ===');
+              OneSignal.login(userIdStr);
+            }
+          }
+
           print('=== SPLASH: OneSignal + appels entrants initialises ===');
         } catch (e) {
           print('=== SPLASH: Erreur init OneSignal/appels entrants: $e ===');
