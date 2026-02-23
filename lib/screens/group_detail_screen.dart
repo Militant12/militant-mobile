@@ -80,7 +80,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
 
   Future<void> _loadMembersPreview() async {
     try {
-      if (_api == null) _api = await ApiService.getInstance();
+      _api ??= await ApiService.getInstance();
       // Fetch members just for preview count/avatars
       final members = await _api!.getGroupMembers(_groupData!['id']);
       if (mounted) {
@@ -120,9 +120,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     final String groupName = _groupData!['name'] ?? lang.translate('group');
     final int groupId = _groupData!['id'];
 
-    if (_api == null) {
-      _api = await ApiService.getInstance();
-    }
+    _api ??= await ApiService.getInstance();
 
     // Construct web URL
     String baseUrl = _api!.baseUrl;
@@ -141,7 +139,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
 
   Future<void> _loadGroupInfo() async {
     try {
-      if (_api == null) _api = await ApiService.getInstance();
+      _api ??= await ApiService.getInstance();
       final data = await _api!.getSocialGroupDetails(_groupData!['id']);
       if (mounted) {
         setState(() {
@@ -312,7 +310,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                   ),
                   value: isPrivate,
                   onChanged: (val) => setDialogState(() => isPrivate = val),
-                  activeColor: const Color(0xFFBE1E1E),
+                  activeThumbColor: const Color(0xFFBE1E1E),
                 ),
               ],
             ),

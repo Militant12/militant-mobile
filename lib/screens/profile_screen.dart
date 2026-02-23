@@ -145,7 +145,7 @@ class ProfileScreenState extends State<ProfileScreen>
       setState(() => _sentRequestId = result['request_id']);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${lang.translate('friend_request_sent')}')),
+          SnackBar(content: Text(lang.translate('friend_request_sent'))),
         );
       }
     } catch (e) {

@@ -119,7 +119,7 @@ class _GroupsScreenState extends State<GroupsScreen>
                     style: const TextStyle(color: Colors.white38, fontSize: 12),
                   ),
                   value: isPrivate,
-                  activeColor: const Color(0xFFBE1E1E),
+                  activeThumbColor: const Color(0xFFBE1E1E),
                   onChanged: (val) => setDialogState(() => isPrivate = val),
                   contentPadding: EdgeInsets.zero,
                 ),

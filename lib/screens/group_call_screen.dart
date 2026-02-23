@@ -319,8 +319,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                LanguageService.instance.translate('call_participants') +
-                    ' (${_participants.length + 1})',
+                '${LanguageService.instance.translate('call_participants')} (${_participants.length + 1})',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 18,

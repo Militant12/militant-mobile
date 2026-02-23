@@ -181,6 +181,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             subtitle: lang.translate('version'),
             onTap: () => _showAboutDialog(context),
           ),
+          _buildOption(
+            context,
+            icon: Icons.delete_forever,
+            title: lang.translate('delete_account_title'),
+            subtitle: lang.translate('delete_account_subtitle'),
+            onTap: () => _showDeleteAccountDialog(context),
+          ),
         ],
       ),
     );
@@ -380,6 +387,110 @@ class _SettingsScreenState extends State<SettingsScreen> {
         const SizedBox(height: 16),
         Text(lang.translate('copyright')),
       ],
+    );
+  }
+
+  void _showDeleteAccountDialog(BuildContext context) {
+    final lang = LanguageService.instance;
+    final theme = Theme.of(context);
+    final passwordController = TextEditingController();
+    bool isLoading = false;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          backgroundColor: theme.scaffoldBackgroundColor,
+          title: Text(
+            lang.translate('delete_account_title'),
+            style: const TextStyle(color: Color(0xFFBE1E1E)),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                lang.translate('delete_account_warning'),
+                style: TextStyle(color: theme.colorScheme.onSurface),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: passwordController,
+                obscureText: true,
+                style: TextStyle(
+                  color: theme.brightness == Brightness.dark
+                      ? Colors.white
+                      : Colors.black,
+                ),
+                decoration: InputDecoration(
+                  labelText: lang.translate('enter_password_to_delete'),
+                  labelStyle: const TextStyle(color: Colors.grey),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFFBE1E1E)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: isLoading ? null : () => Navigator.pop(context),
+              child: Text(
+                lang.translate('cancel'),
+                style: const TextStyle(color: Colors.grey),
+              ),
+            ),
+            TextButton(
+              onPressed: isLoading
+                  ? null
+                  : () async {
+                      if (passwordController.text.isEmpty) return;
+                      setState(() => isLoading = true);
+                      try {
+                        final api = await ApiService.getInstance();
+                        await api.post('/v1/delete_account.php', {
+                          'password': passwordController.text,
+                        });
+
+                        if (mounted) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                lang.translate('delete_account_request_sent'),
+                              ),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          setState(() => isLoading = false);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Erreur: ${e.toString()}'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    },
+              child: isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Color(0xFFBE1E1E),
+                      ),
+                    )
+                  : Text(
+                      lang.translate('delete_account_confirm'),
+                      style: const TextStyle(color: Color(0xFFBE1E1E)),
+                    ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -585,7 +696,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${lang.translate('loading_error')}: ${e.toString()}')),
+          SnackBar(
+            content: Text(
+              '${lang.translate('loading_error')}: ${e.toString()}',
+            ),
+          ),
         );
       }
     }

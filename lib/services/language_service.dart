@@ -160,7 +160,6 @@ class LanguageService extends ValueNotifier<Locale> {
       'change_password_title': 'Changer de mot de passe',
       'current_password': 'Mot de passe actuel',
       'new_password': 'Nouveau mot de passe',
-      'confirm_password': 'Confirmer le mot de passe',
       'password_match_error': 'Les mots de passe ne correspondent pas',
       'password_min_length': 'Minimum 8 caractères',
       'update_button': 'Mettre à jour',
@@ -195,6 +194,14 @@ class LanguageService extends ValueNotifier<Locale> {
       'export_data_subtitle': 'Copie JSON',
       'two_factor_title': 'Authentification (2FA)',
       'two_factor_subtitle': 'Code TOTP',
+      'delete_account_title': 'Supprimer mon compte',
+      'delete_account_subtitle': 'Demander la suppression définitive',
+      'delete_account_confirm': 'Supprimer définitivement',
+      'delete_account_warning':
+          'Attention : Cette action est irréversible. Toutes vos données seront effacées. Un e-mail de confirmation vous sera envoyé.',
+      'enter_password_to_delete': 'Entrez votre mot de passe pour confirmer',
+      'delete_account_request_sent':
+          'Demande envoyée ! Vérifiez vos e-mails pour confirmer.',
 
       // Moderation
       'mod_title': 'Modération',
@@ -243,7 +250,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'mod_confirm_warn_title': 'Avertir l\'utilisateur',
       'mod_confirm_warn_text':
           'Envoyer un avertissement officiel à cet utilisateur ?',
-      
+
       // Additional translations
       'badge_updated': 'Badge mis à jour avec succès',
       'group_created': 'Groupe créé avec succès',
@@ -264,11 +271,13 @@ class LanguageService extends ValueNotifier<Locale> {
       'deletion_delay': 'Délai de suppression',
       'disabled': 'Désactivé',
       'confirm_question': 'Confirmer ?',
-      'grant_admin_rights': 'Cela accordera les droits d\'administration à tous les membres actuels du groupe.',
+      'grant_admin_rights':
+          'Cela accordera les droits d\'administration à tous les membres actuels du groupe.',
       'remove_member_question': 'Retirer ce membre ?',
       'remove_member_confirm': 'Voulez-vous retirer {username} du groupe ?',
       'leave_group_question': 'Quitter le groupe ?',
-      'leave_group_confirm': 'Êtes-vous sûr de vouloir quitter ce groupe ? Vous ne pourrez plus accéder aux messages.',
+      'leave_group_confirm':
+          'Êtes-vous sûr de vouloir quitter ce groupe ? Vous ne pourrez plus accéder aux messages.',
       'left_group': 'Vous avez quitté le groupe',
       'social_network': 'Le réseau social de combat.',
       'copyright': '© 2026 Militant Inc.',
@@ -297,13 +306,9 @@ class LanguageService extends ValueNotifier<Locale> {
       'logout_question': 'Déconnexion',
       'logout_confirm': 'Voulez-vous vraiment vous déconnecter ?',
       'remove_from_friends': 'Retirer des amis',
-      'remove_friend_confirm': 'Voulez-vous vraiment retirer cette personne de vos amis ?',
+      'remove_friend_confirm':
+          'Voulez-vous vraiment retirer cette personne de vos amis ?',
       'remove': 'Retirer',
-      'add_friend': 'Ajouter ami',
-      'friend_request_sent': 'Demande envoyée',
-      'friend_request_received': 'Demande d\'ami reçue',
-      'message': 'Message',
-      'friends': 'Amis',
       'error_generic': 'Erreur',
       'cannot_open_url': 'Impossible d\'ouvrir',
       'discussions': 'Discussions',
@@ -343,14 +348,15 @@ class LanguageService extends ValueNotifier<Locale> {
       'description': 'Description',
       'private': 'Privé',
       'public': 'Public',
-      
+
       // Groups screen
       'error_loading': 'Erreur',
       'create_group_title': 'Créer un groupe',
       'group_name_label': 'Nom du groupe *',
       'group_description_label': 'Description',
       'group_private_label': 'Groupe privé',
-      'group_private_subtitle': 'Seuls les membres approuvés peuvent voir le contenu',
+      'group_private_subtitle':
+          'Seuls les membres approuvés peuvent voir le contenu',
       'group_created_success': 'Groupe créé !',
       'joined_group': 'Vous avez rejoint',
       'no_groups_message': 'Aucun groupe',
@@ -360,7 +366,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'all_groups_joined': 'Vous êtes membre de tous les groupes !',
       'posts_count': 'post',
       'posts_count_plural': 'posts',
-      
+
       // Pages screen
       'my_pages': 'Mes pages',
       'followed_pages': 'Suivies',
@@ -375,7 +381,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'admin_badge': 'Admin',
       'followers_count': 'abonné',
       'followers_count_plural': 'abonnés',
-      
+
       // Group detail screen
       'group_detail_error': 'Erreur',
       'event_not_found': 'Événement introuvable',
@@ -389,7 +395,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'members_title': 'Membres',
       'organized_by': 'Organisé par',
       'publications_title': 'Publications',
-      
+
       // Event detail screen
       'event_detail_title': 'Événement',
       'date_and_time': 'Date et heure',
@@ -420,7 +426,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'october': 'octobre',
       'november': 'novembre',
       'december': 'décembre',
-      
+
       // Create event screen
       'create_event_title': 'Créer un événement',
       'event_title_label': 'Titre',
@@ -431,7 +437,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'select_time': 'Sélectionner une heure (optionnel)',
       'title_required': 'Le titre est requis',
       'date_required': 'Veuillez sélectionner une date',
-      
+
       // Page detail screen
       'post_added': 'Publication ajoutée !',
       'delete_post_question': 'Supprimer la publication ?',
@@ -442,9 +448,12 @@ class LanguageService extends ValueNotifier<Locale> {
       'post_updated': 'Publication modifiée',
       'settings_saved': 'Paramètres enregistrés !',
       'remove_follower_question': 'Retirer cet abonné ?',
-      'admin_editor_description': 'Les admins peuvent tout faire. Les éditeurs peuvent publier mais pas modifier les paramètres.',
-      'admin_full_control': 'Les admins ont plein contrôle sur la page et les membres.',
-      'editor_limited_access': 'Les éditeurs peuvent publier mais pas gérer les membres ni les paramètres.',
+      'admin_editor_description':
+          'Les admins peuvent tout faire. Les éditeurs peuvent publier mais pas modifier les paramètres.',
+      'admin_full_control':
+          'Les admins ont plein contrôle sur la page et les membres.',
+      'editor_limited_access':
+          'Les éditeurs peuvent publier mais pas gérer les membres ni les paramètres.',
       'private_followers_only': 'Privée - Abonnés uniquement',
       'no_posts_message': 'Aucune publication',
       'no_followers': 'Aucun abonné',
@@ -453,7 +462,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'subscribe': 'Suivre',
       'follower': 'abonné',
       'followers_plural': 'abonnés',
-      
+
       // Create page screen
       'create_page_title': 'Créer une page',
       'create_page_for_cause': 'Créez une page pour votre cause',
@@ -473,13 +482,14 @@ class LanguageService extends ValueNotifier<Locale> {
       'category_artist': 'Artiste',
       'category_project': 'Projet',
       'category_other': 'Autre',
-      
+
       // Moderation additional keys
       'mod_already_moderator': 'Tu es déjà modérateur·ice !',
       'mod_already_candidate': 'Tu es déjà candidat·e !',
       'mod_cancel_candidacy': 'Annuler ma candidature',
       'mod_cancel_candidacy_question': 'Annuler la candidature ?',
-      'mod_cancel_candidacy_warning': 'Veux-tu vraiment retirer ta candidature ?\nTu perdras tous les votes reçus.',
+      'mod_cancel_candidacy_warning':
+          'Veux-tu vraiment retirer ta candidature ?\nTu perdras tous les votes reçus.',
       'mod_candidacy_cancelled': 'Candidature annulée.',
       'mod_vote_recorded': 'Vote enregistré !',
       'mod_elected_consensus': 'Modérateur·ice élu·e par consensus !',
@@ -490,7 +500,8 @@ class LanguageService extends ValueNotifier<Locale> {
       'promote_to_admin': 'Nommer admin',
       'promote_to_admin_question': 'Nommer {username} admin ?',
       'demote_to_editor': 'Rétrograder',
-      'demote_to_editor_question': 'Rétrograder {username} au rôle d\'éditeur ?',
+      'demote_to_editor_question':
+          'Rétrograder {username} au rôle d\'éditeur ?',
       'add_member': 'Ajouter un membre',
       'add': 'Ajouter',
       'add_media': 'Ajouter un média',
@@ -500,7 +511,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'remove_member': 'Retirer',
       'remove_member_title': 'Retirer ce membre ?',
       'remove_follower_title': 'Retirer cet abonné ?',
-      
+
       // Search screen
       'search_users_posts': 'Recherchez des utilisateurs ou des posts',
       'no_results': 'Aucun résultat',
@@ -508,7 +519,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'posts_tab': 'Posts',
       'just_now': 'À l\'instant',
       'unknown_user': 'utilisateur',
-      
+
       // Notifications screen
       'no_notifications': 'Aucune notification',
       'notification_like': 'a aimé votre post',
@@ -532,7 +543,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'replies': 'réponses',
       'reply_count': '{count} réponse',
       'reply_count_plural': '{count} réponses',
-      
+
       // Appels (privés et de groupe)
       'call_audio': 'Appel audio',
       'call_video': 'Appel vidéo',
@@ -702,7 +713,6 @@ class LanguageService extends ValueNotifier<Locale> {
       'change_password_title': 'Change password',
       'current_password': 'Current password',
       'new_password': 'New password',
-      'confirm_password': 'Confirm password',
       'password_match_error': 'Passwords do not match',
       'password_min_length': 'Minimum 8 characters',
       'update_button': 'Update',
@@ -730,6 +740,14 @@ class LanguageService extends ValueNotifier<Locale> {
       'export_data_subtitle': 'JSON Download',
       'two_factor_title': '2FA Auth.',
       'two_factor_subtitle': 'TOTP Code',
+      'delete_account_title': 'Delete my account',
+      'delete_account_subtitle': 'Request permanent deletion',
+      'delete_account_confirm': 'Delete permanently',
+      'delete_account_warning':
+          'Warning: This action is irreversible. All your data will be erased. A confirmation email will be sent.',
+      'enter_password_to_delete': 'Enter your password to confirm',
+      'delete_account_request_sent':
+          'Request sent! Check your emails to confirm.',
 
       // Moderation
       'mod_title': 'Moderation',
@@ -774,7 +792,7 @@ class LanguageService extends ValueNotifier<Locale> {
           'Delete this post immediately?\nThis action is irreversible.',
       'mod_confirm_warn_title': 'Warn User',
       'mod_confirm_warn_text': 'Send an official warning to this user?',
-      
+
       // Additional translations
       'badge_updated': 'Badge updated successfully',
       'group_created': 'Group created successfully',
@@ -795,11 +813,14 @@ class LanguageService extends ValueNotifier<Locale> {
       'deletion_delay': 'Deletion delay',
       'disabled': 'Disabled',
       'confirm_question': 'Confirm?',
-      'grant_admin_rights': 'This will grant admin rights to all current group members.',
+      'grant_admin_rights':
+          'This will grant admin rights to all current group members.',
       'remove_member_question': 'Remove this member?',
-      'remove_member_confirm': 'Do you want to remove {username} from the group?',
+      'remove_member_confirm':
+          'Do you want to remove {username} from the group?',
       'leave_group_question': 'Leave group?',
-      'leave_group_confirm': 'Are you sure you want to leave this group? You will no longer have access to messages.',
+      'leave_group_confirm':
+          'Are you sure you want to leave this group? You will no longer have access to messages.',
       'left_group': 'You left the group',
       'social_network': 'The militant social network.',
       'copyright': '© 2026 Militant Inc.',
@@ -828,7 +849,8 @@ class LanguageService extends ValueNotifier<Locale> {
       'logout_question': 'Logout',
       'logout_confirm': 'Do you really want to logout?',
       'remove_from_friends': 'Remove from friends',
-      'remove_friend_confirm': 'Do you really want to remove this person from your friends?',
+      'remove_friend_confirm':
+          'Do you really want to remove this person from your friends?',
       'remove': 'Remove',
       'add_friend': 'Add friend',
       'friend_request_sent': 'Request sent',
@@ -875,7 +897,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'description': 'Description',
       'private': 'Private',
       'public': 'Public',
-      
+
       // Groups screen
       'error_loading': 'Error',
       'create_group_title': 'Create a group',
@@ -892,7 +914,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'all_groups_joined': 'You are a member of all groups!',
       'posts_count': 'post',
       'posts_count_plural': 'posts',
-      
+
       // Pages screen
       'my_pages': 'My pages',
       'followed_pages': 'Followed',
@@ -907,7 +929,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'admin_badge': 'Admin',
       'followers_count': 'follower',
       'followers_count_plural': 'followers',
-      
+
       // Group detail screen
       'group_detail_error': 'Error',
       'event_not_found': 'Event not found',
@@ -921,7 +943,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'members_title': 'Members',
       'organized_by': 'Organized by',
       'publications_title': 'Publications',
-      
+
       // Event detail screen
       'event_detail_title': 'Event',
       'date_and_time': 'Date and time',
@@ -952,7 +974,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'october': 'October',
       'november': 'November',
       'december': 'December',
-      
+
       // Create event screen
       'create_event_title': 'Create an event',
       'event_title_label': 'Title',
@@ -963,7 +985,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'select_time': 'Select a time (optional)',
       'title_required': 'Title is required',
       'date_required': 'Please select a date',
-      
+
       // Page detail screen
       'post_added': 'Post added!',
       'delete_post_question': 'Delete post?',
@@ -974,9 +996,12 @@ class LanguageService extends ValueNotifier<Locale> {
       'post_updated': 'Post updated',
       'settings_saved': 'Settings saved!',
       'remove_follower_question': 'Remove this follower?',
-      'admin_editor_description': 'Admins can do everything. Editors can post but not modify settings.',
-      'admin_full_control': 'Admins have full control over the page and members.',
-      'editor_limited_access': 'Editors can post but not manage members or settings.',
+      'admin_editor_description':
+          'Admins can do everything. Editors can post but not modify settings.',
+      'admin_full_control':
+          'Admins have full control over the page and members.',
+      'editor_limited_access':
+          'Editors can post but not manage members or settings.',
       'private_followers_only': 'Private - Followers only',
       'no_posts_message': 'No posts',
       'no_followers': 'No followers',
@@ -985,7 +1010,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'subscribe': 'Subscribe',
       'follower': 'follower',
       'followers_plural': 'followers',
-      
+
       // Create page screen
       'create_page_title': 'Create a page',
       'create_page_for_cause': 'Create a page for your cause',
@@ -1005,13 +1030,14 @@ class LanguageService extends ValueNotifier<Locale> {
       'category_artist': 'Artist',
       'category_project': 'Project',
       'category_other': 'Other',
-      
+
       // Moderation additional keys
       'mod_already_moderator': 'You are already a moderator!',
       'mod_already_candidate': 'You are already a candidate!',
       'mod_cancel_candidacy': 'Cancel my candidacy',
       'mod_cancel_candidacy_question': 'Cancel candidacy?',
-      'mod_cancel_candidacy_warning': 'Do you really want to withdraw your candidacy?\nYou will lose all votes received.',
+      'mod_cancel_candidacy_warning':
+          'Do you really want to withdraw your candidacy?\nYou will lose all votes received.',
       'mod_candidacy_cancelled': 'Candidacy cancelled.',
       'mod_vote_recorded': 'Vote recorded!',
       'mod_elected_consensus': 'Moderator elected by consensus!',
@@ -1032,7 +1058,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'remove_member': 'Remove',
       'remove_member_title': 'Remove this member?',
       'remove_follower_title': 'Remove this follower?',
-      
+
       // Search screen
       'search_users_posts': 'Search for users or posts',
       'no_results': 'No results',
@@ -1040,7 +1066,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'posts_tab': 'Posts',
       'just_now': 'Just now',
       'unknown_user': 'user',
-      
+
       // Notifications screen
       'no_notifications': 'No notifications',
       'notification_like': 'liked your post',
@@ -1064,7 +1090,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'replies': 'replies',
       'reply_count': '{count} reply',
       'reply_count_plural': '{count} replies',
-      
+
       // Calls (1-to-1 and group)
       'call_audio': 'Audio call',
       'call_video': 'Video call',
@@ -1266,7 +1292,15 @@ class LanguageService extends ValueNotifier<Locale> {
       'export_data_subtitle': 'Copia JSON',
       'two_factor_title': 'Autenticación (2FA)',
       'two_factor_subtitle': 'Código TOTP',
-      
+      'delete_account_title': 'Eliminar mi cuenta',
+      'delete_account_subtitle': 'Solicitar eliminación definitiva',
+      'delete_account_confirm': 'Eliminar definitivamente',
+      'delete_account_warning':
+          'Atención: Esta acción es irreversible. Se borrarán todos tus datos. Se enviará un correo de confirmación.',
+      'enter_password_to_delete': 'Introduce tu contraseña para confirmar',
+      'delete_account_request_sent':
+          '¡Solicitud enviada! Revisa tu correo para confirmar.',
+
       // Additional translations
       'badge_updated': 'Insignia actualizada con éxito',
       'group_created': 'Grupo creado con éxito',
@@ -1287,11 +1321,13 @@ class LanguageService extends ValueNotifier<Locale> {
       'deletion_delay': 'Retraso de eliminación',
       'disabled': 'Desactivado',
       'confirm_question': '¿Confirmar?',
-      'grant_admin_rights': 'Esto otorgará derechos de administrador a todos los miembros actuales del grupo.',
+      'grant_admin_rights':
+          'Esto otorgará derechos de administrador a todos los miembros actuales del grupo.',
       'remove_member_question': '¿Eliminar este miembro?',
       'remove_member_confirm': '¿Quieres eliminar a {username} del grupo?',
       'leave_group_question': '¿Salir del grupo?',
-      'leave_group_confirm': '¿Estás seguro de que quieres salir de este grupo? Ya no tendrás acceso a los mensajes.',
+      'leave_group_confirm':
+          '¿Estás seguro de que quieres salir de este grupo? Ya no tendrás acceso a los mensajes.',
       'left_group': 'Has salido del grupo',
       'social_network': 'La red social militante.',
       'copyright': '© 2026 Militant Inc.',
@@ -1320,7 +1356,8 @@ class LanguageService extends ValueNotifier<Locale> {
       'logout_question': 'Cerrar sesión',
       'logout_confirm': '¿Realmente quieres cerrar sesión?',
       'remove_from_friends': 'Eliminar de amigos',
-      'remove_friend_confirm': '¿Realmente quieres eliminar a esta persona de tus amigos?',
+      'remove_friend_confirm':
+          '¿Realmente quieres eliminar a esta persona de tus amigos?',
       'remove': 'Eliminar',
       'add_friend': 'Añadir amigo',
       'friend_request_sent': 'Solicitud enviada',
@@ -1367,14 +1404,15 @@ class LanguageService extends ValueNotifier<Locale> {
       'description': 'Descripción',
       'private': 'Privado',
       'public': 'Público',
-      
+
       // Groups screen
       'error_loading': 'Error',
       'create_group_title': 'Crear un grupo',
       'group_name_label': 'Nombre del grupo *',
       'group_description_label': 'Descripción',
       'group_private_label': 'Grupo privado',
-      'group_private_subtitle': 'Solo los miembros aprobados pueden ver el contenido',
+      'group_private_subtitle':
+          'Solo los miembros aprobados pueden ver el contenido',
       'group_created_success': '¡Grupo creado!',
       'joined_group': 'Te has unido a',
       'no_groups_message': 'No hay grupos',
@@ -1384,7 +1422,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'all_groups_joined': '¡Eres miembro de todos los grupos!',
       'posts_count': 'publicación',
       'posts_count_plural': 'publicaciones',
-      
+
       // Pages screen
       'my_pages': 'Mis páginas',
       'followed_pages': 'Seguidas',
@@ -1399,7 +1437,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'admin_badge': 'Admin',
       'followers_count': 'seguidor',
       'followers_count_plural': 'seguidores',
-      
+
       // Group detail screen
       'group_detail_error': 'Error',
       'event_not_found': 'Evento no encontrado',
@@ -1413,7 +1451,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'members_title': 'Miembros',
       'organized_by': 'Organizado por',
       'publications_title': 'Publicaciones',
-      
+
       // Event detail screen
       'event_detail_title': 'Evento',
       'date_and_time': 'Fecha y hora',
@@ -1444,7 +1482,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'october': 'octubre',
       'november': 'noviembre',
       'december': 'diciembre',
-      
+
       // Create event screen
       'create_event_title': 'Crear un evento',
       'event_title_label': 'Título',
@@ -1455,7 +1493,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'select_time': 'Seleccionar una hora (opcional)',
       'title_required': 'El título es requerido',
       'date_required': 'Por favor selecciona una fecha',
-      
+
       // Page detail screen
       'post_added': '¡Publicación añadida!',
       'delete_post_question': '¿Eliminar publicación?',
@@ -1466,9 +1504,12 @@ class LanguageService extends ValueNotifier<Locale> {
       'post_updated': 'Publicación actualizada',
       'settings_saved': '¡Ajustes guardados!',
       'remove_follower_question': '¿Eliminar este seguidor?',
-      'admin_editor_description': 'Los admins pueden hacer todo. Los editores pueden publicar pero no modificar ajustes.',
-      'admin_full_control': 'Los admins tienen control total sobre la página y los miembros.',
-      'editor_limited_access': 'Los editores pueden publicar pero no gestionar miembros ni ajustes.',
+      'admin_editor_description':
+          'Los admins pueden hacer todo. Los editores pueden publicar pero no modificar ajustes.',
+      'admin_full_control':
+          'Los admins tienen control total sobre la página y los miembros.',
+      'editor_limited_access':
+          'Los editores pueden publicar pero no gestionar miembros ni ajustes.',
       'private_followers_only': 'Privada - Solo seguidores',
       'no_posts_message': 'No hay publicaciones',
       'no_followers': 'No hay seguidores',
@@ -1477,7 +1518,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'subscribe': 'Suscribirse',
       'follower': 'seguidor',
       'followers_plural': 'seguidores',
-      
+
       // Create page screen
       'create_page_title': 'Crear una página',
       'create_page_for_cause': 'Crea una página para tu causa',
@@ -1497,18 +1538,20 @@ class LanguageService extends ValueNotifier<Locale> {
       'category_artist': 'Artista',
       'category_project': 'Proyecto',
       'category_other': 'Otro',
-      
+
       // Moderation additional keys
       'mod_already_moderator': '¡Ya eres moderador!',
       'mod_already_candidate': '¡Ya eres candidato!',
       'mod_cancel_candidacy': 'Cancelar mi candidatura',
       'mod_cancel_candidacy_question': '¿Cancelar candidatura?',
-      'mod_cancel_candidacy_warning': '¿Realmente quieres retirar tu candidatura?\nPerderás todos los votos recibidos.',
+      'mod_cancel_candidacy_warning':
+          '¿Realmente quieres retirar tu candidatura?\nPerderás todos los votos recibidos.',
       'mod_candidacy_cancelled': 'Candidatura cancelada.',
       'mod_vote_recorded': '¡Voto registrado!',
       'mod_elected_consensus': '¡Moderador elegido por consenso!',
       'mod_revoked_consensus': '¡Moderador revocado por consenso!',
-      'mod_post_deleted_action': 'Publicación eliminada por acción de moderador',
+      'mod_post_deleted_action':
+          'Publicación eliminada por acción de moderador',
       'mod_no_actions': 'No hay acciones registradas',
       'mod_your_candidacy': 'Esta es tu candidatura',
       'promote_to_admin': 'Promover a Admin',
@@ -1524,7 +1567,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'remove_member': 'Eliminar',
       'remove_member_title': '¿Eliminar este miembro?',
       'remove_follower_title': '¿Eliminar este seguidor?',
-      
+
       // Search screen
       'search_users_posts': 'Buscar usuarios o publicaciones',
       'no_results': 'Sin resultados',
@@ -1532,7 +1575,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'posts_tab': 'Publicaciones',
       'just_now': 'Ahora mismo',
       'unknown_user': 'usuario',
-      
+
       // Notifications screen
       'no_notifications': 'No hay notificaciones',
       'notification_like': 'le gustó tu publicación',
@@ -1556,7 +1599,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'replies': 'respuestas',
       'reply_count': '{count} respuesta',
       'reply_count_plural': '{count} respuestas',
-      
+
       // Llamadas (privadas y de grupo)
       'call_audio': 'Llamada de audio',
       'call_video': 'Llamada de video',

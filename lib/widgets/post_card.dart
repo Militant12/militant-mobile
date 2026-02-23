@@ -29,6 +29,7 @@ class _PostCardState extends State<PostCard> {
   bool _showTranslation = false;
   bool _isTranslating = false;
   late String _currentContent;
+  int? _currentUserId;
   final Set<String> _detectedUrls = {};
 
   @override
@@ -60,8 +61,10 @@ class _PostCardState extends State<PostCard> {
 
   Future<void> _resolveUrls() async {
     final api = await ApiService.getInstance();
+    final currentId = await api.getCurrentUserId();
     if (mounted) {
       setState(() {
+        _currentUserId = currentId;
         _avatarUrl = api.getImageUrl(widget.post.userAvatar);
         if (widget.post.mediaUrls.isNotEmpty) {
           _mediaUrl = api.getImageUrl(widget.post.mediaUrls.first);
@@ -73,7 +76,7 @@ class _PostCardState extends State<PostCard> {
   Future<void> _toggleLike() async {
     final bool previouslyLiked = _isLiked;
     final int previousLikesCount = _likesCount;
-    
+
     setState(() {
       _isLiked = !_isLiked;
       _likesCount += _isLiked ? 1 : -1;
@@ -81,7 +84,7 @@ class _PostCardState extends State<PostCard> {
 
     try {
       final api = await ApiService.getInstance();
-      
+
       // Vérifier le type de post pour utiliser la bonne API
       if (widget.post.type == 'group') {
         // Post de groupe
@@ -545,17 +548,18 @@ class _PostCardState extends State<PostCard> {
                 _savePost();
               },
             ),
-            ListTile(
-              leading: Icon(Icons.edit, color: iconColor),
-              title: Text(
-                lang.translate('edit'),
-                style: TextStyle(color: textColor),
+            if (_currentUserId == widget.post.userId)
+              ListTile(
+                leading: Icon(Icons.edit, color: iconColor),
+                title: Text(
+                  lang.translate('edit'),
+                  style: TextStyle(color: textColor),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _editPost(context);
+                },
               ),
-              onTap: () {
-                Navigator.pop(context);
-                _editPost(context);
-              },
-            ),
             ListTile(
               leading: Icon(Icons.flag, color: iconColor),
               title: Text(
@@ -567,17 +571,18 @@ class _PostCardState extends State<PostCard> {
                 _reportPost(context);
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.delete, color: Colors.red),
-              title: Text(
-                lang.translate('delete'),
-                style: const TextStyle(color: Colors.red),
+            if (_currentUserId == widget.post.userId)
+              ListTile(
+                leading: const Icon(Icons.delete, color: Colors.red),
+                title: Text(
+                  lang.translate('delete'),
+                  style: const TextStyle(color: Colors.red),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _deletePost();
+                },
               ),
-              onTap: () {
-                Navigator.pop(context);
-                _deletePost();
-              },
-            ),
             const SizedBox(height: 8),
           ],
         ),

@@ -219,7 +219,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: DropdownButtonFormField<String>(
-                  value: _selectedCause,
+                  initialValue: _selectedCause,
                   decoration: InputDecoration(
                     labelText: lang.translate('your_main_cause'),
                     labelStyle: TextStyle(
@@ -317,7 +317,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    lang.translate('login_link').split('?')[0] + '? ',
+                    '${lang.translate('login_link').split('?')[0]}? ',
                     style: TextStyle(
                       color: isDark
                           ? const Color(0xFFAAAAAA)

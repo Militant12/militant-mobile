@@ -9,6 +9,7 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 class ApiService {
   String baseUrl;
   String? token;
+  int? _currentUserId;
 
   ApiService({required this.baseUrl, this.token});
 
@@ -35,6 +36,33 @@ class ApiService {
     'Accept': 'application/json',
     if (token != null) 'Authorization': 'Bearer $token',
   };
+
+  // Generic POST helper
+  Future<Map<String, dynamic>> post(
+    String endpoint,
+    Map<String, dynamic> body,
+  ) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl$endpoint'),
+      headers: _headers,
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return jsonDecode(response.body);
+    } else {
+      try {
+        final error = jsonDecode(response.body);
+        throw Exception(
+          error['message'] ??
+              error['error'] ??
+              'Server error ${response.statusCode}',
+        );
+      } catch (e) {
+        throw Exception('Server error ${response.statusCode}');
+      }
+    }
+  }
 
   // Obtenir l'URL de l'API
   String get apiUrl {
@@ -154,8 +182,21 @@ class ApiService {
   // Supprimer le token (logout)
   Future<void> clearToken() async {
     token = null;
+    _currentUserId = null;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('api_token');
+  }
+
+  // Obtenir l'ID avec cache en mémoire
+  Future<int?> getCurrentUserId() async {
+    if (_currentUserId != null) return _currentUserId;
+    try {
+      final profile = await getProfile();
+      _currentUserId = profile['id'] ?? profile['user_id'];
+      return _currentUserId;
+    } catch (e) {
+      return null;
+    }
   }
 
   // === AUTHENTIFICATION ===
@@ -314,8 +355,9 @@ class ApiService {
         if (data['data'] != null) {
           // Format paginé peut-être complexe {data: {posts: []}} ou {data: []}
           if (data['data'] is List) return data['data'];
-          if (data['data'] is Map && data['data']['posts'] is List)
+          if (data['data'] is Map && data['data']['posts'] is List) {
             return data['data']['posts'];
+          }
         }
       }
 
@@ -1250,10 +1292,12 @@ class ApiService {
       if (data['members'] != null) return data['members'];
       if (data['data'] != null && data['data'] is List) return data['data'];
       // Sometimes it's wrapped in another 'data' if api_success logic changes
-      if (data['data'] != null && data['data']['members'] != null)
+      if (data['data'] != null && data['data']['members'] != null) {
         return data['data']['members'];
-      if (data['data'] != null && data['data']['data'] != null)
+      }
+      if (data['data'] != null && data['data']['data'] != null) {
         return data['data']['data'];
+      }
 
       return [];
     } else {

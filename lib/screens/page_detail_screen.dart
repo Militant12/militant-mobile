@@ -155,7 +155,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
   }
 
   Future<void> _loadPosts() async {
-    if (_api == null) _api = await ApiService.getInstance();
+    _api ??= await ApiService.getInstance();
     try {
       final posts = await _api!.getPagePosts(widget.page['id']);
       if (mounted) setState(() => _posts = posts);
@@ -163,7 +163,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
   }
 
   Future<void> _loadFollowers() async {
-    if (_api == null) _api = await ApiService.getInstance();
+    _api ??= await ApiService.getInstance();
     try {
       final followers = await _api!.getPageFollowers(widget.page['id']);
       if (mounted) setState(() => _followers = followers);
@@ -171,7 +171,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
   }
 
   Future<void> _loadTeam() async {
-    if (_api == null) _api = await ApiService.getInstance();
+    _api ??= await ApiService.getInstance();
     try {
       final team = await _api!.getPageTeam(widget.page['id']);
       if (mounted) setState(() => _team = team);
@@ -587,7 +587,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: role,
+                initialValue: role,
                 dropdownColor: Theme.of(context).brightness == Brightness.dark
                     ? const Color(0xFF2A2A2A)
                     : Colors.white,
@@ -1017,8 +1017,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
     final location = page['location']?.toString() ?? '';
     final website = page['website']?.toString() ?? '';
 
-    if (links.isEmpty && location.isEmpty && website.isEmpty)
+    if (links.isEmpty && location.isEmpty && website.isEmpty) {
       return const SizedBox();
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2093,7 +2094,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           ),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
-            value: categories.contains(_selectedCategory)
+            initialValue: categories.contains(_selectedCategory)
                 ? _selectedCategory
                 : '',
             dropdownColor: isDark ? const Color(0xFF2A2A2A) : Colors.white,
@@ -2132,7 +2133,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           ),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
-            value: _selectedPrivacy,
+            initialValue: _selectedPrivacy,
             dropdownColor: isDark ? const Color(0xFF2A2A2A) : Colors.white,
             style: TextStyle(color: isDark ? Colors.white : Colors.black),
             items: [

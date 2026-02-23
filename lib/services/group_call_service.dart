@@ -367,14 +367,14 @@ class GroupCallService {
   /// Surveiller les changements de connectivité
   void _startConnectivityMonitoring() {
     _connectivitySubscription?.cancel();
-    bool _isFirstEvent = true;
+    bool isFirstEvent = true;
 
     try {
       _connectivitySubscription = Connectivity().onConnectivityChanged.listen(
         (result) async {
           // Ignorer le premier événement (initialisation)
-          if (_isFirstEvent) {
-            _isFirstEvent = false;
+          if (isFirstEvent) {
+            isFirstEvent = false;
             return;
           }
 

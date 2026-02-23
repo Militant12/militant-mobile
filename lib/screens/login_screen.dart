@@ -185,8 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Champ username
                 _buildTextField(
                   controller: _usernameController,
-                  label:
-                      '${lang.translate('username_label')} / ${lang.translate('email_label')}',
+                  label: lang.translate('username_label'),
                   icon: Icons.person,
                 ),
                 const SizedBox(height: 16),
