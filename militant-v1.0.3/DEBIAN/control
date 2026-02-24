@@ -1,7 +1,5 @@
 Package: militant
 Version: 1.0.3
-Section: utils
-Priority: optional
 Architecture: amd64
-Maintainer: Militant Team <contact@jointomilitant.org>
-Description: Le réseau social militant décentralisé
+Maintainer: Militant Team <contact@revlibertaire.com>
+Description: Réseau social militant décentralisé

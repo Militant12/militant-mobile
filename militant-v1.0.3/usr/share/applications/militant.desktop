@@ -1,8 +1,8 @@
 [Desktop Entry]
 Name=Militant
-Comment=Le réseau social militant décentralisé
+Comment=Réseau social militant décentralisé
 Exec=militant
 Icon=militant
 Terminal=false
 Type=Application
-Categories=Social;Network;
+Categories=Network;SocialNetworking;
