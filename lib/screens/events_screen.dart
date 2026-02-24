@@ -69,7 +69,10 @@ class _EventsScreenState extends State<EventsScreen> {
                   const SizedBox(height: 16),
                   Text(
                     LanguageService.instance.translate('no_events'),
-                    style: const TextStyle(color: Color(0xFF888888), fontSize: 16),
+                    style: const TextStyle(
+                      color: Color(0xFF888888),
+                      fontSize: 16,
+                    ),
                   ),
                 ],
               ),
@@ -108,7 +111,6 @@ class _EventsScreenState extends State<EventsScreen> {
     final date = event['event_date'] ?? '';
     final location = event['location'] ?? '';
     final eventId = event['id'];
-    final creatorId = event['creator_id'];
 
     return InkWell(
       onTap: () {
@@ -281,15 +283,17 @@ class _EventsScreenState extends State<EventsScreen> {
           _events.remove(event);
         });
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(lang.translate('event_deleted'))));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(lang.translate('event_deleted'))),
+          );
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: ${e.toString()}')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${lang.translate('error')}: ${e.toString()}'),
+            ),
+          );
         }
       }
     }

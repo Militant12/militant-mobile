@@ -1141,6 +1141,28 @@ class ApiService {
     }
   }
 
+  // === DISCOVER ===
+
+  Future<Map<String, dynamic>> getDiscoveryData({
+    String type = 'all',
+    int page = 1,
+  }) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/discover.php?type=$type&page=$page'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['success'] == true && data['data'] != null) {
+        return data['data'];
+      }
+      return data;
+    } else {
+      throw Exception('Erreur de chargement des suggestions');
+    }
+  }
+
   // === NOTIFICATIONS ===
 
   Future<List<dynamic>> getNotifications({int page = 1}) async {

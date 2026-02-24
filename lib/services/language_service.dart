@@ -33,6 +33,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'share': 'Partager',
       'edit': 'Modifier',
       'close': 'Fermer',
+      'settings_updated': 'Réglages mis à jour',
 
       // Auth
       'login_title': 'Connexion',
@@ -61,6 +62,9 @@ class LanguageService extends ValueNotifier<Locale> {
       'events_title': 'Événements',
       'pages_title': 'Pages',
       'notifications_title': 'Notifs',
+      'test_notifications': 'Tester les notifications',
+      'test_notifications_desc': 'Envoyer une notification de test maintenant',
+      'notification_test_sent': 'Test envoyé ! Vérifiez vos notifications.',
       'friends_title': 'Amis',
       'friend_requests': 'Demandes',
       'accept': 'Accepter',
@@ -251,6 +255,18 @@ class LanguageService extends ValueNotifier<Locale> {
       'mod_confirm_warn_text':
           'Envoyer un avertissement officiel à cet utilisateur ?',
 
+      // Discovery
+      'discover_militants': 'Découvrir des militants',
+      'discover_militants_desc':
+          'Trouve de nouveaux militants et causes à soutenir',
+      'new_militants': 'Nouveaux militants',
+      'militants_same_cause': 'Militants de la même cause',
+      'suggested_militants': 'Militants suggérés',
+      'suggested_groups': 'Groupes suggérés',
+      'suggested_pages': 'Pages suggérées',
+      'retry': 'Réessayer',
+      'subscription_success': 'Abonnement réussi',
+
       // Additional translations
       'badge_updated': 'Badge mis à jour avec succès',
       'group_created': 'Groupe créé avec succès',
@@ -309,12 +325,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'remove_friend_confirm':
           'Voulez-vous vraiment retirer cette personne de vos amis ?',
       'remove': 'Retirer',
-      'error_generic': 'Erreur',
-      'cannot_open_url': 'Impossible d\'ouvrir',
       'discussions': 'Discussions',
-      'groups': 'Groupes',
-      'discover': 'Découvrir',
-      'subscriptions': 'Abonnements',
       'publications': 'Publications',
       'team': 'Équipe',
       'parameters': 'Paramètres',
@@ -588,6 +599,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'share': 'Share',
       'edit': 'Edit',
       'close': 'Close',
+      'settings_updated': 'Settings updated',
 
       // Auth
       'login_title': 'Login',
@@ -616,6 +628,9 @@ class LanguageService extends ValueNotifier<Locale> {
       'events_title': 'Events',
       'pages_title': 'Pages',
       'notifications_title': 'Notifs',
+      'test_notifications': 'Test Notifications',
+      'test_notifications_desc': 'Send a test push notification now',
+      'notification_test_sent': 'Test sent! Check your notifications.',
       'friends_title': 'Friends',
       'friend_requests': 'Requests',
       'accept': 'Accept',
@@ -793,6 +808,17 @@ class LanguageService extends ValueNotifier<Locale> {
       'mod_confirm_warn_title': 'Warn User',
       'mod_confirm_warn_text': 'Send an official warning to this user?',
 
+      // Discovery
+      'discover_militants': 'Discover militants',
+      'discover_militants_desc': 'Find new militants and causes to support',
+      'new_militants': 'New militants',
+      'militants_same_cause': 'Militants of the same cause',
+      'suggested_militants': 'Suggested militants',
+      'suggested_groups': 'Suggested groups',
+      'suggested_pages': 'Suggested pages',
+      'retry': 'Retry',
+      'subscription_success': 'Subscription successful',
+
       // Additional translations
       'badge_updated': 'Badge updated successfully',
       'group_created': 'Group created successfully',
@@ -857,19 +883,13 @@ class LanguageService extends ValueNotifier<Locale> {
       'friend_request_received': 'Friend request received',
       'message': 'Message',
       'friends': 'Friends',
-      'error_generic': 'Error',
-      'cannot_open_url': 'Cannot open',
       'discussions': 'Discussions',
-      'groups': 'Groups',
-      'discover': 'Discover',
-      'subscriptions': 'Subscriptions',
       'publications': 'Publications',
       'team': 'Team',
       'parameters': 'Settings',
       'no_events': 'No events',
       'no_groups': 'No groups',
       'no_pages': 'No pages',
-      'delete': 'Delete',
       'delete_event': 'Delete event',
       'delete_event_confirm': 'Do you really want to delete this event?',
       'event_deleted': 'Event deleted',
@@ -1135,6 +1155,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'share': 'Compartir',
       'edit': 'Editar',
       'close': 'Cerrar',
+      'settings_updated': 'Ajustes actualizados',
 
       // Auth
       'login_title': 'Iniciar sesión',
@@ -1163,6 +1184,9 @@ class LanguageService extends ValueNotifier<Locale> {
       'events_title': 'Eventos',
       'pages_title': 'Páginas',
       'notifications_title': 'Notif.',
+      'test_notifications': 'Probar notificaciones',
+      'test_notifications_desc': 'Enviar una notificación de prueba ahora',
+      'notification_test_sent': '¡Prueba enviada! Revisa tus notificaciones.',
       'friends_title': 'Amigos',
       'friend_requests': 'Solicit.',
       'accept': 'Aceptar',
@@ -1275,6 +1299,9 @@ class LanguageService extends ValueNotifier<Locale> {
       'private_account_title': 'Esta cuenta es privada',
       'private_account_subtitle':
           'Sigue a esta cuenta para ver sus publicaciones.',
+      'private_group_title': 'Este grupo es privado',
+      'private_group_subtitle':
+          'Únete a este grupo para ver sus publicaciones.',
       'follow': 'Seguir',
       'following_status': 'Siguiendo',
 
@@ -1364,19 +1391,13 @@ class LanguageService extends ValueNotifier<Locale> {
       'friend_request_received': 'Solicitud de amistad recibida',
       'message': 'Mensaje',
       'friends': 'Amigos',
-      'error_generic': 'Error',
-      'cannot_open_url': 'No se puede abrir',
       'discussions': 'Discusiones',
-      'groups': 'Grupos',
-      'discover': 'Descubrir',
-      'subscriptions': 'Suscripciones',
       'publications': 'Publicaciones',
       'team': 'Equipo',
       'parameters': 'Configuración',
       'no_events': 'No hay eventos',
       'no_groups': 'No hay grupos',
       'no_pages': 'No hay páginas',
-      'delete': 'Eliminar',
       'delete_event': 'Eliminar evento',
       'delete_event_confirm': '¿Realmente quieres eliminar este evento?',
       'event_deleted': 'Evento eliminado',
@@ -1629,6 +1650,18 @@ class LanguageService extends ValueNotifier<Locale> {
       'call_duration': 'Duración',
       'call_incoming_from': 'Llamada entrante de {name}',
       'call_group_incoming': 'Llamada grupal en {group}',
+
+      // Discovery
+      'discover_militants': 'Descubrir militantes',
+      'discover_militants_desc':
+          'Encuentra nuevos militantes y causas para apoyar',
+      'new_militants': 'Nuevos militantes',
+      'militants_same_cause': 'Militantes de la misma causa',
+      'suggested_militants': 'Militantes sugeridos',
+      'suggested_groups': 'Grupos sugeridos',
+      'suggested_pages': 'Páginas sugeridas',
+      'retry': 'Reintentar',
+      'subscription_success': 'Suscripción exitosa',
     },
   };
 

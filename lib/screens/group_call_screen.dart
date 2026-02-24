@@ -247,7 +247,6 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
         : count <= 4
         ? 2
         : 3;
-    final rows = (count / columns).ceil();
 
     return GridView.builder(
       padding: EdgeInsets.all(8),

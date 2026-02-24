@@ -69,9 +69,16 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     } catch (e) {
       if (mounted) {
         final lang = LanguageService.instance;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${lang.translate('group_detail_error')}: ${e.toString()}')));
+        // Don't show snackbar for 403 (Unauthorized/Membership required), as it's handled by the UI
+        if (!e.toString().contains('403')) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '${lang.translate('group_detail_error')}: ${e.toString()}',
+              ),
+            ),
+          );
+        }
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -134,7 +141,9 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
 
     final String url = '$baseUrl/group_detail.php?id=$groupId';
 
-    await Share.share('${lang.translate('join')} "$groupName" sur Militant !\n$url');
+    await Share.share(
+      '${lang.translate('join')} "$groupName" sur Militant !\n$url',
+    );
   }
 
   Future<void> _loadGroupInfo() async {
@@ -383,8 +392,12 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     final avatar = _groupData!['avatar'];
     final isMember =
         _groupData!['is_member'] == 1 || _groupData!['is_member'] == true;
+    final isPublic = _groupData!['privacy'] == 'public';
+    final canViewPosts = isMember || isPublic;
     final membersCount = _groupData!['members_count'] ?? _previewMembers.length;
-    final privacy = _groupData!['privacy'] == 'private' ? lang.translate('private') : lang.translate('public');
+    final privacy = _groupData!['privacy'] == 'private'
+        ? lang.translate('private')
+        : lang.translate('public');
 
     // Facebook style Header
     return Scaffold(
@@ -484,7 +497,11 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                               isMember ? Icons.check : Icons.group_add,
                               size: 18,
                             ),
-                            label: Text(isMember ? lang.translate('joined') : lang.translate('join')),
+                            label: Text(
+                              isMember
+                                  ? lang.translate('joined')
+                                  : lang.translate('join'),
+                            ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: isMember
                                   ? (isDark
@@ -617,7 +634,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                     ],
 
                     const SizedBox(height: 16),
-                    if (isMember)
+                    if (canViewPosts)
                       Text(
                         lang.translate('publications_title'),
                         style: const TextStyle(
@@ -629,7 +646,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                 ),
               ),
             ),
-            if (isMember)
+            if (canViewPosts)
               _posts.isEmpty
                   ? SliverFillRemaining(
                       child: Center(

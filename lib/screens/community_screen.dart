@@ -4,6 +4,7 @@ import 'groups_screen.dart';
 import 'events_screen.dart';
 import 'pages_screen.dart';
 import 'moderation_screen.dart';
+import 'discovery_screen.dart';
 
 class CommunityScreen extends StatelessWidget {
   const CommunityScreen({super.key});
@@ -14,7 +15,9 @@ class CommunityScreen extends StatelessWidget {
       valueListenable: LanguageService.instance,
       builder: (context, locale, child) {
         final theme = Theme.of(context);
-        final isDark = theme.brightness == Brightness.dark;
+        final isDark =
+            theme.brightness ==
+            Brightness.dark; // Keep isDark as it's used in _buildMenuCard
         final translate = LanguageService.instance.translate;
 
         // Couleurs adaptées au thème
@@ -28,58 +31,97 @@ class CommunityScreen extends StatelessWidget {
             backgroundColor: theme.appBarTheme.backgroundColor,
             elevation: 0,
           ),
-          body: ListView(
-            padding: const EdgeInsets.all(16),
+          body: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: 24.0),
-                child: Text(
-                  translate('explore_mobilize_title'),
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Text(
+                          translate('explore_mobilize_title'),
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Expanded(
+                              child: _buildMenuCard(
+                                context,
+                                translate('discover_militants'),
+                                translate('discover_militants_desc'),
+                                Icons.person_search,
+                                const DiscoveryScreen(),
+                                const Color(0xFFBE1E1E),
+                                isDark,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Expanded(
+                              child: _buildMenuCard(
+                                context,
+                                translate('groups_title'),
+                                translate('groups_desc'),
+                                Icons.group,
+                                const GroupsScreen(),
+                                const Color(0xFFBE1E1E),
+                                isDark,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Expanded(
+                              child: _buildMenuCard(
+                                context,
+                                translate('events_title'),
+                                translate('events_desc'),
+                                Icons.event,
+                                const EventsScreen(),
+                                Colors.orange[800]!,
+                                isDark,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Expanded(
+                              child: _buildMenuCard(
+                                context,
+                                translate('pages_title'),
+                                translate('pages_desc'),
+                                Icons.flag,
+                                const PagesScreen(),
+                                Colors.blue[700]!,
+                                isDark,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Expanded(
+                              child: _buildMenuCard(
+                                context,
+                                translate('mod_title'),
+                                translate('moderation_desc'),
+                                Icons.security,
+                                const ModerationScreen(),
+                                Colors.purple[700]!,
+                                isDark,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
                   ),
                 ),
-              ),
-              _buildMenuCard(
-                context,
-                translate('groups_title'),
-                translate('groups_desc'),
-                Icons.group,
-                const GroupsScreen(),
-                const Color(0xFFBE1E1E), // Militant Red (Brand)
-                isDark,
-              ),
-              const SizedBox(height: 16),
-              _buildMenuCard(
-                context,
-                translate('events_title'),
-                translate('events_desc'),
-                Icons.event,
-                const EventsScreen(),
-                Colors.orange[800]!,
-                isDark,
-              ),
-              const SizedBox(height: 16),
-              _buildMenuCard(
-                context,
-                translate('pages_title'),
-                translate('pages_desc'),
-                Icons.flag,
-                const PagesScreen(),
-                Colors.blue[700]!, // Blue but handled with Black Flag logic
-                isDark,
-              ),
-              const SizedBox(height: 16),
-              _buildMenuCard(
-                context,
-                translate('mod_title'), // Uses existing key
-                translate('moderation_desc'),
-                Icons.security,
-                const ModerationScreen(),
-                Colors.purple[700]!,
-                isDark,
               ),
             ],
           ),
@@ -153,7 +195,7 @@ class CommunityScreen extends StatelessWidget {
         },
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
             color: cardBg,
             borderRadius: BorderRadius.circular(16),
@@ -162,20 +204,20 @@ class CommunityScreen extends StatelessWidget {
             boxShadow: [
               BoxShadow(
                 color: shadowColor,
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: iconBgColor,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, size: 32, color: iconColor),
+                child: Icon(icon, size: 24, color: iconColor),
               ),
               const SizedBox(width: 20),
               Expanded(
@@ -186,15 +228,17 @@ class CommunityScreen extends StatelessWidget {
                       title,
                       style: TextStyle(
                         color: textColor,
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.5,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: TextStyle(color: subTextColor, fontSize: 13),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: subTextColor, fontSize: 12),
                     ),
                   ],
                 ),

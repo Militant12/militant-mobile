@@ -733,12 +733,44 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     try {
       final api = await ApiService.getInstance();
       await api.updatePreferences({key: value});
-    } catch (e) {
-      // Revert on error (could typically implement revert logic here)
+
+      // If push is enabled, ensure OneSignal is initialized/permission requested
+      if (key == 'notifications_push' && value == true) {
+        await api.initializeOneSignal();
+      }
+
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Erreur de sauvegarde')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              LanguageService.instance.translate('settings_updated'),
+            ),
+            duration: const Duration(seconds: 1),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      // Revert on error
+      if (mounted) {
+        setState(() {
+          if (key == 'notifications_push')
+            _pushEnabled = !value;
+          else if (key == 'notifications_likes')
+            _likes = !value;
+          else if (key == 'notifications_comments')
+            _comments = !value;
+          else if (key == 'notifications_follows')
+            _follows = !value;
+          else if (key == 'notifications_mentions')
+            _mentions = !value;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${LanguageService.instance.translate('error')}: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
@@ -795,9 +827,47 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     (v) => _updatePreference('notifications_mentions', v),
                   ),
                 ],
+                const Divider(),
+                ListTile(
+                  leading: const Icon(
+                    Icons.send_to_mobile,
+                    color: Color(0xFFBE1E1E),
+                  ),
+                  title: Text(lang.translate('test_notifications')),
+                  subtitle: Text(lang.translate('test_notifications_desc')),
+                  onTap: _testNotifications,
+                  trailing: const Icon(Icons.chevron_right),
+                ),
               ],
             ),
     );
+  }
+
+  Future<void> _testNotifications() async {
+    final lang = LanguageService.instance;
+    try {
+      final api = await ApiService.getInstance();
+      await api.post('/v1/notifications.php?action=test', {});
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              lang.translate('notification_test_sent') !=
+                      'notification_test_sent'
+                  ? lang.translate('notification_test_sent')
+                  : 'Test envoyé ! Vérifiez vos notifications.',
+            ),
+            backgroundColor: Colors.blue,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   Widget _buildSectionHeader(String title) {
