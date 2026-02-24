@@ -44,8 +44,14 @@ class _HomeFeedScreenState extends State<HomeFeedScreen>
             bottom: TabBar(
               controller: _tabController,
               tabs: [
-                Tab(text: LanguageService.instance.translate('discover')),
-                Tab(text: LanguageService.instance.translate('subscriptions')),
+                Tab(
+                  text: LanguageService.instance.translate('feed_tab_discover'),
+                ),
+                Tab(
+                  text: LanguageService.instance.translate(
+                    'feed_tab_following',
+                  ),
+                ),
               ],
             ),
             actions: [
@@ -54,7 +60,9 @@ class _HomeFeedScreenState extends State<HomeFeedScreen>
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const SearchScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const SearchScreen(),
+                    ),
                   );
                 },
               ),
@@ -74,42 +82,49 @@ class _HomeFeedScreenState extends State<HomeFeedScreen>
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const MessagesScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const MessagesScreen(),
+                    ),
                   );
                 },
               ),
             ],
           ),
           body: TabBarView(
-        controller: _tabController,
-        children: [
-          // Tab 1: Découvrir (Global)
-          FeedList(key: ValueKey('global_$_refreshKey'), feedType: 'global'),
-          // Tab 2: Abonnements (Following)
-          FeedList(
-            key: ValueKey('following_$_refreshKey'),
-            feedType: 'following',
+            controller: _tabController,
+            children: [
+              // Tab 1: Découvrir (Global)
+              FeedList(
+                key: ValueKey('global_$_refreshKey'),
+                feedType: 'global',
+              ),
+              // Tab 2: Abonnements (Following)
+              FeedList(
+                key: ValueKey('following_$_refreshKey'),
+                feedType: 'following',
+              ),
+            ],
           ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'fab_feed',
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const CreatePostScreen()),
-          );
-          if (result == true) {
-            // Force refresh of feeds
-            if (mounted) {
-              setState(() {
-                _refreshKey++;
-              });
-            }
-          }
-        },
-        child: const Icon(Icons.add),
-      ),
+          floatingActionButton: FloatingActionButton(
+            heroTag: 'fab_feed',
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CreatePostScreen(),
+                ),
+              );
+              if (result == true) {
+                // Force refresh of feeds
+                if (mounted) {
+                  setState(() {
+                    _refreshKey++;
+                  });
+                }
+              }
+            },
+            child: const Icon(Icons.add),
+          ),
         );
       },
     );
@@ -226,8 +241,12 @@ class _FeedListState extends State<FeedList>
                       child: Center(
                         child: Text(
                           widget.feedType == 'following'
-                              ? "Aucun post dans vos abonnements.\nAbonnez-vous ou allez dans 'Découvrir' !"
-                              : "Aucun post disponible pour le moment.",
+                              ? LanguageService.instance.translate(
+                                  'empty_feed_following',
+                                )
+                              : LanguageService.instance.translate(
+                                  'empty_feed_global',
+                                ),
                           textAlign: TextAlign.center,
                           style: const TextStyle(color: Colors.grey),
                         ),
