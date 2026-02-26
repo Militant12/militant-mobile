@@ -6,6 +6,7 @@ import '../widgets/video_player_widget.dart';
 import '../widgets/audio_player_widget.dart';
 import '../widgets/audio_recorder_widget.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 import 'group_settings_screen.dart';
 import '../widgets/linkable_text.dart';
 import '../widgets/incoming_call_banner.dart';
@@ -61,9 +62,12 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     } catch (e) {
       print('DEBUG: Error loading messages: $e');
       if (mounted) {
+        final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(
+          SnackBar(content: Text('${lang.translate('error')}: ${e.toString()}')),
+        );
       }
     } finally {
       setState(() => _isLoading = false);
@@ -71,6 +75,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   }
 
   Future<void> _sendMessage() async {
+    final lang = LanguageService.instance;
     final content = _messageController.text.trim();
     if (content.isEmpty || _isSending) return;
 
@@ -81,7 +86,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       'sender_id': 0, // Will be replaced by server data
       'content': content,
       'is_mine': true,
-      'username': 'Moi', // Placeholder
+      'username': lang.translate('me_label'), // Placeholder
       'created_at': DateTime.now().toIso8601String(),
     };
 
@@ -100,9 +105,12 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         _messages.removeAt(0); // Remove local message
       });
       if (mounted) {
+        final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(
+          SnackBar(content: Text('${lang.translate('error')}: ${e.toString()}')),
+        );
       }
     } finally {
       setState(() => _isSending = false);
@@ -112,6 +120,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final lang = LanguageService.instance;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -136,7 +145,12 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   if (_groupDetails?['auto_delete_time'] != null &&
                       _groupDetails!['auto_delete_time'] > 0)
                     Text(
-                      'Éphémère: ${_groupDetails!['auto_delete_time']} min',
+                      lang
+                          .translate('ephemeral_minutes')
+                          .replaceAll(
+                            '{minutes}',
+                            _groupDetails!['auto_delete_time'].toString(),
+                          ),
                       style: const TextStyle(
                         color: Color(0xFFBE1E1E),
                         fontSize: 10,
@@ -220,7 +234,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     : _messages.isEmpty
                     ? Center(
                         child: Text(
-                          'Aucun message dans ce groupe',
+                          lang.translate('no_group_messages'),
                           style: TextStyle(
                             color: theme.textTheme.bodyMedium?.color,
                           ),
@@ -273,6 +287,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   }
 
   void _showOptions(dynamic message) {
+    final lang = LanguageService.instance;
     final isMine = message['is_mine'] == true || message['is_mine'] == 1;
     // We can allow admins to delete other people's messages if needed,
     // but the backend only checks for role if it's an admin anyway.
@@ -287,9 +302,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             if (isMine)
               ListTile(
                 leading: const Icon(Icons.edit, color: Colors.white),
-                title: const Text(
-                  'Modifier',
-                  style: TextStyle(color: Colors.white),
+                title: Text(
+                  lang.translate('edit'),
+                  style: const TextStyle(color: Colors.white),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -298,9 +313,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
               ),
             ListTile(
               leading: const Icon(Icons.delete, color: Color(0xFFBE1E1E)),
-              title: const Text(
-                'Supprimer',
-                style: TextStyle(color: Color(0xFFBE1E1E)),
+              title: Text(
+                lang.translate('delete'),
+                style: const TextStyle(color: Color(0xFFBE1E1E)),
               ),
               onTap: () async {
                 Navigator.pop(context);
@@ -308,24 +323,24 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   context: context,
                   builder: (context) => AlertDialog(
                     backgroundColor: const Color(0xFF1E1E1E),
-                    title: const Text(
-                      'Supprimer ?',
-                      style: TextStyle(color: Colors.white),
+                    title: Text(
+                      lang.translate('delete_question'),
+                      style: const TextStyle(color: Colors.white),
                     ),
-                    content: const Text(
-                      'Voulez-vous supprimer ce message ?',
-                      style: TextStyle(color: Colors.white70),
+                    content: Text(
+                      lang.translate('delete_message_confirm'),
+                      style: const TextStyle(color: Colors.white70),
                     ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Annuler'),
+                        child: Text(lang.translate('cancel')),
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(context, true),
-                        child: const Text(
-                          'Supprimer',
-                          style: TextStyle(color: Color(0xFFBE1E1E)),
+                        child: Text(
+                          lang.translate('delete'),
+                          style: const TextStyle(color: Color(0xFFBE1E1E)),
                         ),
                       ),
                     ],
@@ -350,14 +365,15 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   }
 
   Future<void> _editMessage(dynamic message) async {
+    final lang = LanguageService.instance;
     final controller = TextEditingController(text: message['content']);
     final newContent = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text(
-          'Modifier le message',
-          style: TextStyle(color: Colors.white),
+        title: Text(
+          lang.translate('edit_message'),
+          style: const TextStyle(color: Colors.white),
         ),
         content: TextField(
           controller: controller,
@@ -368,13 +384,13 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(lang.translate('cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: const Text(
-              'Enregistrer',
-              style: TextStyle(color: Color(0xFFBE1E1E)),
+            child: Text(
+              lang.translate('save'),
+              style: const TextStyle(color: Color(0xFFBE1E1E)),
             ),
           ),
         ],
@@ -396,12 +412,13 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   }
 
   Widget _buildMessageBubble(dynamic message) {
+    final lang = LanguageService.instance;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     final content = message['content'] ?? '';
     final media = message['media'];
-    final username = message['username'] ?? 'Anonyme';
+    final username = message['username'] ?? lang.translate('anonymous_user');
     final isMine = message['is_mine'] == true || message['is_mine'] == 1;
     final createdAt = message['created_at'] ?? '';
     final editedAt = message['edited_at'];
@@ -505,7 +522,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  isTranslated ? 'Original' : 'Traduire',
+                                  isTranslated
+                                      ? lang.translate('original_label')
+                                      : lang.translate('translate_action'),
                                   style: TextStyle(
                                     color: textColor.withOpacity(0.7),
                                     fontSize: 11,
@@ -523,7 +542,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     children: [
                       if (editedAt != null)
                         Text(
-                          'Modifié ',
+                          '${lang.translate('edited_label')} ',
                           style: TextStyle(
                             color: textColor.withOpacity(0.5),
                             fontSize: 9,
@@ -573,9 +592,14 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         }
       } catch (e) {
         if (mounted) {
+          final lang = LanguageService.instance;
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Erreur de traduction: $e')));
+          ).showSnackBar(
+            SnackBar(
+              content: Text('${lang.translate('error_translation')}: $e'),
+            ),
+          );
         }
       }
     } else {
@@ -586,6 +610,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   }
 
   Widget _buildMedia(String mediaPath, bool isMine) {
+    final lang = LanguageService.instance;
     print('DEBUG _buildMedia called with: $mediaPath');
     if (_api == null) {
       print('DEBUG _buildMedia: _api is null');
@@ -654,19 +679,19 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     return Container(
                       height: 100,
                       color: Colors.grey[800],
-                      child: const Center(
+                      child: Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.broken_image,
                               color: Colors.white54,
                               size: 40,
                             ),
-                            SizedBox(height: 8),
+                            const SizedBox(height: 8),
                             Text(
-                              'Erreur de chargement',
-                              style: TextStyle(color: Colors.white54),
+                              lang.translate('loading_error'),
+                              style: const TextStyle(color: Colors.white54),
                             ),
                           ],
                         ),
@@ -680,6 +705,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   }
 
   Widget _buildMessageInput() {
+    final lang = LanguageService.instance;
     final theme = Theme.of(context);
 
     if (_isRecording) {
@@ -716,7 +742,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
               controller: _messageController,
               style: TextStyle(color: theme.textTheme.bodyLarge?.color),
               decoration: InputDecoration(
-                hintText: 'Message au groupe...',
+                hintText: lang.translate('message_group_hint'),
                 hintStyle: TextStyle(color: theme.hintColor),
                 border: InputBorder.none,
               ),
@@ -750,6 +776,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   }
 
   Future<void> _pickMedia() async {
+    final lang = LanguageService.instance;
     final picker = ImagePicker();
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
@@ -760,23 +787,26 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_library, color: Colors.white),
-              title: const Text(
-                'Galerie',
-                style: TextStyle(color: Colors.white),
+              title: Text(
+                lang.translate('gallery'),
+                style: const TextStyle(color: Colors.white),
               ),
               onTap: () => Navigator.pop(context, ImageSource.gallery),
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt, color: Colors.white),
-              title: const Text(
-                'Appareil photo',
-                style: TextStyle(color: Colors.white),
+              title: Text(
+                lang.translate('camera'),
+                style: const TextStyle(color: Colors.white),
               ),
               onTap: () => Navigator.pop(context, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.audiotrack, color: Colors.white),
-              title: const Text('Audio', style: TextStyle(color: Colors.white)),
+              title: Text(
+                lang.translate('audio'),
+                style: const TextStyle(color: Colors.white),
+              ),
               onTap: () async {
                 Navigator.pop(context);
                 final result = await FilePicker.platform.pickFiles(
@@ -789,7 +819,10 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.link, color: Colors.white),
-              title: const Text('Lien', style: TextStyle(color: Colors.white)),
+              title: Text(
+                lang.translate('link'),
+                style: const TextStyle(color: Colors.white),
+              ),
               onTap: () async {
                 Navigator.pop(context);
                 final controller = TextEditingController();
@@ -797,9 +830,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   context: context,
                   builder: (context) => AlertDialog(
                     backgroundColor: const Color(0xFF1E1E1E),
-                    title: const Text(
-                      'Partager un lien',
-                      style: TextStyle(color: Colors.white),
+                    title: Text(
+                      lang.translate('share_link'),
+                      style: const TextStyle(color: Colors.white),
                     ),
                     content: TextField(
                       controller: controller,
@@ -813,12 +846,12 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: const Text('Annuler'),
+                        child: Text(lang.translate('cancel')),
                       ),
                       TextButton(
                         onPressed: () =>
                             Navigator.pop(context, controller.text.trim()),
-                        child: const Text('Partager'),
+                        child: Text(lang.translate('share')),
                       ),
                     ],
                   ),
@@ -876,8 +909,11 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     } catch (e) {
       print('DEBUG: Error in _uploadAndSend: $e');
       if (mounted) {
+        final lang = LanguageService.instance;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur upload: ${e.toString()}')),
+          SnackBar(
+            content: Text('${lang.translate('error_upload')}: ${e.toString()}'),
+          ),
         );
       }
     } finally {

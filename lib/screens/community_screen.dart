@@ -31,99 +31,73 @@ class CommunityScreen extends StatelessWidget {
             backgroundColor: theme.appBarTheme.backgroundColor,
             elevation: 0,
           ),
-          body: Column(
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Text(
-                          translate('explore_mobilize_title'),
-                          style: TextStyle(
-                            color: textColor,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Column(
-                          children: [
-                            Expanded(
-                              child: _buildMenuCard(
-                                context,
-                                translate('discover_militants'),
-                                translate('discover_militants_desc'),
-                                Icons.person_search,
-                                const DiscoveryScreen(),
-                                const Color(0xFFBE1E1E),
-                                isDark,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Expanded(
-                              child: _buildMenuCard(
-                                context,
-                                translate('groups_title'),
-                                translate('groups_desc'),
-                                Icons.group,
-                                const GroupsScreen(),
-                                const Color(0xFFBE1E1E),
-                                isDark,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Expanded(
-                              child: _buildMenuCard(
-                                context,
-                                translate('events_title'),
-                                translate('events_desc'),
-                                Icons.event,
-                                const EventsScreen(),
-                                Colors.orange[800]!,
-                                isDark,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Expanded(
-                              child: _buildMenuCard(
-                                context,
-                                translate('pages_title'),
-                                translate('pages_desc'),
-                                Icons.flag,
-                                const PagesScreen(),
-                                Colors.blue[700]!,
-                                isDark,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Expanded(
-                              child: _buildMenuCard(
-                                context,
-                                translate('mod_title'),
-                                translate('moderation_desc'),
-                                Icons.security,
-                                const ModerationScreen(),
-                                Colors.purple[700]!,
-                                isDark,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                    ],
+          body: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: ListView(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Text(
+                    translate('explore_mobilize_title'),
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
-            ],
+                _buildMenuCard(
+                  context,
+                  translate('discover'),
+                  translate('discover_militants_desc'),
+                  Icons.person_search,
+                  const DiscoveryScreen(),
+                  const Color(0xFFBE1E1E),
+                  isDark,
+                ),
+                const SizedBox(height: 8),
+                _buildMenuCard(
+                  context,
+                  translate('groups_title'),
+                  translate('groups_desc'),
+                  Icons.group,
+                  const GroupsScreen(),
+                  const Color(0xFFBE1E1E),
+                  isDark,
+                ),
+                const SizedBox(height: 8),
+                _buildMenuCard(
+                  context,
+                  translate('events_title'),
+                  translate('events_desc'),
+                  Icons.event,
+                  const EventsScreen(),
+                  Colors.orange[800]!,
+                  isDark,
+                ),
+                const SizedBox(height: 8),
+                _buildMenuCard(
+                  context,
+                  translate('pages_title'),
+                  translate('pages_desc'),
+                  Icons.flag,
+                  const PagesScreen(),
+                  Colors.blue[700]!,
+                  isDark,
+                ),
+                const SizedBox(height: 8),
+                _buildMenuCard(
+                  context,
+                  translate('mod_title'),
+                  translate('moderation_desc'),
+                  Icons.security,
+                  const ModerationScreen(),
+                  Colors.purple[700]!,
+                  isDark,
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
           ),
         );
       },
@@ -209,46 +183,56 @@ class CommunityScreen extends StatelessWidget {
               ),
             ],
           ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: iconBgColor,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, size: 24, color: iconColor),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        color: textColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
-                      ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 120;
+
+              return Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(isNarrow ? 6 : 8),
+                    decoration: BoxDecoration(
+                      color: iconBgColor,
+                      shape: BoxShape.circle,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: subTextColor, fontSize: 12),
+                    child: Icon(icon, size: isNarrow ? 20 : 24, color: iconColor),
+                  ),
+                  SizedBox(width: isNarrow ? 8 : 20),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
+                          style: TextStyle(color: subTextColor, fontSize: 12),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios,
-                color: isDark ? Colors.white24 : Colors.black12,
-                size: 16,
-              ),
-            ],
+                  ),
+                  if (!isNarrow)
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      color: isDark ? Colors.white24 : Colors.black12,
+                      size: 16,
+                    ),
+                ],
+              );
+            },
           ),
         ),
       ),

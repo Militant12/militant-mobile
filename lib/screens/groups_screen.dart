@@ -47,9 +47,13 @@ class _GroupsScreenState extends State<GroupsScreen>
     } catch (e) {
       if (mounted) {
         final lang = LanguageService.instance;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${lang.translate('error_loading')}: ${e.toString()}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${lang.translate('error_loading')}: ${e.toString()}',
+            ),
+          ),
+        );
       }
     } finally {
       setState(() => _isLoading = false);
@@ -71,7 +75,10 @@ class _GroupsScreenState extends State<GroupsScreen>
             children: [
               const Icon(Icons.group_add, color: Color(0xFFBE1E1E)),
               const SizedBox(width: 8),
-              Text(lang.translate('create_group_title'), style: const TextStyle(color: Colors.white)),
+              Text(
+                lang.translate('create_group_title'),
+                style: const TextStyle(color: Colors.white),
+              ),
             ],
           ),
           content: SingleChildScrollView(
@@ -148,7 +155,9 @@ class _GroupsScreenState extends State<GroupsScreen>
                   _loadGroups();
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(lang.translate('group_created_success'))),
+                      SnackBar(
+                        content: Text(lang.translate('group_created_success')),
+                      ),
                     );
                     // Navigate to the new group
                     if (result['id'] != null) {
@@ -172,7 +181,11 @@ class _GroupsScreenState extends State<GroupsScreen>
                 } catch (e) {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Erreur: ${e.toString()}')),
+                      SnackBar(
+                        content: Text(
+                          '${lang.translate('error')}: ${e.toString()}',
+                        ),
+                      ),
                     );
                   }
                 }
@@ -197,7 +210,9 @@ class _GroupsScreenState extends State<GroupsScreen>
       _loadGroups();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${lang.translate('joined_group')} ${group['name']}')),
+          SnackBar(
+            content: Text('${lang.translate('joined_group')} ${group['name']}'),
+          ),
         );
       }
     } catch (e) {
@@ -410,7 +425,11 @@ class _GroupsScreenState extends State<GroupsScreen>
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.lock, color: Colors.white54, size: 12),
+                              const Icon(
+                                Icons.lock,
+                                color: Colors.white54,
+                                size: 12,
+                              ),
                               const SizedBox(width: 2),
                               Text(
                                 lang.translate('private'),
@@ -429,7 +448,8 @@ class _GroupsScreenState extends State<GroupsScreen>
                     Text(
                       description,
                       maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                      overflow: TextOverflow.clip,
+                      softWrap: true,
                       style: const TextStyle(
                         color: Color(0xFF888888),
                         fontSize: 14,

@@ -7,6 +7,7 @@ import '../widgets/video_player_widget.dart';
 import '../widgets/audio_player_widget.dart';
 import '../widgets/audio_recorder_widget.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 import '../widgets/linkable_text.dart';
 import '../widgets/incoming_call_banner.dart';
 
@@ -68,9 +69,12 @@ class _ChatScreenState extends State<ChatScreen> {
       });
     } catch (e) {
       if (mounted) {
+        final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(
+          SnackBar(content: Text('${lang.translate('error')}: ${e.toString()}')),
+        );
       }
     } finally {
       setState(() => _isLoading = false);
@@ -110,9 +114,12 @@ class _ChatScreenState extends State<ChatScreen> {
         _messages.removeAt(0); // Remove optimistic message on error
       });
       if (mounted) {
+        final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(
+          SnackBar(content: Text('${lang.translate('error')}: ${e.toString()}')),
+        );
       }
     } finally {
       setState(() => _isSending = false);
@@ -122,6 +129,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final lang = LanguageService.instance;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -197,7 +205,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     : _messages.isEmpty
                     ? Center(
                         child: Text(
-                          'Aucun message',
+                          lang.translate('no_messages'),
                           style: TextStyle(
                             color: theme.textTheme.bodyMedium?.color,
                           ),
@@ -261,6 +269,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _showOptions(dynamic message) {
+    final lang = LanguageService.instance;
     bool isMine = message['is_mine'] == true || message['is_mine'] == 1;
 
     // Fallback if is_mine is missing (e.g. from local update or specific API response)
@@ -279,9 +288,9 @@ class _ChatScreenState extends State<ChatScreen> {
             if (isMine)
               ListTile(
                 leading: const Icon(Icons.edit, color: Colors.white),
-                title: const Text(
-                  'Modifier',
-                  style: TextStyle(color: Colors.white),
+                title: Text(
+                  lang.translate('edit'),
+                  style: const TextStyle(color: Colors.white),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -290,9 +299,9 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ListTile(
               leading: const Icon(Icons.delete, color: Color(0xFFBE1E1E)),
-              title: const Text(
-                'Supprimer',
-                style: TextStyle(color: Color(0xFFBE1E1E)),
+              title: Text(
+                lang.translate('delete'),
+                style: const TextStyle(color: Color(0xFFBE1E1E)),
               ),
               onTap: () async {
                 Navigator.pop(context);
@@ -300,24 +309,24 @@ class _ChatScreenState extends State<ChatScreen> {
                   context: context,
                   builder: (context) => AlertDialog(
                     backgroundColor: const Color(0xFF1E1E1E),
-                    title: const Text(
-                      'Supprimer ?',
-                      style: TextStyle(color: Colors.white),
+                    title: Text(
+                      lang.translate('delete_question'),
+                      style: const TextStyle(color: Colors.white),
                     ),
-                    content: const Text(
-                      'Voulez-vous supprimer ce message ?',
-                      style: TextStyle(color: Colors.white70),
+                    content: Text(
+                      lang.translate('delete_message_confirm'),
+                      style: const TextStyle(color: Colors.white70),
                     ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Annuler'),
+                        child: Text(lang.translate('cancel')),
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(context, true),
-                        child: const Text(
-                          'Supprimer',
-                          style: TextStyle(color: Color(0xFFBE1E1E)),
+                        child: Text(
+                          lang.translate('delete'),
+                          style: const TextStyle(color: Color(0xFFBE1E1E)),
                         ),
                       ),
                     ],
@@ -343,14 +352,15 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _editMessage(dynamic message) async {
+    final lang = LanguageService.instance;
     final controller = TextEditingController(text: message['content']);
     final newContent = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text(
-          'Modifier le message',
-          style: TextStyle(color: Colors.white),
+        title: Text(
+          lang.translate('edit_message'),
+          style: const TextStyle(color: Colors.white),
         ),
         content: TextField(
           controller: controller,
@@ -361,13 +371,13 @@ class _ChatScreenState extends State<ChatScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(lang.translate('cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: const Text(
-              'Enregistrer',
-              style: TextStyle(color: Color(0xFFBE1E1E)),
+            child: Text(
+              lang.translate('save'),
+              style: const TextStyle(color: Color(0xFFBE1E1E)),
             ),
           ),
         ],
@@ -390,6 +400,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildMessageBubble(dynamic message) {
+    final lang = LanguageService.instance;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -481,7 +492,9 @@ class _ChatScreenState extends State<ChatScreen> {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              isTranslated ? 'Original' : 'Traduire',
+                              isTranslated
+                                  ? lang.translate('original_label')
+                                  : lang.translate('translate_action'),
                               style: TextStyle(
                                 color: textColor.withOpacity(0.7),
                                 fontSize: 11,
@@ -499,7 +512,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: [
                   if (editedAt != null)
                     Text(
-                      'Modifié ',
+                      '${lang.translate('edited_label')} ',
                       style: TextStyle(
                         color: textColor.withOpacity(0.5),
                         fontSize: 9,
@@ -547,9 +560,14 @@ class _ChatScreenState extends State<ChatScreen> {
         }
       } catch (e) {
         if (mounted) {
+          final lang = LanguageService.instance;
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Erreur de traduction: $e')));
+          ).showSnackBar(
+            SnackBar(
+              content: Text('${lang.translate('error_translation')}: $e'),
+            ),
+          );
         }
       }
     } else {
@@ -560,6 +578,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildMedia(String mediaPath, bool isMine) {
+    final lang = LanguageService.instance;
     if (_api == null) return const SizedBox.shrink();
     final url = _api!.getImageUrl(mediaPath);
     if (url == null || url.isEmpty) return const SizedBox.shrink();
@@ -614,19 +633,19 @@ class _ChatScreenState extends State<ChatScreen> {
                 errorBuilder: (context, error, stackTrace) => Container(
                   height: 100,
                   color: Colors.grey[800],
-                  child: const Center(
+                  child: Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.broken_image,
                           color: Colors.white54,
                           size: 40,
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Text(
-                          'Erreur de chargement',
-                          style: TextStyle(color: Colors.white54),
+                          lang.translate('loading_error'),
+                          style: const TextStyle(color: Colors.white54),
                         ),
                       ],
                     ),
@@ -638,6 +657,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildMessageInput() {
+    final lang = LanguageService.instance;
     final theme = Theme.of(context);
 
     if (_isRecording) {
@@ -674,7 +694,7 @@ class _ChatScreenState extends State<ChatScreen> {
               controller: _messageController,
               style: TextStyle(color: theme.textTheme.bodyLarge?.color),
               decoration: InputDecoration(
-                hintText: 'Message...',
+                hintText: lang.translate('message_hint'),
                 hintStyle: TextStyle(color: theme.hintColor),
                 border: InputBorder.none,
               ),
@@ -708,6 +728,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _pickMedia() async {
+    final lang = LanguageService.instance;
     final picker = ImagePicker();
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
@@ -718,23 +739,26 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_library, color: Colors.white),
-              title: const Text(
-                'Galerie',
-                style: TextStyle(color: Colors.white),
+              title: Text(
+                lang.translate('gallery'),
+                style: const TextStyle(color: Colors.white),
               ),
               onTap: () => Navigator.pop(context, ImageSource.gallery),
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt, color: Colors.white),
-              title: const Text(
-                'Appareil photo',
-                style: TextStyle(color: Colors.white),
+              title: Text(
+                lang.translate('camera'),
+                style: const TextStyle(color: Colors.white),
               ),
               onTap: () => Navigator.pop(context, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.audiotrack, color: Colors.white),
-              title: const Text('Audio', style: TextStyle(color: Colors.white)),
+              title: Text(
+                lang.translate('audio'),
+                style: const TextStyle(color: Colors.white),
+              ),
               onTap: () async {
                 Navigator.pop(context);
                 final result = await FilePicker.platform.pickFiles(
@@ -747,7 +771,10 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.link, color: Colors.white),
-              title: const Text('Lien', style: TextStyle(color: Colors.white)),
+              title: Text(
+                lang.translate('link'),
+                style: const TextStyle(color: Colors.white),
+              ),
               onTap: () async {
                 Navigator.pop(context);
                 final controller = TextEditingController();
@@ -755,9 +782,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   context: context,
                   builder: (context) => AlertDialog(
                     backgroundColor: const Color(0xFF1E1E1E),
-                    title: const Text(
-                      'Partager un lien',
-                      style: TextStyle(color: Colors.white),
+                    title: Text(
+                      lang.translate('share_link'),
+                      style: const TextStyle(color: Colors.white),
                     ),
                     content: TextField(
                       controller: controller,
@@ -771,12 +798,12 @@ class _ChatScreenState extends State<ChatScreen> {
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: const Text('Annuler'),
+                        child: Text(lang.translate('cancel')),
                       ),
                       TextButton(
                         onPressed: () =>
                             Navigator.pop(context, controller.text.trim()),
-                        child: const Text('Partager'),
+                        child: Text(lang.translate('share')),
                       ),
                     ],
                   ),
@@ -832,8 +859,11 @@ class _ChatScreenState extends State<ChatScreen> {
       _loadMessages();
     } catch (e) {
       if (mounted) {
+        final lang = LanguageService.instance;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur upload: ${e.toString()}')),
+          SnackBar(
+            content: Text('${lang.translate('error_upload')}: ${e.toString()}'),
+          ),
         );
       }
     } finally {

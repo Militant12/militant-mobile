@@ -55,9 +55,12 @@ class _MessagesScreenState extends State<MessagesScreen>
       });
     } catch (e) {
       if (mounted) {
+        final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(
+          SnackBar(content: Text('${lang.translate('error')}: ${e.toString()}')),
+        );
       }
     } finally {
       setState(() => _isLoading = false);
@@ -84,7 +87,7 @@ class _MessagesScreenState extends State<MessagesScreen>
               unselectedLabelColor: isDark ? Colors.white70 : Colors.black54,
               tabs: [
                 Tab(text: lang.translate('discussions')),
-                Tab(text: lang.translate('groups')),
+                Tab(text: lang.translate('groups_title')),
               ],
             ),
           ),
@@ -121,6 +124,7 @@ class _MessagesScreenState extends State<MessagesScreen>
     List<dynamic> list, {
     required bool isPrivate,
   }) {
+    final lang = LanguageService.instance;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -142,7 +146,9 @@ class _MessagesScreenState extends State<MessagesScreen>
             ),
             const SizedBox(height: 16),
             Text(
-              isPrivate ? 'Aucune conversation' : 'Aucun groupe de discussion',
+              isPrivate
+                  ? lang.translate('no_conversations')
+                  : lang.translate('no_group_discussions'),
               style: TextStyle(
                 color: isDark ? const Color(0xFF888888) : Colors.grey,
                 fontSize: 16,
@@ -169,8 +175,9 @@ class _MessagesScreenState extends State<MessagesScreen>
   }
 
   Widget _buildGroupConversationItem(dynamic conv) {
+    final lang = LanguageService.instance;
     final theme = Theme.of(context);
-    final name = conv['name'] ?? 'Groupe';
+    final name = conv['name'] ?? lang.translate('group');
     final lastMessage = conv['last_message'] ?? '';
     final avatar = conv['avatar'];
 
@@ -228,8 +235,9 @@ class _MessagesScreenState extends State<MessagesScreen>
   }
 
   Widget _buildConversationItem(dynamic conv) {
+    final lang = LanguageService.instance;
     final theme = Theme.of(context);
-    final username = conv['username'] ?? 'Utilisateur';
+    final username = conv['username'] ?? lang.translate('user');
     final lastMessage = conv['last_message'] ?? '';
     final unreadCount = conv['unread_count'] ?? 0;
     final userId = conv['user_id'] ?? conv['id'];

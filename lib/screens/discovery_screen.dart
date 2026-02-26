@@ -78,10 +78,22 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
   @override
   Widget build(BuildContext context) {
     final lang = LanguageService.instance;
+    final isNarrowScreen = MediaQuery.of(context).size.width < 380;
+    final appBarTitle = isNarrowScreen
+        ? lang.translate('discover')
+        : lang.translate('discover_militants');
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(lang.translate('discover_militants')),
+        title: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            appBarTitle,
+            maxLines: 1,
+            softWrap: false,
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -169,18 +181,26 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
         ),
       );
     }
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 0.65,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-      ),
-      itemCount: users.length,
-      itemBuilder: (context, index) {
-        return _buildUserCard(users[index]);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final crossAxisCount = width < 430 ? 2 : (width < 760 ? 3 : 4);
+        final childAspectRatio = width < 430 ? 0.76 : (width < 760 ? 0.72 : 0.78);
+
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: childAspectRatio,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+          ),
+          itemCount: users.length,
+          itemBuilder: (context, index) {
+            return _buildUserCard(users[index]);
+          },
+        );
       },
     );
   }
@@ -242,7 +262,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                 user['username'] ?? '',
                 textAlign: TextAlign.center,
                 maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                overflow: TextOverflow.clip,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 13,
@@ -252,8 +272,9 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
               Text(
                 user['cause'] ?? '',
                 textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+                overflow: TextOverflow.clip,
+                softWrap: true,
                 style: TextStyle(
                   fontSize: 10,
                   color: isDark ? Colors.white70 : Colors.black54,
@@ -287,7 +308,15 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
   }
 
   Widget _buildGroupSuggestions(List<dynamic> groups) {
-    if (groups.isEmpty) return const SizedBox();
+    if (groups.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Text(
+          LanguageService.instance.translate('no_results'),
+          style: const TextStyle(color: Colors.grey),
+        ),
+      );
+    }
     final lang = LanguageService.instance;
     return Column(
       children: groups.map((group) {
@@ -375,7 +404,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                   Text(
                     title,
                     maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    overflow: TextOverflow.clip,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
@@ -384,8 +413,9 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                    overflow: TextOverflow.clip,
+                    softWrap: true,
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark ? Colors.white70 : Colors.black54,
