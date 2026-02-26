@@ -16,14 +16,33 @@ class ApiService {
   // Singleton pattern pour accès global
   static ApiService? _instance;
 
+  static String normalizeBaseUrl(String input) {
+    String url = input.trim();
+    if (url.isEmpty) {
+      return 'https://api.militant.revlibertaire.com';
+    }
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://$url';
+    }
+    if (url.endsWith('/')) {
+      url = url.substring(0, url.length - 1);
+    }
+    return url;
+  }
+
   static Future<ApiService> getInstance() async {
     if (_instance == null) {
       final prefs = await SharedPreferences.getInstance();
       // Par défaut, utiliser l'API sur le sous-domaine api.
-      final url =
+      final rawUrl =
           prefs.getString('base_url') ??
           'https://api.militant.revlibertaire.com';
+      final url = normalizeBaseUrl(rawUrl);
       final token = prefs.getString('api_token');
+
+      if (url != rawUrl) {
+        await prefs.setString('base_url', url);
+      }
 
       _instance = ApiService(baseUrl: url, token: token);
     }
@@ -185,6 +204,30 @@ class ApiService {
     _currentUserId = null;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('api_token');
+    await prefs.remove('user_id');
+
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+      try {
+        OneSignal.logout();
+      } catch (_) {}
+    }
+  }
+
+  int? _parseDynamicUserId(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    return int.tryParse(value.toString());
+  }
+
+  int? _extractUserId(Map<String, dynamic> data) {
+    final directId = _parseDynamicUserId(data['user_id'] ?? data['id']);
+    if (directId != null) return directId;
+
+    final nestedUser = data['user'];
+    if (nestedUser is Map<String, dynamic>) {
+      return _parseDynamicUserId(nestedUser['id'] ?? nestedUser['user_id']);
+    }
+    return null;
   }
 
   // Obtenir l'ID avec cache en mémoire
@@ -192,7 +235,12 @@ class ApiService {
     if (_currentUserId != null) return _currentUserId;
     try {
       final profile = await getProfile();
-      _currentUserId = profile['id'] ?? profile['user_id'];
+      final userId = _extractUserId(profile);
+      if (userId != null) {
+        _currentUserId = userId;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('user_id', userId);
+      }
       return _currentUserId;
     } catch (e) {
       return null;
@@ -225,6 +273,13 @@ class ApiService {
           final data = jsonDecode(response.body);
           if (data['success'] == true && data['token'] != null) {
             await saveToken(data['token']);
+
+            final userId = _extractUserId(data);
+            if (userId != null) {
+              _currentUserId = userId;
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setInt('user_id', userId);
+            }
           }
           return data;
         } catch (e) {
@@ -248,6 +303,18 @@ class ApiService {
         }
       }
     } catch (e) {
+      if (e is HandshakeException ||
+          e.toString().contains('HandshakeException') ||
+          e.toString().contains('CERTIFICATE_VERIFY_FAILED')) {
+        throw Exception(
+          'Connexion HTTPS refusée. Vérifiez le certificat SSL du serveur (certificat auto-signé/non valide).',
+        );
+      }
+      if (e.toString().contains('Operation not permitted')) {
+        throw Exception(
+          'Connexion réseau bloquée par macOS. Rebuild l’app avec le script macOS mis à jour puis relancez.',
+        );
+      }
       if (e.toString().contains('SocketException') ||
           e.toString().contains('Failed host lookup')) {
         throw Exception(
@@ -1031,6 +1098,44 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception('Erreur lors du retrait du membre');
+    }
+  }
+
+  Future<void> addGroupMember(int groupId, int userId) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/message_groups.php?path=$groupId/members'),
+      headers: _headers,
+      body: jsonEncode({'user_id': userId}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors de l\'ajout du membre');
+    }
+  }
+
+  Future<void> approveGroupRequest(int groupId, int requestId) async {
+    final response = await http.post(
+      Uri.parse(
+        '$apiUrl/v1/message_groups.php?path=$groupId/requests/$requestId/approve',
+      ),
+      headers: _headers,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors de l\'approbation de la demande');
+    }
+  }
+
+  Future<void> rejectGroupRequest(int groupId, int requestId) async {
+    final response = await http.post(
+      Uri.parse(
+        '$apiUrl/v1/message_groups.php?path=$groupId/requests/$requestId/reject',
+      ),
+      headers: _headers,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors du refus de la demande');
     }
   }
 

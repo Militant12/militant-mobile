@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
 import '../services/incoming_call_service.dart';
 import '../services/language_service.dart';
+import '../services/message_notification_service.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
@@ -30,6 +31,43 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _requires2FA = false;
   String? _errorMessage;
 
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedServerUrl();
+  }
+
+  Future<void> _loadSavedServerUrl() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString('base_url');
+    if (raw == null || raw.trim().isEmpty) return;
+
+    final normalized = ApiService.normalizeBaseUrl(raw);
+    if (!mounted) return;
+    _serverController.text = normalized;
+
+    if (normalized != raw) {
+      await prefs.setString('base_url', normalized);
+    }
+  }
+
+  int? _parseUserId(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    return int.tryParse(value.toString());
+  }
+
+  int? _extractUserId(Map<String, dynamic> result) {
+    final directId = _parseUserId(result['user_id'] ?? result['id']);
+    if (directId != null) return directId;
+
+    final user = result['user'];
+    if (user is Map<String, dynamic>) {
+      return _parseUserId(user['id'] ?? user['user_id']);
+    }
+    return null;
+  }
+
   Future<void> _login() async {
     setState(() {
       _isLoading = true;
@@ -38,7 +76,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final api = await ApiService.getInstance();
-      api.baseUrl = _serverController.text.trim();
+      String serverUrl = _serverController.text.trim();
+      serverUrl = ApiService.normalizeBaseUrl(serverUrl);
+      if (serverUrl.isEmpty) throw Exception('URL du serveur vide');
+
+      api.baseUrl = serverUrl;
 
       final result = await api.login(
         _usernameController.text.trim(),
@@ -58,7 +100,14 @@ class _LoginScreenState extends State<LoginScreen> {
       if (result['success'] == true && mounted) {
         // Sauvegarder l'URL du serveur pour la persistance de session
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('base_url', _serverController.text.trim());
+        await prefs.setString('base_url', serverUrl);
+
+        int? loggedUserId = _extractUserId(result);
+        loggedUserId ??= await api.getCurrentUserId();
+        if (loggedUserId != null) {
+          await prefs.setInt('user_id', loggedUserId);
+        }
+
         // Dynamic initialization of OneSignal
         try {
           // Initialize with server's App ID
@@ -66,8 +115,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
           // Login to OneSignal for notifications only on supported platforms
           if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-            if (result['user'] != null && result['user']['id'] != null) {
-              final userId = result['user']['id'].toString();
+            if (loggedUserId != null) {
+              final userId = loggedUserId.toString();
               print('OneSignal Login with User ID: $userId');
               OneSignal.login(userId);
             }
@@ -78,6 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         try {
           await IncomingCallService.instance.initialize();
+          await MessageNotificationService.instance.initialize();
         } catch (e) {
           print('Incoming call init error: $e');
         }
