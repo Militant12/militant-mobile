@@ -1181,6 +1181,17 @@ class ApiService {
     }
   }
 
+  Future<void> deleteConversation(int userId) async {
+    final response = await http.delete(
+      Uri.parse('$apiUrl/v1/messages.php?user_id=$userId'),
+      headers: _headers,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors de la suppression de la conversation');
+    }
+  }
+
   Future<void> editMessage(int messageId, String content) async {
     final response = await http.put(
       Uri.parse('$apiUrl/v1/messages.php?id=$messageId'),

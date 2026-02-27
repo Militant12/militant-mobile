@@ -67,6 +67,93 @@ class _MessagesScreenState extends State<MessagesScreen>
     }
   }
 
+  void _showPrivateConversationOptions(dynamic conv) {
+    final lang = LanguageService.instance;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1E1E1E),
+      builder: (context) => SafeArea(
+        child: ListTile(
+          leading: const Icon(Icons.delete, color: Color(0xFFBE1E1E)),
+          title: Text(
+            lang.translate('delete'),
+            style: const TextStyle(color: Color(0xFFBE1E1E)),
+          ),
+          onTap: () {
+            Navigator.pop(context);
+            _confirmDeleteConversation(conv);
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmDeleteConversation(dynamic conv) async {
+    final lang = LanguageService.instance;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        title: Text(
+          lang.translate('delete_question'),
+          style: const TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          lang.translate('delete_conversation_confirm'),
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(lang.translate('cancel')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(
+              lang.translate('delete'),
+              style: const TextStyle(color: Color(0xFFBE1E1E)),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await _deleteConversation(conv);
+    }
+  }
+
+  Future<void> _deleteConversation(dynamic conv) async {
+    final lang = LanguageService.instance;
+    final rawUserId = conv['user_id'] ?? conv['id'];
+    final userId = rawUserId is int
+        ? rawUserId
+        : int.tryParse(rawUserId?.toString() ?? '');
+
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(lang.translate('error_generic'))),
+      );
+      return;
+    }
+
+    try {
+      _api ??= await ApiService.getInstance();
+      await _api!.deleteConversation(userId);
+
+      if (!mounted) return;
+      setState(() => _conversations.remove(conv));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(lang.translate('conversation_deleted'))),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<Locale>(
@@ -253,6 +340,8 @@ class _MessagesScreenState extends State<MessagesScreen>
           ),
         ).then((_) => _loadConversations());
       },
+      onLongPress: () => _showPrivateConversationOptions(conv),
+      onSecondaryTap: () => _showPrivateConversationOptions(conv),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(

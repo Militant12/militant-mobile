@@ -193,6 +193,9 @@ class LanguageService extends ValueNotifier<Locale> {
       'camera': 'Appareil photo',
       'delete_question': 'Supprimer ?',
       'delete_message_confirm': 'Voulez-vous supprimer ce message ?',
+      'delete_conversation_confirm':
+          'Voulez-vous supprimer toute cette conversation ? Cette action est définitive.',
+      'conversation_deleted': 'Conversation supprimée',
       'edit_message': 'Modifier le message',
       'translate_action': 'Traduire',
       'original_label': 'Original',
@@ -782,6 +785,9 @@ class LanguageService extends ValueNotifier<Locale> {
       'camera': 'Camera',
       'delete_question': 'Delete?',
       'delete_message_confirm': 'Do you want to delete this message?',
+      'delete_conversation_confirm':
+          'Do you want to delete this entire conversation? This action is permanent.',
+      'conversation_deleted': 'Conversation deleted',
       'edit_message': 'Edit message',
       'translate_action': 'Translate',
       'original_label': 'Original',
@@ -1370,6 +1376,9 @@ class LanguageService extends ValueNotifier<Locale> {
       'camera': 'Cámara',
       'delete_question': '¿Eliminar?',
       'delete_message_confirm': '¿Quieres eliminar este mensaje?',
+      'delete_conversation_confirm':
+          '¿Quieres eliminar toda esta conversación? Esta acción es permanente.',
+      'conversation_deleted': 'Conversación eliminada',
       'edit_message': 'Editar mensaje',
       'translate_action': 'Traducir',
       'original_label': 'Original',
