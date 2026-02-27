@@ -5,11 +5,7 @@ class MilitantBadge extends StatelessWidget {
   final String? badgeId;
   final double size;
 
-  const MilitantBadge({
-    super.key,
-    required this.badgeId,
-    this.size = 24,
-  });
+  const MilitantBadge({super.key, required this.badgeId, this.size = 24});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +14,7 @@ class MilitantBadge extends StatelessWidget {
     }
 
     final badgePath = _getBadgePath(badgeId!);
-    
+
     if (badgePath == null) {
       return const SizedBox.shrink();
     }
@@ -31,10 +27,7 @@ class MilitantBadge extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(
-          color: Colors.white.withOpacity(0.3),
-          width: 1,
-        ),
+        border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
       ),
       child: ClipOval(
         child: isSvg
@@ -56,7 +49,7 @@ class MilitantBadge extends StatelessWidget {
 
   String? _getBadgePath(String badgeId) {
     final badges = {
-      'militant': 'assets/badges/militant.svg',
+      'maknosocial': 'assets/badges/militant.svg',
       'antifa': 'assets/badges/antifa.svg',
       'anarchist': 'assets/badges/anarchist.svg',
       'cnt-ait': 'assets/badges/cnt-ait.png',

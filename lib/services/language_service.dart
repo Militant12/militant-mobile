@@ -142,6 +142,12 @@ class LanguageService extends ValueNotifier<Locale> {
       'notifications_likes_subtitle': 'Quand quelqu\'un aime vos posts',
       'notifications_comments': 'Commentaires',
       'notifications_comments_subtitle': 'Quand quelqu\'un commente',
+      'notifications_messages': 'Messages prives et groupes',
+      'notifications_messages_subtitle':
+          'Nouveaux messages prives et messages de groupes',
+      'notifications_friend_requests': 'Demandes d\'amis',
+      'notifications_friend_requests_subtitle':
+          'Nouvelles demandes d\'amis et acceptations',
       'notifications_follows': 'Abonnements',
       'notifications_follows_subtitle': 'Nouveaux abonnés',
       'notifications_mentions': 'Mentions',
@@ -727,6 +733,12 @@ class LanguageService extends ValueNotifier<Locale> {
       'notifications_likes_subtitle': 'When someone likes your posts',
       'notifications_comments': 'Comments',
       'notifications_comments_subtitle': 'When someone comments',
+      'notifications_messages': 'Private and group messages',
+      'notifications_messages_subtitle':
+          'New private messages and group chat messages',
+      'notifications_friend_requests': 'Friend requests',
+      'notifications_friend_requests_subtitle':
+          'New friend requests and accepted requests',
       'notifications_follows': 'Follows',
       'notifications_follows_subtitle': 'New followers',
       'notifications_mentions': 'Mentions',
@@ -1303,6 +1315,12 @@ class LanguageService extends ValueNotifier<Locale> {
           'Cuando a alguien le gusta tu publicación',
       'notifications_comments': 'Comentarios',
       'notifications_comments_subtitle': 'Cuando alguien comenta',
+      'notifications_messages': 'Mensajes privados y de grupos',
+      'notifications_messages_subtitle':
+          'Nuevos mensajes privados y de grupos',
+      'notifications_friend_requests': 'Solicitudes de amistad',
+      'notifications_friend_requests_subtitle':
+          'Nuevas solicitudes y aceptaciones de amistad',
       'notifications_follows': 'Seguidores',
       'notifications_follows_subtitle': 'Nuevos seguidores',
       'notifications_mentions': 'Menciones',

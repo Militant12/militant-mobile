@@ -49,6 +49,13 @@ class ApiService {
     return _instance!;
   }
 
+  /// Use a prefixed external ID to avoid blocked raw numeric aliases in OneSignal.
+  static String oneSignalExternalIdFromUserId(dynamic userId) {
+    final raw = userId?.toString().trim() ?? '';
+    if (raw.isEmpty) return '';
+    return 'u_$raw';
+  }
+
   // Headers avec authentification
   Map<String, String> get _headers => {
     'Content-Type': 'application/json',

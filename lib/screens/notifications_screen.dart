@@ -55,6 +55,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       case 'comment':
         return Icons.comment;
       case 'follow':
+      case 'friend_request':
+      case 'friend_accept':
         return Icons.person_add;
       case 'mention':
         return Icons.alternate_email;
@@ -173,7 +175,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     return InkWell(
       onTap: () async {
-        if (type == 'follow') {
+        if (type == 'follow' ||
+            type == 'friend_request' ||
+            type == 'friend_accept') {
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -288,6 +292,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         icon = Icons.comment;
         break;
       case 'follow':
+      case 'friend_request':
+      case 'friend_accept':
         icon = Icons.person_add;
         break;
       case 'mention':

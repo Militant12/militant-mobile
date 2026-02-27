@@ -20,6 +20,20 @@
         android:icon="@mipmap/ic_launcher"
         tools:replace="android:label">
 
+        <!-- Notification icon/color (OneSignal + FCM fallback) -->
+        <meta-data
+            android:name="com.onesignal.NotificationIcon"
+            android:resource="@drawable/ic_stat_militant" />
+        <meta-data
+            android:name="com.onesignal.NotificationAccentColor"
+            android:value="FFBE1E1E" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_militant" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/militant_notification_accent" />
+
         <!-- Activité CallKit supprimée pour éviter duplication du manifest merger -->
         
         <!-- Digital Asset Links for TWA verification -->

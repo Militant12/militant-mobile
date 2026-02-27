@@ -373,19 +373,73 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showAboutDialog(BuildContext context) {
     final lang = LanguageService.instance;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     showAboutDialog(
       context: context,
       applicationName: 'Militant',
-      applicationVersion: '1.0.0',
-      applicationIcon: SvgPicture.asset(
-        'assets/logo.svg',
-        width: 80,
-        height: 80,
+      applicationVersion: '1.0.5',
+      applicationIcon: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[100],
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: SvgPicture.asset('assets/logo.svg', width: 60, height: 60),
       ),
       children: [
-        Text(lang.translate('social_network')),
         const SizedBox(height: 16),
-        Text(lang.translate('copyright')),
+        Text(
+          lang.translate('social_network'),
+          style: TextStyle(
+            fontSize: 14,
+            color: isDark ? Colors.white70 : Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          lang.translate('copyright'),
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white54 : Colors.grey[600],
+          ),
+        ),
+        const SizedBox(height: 24),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton.icon(
+              onPressed: () => launchUrl(
+                Uri.parse('https://militant.revlibertaire.com'),
+                mode: LaunchMode.externalApplication,
+              ),
+              icon: const Icon(Icons.language, size: 18),
+              label: Text(lang.translate('view_website')),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFBE1E1E),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                textStyle: const TextStyle(fontSize: 12),
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: () => launchUrl(
+                Uri.parse('https://gitlab.com/miliant1/militant'),
+                mode: LaunchMode.externalApplication,
+              ),
+              icon: const Icon(Icons.code, size: 18),
+              label: Text(lang.translate('source_code')),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isDark ? Colors.white10 : Colors.grey[200],
+                foregroundColor: isDark ? Colors.white : Colors.black,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                textStyle: const TextStyle(fontSize: 12),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -666,6 +720,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   // bool _emailEnabled = false; // Removed
   bool _likes = true;
   bool _comments = true;
+  bool _messages = true;
+  bool _friendRequests = true;
   bool _follows = true;
   bool _mentions = true;
 
@@ -687,6 +743,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           // _emailEnabled = _toBool(prefs['notifications_email'], false);
           _likes = _toBool(prefs['notifications_likes'], true);
           _comments = _toBool(prefs['notifications_comments'], true);
+          _messages = _toBool(prefs['notifications_messages'], true);
+          _friendRequests = _toBool(
+            prefs['notifications_friend_requests'],
+            true,
+          );
           _follows = _toBool(prefs['notifications_follows'], true);
           _mentions = _toBool(prefs['notifications_mentions'], true);
           _isLoading = false;
@@ -723,6 +784,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         _likes = value;
       } else if (key == 'notifications_comments') {
         _comments = value;
+      } else if (key == 'notifications_messages') {
+        _messages = value;
+      } else if (key == 'notifications_friend_requests') {
+        _friendRequests = value;
       } else if (key == 'notifications_follows') {
         _follows = value;
       } else if (key == 'notifications_mentions') {
@@ -760,6 +825,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             _likes = !value;
           else if (key == 'notifications_comments')
             _comments = !value;
+          else if (key == 'notifications_messages')
+            _messages = !value;
+          else if (key == 'notifications_friend_requests')
+            _friendRequests = !value;
           else if (key == 'notifications_follows')
             _follows = !value;
           else if (key == 'notifications_mentions')
@@ -813,6 +882,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     lang.translate('notifications_comments_subtitle'),
                     _comments,
                     (v) => _updatePreference('notifications_comments', v),
+                  ),
+                  _buildSwitch(
+                    lang.translate('notifications_messages'),
+                    lang.translate('notifications_messages_subtitle'),
+                    _messages,
+                    (v) => _updatePreference('notifications_messages', v),
+                  ),
+                  _buildSwitch(
+                    lang.translate('notifications_friend_requests'),
+                    lang.translate('notifications_friend_requests_subtitle'),
+                    _friendRequests,
+                    (v) =>
+                        _updatePreference('notifications_friend_requests', v),
                   ),
                   _buildSwitch(
                     lang.translate('notifications_follows'),

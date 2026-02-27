@@ -7,7 +7,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:militant_flutter/main.dart';
+import 'package:militant/main.dart';
 
 void main() {
   testWidgets('App launches successfully', (WidgetTester tester) async {

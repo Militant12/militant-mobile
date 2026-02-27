@@ -26,7 +26,6 @@ class ProfileScreen extends StatefulWidget {
 
 class ProfileScreenState extends State<ProfileScreen>
     with SingleTickerProviderStateMixin {
-
   Map<String, dynamic>? _profile;
   final List<Post> _posts = [];
   bool _isLoading = true;
@@ -77,8 +76,8 @@ class ProfileScreenState extends State<ProfileScreen>
         _receivedRequestId = profile['received_request_id'];
         // Add timestamp to force image reload and bypass cache
         final avatarUrl = api.getImageUrl(profile['avatar']);
-        _avatarUrl = avatarUrl != null 
-            ? '$avatarUrl?t=${DateTime.now().millisecondsSinceEpoch}' 
+        _avatarUrl = avatarUrl != null
+            ? '$avatarUrl?t=${DateTime.now().millisecondsSinceEpoch}'
             : null;
       });
 
@@ -91,7 +90,11 @@ class ProfileScreenState extends State<ProfileScreen>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
+          SnackBar(
+            content: Text(
+              '${lang.translate('error_generic')}: ${e.toString()}',
+            ),
+          ),
         );
       }
     } finally {
@@ -126,7 +129,11 @@ class ProfileScreenState extends State<ProfileScreen>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
+          SnackBar(
+            content: Text(
+              '${lang.translate('error_generic')}: ${e.toString()}',
+            ),
+          ),
         );
       }
     } finally {
@@ -151,7 +158,11 @@ class ProfileScreenState extends State<ProfileScreen>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
+          SnackBar(
+            content: Text(
+              '${lang.translate('error_generic')}: ${e.toString()}',
+            ),
+          ),
         );
       }
     }
@@ -172,7 +183,11 @@ class ProfileScreenState extends State<ProfileScreen>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
+          SnackBar(
+            content: Text(
+              '${lang.translate('error_generic')}: ${e.toString()}',
+            ),
+          ),
         );
       }
     }
@@ -220,7 +235,11 @@ class ProfileScreenState extends State<ProfileScreen>
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
+            SnackBar(
+              content: Text(
+                '${lang.translate('error_generic')}: ${e.toString()}',
+              ),
+            ),
           );
         }
       }
@@ -240,7 +259,11 @@ class ProfileScreenState extends State<ProfileScreen>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
+          SnackBar(
+            content: Text(
+              '${lang.translate('error_generic')}: ${e.toString()}',
+            ),
+          ),
         );
       }
     }
@@ -270,7 +293,11 @@ class ProfileScreenState extends State<ProfileScreen>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
+          SnackBar(
+            content: Text(
+              '${lang.translate('error_generic')}: ${e.toString()}',
+            ),
+          ),
         );
       }
     }
@@ -1003,14 +1030,22 @@ class ProfileScreenState extends State<ProfileScreen>
                 } else {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('${lang.translate('cannot_open_url')}: $urlString')),
+                      SnackBar(
+                        content: Text(
+                          '${lang.translate('cannot_open_url')}: $urlString',
+                        ),
+                      ),
                     );
                   }
                 }
               } catch (e) {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
+                    SnackBar(
+                      content: Text(
+                        '${lang.translate('error_generic')}: ${e.toString()}',
+                      ),
+                    ),
                   );
                 }
               }

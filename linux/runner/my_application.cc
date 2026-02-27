@@ -1,4 +1,5 @@
 #include "my_application.h"
+#include <unistd.h>
 
 #include <flutter_linux/flutter_linux.h>
 #ifdef GDK_WINDOWING_X11
@@ -56,17 +57,26 @@ static void my_application_activate(GApplication *application) {
 
   // Set window icon for taskbar
   GError *icon_error = NULL;
-  GdkPixbuf *icon = gdk_pixbuf_new_from_file(
+  GdkPixbuf *icon = NULL;
+
+  // First try: installed path
+  icon = gdk_pixbuf_new_from_file(
       "/usr/share/icons/hicolor/512x512/apps/militant.png", &icon_error);
+
+  // Second try: relative to executable (works in dev and bundle)
   if (icon == NULL) {
-    // Try relative path (when running from build directory)
     g_clear_error(&icon_error);
-    g_autofree gchar *exe_dir = g_path_get_dirname(g_get_prgname());
-    g_autofree gchar *icon_path =
-        g_build_filename(g_get_current_dir(), "data", "flutter_assets",
-                         "assets", "icon-512.png", NULL);
-    icon = gdk_pixbuf_new_from_file(icon_path, &icon_error);
+    char exe_path[1024];
+    ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
+    if (len > 0) {
+      exe_path[len] = '\0';
+      g_autofree gchar *exe_dir = g_path_get_dirname(exe_path);
+      g_autofree gchar *icon_path = g_build_filename(
+          exe_dir, "data", "flutter_assets", "assets", "icon-512.png", NULL);
+      icon = gdk_pixbuf_new_from_file(icon_path, &icon_error);
+    }
   }
+
   if (icon != NULL) {
     gtk_window_set_icon(window, icon);
     g_object_unref(icon);

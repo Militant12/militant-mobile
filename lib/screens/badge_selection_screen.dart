@@ -51,7 +51,11 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
+          SnackBar(
+            content: Text(
+              '${lang.translate('error_generic')}: ${e.toString()}',
+            ),
+          ),
         );
       }
     }
@@ -80,7 +84,11 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
       setState(() => _isSaving = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
+          SnackBar(
+            content: Text(
+              '${lang.translate('error_generic')}: ${e.toString()}',
+            ),
+          ),
         );
       }
     }
@@ -142,11 +150,13 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
                 ),
                 const Divider(),
                 // Liste des badges
-                ..._badges.map((badge) => _buildBadgeOption(
-                      id: badge['id'],
-                      name: badge['name']!,
-                      isDark: isDark,
-                    )),
+                ..._badges.map(
+                  (badge) => _buildBadgeOption(
+                    id: badge['id'],
+                    name: badge['name']!,
+                    isDark: isDark,
+                  ),
+                ),
               ],
             ),
     );
@@ -202,10 +212,7 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
               ),
             ),
             if (isSelected)
-              const Icon(
-                Icons.check_circle,
-                color: Color(0xFFBE1E1E),
-              ),
+              const Icon(Icons.check_circle, color: Color(0xFFBE1E1E)),
           ],
         ),
       ),

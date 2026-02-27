@@ -21,6 +21,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
   final _nameController = TextEditingController();
   int _autoDeleteTime = 0; // minutes
   List<dynamic> _members = [];
+  List<dynamic> _requests = [];
   bool _isLoading = true;
   ApiService? _api;
 
@@ -39,6 +40,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
         _nameController.text = details['name'] ?? widget.groupName;
         _autoDeleteTime = details['auto_delete_time'] ?? 0;
         _members = details['members'] ?? [];
+        _requests = details['requests'] ?? [];
         _isLoading = false;
       });
     } catch (e) {
@@ -302,9 +304,20 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                           color: Color(0xFFBE1E1E),
                         ),
                       ),
-                      Text(
-                        '${_members.length}',
-                        style: TextStyle(color: theme.hintColor),
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.person_add,
+                              color: Color(0xFFBE1E1E),
+                            ),
+                            onPressed: _showAddMemberDialog,
+                          ),
+                          Text(
+                            '${_members.length}',
+                            style: TextStyle(color: theme.hintColor),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -344,8 +357,12 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                     ),
                     trailing: isAdmin
                         ? IconButton(
-                            icon: const Icon(Icons.remove_circle, color: Color(0xFFBE1E1E)),
-                            onPressed: () => _removeMember(m['user_id'], m['username']),
+                            icon: const Icon(
+                              Icons.remove_circle,
+                              color: Color(0xFFBE1E1E),
+                            ),
+                            onPressed: () =>
+                                _removeMember(m['user_id'], m['username']),
                           )
                         : null,
                   );
@@ -354,6 +371,81 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
               ],
             ),
           ),
+          if (_requests.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Card(
+              color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Demandes d\'adhésion',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFBE1E1E),
+                          ),
+                        ),
+                        Text(
+                          '${_requests.length}',
+                          style: TextStyle(color: theme.hintColor),
+                        ),
+                      ],
+                    ),
+                  ),
+                  ..._requests.map((r) {
+                    final avatarUrl = _api?.getImageUrl(r['avatar']);
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: const Color(0xFFBE1E1E),
+                        backgroundImage: avatarUrl != null
+                            ? NetworkImage(avatarUrl)
+                            : null,
+                        child: avatarUrl == null
+                            ? ClipOval(
+                                child: SvgPicture.asset(
+                                  'assets/logo.svg',
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : null,
+                      ),
+                      title: Text(
+                        r['username'],
+                        style: TextStyle(
+                          color: theme.textTheme.bodyLarge?.color,
+                        ),
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.check, color: Colors.green),
+                            onPressed: () =>
+                                _handleRequest(r['request_id'], true),
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.close,
+                              color: Color(0xFFBE1E1E),
+                            ),
+                            onPressed: () =>
+                                _handleRequest(r['request_id'], false),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           Card(
             color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
@@ -372,6 +464,215 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _handleRequest(int requestId, bool approve) async {
+    try {
+      if (approve) {
+        await _api!.approveGroupRequest(widget.groupId, requestId);
+      } else {
+        await _api!.rejectGroupRequest(widget.groupId, requestId);
+      }
+      _loadData();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(approve ? 'Demande approuvée' : 'Demande refusée'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+      }
+    }
+  }
+
+  Future<void> _showAddMemberDialog() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
+      ),
+    );
+
+    try {
+      final friendsData = await _api!.getFriends();
+      if (mounted) Navigator.pop(context); // close loading
+
+      final friends = friendsData['friends'] ?? friendsData['data'] ?? [];
+
+      if (mounted) {
+        bool isSearching = false;
+        List<dynamic> displayUsers = List.from(friends);
+        final searchController = TextEditingController();
+
+        showDialog(
+          context: context,
+          builder: (context) => StatefulBuilder(
+            builder: (context, setStateBuilder) {
+              return AlertDialog(
+                backgroundColor: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF1E1E1E)
+                    : Colors.white,
+                title: const Text('Ajouter un membre'),
+                content: SizedBox(
+                  width: double.maxFinite,
+                  height: 400,
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: searchController,
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Rechercher un utilisateur...',
+                          hintStyle: TextStyle(
+                            color: Theme.of(context).hintColor,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.search,
+                            color: Theme.of(context).hintColor,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                          ),
+                        ),
+                        onChanged: (value) async {
+                          if (value.length > 2) {
+                            setStateBuilder(() => isSearching = true);
+                            try {
+                              final res = await _api!.search(
+                                value,
+                                type: 'users',
+                              );
+                              setStateBuilder(() {
+                                displayUsers =
+                                    res['data'] ?? res['items'] ?? [];
+                                isSearching = false;
+                              });
+                            } catch (e) {
+                              setStateBuilder(() => isSearching = false);
+                            }
+                          } else if (value.isEmpty) {
+                            setStateBuilder(() {
+                              displayUsers = List.from(friends);
+                              isSearching = false;
+                            });
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      Expanded(
+                        child: isSearching
+                            ? const Center(
+                                child: CircularProgressIndicator(
+                                  color: Color(0xFFBE1E1E),
+                                ),
+                              )
+                            : displayUsers.isEmpty
+                            ? const Center(
+                                child: Text('Aucun utilisateur trouvé'),
+                              )
+                            : ListView.builder(
+                                itemCount: displayUsers.length,
+                                itemBuilder: (context, index) {
+                                  final user = displayUsers[index];
+                                  final avatarUrl = _api!.getImageUrl(
+                                    user['avatar'],
+                                  );
+                                  final username =
+                                      user['username'] ??
+                                      user['name'] ??
+                                      'Utilisateur inconnu';
+
+                                  return ListTile(
+                                    leading: CircleAvatar(
+                                      backgroundColor: const Color(0xFFBE1E1E),
+                                      backgroundImage: avatarUrl != null
+                                          ? NetworkImage(avatarUrl)
+                                          : null,
+                                      child: avatarUrl == null
+                                          ? ClipOval(
+                                              child: SvgPicture.asset(
+                                                'assets/logo.svg',
+                                                fit: BoxFit.cover,
+                                              ),
+                                            )
+                                          : null,
+                                    ),
+                                    title: Text(
+                                      username,
+                                      style: TextStyle(
+                                        color: Theme.of(
+                                          context,
+                                        ).textTheme.bodyLarge?.color,
+                                      ),
+                                    ),
+                                    onTap: () async {
+                                      Navigator.pop(context);
+                                      try {
+                                        await _api!.addGroupMember(
+                                          widget.groupId,
+                                          user['id'],
+                                        );
+                                        _loadData();
+                                        if (mounted) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                '$username ajouté(e)',
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      } catch (e) {
+                                        if (mounted) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Erreur: $e'),
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    },
+                                  );
+                                },
+                              ),
+                      ),
+                    ],
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Fermer'),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // close loading
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+      }
+    }
   }
 
   Future<void> _removeMember(int userId, String username) async {
@@ -410,9 +711,9 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erreur: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
         }
       }
     }
@@ -457,9 +758,9 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erreur: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
         }
       }
     }

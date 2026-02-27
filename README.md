@@ -8,7 +8,8 @@
   <a href="https://flutter.dev"><img src="https://img.shields.io/badge/Flutter-3.0+-02569B?style=flat&logo=flutter" alt="Flutter"></a>
   <a href="https://dart.dev"><img src="https://img.shields.io/badge/Dart-3.0+-0175C2?style=flat&logo=dart" alt="Dart"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-red?style=flat" alt="License"></a>
-  <img src="https://img.shields.io/badge/Platform-Android-3DDC84?style=flat&logo=android" alt="Platform">
+  <img src="https://img.shields.io/badge/Platform-Android-3DDC84?style=flat&logo=android" alt="Android">
+  <img src="https://img.shields.io/badge/Platform-macOS-black?style=flat&logo=apple" alt="macOS">
   <img src="https://img.shields.io/badge/iOS-Coming%20Soon-999999?style=flat&logo=apple" alt="iOS">
 </p>
 
@@ -67,9 +68,10 @@ Militant est un réseau social décentralisé conçu pour les mouvements militan
 - Flutter 3.0 ou supérieur
 - Dart 3.0 ou supérieur
 - Android Studio (pour le développement Android)
+- Xcode + Command Line Tools (pour le build macOS)
 - Un émulateur Android ou appareil physique
 
-**Note :** Le support iOS est prévu mais pas encore implémenté.
+**Note :** Le support iOS est en cours. Le support macOS est disponible.
 
 ## Installation
 
@@ -97,6 +99,9 @@ flutter build apk --debug
 
 # Build APK de release
 flutter build apk --release
+
+# Lancer sur macOS (depuis un Mac)
+flutter run -d macos
 ```
 
 ## Configuration
@@ -150,7 +155,8 @@ militant_flutter/
 │       ├── api_service.dart
 │       └── language_service.dart
 ├── android/                         # Configuration Android
-├── ios/                            # Configuration iOS (à venir)
+├── ios/                            # Configuration iOS
+├── macos/                          # Configuration macOS
 ├── assets/
 │   ├── logo.svg                    # Logo de l'application
 │   ├── badges/                     # Badges militants (exclusif mobile)
@@ -187,6 +193,32 @@ flutter build apk --release
 flutter build appbundle --release
 ```
 
+### macOS
+
+```bash
+# Build release macOS
+flutter build macos --release
+
+# Générer un package .zip/.dmg (à lancer sur macOS)
+./package_macos.sh
+```
+
+Variables utiles pour signature/notarization:
+
+```bash
+export MACOS_SIGN_IDENTITY="Developer ID Application: Votre Organisation (TEAMID)"
+export MACOS_REQUIRE_SIGNED=1
+export MACOS_REQUIRE_NOTARIZED=1
+
+# Méthode 1 (recommandée): profil keychain
+export MACOS_NOTARY_KEYCHAIN_PROFILE="militant-notary"
+
+# Méthode 2 (alternative): identifiants Apple
+export APPLE_ID="dev@votre-domaine.com"
+export APPLE_APP_PASSWORD="xxxx-xxxx-xxxx-xxxx"
+export APPLE_TEAM_ID="TEAMID"
+```
+
 ## Performance & Scalabilité
 
 L'application et l'API sont optimisées pour supporter un grand nombre d'utilisateurs :
@@ -205,7 +237,11 @@ L'application et l'API sont optimisées pour supporter un grand nombre d'utilisa
 3. Build l'App Bundle : `flutter build appbundle --release`
 4. Uploader sur Play Console
 
-**Support iOS à venir**
+### Distribution macOS
+
+1. Lancer `./package_macos.sh` sur un Mac.
+2. Publier `militant-macos-latest.dmg` et/ou `militant-macos-latest.zip` sur le serveur de téléchargement.
+3. Mettre à jour la page `jointomilitant/macos.html`.
 
 ## Contribution
 

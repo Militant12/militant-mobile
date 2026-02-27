@@ -29,6 +29,14 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 - Support Android API 21+
 - CI/CD GitLab configurée
 
+## [1.0.4] - 2026-02-25
+
+### Mis à jour
+- Version de l'application à 1.0.4
+- Description "À propos" plus détaillée
+- Ajout de boutons pour visiter le site web et voir le code source
+- Correction d'imports et de traductions en double
+
 ## [Non publié]
 
 ### Prévu

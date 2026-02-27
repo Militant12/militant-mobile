@@ -185,10 +185,12 @@ class _SplashScreenState extends State<SplashScreen>
               await prefs.setInt('user_id', userId);
             }
 
-            final userIdStr = userId?.toString();
-            if (userIdStr != null && userIdStr.isNotEmpty) {
-              print('=== SPLASH: OneSignal Login with User ID: $userIdStr ===');
-              OneSignal.login(userIdStr);
+            final externalId = ApiService.oneSignalExternalIdFromUserId(userId);
+            if (externalId.isNotEmpty) {
+              print(
+                '=== SPLASH: OneSignal Login with External ID: $externalId ===',
+              );
+              OneSignal.login(externalId);
             }
           }
 

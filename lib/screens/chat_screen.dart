@@ -269,7 +269,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _showOptions(dynamic message) {
-    final lang = LanguageService.instance;
     bool isMine = message['is_mine'] == true || message['is_mine'] == 1;
 
     // Fallback if is_mine is missing (e.g. from local update or specific API response)
@@ -277,6 +276,13 @@ class _ChatScreenState extends State<ChatScreen> {
       isMine =
           message['sender_id'].toString() == _currentUser!['id'].toString();
     }
+
+    // Private chat: never allow edit/delete options on received messages.
+    if (!isMine) {
+      return;
+    }
+
+    final lang = LanguageService.instance;
 
     showModalBottomSheet(
       context: context,
@@ -425,8 +431,8 @@ class _ChatScreenState extends State<ChatScreen> {
     return Align(
       alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
       child: GestureDetector(
-        onLongPress: () => _showOptions(message),
-        onSecondaryTap: () => _showOptions(message),
+        onLongPress: isMine ? () => _showOptions(message) : null,
+        onSecondaryTap: isMine ? () => _showOptions(message) : null,
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
