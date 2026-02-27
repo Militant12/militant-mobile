@@ -58,3 +58,14 @@ MOTS_DE_PASSE_KEYSTORE.txt
 A_FAIRE.txt
 GITLAB_VARIABLES.txt
 RESUME_RAPIDE.txt
+
+# Mobile-only scope (exclude desktop/web packaging)
+/linux/
+/macos/
+/windows/
+/web/
+*.deb
+militant-v*/
+militant-linux_*.deb
+package_linux.sh
+package_macos.sh
