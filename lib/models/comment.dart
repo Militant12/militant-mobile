@@ -10,6 +10,8 @@ class Comment {
   final List<Comment> replies;
   final int reactionsCount;
   final bool hasReacted;
+  bool isTranslated = false;
+  String? translatedContent;
 
   Comment({
     required this.id,
@@ -23,6 +25,8 @@ class Comment {
     this.replies = const [],
     this.reactionsCount = 0,
     this.hasReacted = false,
+    this.isTranslated = false,
+    this.translatedContent,
   });
 
   factory Comment.fromJson(Map<String, dynamic> json) {
@@ -50,12 +54,14 @@ class Comment {
       content: json['content'] ?? '',
       createdAt: parseDate(json['created_at']),
       parentId: json['parent_id'],
-      replies: (json['replies'] as List?)
-          ?.map((r) => Comment.fromJson(r))
-          .toList() ?? [],
+      replies:
+          (json['replies'] as List?)
+              ?.map((r) => Comment.fromJson(r))
+              .toList() ??
+          [],
       reactionsCount: json['reactions_count'] ?? 0,
-      hasReacted: (json['has_reacted'] is int) 
-          ? (json['has_reacted'] as int) > 0 
+      hasReacted: (json['has_reacted'] is int)
+          ? (json['has_reacted'] as int) > 0
           : (json['has_reacted'] ?? false),
     );
   }

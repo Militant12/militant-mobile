@@ -53,7 +53,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   String? _extractMentionQuery(String text, int cursor) {
     if (cursor < 0 || cursor > text.length) return null;
     final beforeCursor = text.substring(0, cursor);
-    final match = RegExp(r'(^|[\s\n])@([A-Za-z0-9_]*)$').firstMatch(beforeCursor);
+    final match = RegExp(
+      r'(^|[\s\n])@([A-Za-z0-9_]*)$',
+    ).firstMatch(beforeCursor);
     if (match == null) return null;
     final query = match.group(2) ?? '';
     if (query.isEmpty) return null;
@@ -113,7 +115,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     if (cursor < 0 || cursor > value.text.length) return;
 
     final beforeCursor = value.text.substring(0, cursor);
-    final match = RegExp(r'(^|[\s\n])@([A-Za-z0-9_]*)$').firstMatch(beforeCursor);
+    final match = RegExp(
+      r'(^|[\s\n])@([A-Za-z0-9_]*)$',
+    ).firstMatch(beforeCursor);
     if (match == null) return;
 
     final prefix = match.group(1) ?? '';
@@ -172,7 +176,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       List<dynamic> commentsData;
       if (_post!.type == 'group') {
         commentsData = await api.getGroupPostComments(_post!.id);
-        debugPrint('Group comments loaded: ${commentsData.length} root comments');
+        debugPrint(
+          'Group comments loaded: ${commentsData.length} root comments',
+        );
       } else {
         commentsData = await api.getComments(_post!.id);
         debugPrint('Comments loaded: ${commentsData.length} root comments');
@@ -180,15 +186,17 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       if (mounted) {
         setState(() {
           _comments.clear();
-          _comments.addAll(commentsData.map((c) {
-            try {
-              return Comment.fromJson(c);
-            } catch (e) {
-              debugPrint('Error parsing comment: $e');
-              debugPrint('Comment data: $c');
-              rethrow;
-            }
-          }).toList());
+          _comments.addAll(
+            commentsData.map((c) {
+              try {
+                return Comment.fromJson(c);
+              } catch (e) {
+                debugPrint('Error parsing comment: $e');
+                debugPrint('Comment data: $c');
+                rethrow;
+              }
+            }).toList(),
+          );
           debugPrint('Total comments in list: ${_comments.length}');
         });
       }
@@ -214,7 +222,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     try {
       final api = await ApiService.getInstance();
       if (_post!.type == 'group') {
-        await api.addGroupComment(_post!.id, content, parentId: _replyingTo?.id);
+        await api.addGroupComment(
+          _post!.id,
+          content,
+          parentId: _replyingTo?.id,
+        );
       } else if (_post!.type == 'page') {
         await api.commentOnPagePost(_post!.id, content);
       } else {
@@ -226,10 +238,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         _mentionSuggestions = [];
         _isMentionLoading = false;
       });
-      
+
       // Recharger les commentaires ET le post pour mettre à jour le compteur
       await _loadComments();
-      
+
       // Recharger le post pour avoir le compteur à jour
       if (_post != null) {
         try {
@@ -314,7 +326,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                     ),
                   )
                 else
-                  ..._comments.map((comment) => _buildCommentItem(comment, depth: 0)),
+                  ..._comments.map(
+                    (comment) => _buildCommentItem(comment, depth: 0),
+                  ),
               ],
             ),
           ),
@@ -355,13 +369,18 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                         comment.username.isNotEmpty
                             ? comment.username[0].toUpperCase()
                             : '?',
-                        style: const TextStyle(color: Colors.white, fontSize: 12),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
                       ),
                     );
                   }
 
-                  final avatarUrl = snapshot.data!.getImageUrl(comment.userAvatar);
-                  
+                  final avatarUrl = snapshot.data!.getImageUrl(
+                    comment.userAvatar,
+                  );
+
                   if (avatarUrl != null && avatarUrl.isNotEmpty) {
                     return CircleAvatar(
                       radius: 16,
@@ -435,11 +454,15 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                     ),
                     const SizedBox(height: 4),
                     LinkableText(
-                      text: comment.content,
+                      text:
+                          comment.isTranslated &&
+                              comment.translatedContent != null
+                          ? comment.translatedContent!
+                          : comment.content,
                       style: TextStyle(color: textColor, fontSize: 14),
                     ),
                     const SizedBox(height: 4),
-                    // Boutons Répondre et Réaction
+                    // Boutons Répondre, Réaction et Traduire
                     Row(
                       children: [
                         TextButton.icon(
@@ -448,10 +471,17 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                               _replyingTo = comment;
                             });
                           },
-                          icon: Icon(Icons.reply, size: 14, color: subtitleColor),
+                          icon: Icon(
+                            Icons.reply,
+                            size: 14,
+                            color: subtitleColor,
+                          ),
                           label: Text(
                             lang.translate('reply'),
-                            style: TextStyle(color: subtitleColor, fontSize: 12),
+                            style: TextStyle(
+                              color: subtitleColor,
+                              fontSize: 12,
+                            ),
                           ),
                           style: TextButton.styleFrom(
                             padding: EdgeInsets.zero,
@@ -466,12 +496,46 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                           icon: Icon(
                             Icons.thumb_up,
                             size: 14,
-                            color: comment.hasReacted ? const Color(0xFFBE1E1E) : subtitleColor,
+                            color: comment.hasReacted
+                                ? const Color(0xFFBE1E1E)
+                                : subtitleColor,
                           ),
                           label: Text(
-                            comment.reactionsCount > 0 ? '${comment.reactionsCount}' : '',
+                            comment.reactionsCount > 0
+                                ? '${comment.reactionsCount}'
+                                : '',
                             style: TextStyle(
-                              color: comment.hasReacted ? const Color(0xFFBE1E1E) : subtitleColor,
+                              color: comment.hasReacted
+                                  ? const Color(0xFFBE1E1E)
+                                  : subtitleColor,
+                              fontSize: 12,
+                            ),
+                          ),
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Bouton Traduire
+                        TextButton.icon(
+                          onPressed: () => _toggleCommentTranslation(comment),
+                          icon: Icon(
+                            Icons.translate,
+                            size: 14,
+                            color: comment.isTranslated
+                                ? const Color(0xFFBE1E1E)
+                                : subtitleColor,
+                          ),
+                          label: Text(
+                            comment.isTranslated
+                                ? lang.translate('original_label')
+                                : lang.translate('translate_action'),
+                            style: TextStyle(
+                              color: comment.isTranslated
+                                  ? const Color(0xFFBE1E1E)
+                                  : subtitleColor,
                               fontSize: 12,
                             ),
                           ),
@@ -491,7 +555,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         ),
         // Afficher les réponses de manière récursive
         if (comment.replies.isNotEmpty)
-          ...comment.replies.map((reply) => _buildCommentItem(reply, depth: depth + 1)),
+          ...comment.replies.map(
+            (reply) => _buildCommentItem(reply, depth: depth + 1),
+          ),
       ],
     );
   }
@@ -510,7 +576,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(lang.translate('delete'), style: const TextStyle(color: Colors.red)),
+            child: Text(
+              lang.translate('delete'),
+              style: const TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),
@@ -530,9 +599,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       } catch (e) {
         debugPrint('Error deleting comment: $e');
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: ${e.toString()}')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${lang.translate('error')}: ${e.toString()}'),
+            ),
+          );
         }
       }
     }
@@ -575,9 +646,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       } catch (e) {
         debugPrint('Error editing comment: $e');
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: ${e.toString()}')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${lang.translate('error')}: ${e.toString()}'),
+            ),
+          );
         }
       }
     }
@@ -606,6 +679,41 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Erreur lors de la réaction')),
+        );
+      }
+    }
+  }
+
+  Future<void> _toggleCommentTranslation(Comment comment) async {
+    if (comment.isTranslated) {
+      setState(() {
+        comment.isTranslated = false;
+      });
+      return;
+    }
+
+    if (comment.translatedContent != null) {
+      setState(() {
+        comment.isTranslated = true;
+      });
+      return;
+    }
+
+    try {
+      final api = await ApiService.getInstance();
+      final result = await api.translateText(comment.content);
+
+      if (mounted && result['success'] == true) {
+        setState(() {
+          comment.translatedContent = result['translated'];
+          comment.isTranslated = true;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        final lang = LanguageService.instance;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${lang.translate('error_translation')}: $e')),
         );
       }
     }
@@ -653,11 +761,17 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
               color: theme.dividerColor.withOpacity(0.3),
               child: Row(
                 children: [
-                  Icon(Icons.reply, size: 16, color: theme.textTheme.bodyMedium?.color),
+                  Icon(
+                    Icons.reply,
+                    size: 16,
+                    color: theme.textTheme.bodyMedium?.color,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      lang.translate('reply_to').replaceAll('{username}', _replyingTo!.username),
+                      lang
+                          .translate('reply_to')
+                          .replaceAll('{username}', _replyingTo!.username),
                       style: TextStyle(
                         color: theme.textTheme.bodyMedium?.color,
                         fontSize: 12,
@@ -666,7 +780,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.close, size: 16, color: theme.textTheme.bodyMedium?.color),
+                    icon: Icon(
+                      Icons.close,
+                      size: 16,
+                      color: theme.textTheme.bodyMedium?.color,
+                    ),
                     onPressed: () {
                       setState(() {
                         _replyingTo = null;
@@ -703,10 +821,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                       child: ListView.separated(
                         shrinkWrap: true,
                         itemCount: _mentionSuggestions.length,
-                        separatorBuilder: (_, __) => Divider(
-                          height: 1,
-                          color: theme.dividerColor,
-                        ),
+                        separatorBuilder: (_, __) =>
+                            Divider(height: 1, color: theme.dividerColor),
                         itemBuilder: (context, index) {
                           final user = _mentionSuggestions[index];
                           final username = (user['username'] ?? '').toString();

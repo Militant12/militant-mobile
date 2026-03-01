@@ -103,6 +103,42 @@ class ApiService {
     return '$baseUrl/api';
   }
 
+  // Obtenir l'URL principale du site (sans sous-domaine api ni suffixe /api)
+  String get mainSiteUrl {
+    final normalizedBase = normalizeBaseUrl(baseUrl);
+    final parsed = Uri.tryParse(normalizedBase);
+
+    if (parsed == null || parsed.host.isEmpty) {
+      return 'https://militant.revlibertaire.com';
+    }
+
+    String host = parsed.host;
+    if (host.startsWith('api.')) {
+      host = host.substring(4);
+    }
+
+    // Retirer /api ou /api/vX en fin de chemin si présent
+    final rawPath = parsed.path;
+    String path = rawPath.replaceFirst(RegExp(r'/api(?:/v\d+)?/?$'), '');
+    if (path == '/') {
+      path = '';
+    }
+
+    final mainUri = Uri(
+      scheme: parsed.scheme.isEmpty ? 'https' : parsed.scheme,
+      userInfo: parsed.userInfo.isNotEmpty ? parsed.userInfo : null,
+      host: host,
+      port: parsed.hasPort ? parsed.port : null,
+      path: path,
+    );
+
+    String url = mainUri.toString();
+    if (url.endsWith('/')) {
+      url = url.substring(0, url.length - 1);
+    }
+    return url;
+  }
+
   // === DYNAMIC CONFIGURATION ===
 
   /// Récupère la configuration publique du serveur (comme l'App ID OneSignal)
@@ -150,25 +186,8 @@ class ApiService {
       path = path.substring(1);
     }
 
-    // Construire l'URL complète
-    // Les images sont sur le serveur principal, pas sur api.
-    String mainUrl = baseUrl;
-    if (baseUrl.contains('api.')) {
-      // Remplacer api. par rien pour avoir le domaine principal
-      mainUrl = baseUrl.replaceFirst('api.', '');
-    } else if (baseUrl.contains('/api')) {
-      mainUrl = baseUrl.replaceAll('/api', '');
-    }
-
-    // Sécurité: si mainUrl est vide ou invalide, utiliser le domaine par défaut
-    if (mainUrl.isEmpty || !mainUrl.startsWith('http')) {
-      mainUrl = 'https://militant.revlibertaire.com';
-    }
-
-    // Enlever le slash final de mainUrl s'il y en a un
-    if (mainUrl.endsWith('/')) {
-      mainUrl = mainUrl.substring(0, mainUrl.length - 1);
-    }
+    // Les médias sont servis depuis le domaine principal (pas /api)
+    String mainUrl = mainSiteUrl;
 
     // Si le chemin ne contient pas de slash, c'est juste un nom de fichier
     // Il faut ajouter le dossier approprié
@@ -598,8 +617,8 @@ class ApiService {
     String text, {
     String? targetLang,
   }) async {
-    // Utiliser l'endpoint principal (pas l'API v1)
-    final mainUrl = baseUrl.replaceFirst('api.', '');
+    // Utiliser l'API v1
+    final url = apiUrl;
 
     // Détecter la langue de l'appareil si targetLang n'est pas fourni
     String finalTargetLang = targetLang ?? 'fr';
@@ -614,12 +633,16 @@ class ApiService {
       }
     }
 
+    // Normalisation basique (ex: fr-FR -> fr) pour éviter les erreurs LibreTranslate
+    if (finalTargetLang.length > 2 && finalTargetLang.contains('-')) {
+      if (finalTargetLang.toLowerCase() != 'zh-hans') {
+        finalTargetLang = finalTargetLang.split('-')[0];
+      }
+    }
+
     final response = await http.post(
-      Uri.parse('$mainUrl/ajax/translate.php'),
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        if (token != null) 'Authorization': 'Bearer $token',
-      },
+      Uri.parse('$url/v1/translate.php'),
+      headers: {if (token != null) 'Authorization': 'Bearer $token'},
       body: {'text': text, 'target_lang': finalTargetLang},
     );
 
