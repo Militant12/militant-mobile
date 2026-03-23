@@ -45,26 +45,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
-  IconData _getNotificationIcon(String type) {
-    // Cette méthode est maintenant remplacée par _buildNotificationIcon
-    // mais gardée pour compatibilité
-    switch (type) {
-      case 'like':
-      case 'reaction':
-        return Icons.favorite;
-      case 'comment':
-        return Icons.comment;
-      case 'follow':
-      case 'friend_request':
-      case 'friend_accept':
-        return Icons.person_add;
-      case 'mention':
-        return Icons.alternate_email;
-      default:
-        return Icons.notifications;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final lang = LanguageService.instance;
@@ -197,6 +177,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           try {
             final api = await ApiService.getInstance();
             final postData = await api.getPost(notif['post_id']);
+            if (!mounted) return;
             if (postData.isNotEmpty) {
               Navigator.push(
                 context,
@@ -207,6 +188,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               );
             }
           } catch (e) {
+            if (!mounted) return;
             final lang = LanguageService.instance;
             ScaffoldMessenger.of(
               context,
@@ -225,7 +207,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFFBE1E1E).withOpacity(0.2),
+                color: const Color(0xFFBE1E1E).withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: _buildNotificationIcon(type, reactionType),

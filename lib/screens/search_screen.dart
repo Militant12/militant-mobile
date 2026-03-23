@@ -130,7 +130,6 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildTab(String label, String value) {
-    final lang = LanguageService.instance;
     final isSelected = _selectedTab == value;
     return Expanded(
       child: InkWell(

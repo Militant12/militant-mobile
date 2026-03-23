@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
+import '../config/feature_flags.dart';
 import '../widgets/video_player_widget.dart';
 import '../widgets/audio_player_widget.dart';
 import '../widgets/audio_recorder_widget.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
+import 'group_call_screen.dart';
 import 'group_settings_screen.dart';
 import '../widgets/linkable_text.dart';
 import '../widgets/incoming_call_banner.dart';
@@ -163,44 +165,42 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           ],
         ),
         actions: [
-          /* Boutons d'appels temporairement désactivés
-          // Bouton appel audio de groupe
-          IconButton(
-            icon: const Icon(Icons.call),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => GroupCallScreen(
-                    groupId: widget.groupId,
-                    groupName: widget.groupName,
-                    isVideo: false,
-                    isIncoming: false,
+          if (AppFeatureFlags.showGroupCallButtons) ...[
+            IconButton(
+              icon: const Icon(Icons.call),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => GroupCallScreen(
+                      groupId: widget.groupId,
+                      groupName: widget.groupName,
+                      isVideo: false,
+                      isIncoming: false,
+                    ),
                   ),
-                ),
-              );
-            },
-            tooltip: LanguageService.instance.translate('call_group_audio'),
-          ),
-          // Bouton appel vidéo de groupe
-          IconButton(
-            icon: const Icon(Icons.videocam),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => GroupCallScreen(
-                    groupId: widget.groupId,
-                    groupName: widget.groupName,
-                    isVideo: true,
-                    isIncoming: false,
+                );
+              },
+              tooltip: LanguageService.instance.translate('call_group_audio'),
+            ),
+            IconButton(
+              icon: const Icon(Icons.videocam),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => GroupCallScreen(
+                      groupId: widget.groupId,
+                      groupName: widget.groupName,
+                      isVideo: true,
+                      isIncoming: false,
+                    ),
                   ),
-                ),
-              );
-            },
-            tooltip: LanguageService.instance.translate('call_group_video'),
-          ),
-          */
+                );
+              },
+              tooltip: LanguageService.instance.translate('call_group_video'),
+            ),
+          ],
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () async {

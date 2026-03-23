@@ -640,16 +640,18 @@ class ApiService {
       }
     }
 
-    final response = await http.post(
-      Uri.parse('$url/v1/translate.php'),
-      headers: {if (token != null) 'Authorization': 'Bearer $token'},
-      body: {'text': text, 'target_lang': finalTargetLang},
-    );
+    final response = await http
+        .post(
+          Uri.parse('$url/v1/translate.php'),
+          headers: {if (token != null) 'Authorization': 'Bearer $token'},
+          body: {'text': text, 'target_lang': finalTargetLang},
+        )
+        .timeout(const Duration(seconds: 15));
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      throw Exception('Erreur de traduction');
+      throw Exception('Erreur de traduction (${response.statusCode})');
     }
   }
 
@@ -2742,12 +2744,41 @@ class ApiService {
 
     if (response.statusCode == 201 || response.statusCode == 200) {
       final body = jsonDecode(response.body);
-      // Backend wraps response in {success, data:{...}}
       return (body['data'] as Map<String, dynamic>?) ?? body;
     } else {
       final error = jsonDecode(response.body);
       throw Exception(
         error['error'] ?? 'Erreur lors de l\'initiation de l\'appel de groupe',
+      );
+    }
+  }
+
+  /// Enregistre un salon Nextcloud Talk dans la BDD Militant et notifie
+  /// tous les membres du groupe avec le [roomToken] pour qu'ils puissent
+  /// rejoindre directement le salon audio/vidéo depuis l'app.
+  Future<Map<String, dynamic>> initiateTalkRoom({
+    required int groupId,
+    required String roomToken,
+    String callType = 'audio',
+  }) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/calls.php?action=initiate_talk'),
+      headers: _flutterHeaders,
+      body: jsonEncode({
+        'group_id': groupId,
+        'room_token': roomToken,
+        'call_type': callType,
+      }),
+    );
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      final body = jsonDecode(response.body);
+      return (body['data'] as Map<String, dynamic>?) ?? body;
+    } else {
+      final error = jsonDecode(response.body);
+      throw Exception(
+        error['error'] ??
+            'Erreur lors de l\'envoi de l\'invitation au salon Talk',
       );
     }
   }

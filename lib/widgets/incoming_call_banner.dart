@@ -50,7 +50,7 @@ class IncomingCallController {
       }
 
       final type = data['type']?.toString();
-      if (type != 'call') {
+      if (type != 'call' && type != 'talk_invite') {
         event.notification.display();
         return;
       }
@@ -58,14 +58,19 @@ class IncomingCallController {
       // Appel entrant — on supprime la notification système et on affiche la bannière
       event.preventDefault();
 
-      final callId = data['call_id']?.toString() ?? '';
+      final isTalk = type == 'talk_invite';
+      final callId = isTalk
+          ? data['room_token']?.toString() ?? ''
+          : data['call_id']?.toString() ?? '';
+
       final callerId = int.tryParse(data['caller_id']?.toString() ?? '') ?? 0;
       final callerName =
           data['caller_name']?.toString() ??
           event.notification.body ??
-          'Appel entrant';
+          (isTalk ? 'Appel de groupe' : 'Appel entrant');
+
       final isVideo = data['call_type'] == 'video' || data['is_video'] == true;
-      final isGroup = data['is_group_call'] == true || data['group_id'] != null;
+      final isGroup = isTalk || data['is_group_call'] == true || data['group_id'] != null;
       final groupId = int.tryParse(data['group_id']?.toString() ?? '');
       final offerSdp = data['offer_sdp']?.toString();
 

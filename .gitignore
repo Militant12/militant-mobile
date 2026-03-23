@@ -59,10 +59,9 @@ A_FAIRE.txt
 GITLAB_VARIABLES.txt
 RESUME_RAPIDE.txt
 
-# Mobile-only scope (exclude desktop/web packaging)
+# Mobile-only scope (exclude desktop/web packaging, except Windows source)
 /linux/
 /macos/
-/windows/
 /web/
 *.deb
 militant-v*/

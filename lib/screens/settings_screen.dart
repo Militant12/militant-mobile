@@ -819,9 +819,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       // Revert on error
       if (mounted) {
         setState(() {
-          if (key == 'notifications_push')
+          if (key == 'notifications_push') {
             _pushEnabled = !value;
-          else if (key == 'notifications_likes')
+          } else if (key == 'notifications_likes')
             _likes = !value;
           else if (key == 'notifications_comments')
             _comments = !value;
