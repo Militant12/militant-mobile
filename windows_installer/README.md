@@ -1,7 +1,7 @@
 # Militant Windows Installer
 
 <p align="center">
-  <img src="../assets/logo.svg" alt="Militant Logo" width="160"/>
+  <img src="assets/logo.svg" alt="Militant Logo" width="160"/>
 </p>
 
 <p align="center">
@@ -59,7 +59,7 @@ windows_installer\output\
 
 ## Assets visuels
 
-- logo principal : `../assets/logo.svg`
+- logo principal : `assets/logo.svg`
 - icone installateur : `assets/militant-installer.ico`
 - image assistant : `assets/wizard.bmp`
 - petite image assistant : `assets/wizard-small.bmp`

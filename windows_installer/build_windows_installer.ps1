@@ -2,8 +2,14 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
 $installerRoot = Split-Path -Path $MyInvocation.MyCommand.Path -Parent
-$projectRoot = Split-Path -Path $installerRoot -Parent
+$repoRoot = Split-Path -Path $installerRoot -Parent
+$projectRoot = $repoRoot
 $pubspecPath = Join-Path $projectRoot "pubspec.yaml"
+
+if (-not (Test-Path $pubspecPath)) {
+  $projectRoot = Join-Path $repoRoot "source"
+  $pubspecPath = Join-Path $projectRoot "pubspec.yaml"
+}
 
 if (-not (Test-Path $pubspecPath)) {
   throw "pubspec.yaml introuvable: $pubspecPath"
@@ -46,16 +52,29 @@ $isccCandidates = @()
 if ($env:INNO_SETUP_COMPILER) {
   $isccCandidates += $env:INNO_SETUP_COMPILER
 }
-if ($env:ProgramFiles) {
-  $isccCandidates += (Join-Path $env:ProgramFiles "Inno Setup 6\ISCC.exe")
-}
 if (${env:ProgramFiles(x86)}) {
   $isccCandidates += (Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe")
 }
+if ($env:ProgramFiles) {
+  $isccCandidates += (Join-Path $env:ProgramFiles "Inno Setup 6\ISCC.exe")
+}
+if ($env:LOCALAPPDATA) {
+  $isccCandidates += (Join-Path $env:LOCALAPPDATA "Programs\Inno Setup 6\ISCC.exe")
+}
+try {
+  $isccFromPath = (Get-Command "ISCC.exe" -ErrorAction Stop).Source
+  if ($isccFromPath) {
+    $isccCandidates += $isccFromPath
+  }
+} catch {
+}
 
-$isccPath = $isccCandidates | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+$isccPath = $isccCandidates | Where-Object { $_ -and (Test-Path $_) } | Select-Object -Unique -First 1
 if (-not $isccPath) {
   throw "ISCC.exe introuvable. Installe Inno Setup 6 ou définis INNO_SETUP_COMPILER."
+}
+if (-not $env:INNO_SETUP_COMPILER) {
+  $env:INNO_SETUP_COMPILER = $isccPath
 }
 
 New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
