@@ -106,7 +106,7 @@ class ReplyReceiver : BroadcastReceiver() {
             }
 
             builder
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(R.drawable.ic_stat_militant)
                 .setContentTitle(conversationName)
                 .setContentText("Message envoyé : $replyText")
                 .setAutoCancel(true)

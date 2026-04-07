@@ -12,6 +12,8 @@ import 'services/language_service.dart';
 import 'services/api_service.dart';
 import 'services/incoming_call_service.dart';
 import 'services/message_notification_service.dart';
+import 'services/notification_reply_service.dart';
+import 'services/user_status_service.dart';
 import 'widgets/incoming_call_banner.dart';
 
 // Import OneSignal
@@ -175,6 +177,8 @@ class _SplashScreenState extends State<SplashScreen>
           await api.initializeOneSignal();
           await IncomingCallService.instance.initialize();
           await MessageNotificationService.instance.initialize();
+          await NotificationReplyService.instance.initialize();
+          await UserStatusService.instance.load();
           // Démarrer le listener global d'appels — la bannière apparaît dans tous les chats
           IncomingCallController.instance.startListening();
           // Login to OneSignal with cached user ID, or recover it from profile if needed

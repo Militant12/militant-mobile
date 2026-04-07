@@ -634,8 +634,12 @@ class ApiService {
     }
 
     // Normalisation basique (ex: fr-FR -> fr) pour éviter les erreurs LibreTranslate
+    // Préserver la casse de zh-Hans (sensible à la casse côté LibreTranslate)
     if (finalTargetLang.length > 2 && finalTargetLang.contains('-')) {
-      if (finalTargetLang.toLowerCase() != 'zh-hans') {
+      final lower = finalTargetLang.toLowerCase();
+      if (lower == 'zh-hans' || lower == 'zh-hant') {
+        finalTargetLang = 'zh-Hans'; // Forcer la bonne casse
+      } else {
         finalTargetLang = finalTargetLang.split('-')[0];
       }
     }
@@ -649,9 +653,19 @@ class ApiService {
         .timeout(const Duration(seconds: 15));
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      final data = jsonDecode(response.body);
+      // Normaliser le champ de réponse : serveur renvoie 'translated' ou 'translatedText'
+      if (data is Map && !data.containsKey('translatedText') && data.containsKey('translated')) {
+        data['translatedText'] = data['translated'];
+      }
+      return data;
     } else {
-      throw Exception('Erreur de traduction (${response.statusCode})');
+      String errorMsg = 'Erreur de traduction (${response.statusCode})';
+      try {
+        final err = jsonDecode(response.body);
+        errorMsg = err['error'] ?? errorMsg;
+      } catch (_) {}
+      throw Exception(errorMsg);
     }
   }
 
@@ -857,6 +871,45 @@ class ApiService {
       throw Exception('Erreur de chargement du profil');
     }
   }
+
+  /// Met à jour les champs du profil utilisateur (bio, statut, badge…)
+  Future<Map<String, dynamic>> updateUserProfile({
+    String? bio,
+    String? website,
+    String? avatar,
+    String? banner,
+    String? militantBadge,
+    String? statusEmoji,
+    String? statusText,
+    bool clearStatus = false,
+  }) async {
+    final body = <String, dynamic>{};
+    if (bio != null) body['bio'] = bio;
+    if (website != null) body['website'] = website;
+    if (avatar != null) body['avatar'] = avatar;
+    if (banner != null) body['banner'] = banner;
+    if (militantBadge != null) body['militant_badge'] = militantBadge;
+    if (clearStatus) {
+      body['status_emoji'] = null;
+      body['status_text'] = null;
+    } else {
+      if (statusEmoji != null) body['status_emoji'] = statusEmoji;
+      if (statusText != null) body['status_text'] = statusText;
+    }
+
+    final response = await http.put(
+      Uri.parse('$apiUrl/v1/users.php'),
+      headers: _headers,
+      body: jsonEncode(body),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur mise à jour du profil');
+    }
+  }
+
+
 
   Future<List<dynamic>> getFollows({
     int? userId,

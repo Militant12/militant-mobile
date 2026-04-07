@@ -5,6 +5,8 @@ import '../models/post.dart';
 import '../widgets/post_card.dart';
 import '../widgets/profile_stories.dart';
 import '../widgets/militant_badge.dart';
+import '../widgets/status_picker.dart';
+import '../services/user_status_service.dart';
 import 'login_screen.dart';
 import 'edit_profile_screen.dart';
 import 'bookmarks_screen.dart';
@@ -479,7 +481,27 @@ class ProfileScreenState extends State<ProfileScreen>
                     ],
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
+                // === STATUT PERSONNALISÉ ===
+                if (_isMe)
+                  ValueListenableBuilder<UserStatus>(
+                    valueListenable: UserStatusService.instance,
+                    builder: (context, status, _) => StatusChip(
+                      status: status,
+                      onTap: () async {
+                        final api = await ApiService.getInstance();
+                        if (context.mounted) {
+                          await StatusPickerDialog.show(context, api);
+                        }
+                      },
+                    ),
+                  )
+                else
+                  UserStatusBadge(
+                    statusEmoji: _profile?['status_emoji'] as String?,
+                    statusText: _profile?['status_text'] as String?,
+                  ),
+                const SizedBox(height: 12),
                 _buildSocialRow(),
                 if (_profile?['email'] != null &&
                     _profile!['email'].isNotEmpty) ...[

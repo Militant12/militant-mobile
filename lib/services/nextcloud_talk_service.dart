@@ -501,9 +501,7 @@ class NextcloudTalkService {
   ) async {
     debugPrint('[NextcloudTalk] Offer reçu de $fromSession');
     var pc = _peerConnections[fromSession];
-    if (pc == null) {
-      pc = await _initPeerConnection(fromSession, settings, isOffer: false);
-    }
+    pc ??= await _initPeerConnection(fromSession, settings, isOffer: false);
 
     final sdpData = data['sdp'] as Map<String, dynamic>?;
     if (sdpData == null) return;

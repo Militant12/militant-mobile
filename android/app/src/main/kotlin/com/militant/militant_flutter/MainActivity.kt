@@ -157,14 +157,14 @@ class MainActivity : FlutterActivity() {
 
         // Action "Répondre"
         val replyAction = NotificationCompat.Action.Builder(
-            R.mipmap.ic_launcher,
+            R.drawable.ic_stat_militant,
             "Répondre",
             replyPendingIntent
         ).addRemoteInput(remoteInput).build()
 
         // Construire la notification
         val notification = NotificationCompat.Builder(this, "messages")
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_stat_militant)
             .setContentTitle(title)
             .setContentText(body)
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))

@@ -17,7 +17,7 @@ const String _kNextcloudServiceAppPassword = 'Kjsk2-eDCSm-5Sj97-z97Kz-xwAFP';
 
 /// URL forcée du serveur de signalisation externe (HPB).
 /// Si l'API de base ne le renvoie pas, on utilise celui-ci.
-const String? _kNextcloudHpbUrl = 'https://signalvisiorevlibertaire.revlibertaire.com';
+const String _kNextcloudHpbUrl = 'https://signalvisiorevlibertaire.revlibertaire.com';
 // ───────────────────────────────────────────────────────────────────────────
 
 class GroupCallScreen extends StatefulWidget {
