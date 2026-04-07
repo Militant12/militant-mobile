@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 import '../services/user_status_service.dart';
 
 /// Chip cliquable affichant ton propre statut sur ton profil
@@ -27,13 +28,18 @@ class StatusChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              FaIcon(FontAwesomeIcons.circlePlus,
-                  size: 11, color: Colors.white.withOpacity(0.7)),
+              FaIcon(
+                FontAwesomeIcons.circlePlus,
+                size: 11,
+                color: Colors.white.withOpacity(0.7),
+              ),
               const SizedBox(width: 6),
               Text(
-                'Ajouter un statut',
+                LanguageService.instance.translate('status_add'),
                 style: TextStyle(
-                    fontSize: 12, color: Colors.white.withOpacity(0.7)),
+                  fontSize: 12,
+                  color: Colors.white.withOpacity(0.7),
+                ),
               ),
             ],
           ),
@@ -48,8 +54,7 @@ class StatusChip extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: preset?.gradient != null
               ? LinearGradient(
-                  colors: (preset!.gradient as LinearGradient)
-                      .colors
+                  colors: (preset!.gradient as LinearGradient).colors
                       .map((c) => c.withOpacity(0.3))
                       .toList(),
                   begin: Alignment.centerLeft,
@@ -61,7 +66,8 @@ class StatusChip extends StatelessWidget {
               : null,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-              color: (preset?.color ?? Colors.white).withOpacity(0.6)),
+            color: (preset?.color ?? Colors.white).withOpacity(0.6),
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -92,8 +98,11 @@ class StatusPickerDialog extends StatefulWidget {
   final UserStatus initialStatus;
   final ApiService api;
 
-  const StatusPickerDialog(
-      {super.key, required this.initialStatus, required this.api});
+  const StatusPickerDialog({
+    super.key,
+    required this.initialStatus,
+    required this.api,
+  });
 
   static Future<void> show(BuildContext context, ApiService api) async {
     await showModalBottomSheet(
@@ -133,8 +142,11 @@ class _StatusPickerDialogState extends State<StatusPickerDialog> {
 
   Future<void> _save() async {
     setState(() => _saving = true);
-    await UserStatusService.instance
-        .setStatus(_selected, _textCtrl.text, widget.api);
+    await UserStatusService.instance.setStatus(
+      _selected,
+      _textCtrl.text,
+      widget.api,
+    );
     if (mounted) Navigator.pop(context);
   }
 
@@ -180,13 +192,18 @@ class _StatusPickerDialogState extends State<StatusPickerDialog> {
           const SizedBox(height: 20),
 
           // Titre
-          Row(children: [
-            FaIcon(FontAwesomeIcons.circleUser, color: accent, size: 18),
-            const SizedBox(width: 10),
-            Text('Mon statut militant',
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold)),
-          ]),
+          Row(
+            children: [
+              FaIcon(FontAwesomeIcons.circleUser, color: accent, size: 18),
+              const SizedBox(width: 10),
+              Text(
+                LanguageService.instance.translate('status_title'),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 20),
 
           // Grille de statuts prédéfinis
@@ -203,9 +220,13 @@ class _StatusPickerDialogState extends State<StatusPickerDialog> {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 8),
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
-                    gradient: isSelected && p.gradient != null ? p.gradient : null,
+                    gradient: isSelected && p.gradient != null
+                        ? p.gradient
+                        : null,
                     color: isSelected && p.gradient == null
                         ? p.color.withOpacity(0.18)
                         : (!isSelected ? theme.colorScheme.surface : null),
@@ -217,24 +238,29 @@ class _StatusPickerDialogState extends State<StatusPickerDialog> {
                     boxShadow: isSelected
                         ? [
                             BoxShadow(
-                                color: p.color.withOpacity(0.25),
-                                blurRadius: 10,
-                                offset: const Offset(0, 2))
+                              color: p.color.withOpacity(0.25),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
                           ]
                         : null,
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      FaIcon(p.icon,
-                          size: 13,
-                          color: isSelected ? Colors.white : theme.hintColor),
+                      FaIcon(
+                        p.icon,
+                        size: 13,
+                        color: isSelected ? Colors.white : theme.hintColor,
+                      ),
                       const SizedBox(width: 7),
                       Text(
                         p.label,
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                          fontWeight: isSelected
+                              ? FontWeight.w700
+                              : FontWeight.w500,
                           color: isSelected ? Colors.white : theme.hintColor,
                         ),
                       ),
@@ -255,17 +281,25 @@ class _StatusPickerDialogState extends State<StatusPickerDialog> {
             maxLength: 60,
             onChanged: (_) => setState(() => _selected = null),
             decoration: InputDecoration(
-              hintText: 'Ou écris ton propre statut…',
+              hintText: LanguageService.instance.translate(
+                'status_custom_hint',
+              ),
               counterText: '',
               prefixIcon: const Padding(
                 padding: EdgeInsets.all(12),
-                child: FaIcon(FontAwesomeIcons.penToSquare,
-                    size: 14, color: Colors.grey),
+                child: FaIcon(
+                  FontAwesomeIcons.penToSquare,
+                  size: 14,
+                  color: Colors.grey,
+                ),
               ),
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12,
+              ),
             ),
           ),
 
@@ -278,7 +312,7 @@ class _StatusPickerDialogState extends State<StatusPickerDialog> {
               OutlinedButton.icon(
                 onPressed: _saving ? null : _clear,
                 icon: const FaIcon(FontAwesomeIcons.trash, size: 12),
-                label: const Text('Effacer'),
+                label: Text(LanguageService.instance.translate('status_clear')),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.red,
                   side: const BorderSide(color: Colors.red),
@@ -293,9 +327,14 @@ class _StatusPickerDialogState extends State<StatusPickerDialog> {
                           width: 14,
                           height: 14,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white))
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
                       : const FaIcon(FontAwesomeIcons.check, size: 13),
-                  label: const Text('Enregistrer'),
+                  label: Text(
+                    LanguageService.instance.translate('status_save'),
+                  ),
                   style: FilledButton.styleFrom(backgroundColor: accent),
                 ),
               ),
@@ -314,8 +353,7 @@ class UserStatusBadge extends StatelessWidget {
 
   const UserStatusBadge({super.key, this.statusEmoji, this.statusText});
 
-  bool get _hasStatus =>
-      (statusText != null && statusText!.isNotEmpty);
+  bool get _hasStatus => (statusText != null && statusText!.isNotEmpty);
 
   @override
   Widget build(BuildContext context) {
@@ -334,19 +372,24 @@ class UserStatusBadge extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: preset?.gradient,
         color: preset?.gradient == null
-            ? (preset?.color ?? Theme.of(context).colorScheme.primary).withOpacity(0.12)
+            ? (preset?.color ?? Theme.of(context).colorScheme.primary)
+                  .withOpacity(0.12)
             : null,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: (preset?.color ?? Theme.of(context).colorScheme.primary).withOpacity(0.5),
+          color: (preset?.color ?? Theme.of(context).colorScheme.primary)
+              .withOpacity(0.5),
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (preset != null) ...[
-            FaIcon(preset.icon, size: 11,
-                color: preset.gradient != null ? Colors.white : preset.color),
+            FaIcon(
+              preset.icon,
+              size: 11,
+              color: preset.gradient != null ? Colors.white : preset.color,
+            ),
             const SizedBox(width: 6),
           ],
           Text(
@@ -355,7 +398,8 @@ class UserStatusBadge extends StatelessWidget {
               fontSize: 12,
               color: preset?.gradient != null
                   ? Colors.white
-                  : (preset?.color ?? Theme.of(context).colorScheme.onSurfaceVariant),
+                  : (preset?.color ??
+                        Theme.of(context).colorScheme.onSurfaceVariant),
               fontWeight: FontWeight.w600,
             ),
           ),

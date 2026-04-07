@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'api_service.dart';
+import 'language_service.dart';
 
 /// Statut personnalisé d'un utilisateur militant
 class UserStatus {
-  final String key;   // clé unique du statut (pour stockage)
+  final String key; // clé unique du statut (pour stockage)
   final String label; // texte affiché
 
   const UserStatus({required this.key, required this.label});
@@ -21,36 +22,38 @@ class UserStatus {
 /// Définition d'un statut prédéfini avec icône FontAwesome
 class PresetStatus {
   final String key;
-  final String label;
+  final String labelKey;
   final IconData icon;
   final Color color;
   final Gradient? gradient; // optionnel : remplace la couleur pleine
 
   const PresetStatus({
     required this.key,
-    required this.label,
+    required this.labelKey,
     required this.icon,
     required this.color,
     this.gradient,
   });
+
+  String get label => LanguageService.instance.translate(labelKey);
 }
 
 const List<PresetStatus> kPresetStatuses = [
   PresetStatus(
     key: 'manif',
-    label: 'En manif',
+    labelKey: 'status_manif',
     icon: FontAwesomeIcons.fistRaised,
     color: Color(0xFFBE1E1E),
   ),
   PresetStatus(
     key: 'action',
-    label: 'En action',
+    labelKey: 'status_action',
     icon: FontAwesomeIcons.flag,
     color: Color(0xFFBE1E1E),
   ),
   PresetStatus(
     key: 'reunion',
-    label: 'En réunion',
+    labelKey: 'status_reunion',
     icon: FontAwesomeIcons.users,
     color: Color(0xFFBE1E1E),
     gradient: LinearGradient(
@@ -61,55 +64,55 @@ const List<PresetStatus> kPresetStatuses = [
   ),
   PresetStatus(
     key: 'dnd',
-    label: 'Ne pas déranger',
+    labelKey: 'status_dnd',
     icon: FontAwesomeIcons.volumeXmark,
     color: Color(0xFF888888),
   ),
   PresetStatus(
     key: 'formation',
-    label: 'En formation',
+    labelKey: 'status_formation',
     icon: FontAwesomeIcons.book,
     color: Color.fromARGB(255, 132, 0, 255),
   ),
   PresetStatus(
     key: 'dispo',
-    label: 'Disponible',
+    labelKey: 'status_dispo',
     icon: FontAwesomeIcons.circleCheck,
     color: Color(0xFF27AE60),
   ),
   PresetStatus(
     key: 'solidarite',
-    label: 'Solidarité',
+    labelKey: 'status_solidarite',
     icon: FontAwesomeIcons.handshake,
     color: Color(0xFFE67E22),
   ),
   PresetStatus(
     key: 'greve',
-    label: 'En grève',
+    labelKey: 'status_greve',
     icon: FontAwesomeIcons.personDigging,
     color: Color(0xFFBE1E1E),
   ),
   PresetStatus(
     key: 'terrain',
-    label: 'Sur le terrain',
+    labelKey: 'status_terrain',
     icon: FontAwesomeIcons.locationDot,
     color: Color(0xFF2ECC71),
   ),
   PresetStatus(
     key: 'repos',
-    label: 'Repos militant',
+    labelKey: 'status_repos',
     icon: FontAwesomeIcons.moon,
     color: Color(0xFF9B59B6),
   ),
   PresetStatus(
     key: 'info',
-    label: 'Partage d\'infos',
+    labelKey: 'status_info',
     icon: FontAwesomeIcons.bullhorn,
     color: Color(0xFFE74C3C),
   ),
   PresetStatus(
     key: 'prison',
-    label: 'Soutien prisonnier',
+    labelKey: 'status_prison',
     icon: FontAwesomeIcons.scaleBalanced,
     color: Color(0xFF555555),
   ),
@@ -133,7 +136,11 @@ class UserStatusService extends ValueNotifier<UserStatus> {
   }
 
   /// Met à jour le statut localement ET sur le serveur
-  Future<void> setStatus(PresetStatus? preset, String customLabel, ApiService api) async {
+  Future<void> setStatus(
+    PresetStatus? preset,
+    String customLabel,
+    ApiService api,
+  ) async {
     final key = preset?.key ?? 'custom';
     final label = preset != null ? preset.label : customLabel.trim();
 

@@ -341,16 +341,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildLanguageTile('Français', 'fr', '🇫🇷'),
-            _buildLanguageTile('English', 'en', '🇺🇸'),
-            _buildLanguageTile('Español', 'es', '🇪🇸'),
+            _buildLanguageTile('Français', 'fr'),
+            _buildLanguageTile('English', 'en'),
+            _buildLanguageTile('Español', 'es'),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLanguageTile(String name, String code, String flag) {
+  Widget _buildLanguageTile(String name, String code) {
     final isSelected = _currentLanguage == code;
     return ListTile(
       title: Text(

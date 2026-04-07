@@ -141,7 +141,9 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       } else {
         setState(() {
-          _errorMessage = result['message'] ?? 'Erreur de connexion';
+          _errorMessage =
+              result['message'] ??
+              LanguageService.instance.translate('login_error');
         });
       }
     } catch (e) {
@@ -153,6 +155,50 @@ class _LoginScreenState extends State<LoginScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  void _showLanguageDialog(BuildContext context) {
+    final lang = LanguageService.instance;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        title: Text(
+          lang.translate('choose_language'),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildLanguageTile('Français', 'fr'),
+            _buildLanguageTile('English', 'en'),
+            _buildLanguageTile('Español', 'es'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageTile(String name, String code) {
+    final isSelected = LanguageService.instance.value.languageCode == code;
+    return ListTile(
+      title: Text(
+        name,
+        style: TextStyle(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white
+              : Colors.black,
+        ),
+      ),
+      trailing: isSelected
+          ? const Icon(Icons.check, color: Color(0xFFBE1E1E))
+          : null,
+      onTap: () {
+        Navigator.pop(context);
+        LanguageService.instance.setLanguage(code);
+        setState(() {});
+      },
+    );
   }
 
   @override
@@ -169,7 +215,19 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const SizedBox(height: 60),
+              // Language selector at the top
+              Align(
+                alignment: Alignment.topRight,
+                child: TextButton.icon(
+                  onPressed: () => _showLanguageDialog(context),
+                  icon: const Icon(Icons.language, color: Color(0xFFBE1E1E)),
+                  label: Text(
+                    lang.translate('language_title'),
+                    style: const TextStyle(color: Color(0xFFBE1E1E)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
 
               // Logo
               SvgPicture.asset('assets/logo.svg', width: 100, height: 100),
@@ -188,7 +246,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Réseau social militant',
+                lang.translate('app_subtitle'),
                 style: TextStyle(
                   color: isDark ? const Color(0xFFAAAAAA) : Colors.grey[600],
                   fontSize: 16,
@@ -253,7 +311,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ] else ...[
                 Text(
-                  'Double authentification requise',
+                  lang.translate('two_fa_required'),
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -262,7 +320,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Entrez le code généré par votre application d\'authentification.',
+                  lang.translate('two_fa_code_hint'),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -271,7 +329,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 24),
                 _buildTextField(
                   controller: _totpController,
-                  label: 'Code de validation',
+                  label: lang.translate('two_fa_code_label'),
                   icon: Icons.security,
                   keyboardType: TextInputType.number,
                 ),
@@ -282,9 +340,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       _totpController.clear();
                     });
                   },
-                  child: const Text(
-                    'Retour aux identifiants',
-                    style: TextStyle(color: Color(0xFFBE1E1E)),
+                  child: Text(
+                    lang.translate('back_to_login'),
+                    style: const TextStyle(color: Color(0xFFBE1E1E)),
                   ),
                 ),
               ],
@@ -332,8 +390,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
                 child: Text(
                   _showServerField
-                      ? 'Masquer le serveur'
-                      : 'Changer de serveur',
+                      ? lang.translate('hide_server')
+                      : lang.translate('change_server'),
                   style: const TextStyle(color: Color(0xFFBE1E1E)),
                 ),
               ),
@@ -344,7 +402,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Pas encore de compte ? ',
+                    '${lang.translate('no_account_yet')} ',
                     style: TextStyle(
                       color: isDark
                           ? const Color(0xFFAAAAAA)
@@ -365,9 +423,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       minimumSize: const Size(0, 0),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    child: const Text(
-                      'S\'inscrire',
-                      style: TextStyle(
+                    child: Text(
+                      lang.translate('sign_up'),
+                      style: const TextStyle(
                         color: Color(0xFFBE1E1E),
                         fontWeight: FontWeight.w600,
                       ),

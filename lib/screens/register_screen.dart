@@ -35,39 +35,84 @@ class _RegisterScreenState extends State<RegisterScreen> {
     {'value': 'Action directe', 'label': 'Action directe'},
   ];
 
+  void _showLanguageDialog(BuildContext context) {
+    final lang = LanguageService.instance;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        title: Text(
+          lang.translate('choose_language'),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildLanguageTile('Français', 'fr'),
+            _buildLanguageTile('English', 'en'),
+            _buildLanguageTile('Español', 'es'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageTile(String name, String code) {
+    final isSelected = LanguageService.instance.value.languageCode == code;
+    return ListTile(
+      title: Text(
+        name,
+        style: TextStyle(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white
+              : Colors.black,
+        ),
+      ),
+      trailing: isSelected
+          ? const Icon(Icons.check, color: Color(0xFFBE1E1E))
+          : null,
+      onTap: () {
+        Navigator.pop(context);
+        LanguageService.instance.setLanguage(code);
+        setState(() {});
+      },
+    );
+  }
+
   Future<void> _register() async {
+    final lang = LanguageService.instance;
     // Validation
     if (_usernameController.text.trim().isEmpty) {
       setState(() {
-        _errorMessage = 'Le nom d\'utilisateur est requis';
+        _errorMessage = lang.translate('username_required');
       });
       return;
     }
 
     if (_emailController.text.trim().isEmpty) {
       setState(() {
-        _errorMessage = 'L\'email est requis';
+        _errorMessage = lang.translate('email_required_msg');
       });
       return;
     }
 
     if (_passwordController.text.length < 6) {
       setState(() {
-        _errorMessage = 'Le mot de passe doit contenir au moins 6 caractères';
+        _errorMessage = lang.translate('password_min_length_6');
       });
       return;
     }
 
     if (_passwordController.text != _confirmPasswordController.text) {
       setState(() {
-        _errorMessage = 'Les mots de passe ne correspondent pas';
+        _errorMessage = lang.translate('passwords_not_match');
       });
       return;
     }
 
     if (_selectedCause == null) {
       setState(() {
-        _errorMessage = 'Veuillez choisir votre cause principale';
+        _errorMessage = lang.translate('choose_main_cause');
       });
       return;
     }
@@ -79,7 +124,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     try {
       final api = await ApiService.getInstance();
-      
+
       final result = await api.register(
         _usernameController.text.trim(),
         _emailController.text.trim(),
@@ -101,7 +146,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         }
       } else {
         setState(() {
-          _errorMessage = result['message'] ?? 'Erreur d\'inscription';
+          _errorMessage = result['message'] ?? lang.translate('register_error');
         });
       }
     } catch (e) {
@@ -127,10 +172,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: theme.iconTheme.color,
-          ),
+          icon: Icon(Icons.arrow_back, color: theme.iconTheme.color),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -140,7 +182,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const SizedBox(height: 20),
+              // Language selector at the top
+              Align(
+                alignment: Alignment.topRight,
+                child: TextButton.icon(
+                  onPressed: () => _showLanguageDialog(context),
+                  icon: const Icon(Icons.language, color: Color(0xFFBE1E1E)),
+                  label: Text(
+                    lang.translate('language_title'),
+                    style: const TextStyle(color: Color(0xFFBE1E1E)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
 
               // Logo
               SvgPicture.asset('assets/logo.svg', width: 80, height: 80),
@@ -223,11 +277,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   decoration: InputDecoration(
                     labelText: lang.translate('your_main_cause'),
                     labelStyle: TextStyle(
-                      color: isDark ? const Color(0xFF888888) : Colors.grey[600],
+                      color: isDark
+                          ? const Color(0xFF888888)
+                          : Colors.grey[600],
                     ),
                     prefixIcon: Icon(
                       Icons.flag,
-                      color: isDark ? const Color(0xFF888888) : Colors.grey[600],
+                      color: isDark
+                          ? const Color(0xFF888888)
+                          : Colors.grey[600],
                     ),
                     filled: true,
                     fillColor: Colors.transparent,
@@ -244,7 +302,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       borderSide: const BorderSide(color: Color(0xFFBE1E1E)),
                     ),
                   ),
-                  dropdownColor: isDark ? const Color(0xFF2A2A2A) : Colors.white,
+                  dropdownColor: isDark
+                      ? const Color(0xFF2A2A2A)
+                      : Colors.white,
                   style: TextStyle(color: theme.textTheme.bodyLarge?.color),
                   items: _causes.map((cause) {
                     return DropdownMenuItem<String>(
@@ -301,9 +361,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             strokeWidth: 2,
                           ),
                         )
-                      : const Text(
-                          'S\'inscrire',
-                          style: TextStyle(
+                      : Text(
+                          lang.translate('sign_up'),
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
