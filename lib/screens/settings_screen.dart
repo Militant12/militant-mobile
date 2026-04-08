@@ -426,7 +426,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             ElevatedButton.icon(
               onPressed: () => launchUrl(
-                Uri.parse('https://gitlab.com/miliant1/militant'),
+                Uri.parse('https://gitlab.com/militant1/militant-flutter'),
                 mode: LaunchMode.externalApplication,
               ),
               icon: const Icon(Icons.code, size: 18),

@@ -16,6 +16,7 @@ class _GroupsScreenState extends State<GroupsScreen>
   late TabController _tabController;
   final List<dynamic> _myGroups = [];
   final List<dynamic> _discoverGroups = [];
+  final Set<int> _joiningGroupIds = <int>{};
   bool _isLoading = false;
   ApiService? _api;
 
@@ -38,11 +39,14 @@ class _GroupsScreenState extends State<GroupsScreen>
       _api = await ApiService.getInstance();
       final myGroups = await _api!.getGroups();
       final discoverGroups = await _api!.discoverGroups();
+      final discoverGroupsWithStatus = await _enrichDiscoverGroups(
+        discoverGroups,
+      );
       setState(() {
         _myGroups.clear();
         _myGroups.addAll(myGroups);
         _discoverGroups.clear();
-        _discoverGroups.addAll(discoverGroups);
+        _discoverGroups.addAll(discoverGroupsWithStatus);
       });
     } catch (e) {
       if (mounted) {
@@ -58,6 +62,75 @@ class _GroupsScreenState extends State<GroupsScreen>
     } finally {
       setState(() => _isLoading = false);
     }
+  }
+
+  String _cleanErrorMessage(Object error) {
+    return error.toString().replaceFirst('Exception: ', '').trim();
+  }
+
+  int? _parseGroupId(dynamic value) {
+    if (value is int) return value;
+    return int.tryParse(value?.toString() ?? '');
+  }
+
+  Future<List<dynamic>> _enrichDiscoverGroups(List<dynamic> groups) async {
+    final api = _api ?? await ApiService.getInstance();
+
+    return Future.wait(
+      groups.map((group) async {
+        if (group is! Map) return group;
+
+        final groupData = Map<String, dynamic>.from(
+          group.map((key, value) => MapEntry(key.toString(), value)),
+        );
+        final groupId = _parseGroupId(groupData['id']);
+
+        if (groupData['privacy'] != 'private' || groupId == null) {
+          return groupData;
+        }
+
+        try {
+          final details = await api.getSocialGroupDetails(groupId);
+          groupData['has_pending_request'] = details['has_pending_request'];
+        } catch (_) {}
+
+        return groupData;
+      }),
+    );
+  }
+
+  Future<bool> _confirmPrivateGroupJoin() async {
+    final lang = LanguageService.instance;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        title: Text(
+          lang.translate('join_private_group_title'),
+          style: const TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          lang.translate('join_private_group_message'),
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(lang.translate('cancel')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(
+              lang.translate('send_request'),
+              style: const TextStyle(color: Color(0xFFBE1E1E)),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return confirm == true;
   }
 
   void _showCreateGroupDialog() {
@@ -152,31 +225,30 @@ class _GroupsScreenState extends State<GroupsScreen>
                     description: descController.text.trim(),
                     isPrivate: isPrivate,
                   );
+                  if (!mounted) return;
                   _loadGroups();
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(lang.translate('group_created_success')),
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(lang.translate('group_created_success')),
+                    ),
+                  );
+                  // Navigate to the new group
+                  if (result['id'] != null) {
+                    final groupId = result['id'];
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => GroupDetailScreen(
+                          group: {
+                            'id': groupId,
+                            'name': nameController.text.trim(),
+                            'description': descController.text.trim(),
+                            'is_member': 1,
+                            'members_count': 1,
+                          },
+                        ),
                       ),
                     );
-                    // Navigate to the new group
-                    if (result['id'] != null) {
-                      final groupId = result['id'];
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => GroupDetailScreen(
-                            group: {
-                              'id': groupId,
-                              'name': nameController.text.trim(),
-                              'description': descController.text.trim(),
-                              'is_member': 1,
-                              'members_count': 1,
-                            },
-                          ),
-                        ),
-                      );
-                    }
                   }
                 } catch (e) {
                   if (mounted) {
@@ -203,23 +275,80 @@ class _GroupsScreenState extends State<GroupsScreen>
   }
 
   Future<void> _joinGroup(dynamic group) async {
+    final lang = LanguageService.instance;
+    if (group is! Map) return;
+
+    final groupData = Map<String, dynamic>.from(
+      group.map((key, value) => MapEntry(key.toString(), value)),
+    );
+    final groupId = _parseGroupId(groupData['id']);
+    if (groupId == null || _joiningGroupIds.contains(groupId)) return;
+
+    final hasPendingRequest = groupData['has_pending_request'] == 'pending';
+    if (hasPendingRequest) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(lang.translate('join_request_pending'))),
+      );
+      return;
+    }
+
+    final isPrivate = groupData['privacy'] == 'private';
+    if (isPrivate) {
+      final confirmed = await _confirmPrivateGroupJoin();
+      if (!confirmed) return;
+    }
+
+    setState(() {
+      _joiningGroupIds.add(groupId);
+    });
+
     try {
-      final lang = LanguageService.instance;
       final api = await ApiService.getInstance();
-      await api.joinGroup(group['id']);
-      _loadGroups();
+      await api.joinGroup(groupId);
+
+      if (isPrivate) {
+        final index = _discoverGroups.indexWhere(
+          (item) => item is Map && item['id'] == groupId,
+        );
+        if (index != -1) {
+          _discoverGroups[index] = {
+            ...Map<String, dynamic>.from(
+              (_discoverGroups[index] as Map).map(
+                (key, value) => MapEntry(key.toString(), value),
+              ),
+            ),
+            'has_pending_request': 'pending',
+          };
+        }
+      } else {
+        await _loadGroups();
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${lang.translate('joined_group')} ${group['name']}'),
+            content: Text(
+              isPrivate
+                  ? lang.translate('join_request_sent')
+                  : '${lang.translate('joined_group')} ${groupData['name']}',
+            ),
           ),
         );
       }
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('[GroupsScreen][_joinGroup] groupId=$groupId error=$e');
+      debugPrint('$st');
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(e.toString())));
+        ).showSnackBar(SnackBar(content: Text(_cleanErrorMessage(e))));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _joiningGroupIds.remove(groupId);
+        });
       }
     }
   }
@@ -377,6 +506,11 @@ class _GroupsScreenState extends State<GroupsScreen>
     final postsCount = group['posts_count'] ?? 0;
     final avatar = group['avatar'];
     final privacy = group['privacy'] ?? 'public';
+    final groupId = _parseGroupId(group['id']);
+    final hasPendingRequest =
+        !isMember && group['has_pending_request'] == 'pending';
+    final isJoining =
+        !isMember && groupId != null && _joiningGroupIds.contains(groupId);
 
     return InkWell(
       onTap: () {
@@ -494,9 +628,16 @@ class _GroupsScreenState extends State<GroupsScreen>
             if (!isMember) ...[
               const SizedBox(width: 8),
               ElevatedButton(
-                onPressed: () => _joinGroup(group),
+                onPressed: hasPendingRequest || isJoining
+                    ? null
+                    : () => _joinGroup(group),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFBE1E1E),
+                  backgroundColor: hasPendingRequest
+                      ? Colors.orange
+                      : const Color(0xFFBE1E1E),
+                  disabledBackgroundColor: hasPendingRequest
+                      ? Colors.orange
+                      : Colors.white24,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -507,7 +648,11 @@ class _GroupsScreenState extends State<GroupsScreen>
                   ),
                 ),
                 child: Text(
-                  LanguageService.instance.translate('join'),
+                  isJoining
+                      ? '...'
+                      : hasPendingRequest
+                      ? lang.translate('request_pending')
+                      : lang.translate('join'),
                   style: const TextStyle(fontSize: 13),
                 ),
               ),

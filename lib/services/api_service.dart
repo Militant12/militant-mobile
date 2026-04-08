@@ -256,6 +256,80 @@ class ApiService {
     return null;
   }
 
+  String _sanitizeServerMessage(
+    String body, {
+    String fallback = 'Réponse invalide du serveur',
+  }) {
+    final cleaned = body
+        .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
+        .replaceAll(RegExp(r'<[^>]+>'), ' ')
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+
+    return cleaned.isNotEmpty ? cleaned : fallback;
+  }
+
+  Map<String, dynamic> _decodeJsonMap(
+    http.Response response, {
+    String fallbackError = 'Réponse invalide du serveur',
+  }) {
+    try {
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
+      }
+      if (decoded is Map) {
+        return decoded.map((key, value) => MapEntry(key.toString(), value));
+      }
+    } on FormatException {
+      throw Exception(
+        _sanitizeServerMessage(response.body, fallback: fallbackError),
+      );
+    }
+
+    throw Exception(fallbackError);
+  }
+
+  String _extractApiError(
+    http.Response response, {
+    String fallbackError = 'Erreur serveur',
+  }) {
+    try {
+      final data = _decodeJsonMap(response, fallbackError: fallbackError);
+      final message = data['error'] ?? data['message'];
+      if (message is String && message.trim().isNotEmpty) {
+        return message.trim();
+      }
+    } catch (e) {
+      final message = e.toString().replaceFirst('Exception: ', '').trim();
+      if (message.isNotEmpty) {
+        return message;
+      }
+    }
+
+    return _sanitizeServerMessage(response.body, fallback: fallbackError);
+  }
+
+  void _logApiIssue(
+    String scope, {
+    http.Response? response,
+    Object? error,
+    StackTrace? stackTrace,
+  }) {
+    debugPrint('[API][$scope]');
+    if (response != null) {
+      debugPrint('Status: ${response.statusCode}');
+      debugPrint('Body: ${response.body}');
+    }
+    if (error != null) {
+      debugPrint('Error: $error');
+    }
+    if (stackTrace != null) {
+      debugPrint('StackTrace: $stackTrace');
+    }
+  }
+
   // Obtenir l'ID avec cache en mémoire
   Future<int?> getCurrentUserId() async {
     if (_currentUserId != null) return _currentUserId;
@@ -655,7 +729,9 @@ class ApiService {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       // Normaliser le champ de réponse : serveur renvoie 'translated' ou 'translatedText'
-      if (data is Map && !data.containsKey('translatedText') && data.containsKey('translated')) {
+      if (data is Map &&
+          !data.containsKey('translatedText') &&
+          data.containsKey('translated')) {
         data['translatedText'] = data['translated'];
       }
       return data;
@@ -908,8 +984,6 @@ class ApiService {
       throw Exception('Erreur mise à jour du profil');
     }
   }
-
-
 
   Future<List<dynamic>> getFollows({
     int? userId,
@@ -1389,10 +1463,18 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      final data = _decodeJsonMap(
+        response,
+        fallbackError: 'Erreur de chargement des groupes',
+      );
       return data['groups'] ?? [];
     } else {
-      throw Exception('Erreur de chargement des groupes');
+      throw Exception(
+        _extractApiError(
+          response,
+          fallbackError: 'Erreur de chargement des groupes',
+        ),
+      );
     }
   }
 
@@ -1403,10 +1485,18 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      final data = _decodeJsonMap(
+        response,
+        fallbackError: 'Erreur de chargement des groupes',
+      );
       return data['groups'] ?? [];
     } else {
-      throw Exception('Erreur de chargement des groupes');
+      throw Exception(
+        _extractApiError(
+          response,
+          fallbackError: 'Erreur de chargement des groupes',
+        ),
+      );
     }
   }
 
@@ -1453,10 +1543,43 @@ class ApiService {
     );
 
     if (response.statusCode == 201 || response.statusCode == 200) {
+      try {
+        return _decodeJsonMap(
+          response,
+          fallbackError: 'Réponse invalide lors de l’adhésion au groupe',
+        );
+      } catch (e, st) {
+        _logApiIssue(
+          'joinGroup success decode failed (group_id=$groupId)',
+          response: response,
+          error: e,
+          stackTrace: st,
+        );
+        rethrow;
+      }
+    } else {
+      _logApiIssue('joinGroup failed (group_id=$groupId)', response: response);
+      throw Exception(
+        _extractApiError(
+          response,
+          fallbackError: 'Erreur lors de l\'adhésion au groupe',
+        ),
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> leaveSocialGroup(int groupId) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/groups.php'),
+      headers: _headers,
+      body: jsonEncode({'action': 'leave', 'group_id': groupId}),
+    );
+
+    if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
       final data = jsonDecode(response.body);
-      throw Exception(data['error'] ?? 'Erreur lors de l\'adhésion au groupe');
+      throw Exception(data['error'] ?? 'Erreur lors de la sortie du groupe');
     }
   }
 
@@ -1503,6 +1626,75 @@ class ApiService {
     }
   }
 
+  Future<List<dynamic>> getGroupJoinRequests(
+    int groupId, {
+    int page = 1,
+  }) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/groups.php?id=$groupId&join_requests=1&page=$page'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final json = _decodeJsonMap(
+        response,
+        fallbackError: 'Erreur lors du chargement des demandes',
+      );
+      return json['data'] ?? [];
+    } else {
+      throw Exception(
+        _extractApiError(
+          response,
+          fallbackError: 'Erreur lors du chargement des demandes',
+        ),
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> approveGroupJoinRequest(
+    int groupId,
+    int userId,
+  ) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/groups.php'),
+      headers: _headers,
+      body: jsonEncode({
+        'action': 'approve_request',
+        'group_id': groupId,
+        'user_id': userId,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final data = jsonDecode(response.body);
+      throw Exception(data['error'] ?? 'Erreur lors de l\'approbation');
+    }
+  }
+
+  Future<Map<String, dynamic>> rejectGroupJoinRequest(
+    int groupId,
+    int userId,
+  ) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/groups.php'),
+      headers: _headers,
+      body: jsonEncode({
+        'action': 'reject_request',
+        'group_id': groupId,
+        'user_id': userId,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final data = jsonDecode(response.body);
+      throw Exception(data['error'] ?? 'Erreur lors du rejet');
+    }
+  }
+
   Future<List<dynamic>> getGroupMembers(int groupId, {int page = 1}) async {
     final response = await http.get(
       Uri.parse('$apiUrl/v1/groups.php?id=$groupId&members=1&page=$page'),
@@ -1535,11 +1727,20 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['posts'] ?? [];
-    } else {
-      throw Exception('Erreur de chargement des publications du groupe');
+      final data = _decodeJsonMap(
+        response,
+        fallbackError:
+            'Réponse invalide du serveur pour les publications du groupe',
+      );
+      final posts = data['posts'];
+      return posts is List ? posts : [];
     }
+
+    final message = _extractApiError(
+      response,
+      fallbackError: 'Erreur de chargement des publications du groupe',
+    );
+    throw Exception('HTTP ${response.statusCode}: $message');
   }
 
   Future<Map<String, dynamic>> createGroupPost(

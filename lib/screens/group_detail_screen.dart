@@ -7,6 +7,7 @@ import '../widgets/post_card.dart';
 import 'create_post_screen.dart';
 import '../widgets/linkable_text.dart';
 import 'users_list_screen.dart';
+import 'group_join_requests_screen.dart';
 
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
@@ -33,13 +34,37 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
   void initState() {
     super.initState();
     _groupData = widget.group;
-    _loadPosts();
+    if (_canViewPostsForGroup(_groupData)) {
+      _loadPosts();
+    }
     _loadGroupInfo();
     _loadMembersPreview();
   }
 
+  bool _canViewPostsForGroup(Map<String, dynamic>? group) {
+    if (group == null) return false;
+    final isMember = group['is_member'] == 1 || group['is_member'] == true;
+    final isPublic = group['privacy'] == 'public';
+    return isMember || isPublic;
+  }
+
+  bool _isExpectedPrivateGroupAccessError(Object error) {
+    final message = error.toString().toLowerCase();
+    return message.contains('403') ||
+        message.contains('forbidden') ||
+        message.contains('unauthorized') ||
+        message.contains('non autorise') ||
+        message.contains('non autorisé') ||
+        message.contains('must be a member') ||
+        message.contains('membership required') ||
+        message.contains('membre requis') ||
+        message.contains('private group') ||
+        message.contains('groupe prive') ||
+        message.contains('groupe privé');
+  }
+
   Future<void> _loadPosts({bool refresh = false}) async {
-    if (_isLoading) return;
+    if (_isLoading || !_canViewPostsForGroup(_groupData)) return;
 
     setState(() {
       _isLoading = true;
@@ -69,8 +94,8 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     } catch (e) {
       if (mounted) {
         final lang = LanguageService.instance;
-        // Don't show snackbar for 403 (Unauthorized/Membership required), as it's handled by the UI
-        if (!e.toString().contains('403')) {
+        // Private groups can legitimately block posts before membership approval.
+        if (!_isExpectedPrivateGroupAccessError(e)) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -105,19 +130,117 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
   }
 
   Future<void> _joinGroup() async {
+    final lang = LanguageService.instance;
     try {
       final api = await ApiService.getInstance();
+
+      // Check if group is private
+      final isPrivate = _groupData!['privacy'] == 'private';
+
+      if (isPrivate) {
+        // For private groups, show a message that a request will be sent
+        final confirm = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF1E1E1E)
+                : Colors.white,
+            title: Text(lang.translate('join_private_group_title')),
+            content: Text(lang.translate('join_private_group_message')),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(lang.translate('cancel')),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(
+                  lang.translate('send_request'),
+                  style: const TextStyle(color: Color(0xFFBE1E1E)),
+                ),
+              ),
+            ],
+          ),
+        );
+
+        if (confirm != true) return;
+      }
+
       await api.joinGroup(_groupData!['id']);
-      setState(() {
-        _groupData!['is_member'] = 1;
-      });
-      _loadPosts(refresh: true);
-      _loadMembersPreview(); // Reload members to show self
-    } catch (e) {
+
+      // Reload group info to get updated status
+      await _loadGroupInfo();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isPrivate
+                  ? lang.translate('join_request_sent')
+                  : lang.translate('joined_group_success'),
+            ),
+          ),
+        );
+      }
+    } catch (e, st) {
+      debugPrint(
+        '[GroupDetailScreen][_joinGroup] groupId=${_groupData?['id']} error=$e',
+      );
+      debugPrint('$st');
       if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    }
+  }
+
+  Future<void> _leaveGroup() async {
+    final lang = LanguageService.instance;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF1E1E1E)
+            : Colors.white,
+        title: Text(lang.translate('leave_group_title')),
+        content: Text(lang.translate('leave_group_confirm')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(lang.translate('cancel')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(
+              lang.translate('leave'),
+              style: const TextStyle(color: Color(0xFFBE1E1E)),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        final api = await ApiService.getInstance();
+        await api.leaveSocialGroup(_groupData!['id']);
+        setState(() {
+          _groupData!['is_member'] = 0;
+          _posts.clear();
+        });
+        _loadMembersPreview();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(lang.translate('left_group_success'))),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(e.toString())));
+        }
       }
     }
   }
@@ -154,6 +277,9 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
         setState(() {
           _groupData = data;
         });
+      }
+      if (_canViewPostsForGroup(data) && _posts.isEmpty) {
+        await _loadPosts(refresh: true);
       }
     } catch (e) {
       debugPrint('Error loading group info: $e');
@@ -392,8 +518,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     final avatar = _groupData!['avatar'];
     final isMember =
         _groupData!['is_member'] == 1 || _groupData!['is_member'] == true;
-    final isPublic = _groupData!['privacy'] == 'public';
-    final canViewPosts = isMember || isPublic;
+    final canViewPosts = _canViewPostsForGroup(_groupData);
     final membersCount = _groupData!['members_count'] ?? _previewMembers.length;
     final privacy = _groupData!['privacy'] == 'private'
         ? lang.translate('private')
@@ -423,7 +548,63 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                 ),
               ),
               actions: [
-                if (_groupData!['role'] != null)
+                if (_groupData!['role'] != null) ...[
+                  // Show join requests button for admins of private groups
+                  if (_groupData!['role'] == 'admin' &&
+                      _groupData!['privacy'] == 'private')
+                    Container(
+                      margin: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.black.withOpacity(0.5),
+                      ),
+                      child: Stack(
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.person_add,
+                              color: Colors.white,
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => GroupJoinRequestsScreen(
+                                    groupId: _groupData!['id'],
+                                    groupName: _groupData!['name'] ?? '',
+                                  ),
+                                ),
+                              ).then((_) => _loadGroupInfo());
+                            },
+                          ),
+                          if ((_groupData!['pending_requests_count'] ?? 0) > 0)
+                            Positioned(
+                              right: 8,
+                              top: 8,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFBE1E1E),
+                                  shape: BoxShape.circle,
+                                ),
+                                constraints: const BoxConstraints(
+                                  minWidth: 16,
+                                  minHeight: 16,
+                                ),
+                                child: Text(
+                                  '${_groupData!['pending_requests_count']}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                   Container(
                     margin: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
@@ -435,6 +616,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                       onPressed: _showEditGroupDialog,
                     ),
                   ),
+                ],
               ],
               flexibleSpace: FlexibleSpaceBar(
                 background: Stack(
@@ -492,24 +674,53 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                       children: [
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: isMember ? () {} : _joinGroup,
+                            onPressed: () {
+                              final hasPendingRequest =
+                                  _groupData!['has_pending_request'] ==
+                                  'pending';
+                              if (isMember) {
+                                _leaveGroup();
+                              } else if (hasPendingRequest) {
+                                // Show message that request is pending
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      lang.translate('join_request_pending'),
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                _joinGroup();
+                              }
+                            },
                             icon: Icon(
-                              isMember ? Icons.check : Icons.group_add,
+                              isMember
+                                  ? Icons.exit_to_app
+                                  : (_groupData!['has_pending_request'] ==
+                                            'pending'
+                                        ? Icons.schedule
+                                        : Icons.group_add),
                               size: 18,
                             ),
                             label: Text(
                               isMember
-                                  ? lang.translate('joined')
-                                  : lang.translate('join'),
+                                  ? lang.translate('leave')
+                                  : (_groupData!['has_pending_request'] ==
+                                            'pending'
+                                        ? lang.translate('request_pending')
+                                        : lang.translate('join')),
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: isMember
                                   ? (isDark
                                         ? Colors.grey[800]
-                                        : Colors.grey[200])
-                                  : const Color(0xFFBE1E1E),
+                                        : Colors.grey[300])
+                                  : (_groupData!['has_pending_request'] ==
+                                            'pending'
+                                        ? Colors.orange
+                                        : const Color(0xFFBE1E1E)),
                               foregroundColor: isMember
-                                  ? theme.textTheme.bodyLarge?.color
+                                  ? (isDark ? Colors.white70 : Colors.black87)
                                   : Colors.white,
                               elevation: 0,
                               shape: RoundedRectangleBorder(

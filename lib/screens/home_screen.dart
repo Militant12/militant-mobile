@@ -4,6 +4,7 @@ import 'messages_screen.dart';
 import 'profile_screen.dart';
 import 'community_screen.dart';
 import '../services/language_service.dart';
+import '../services/deep_link_service.dart';
 import '../widgets/incoming_call_banner.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -25,11 +26,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initScreens();
+    // Initialize deep link handling after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      DeepLinkService().initialize();
+    });
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    DeepLinkService().dispose();
     super.dispose();
   }
 

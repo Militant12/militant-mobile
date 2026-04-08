@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 
 class TwoFactorSettingsScreen extends StatefulWidget {
   const TwoFactorSettingsScreen({super.key});
@@ -26,6 +27,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
   }
 
   Future<void> _loadStatus() async {
+    final lang = LanguageService.instance;
     setState(() => _isLoading = true);
     try {
       final api = await ApiService.getInstance();
@@ -41,15 +43,16 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+        ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: $e')));
       }
     }
   }
 
   Future<void> _enable() async {
+    final lang = LanguageService.instance;
     if (_codeController.text.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez entrer un code à 6 chiffres')),
+        SnackBar(content: Text(lang.translate('enter_6_digit_code'))),
       );
       return;
     }
@@ -72,7 +75,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Erreur: ${e.toString().replaceAll('Exception: ', '')}',
+              '${lang.translate('error')}: ${e.toString().replaceAll('Exception: ', '')}',
             ),
           ),
         );
@@ -81,21 +84,22 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
   }
 
   Future<void> _disable() async {
+    final lang = LanguageService.instance;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Désactiver la 2FA ?'),
-        content: const Text('Votre compte sera moins sécurisé.'),
+        title: Text(lang.translate('disable_2fa_question')),
+        content: Text(lang.translate('account_less_secure')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler'),
+            child: Text(lang.translate('cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              'Désactiver',
-              style: TextStyle(color: Colors.red),
+            child: Text(
+              lang.translate('disable_2fa'),
+              style: const TextStyle(color: Colors.red),
             ),
           ),
         ],
@@ -114,24 +118,23 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+        ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: $e')));
       }
     }
   }
 
   void _showRecoveryCodesDialog() {
+    final lang = LanguageService.instance;
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text('Codes de récupération'),
+        title: Text(lang.translate('recovery_codes')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Veuillez enregistrer ces codes dans un endroit sûr. Ils vous permettront d\'accéder à votre compte si vous perdez votre application d\'authentification.',
-            ),
+            Text(lang.translate('recovery_codes_message')),
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(8),
@@ -157,13 +160,13 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
               );
               ScaffoldMessenger.of(
                 context,
-              ).showSnackBar(const SnackBar(content: Text('Codes copiés')));
+              ).showSnackBar(SnackBar(content: Text(lang.translate('codes_copied'))));
             },
-            child: const Text('Copier tout'),
+            child: Text(lang.translate('copy_all')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('J\'ai enregistré les codes'),
+            child: Text(lang.translate('saved_codes')),
           ),
         ],
       ),
@@ -172,11 +175,12 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguageService.instance;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Double authentification')),
+      appBar: AppBar(title: Text(lang.translate('two_factor_auth'))),
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
@@ -196,8 +200,8 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                   const SizedBox(height: 24),
                   Text(
                     _isEnabled
-                        ? 'La 2FA est activée'
-                        : 'Sécurisez votre compte',
+                        ? lang.translate('2fa_enabled')
+                        : lang.translate('secure_your_account'),
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -206,17 +210,17 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                   const SizedBox(height: 8),
                   Text(
                     _isEnabled
-                        ? 'Votre compte est protégé par une double authentification.'
-                        : 'L\'authentification à deux facteurs ajoute une couche de sécurité supplémentaire en exigeant un code de validation lors de la connexion.',
+                        ? lang.translate('2fa_enabled_message')
+                        : lang.translate('2fa_description'),
                     style: TextStyle(
                       color: isDark ? Colors.grey[400] : Colors.grey[600],
                     ),
                   ),
                   const SizedBox(height: 32),
                   if (!_isEnabled && _secret != null) ...[
-                    const Text(
-                      '1. Scannez le QR code avec votre authentificateur',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    Text(
+                      lang.translate('scan_qr_code'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
                     Center(
@@ -242,9 +246,9 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'Ou copiez le secret manuellement:',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    Text(
+                      lang.translate('or_copy_secret'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
@@ -271,7 +275,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                             onPressed: () {
                               Clipboard.setData(ClipboardData(text: _secret!));
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Secret copié')),
+                                SnackBar(content: Text(lang.translate('secret_copied'))),
                               );
                             },
                           ),
@@ -279,17 +283,17 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                       ),
                     ),
                     const SizedBox(height: 32),
-                    const Text(
-                      '2. Entrez le code de validation',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    Text(
+                      lang.translate('enter_validation_code'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: _codeController,
-                      decoration: const InputDecoration(
-                        labelText: 'Code à 6 chiffres',
-                        border: OutlineInputBorder(),
-                        focusedBorder: OutlineInputBorder(
+                      decoration: InputDecoration(
+                        labelText: lang.translate('six_digit_code'),
+                        border: const OutlineInputBorder(),
+                        focusedBorder: const OutlineInputBorder(
                           borderSide: BorderSide(color: Color(0xFFBE1E1E)),
                         ),
                       ),
@@ -306,7 +310,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
-                        child: const Text('Activer la 2FA'),
+                        child: Text(lang.translate('enable_2fa')),
                       ),
                     ),
                   ],
@@ -318,7 +322,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.red,
                         ),
-                        child: const Text('Désactiver la 2FA'),
+                        child: Text(lang.translate('disable_2fa')),
                       ),
                     ),
                   ],

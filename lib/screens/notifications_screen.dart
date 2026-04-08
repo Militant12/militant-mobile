@@ -5,6 +5,7 @@ import '../services/language_service.dart';
 import 'profile_screen.dart';
 import 'chat_screen.dart';
 import 'post_detail_screen.dart';
+import 'group_detail_screen.dart';
 import '../models/post.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -139,6 +140,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       case 'group_invite':
         message = lang.translate('notification_group_invite');
         break;
+      case 'group_join_request':
+        message = lang.translate('notification_group_join_request');
+        break;
+      case 'group_join_approved':
+        message = lang.translate('notification_group_join_approved');
+        break;
+      case 'group_join_rejected':
+        message = lang.translate('notification_group_join_rejected');
+        break;
       case 'event_invite':
         message = lang.translate('notification_event_invite');
         break;
@@ -172,6 +182,61 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   ChatScreen(userId: notif['from_user_id'], username: username),
             ),
           );
+        } else if (type == 'group_join_request') {
+          // Rediriger vers l'écran des demandes d'adhésion du groupe
+          final link = notif['link'];
+          if (link != null && link.toString().contains('group_detail.php?id=')) {
+            final groupId = int.tryParse(
+              link.toString().split('id=').last.split('&').first,
+            );
+            if (groupId != null) {
+              // Charger les détails du groupe et naviguer
+              try {
+                final api = await ApiService.getInstance();
+                final groupData = await api.getSocialGroupDetails(groupId);
+                if (!mounted) return;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => GroupDetailScreen(group: groupData),
+                  ),
+                );
+              } catch (e) {
+                if (!mounted) return;
+                final lang = LanguageService.instance;
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: $e')));
+              }
+            }
+          }
+        } else if (type == 'group_join_approved' || type == 'group_join_rejected') {
+          // Rediriger vers la page du groupe
+          final link = notif['link'];
+          if (link != null && link.toString().contains('group_detail.php?id=')) {
+            final groupId = int.tryParse(
+              link.toString().split('id=').last.split('&').first,
+            );
+            if (groupId != null) {
+              try {
+                final api = await ApiService.getInstance();
+                final groupData = await api.getSocialGroupDetails(groupId);
+                if (!mounted) return;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => GroupDetailScreen(group: groupData),
+                  ),
+                );
+              } catch (e) {
+                if (!mounted) return;
+                final lang = LanguageService.instance;
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: $e')));
+              }
+            }
+          }
         } else if ((type == 'like' || type == 'comment' || type == 'mention' || type == 'reaction') &&
             notif['post_id'] != null) {
           try {

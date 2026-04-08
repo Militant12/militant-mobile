@@ -59,6 +59,49 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            
+            <!-- Deep links for app navigation -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="https"
+                    android:host="militant.revlibertaire.com"
+                    android:pathPrefix="/group_detail.php"/>
+                <data
+                    android:scheme="https"
+                    android:host="militant.revlibertaire.com"
+                    android:pathPrefix="/group/"/>
+                <data
+                    android:scheme="https"
+                    android:host="militant.revlibertaire.com"
+                    android:pathPrefix="/profile.php"/>
+                <data
+                    android:scheme="https"
+                    android:host="militant.revlibertaire.com"
+                    android:pathPrefix="/profile/"/>
+                <data
+                    android:scheme="https"
+                    android:host="militant.revlibertaire.com"
+                    android:pathPrefix="/post_detail.php"/>
+                <data
+                    android:scheme="https"
+                    android:host="militant.revlibertaire.com"
+                    android:pathPrefix="/post.php"/>
+                <data
+                    android:scheme="https"
+                    android:host="militant.revlibertaire.com"
+                    android:pathPrefix="/post/"/>
+            </intent-filter>
+            
+            <!-- Custom URL scheme -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="militant"/>
+            </intent-filter>
         </activity>
         
         <!-- Trusted Web Activity -->

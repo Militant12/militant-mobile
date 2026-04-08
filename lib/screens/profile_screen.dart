@@ -1001,6 +1001,11 @@ class ProfileScreenState extends State<ProfileScreen>
 
     final socials = [
       {
+        'key': 'website',
+        'icon': Icons.link,
+        'url': '\$value',
+      },
+      {
         'key': 'mastodon',
         'icon': Icons.alternate_email,
         'url': 'https://\$value',
