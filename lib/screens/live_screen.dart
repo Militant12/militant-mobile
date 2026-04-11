@@ -3038,27 +3038,7 @@ class _LiveScreenState extends State<LiveScreen> {
                         : const Icon(Icons.flag_outlined),
                   ),
                 ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.black45,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white12),
-                ),
-                child: Text(
-                  _isCreator
-                      ? translate('live_status_broadcasting')
-                      : translate('live_status_watching'),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+
               if (_canControlBroadcast) ...[
                 const SizedBox(height: 12),
                 _buildMicroSideButton(),
