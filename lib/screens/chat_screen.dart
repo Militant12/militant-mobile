@@ -8,6 +8,7 @@ import '../widgets/video_player_widget.dart';
 import '../widgets/file_video_player.dart';
 import '../widgets/audio_player_widget.dart';
 import '../widgets/audio_recorder_widget.dart';
+import '../utils/date_formatter.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../widgets/linkable_text.dart';
@@ -934,7 +935,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   String _formatTime(String dateStr) {
     try {
-      final date = DateTime.parse(dateStr.replaceAll(' ', 'T'));
+      final date = DateFormatter.parseApiDate(dateStr);
       return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
     } catch (e) {
       return '';

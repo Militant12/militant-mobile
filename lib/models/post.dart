@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../utils/date_formatter.dart';
 
 class Post {
   final int id;
@@ -45,7 +46,6 @@ class Post {
   });
 
   factory Post.fromJson(Map<String, dynamic> json) {
-    // ... (logic unchanged) ...
     List<String> mediaList = [];
     if (json['media'] != null) {
       final media = json['media'];
@@ -82,20 +82,9 @@ class Post {
       isLiked: json['is_liked'] == 1 || json['is_liked'] == true,
       isOnline: json['is_online'] == 1 || json['is_online'] == true,
       isModerator: json['is_moderator'] == 1 || json['is_moderator'] == true,
-      createdAt: DateTime.parse(
-        (json['created_at'] ?? DateTime.now().toIso8601String()).replaceAll(
-          ' ',
-          'T',
-        ),
-      ),
+      createdAt: DateFormatter.parseApiDate(json['created_at']),
       sharedByUsername: json['shared_by_username'],
-      feedDate: DateTime.parse(
-        (json['feed_date'] ??
-                json['created_at'] ??
-                DateTime.now().toIso8601String())
-            .toString()
-            .replaceAll(' ', 'T'),
-      ),
+      feedDate: DateFormatter.parseApiDate(json['feed_date'] ?? json['created_at']),
       type: json['type'] ?? 'post',
       groupId: json['group_id'],
     );

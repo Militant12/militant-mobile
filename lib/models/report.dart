@@ -1,3 +1,5 @@
+import '../utils/date_formatter.dart';
+
 class Report {
   final int id;
   final String reason;
@@ -40,12 +42,7 @@ class Report {
       voteCount: json['vote_count'] ?? 0,
       myVote: json['my_vote'],
       status: json['status'] ?? 'pending',
-      createdAt: DateTime.parse(
-        (json['created_at'] ?? DateTime.now().toIso8601String()).replaceAll(
-          ' ',
-          'T',
-        ),
-      ),
+      createdAt: DateFormatter.parseApiDate(json['created_at']),
     );
   }
 }
@@ -80,9 +77,7 @@ class ModeratorCandidate {
       votesFor: json['votes_for'] ?? 0,
       votesAgainst: json['votes_against'] ?? 0,
       myVote: json['my_vote'],
-      createdAt: DateTime.parse(
-        json['created_at'] ?? DateTime.now().toIso8601String(),
-      ),
+      createdAt: DateFormatter.parseApiDate(json['created_at']),
     );
   }
 }

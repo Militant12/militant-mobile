@@ -1,3 +1,5 @@
+import '../utils/date_formatter.dart';
+
 class Comment {
   final int id;
   final int postId;
@@ -30,21 +32,6 @@ class Comment {
   });
 
   factory Comment.fromJson(Map<String, dynamic> json) {
-    DateTime parseDate(dynamic dateValue) {
-      if (dateValue == null) return DateTime.now();
-      try {
-        if (dateValue is String) {
-          // Remplacer l'espace par T pour le format ISO
-          final dateStr = dateValue.replaceAll(' ', 'T');
-          return DateTime.parse(dateStr);
-        }
-        return DateTime.now();
-      } catch (e) {
-        print('Error parsing date: $dateValue - $e');
-        return DateTime.now();
-      }
-    }
-
     return Comment(
       id: json['id'] ?? 0,
       postId: json['post_id'] ?? 0,
@@ -52,7 +39,7 @@ class Comment {
       username: json['username'] ?? 'Utilisateur',
       userAvatar: json['avatar'],
       content: json['content'] ?? '',
-      createdAt: parseDate(json['created_at']),
+      createdAt: DateFormatter.parseApiDate(json['created_at']),
       parentId: json['parent_id'],
       replies:
           (json['replies'] as List?)

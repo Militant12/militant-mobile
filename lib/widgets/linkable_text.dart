@@ -56,17 +56,17 @@ class LinkableText extends StatelessWidget {
   ) {
     final List<TextSpan> spans = [];
 
-    // Regex pour détecter les URLs
-    final urlPattern = RegExp(
-      r'https?://[^\s]+|www\.[^\s]+',
+    // Regex pour détecter les URLs et les Mentions (@pseudo)
+    final combinedPattern = RegExp(
+      r'(https?://[^\s]+|www\.[^\s]+)|(@\w+)',
       caseSensitive: false,
     );
 
     int currentIndex = 0;
-    final matches = urlPattern.allMatches(text);
+    final matches = combinedPattern.allMatches(text);
 
     for (final match in matches) {
-      // Ajouter le texte avant le lien
+      // Ajouter le texte avant le match
       if (match.start > currentIndex) {
         spans.add(
           TextSpan(
@@ -76,20 +76,33 @@ class LinkableText extends StatelessWidget {
         );
       }
 
-      // Ajouter le lien
-      final url = match.group(0)!;
-      spans.add(
-        TextSpan(
-          text: url,
-          style:
-              baseStyle?.copyWith(
-                color: linkColor,
-                decoration: TextDecoration.underline,
-              ) ??
-              TextStyle(color: linkColor, decoration: TextDecoration.underline),
-          recognizer: TapGestureRecognizer()..onTap = () => _launchUrl(url),
-        ),
-      );
+      final matchText = match.group(0)!;
+      final isMention = match.group(2) != null;
+
+      if (isMention) {
+        // Ajouter la mention en gras
+        spans.add(
+          TextSpan(
+            text: matchText,
+            style: baseStyle?.copyWith(
+              color: linkColor,
+              fontWeight: FontWeight.bold,
+            ) ?? TextStyle(color: linkColor, fontWeight: FontWeight.bold),
+          ),
+        );
+      } else {
+        // Ajouter le lien
+        spans.add(
+          TextSpan(
+            text: matchText,
+            style: baseStyle?.copyWith(
+              color: linkColor,
+              decoration: TextDecoration.underline,
+            ) ?? TextStyle(color: linkColor, decoration: TextDecoration.underline),
+            recognizer: TapGestureRecognizer()..onTap = () => _launchUrl(matchText),
+          ),
+        );
+      }
 
       currentIndex = match.end;
     }

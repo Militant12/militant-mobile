@@ -3,6 +3,7 @@ import 'dart:async';
 import '../models/post.dart';
 import '../models/comment.dart';
 import '../services/api_service.dart';
+import '../utils/date_formatter.dart';
 import '../services/language_service.dart';
 import '../widgets/post_card.dart';
 import '../widgets/linkable_text.dart';
@@ -338,7 +339,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     );
   }
 
-  Widget _buildCommentItem(Comment comment, {int depth = 0}) {
+  Widget _buildCommentItem(Comment comment, {int depth = 0, String? parentUsername}) {
     final lang = LanguageService.instance;
     final theme = Theme.of(context);
     final textColor = theme.textTheme.bodyLarge?.color;
@@ -363,7 +364,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {
                     return CircleAvatar(
-                      radius: 16,
+                      radius: 20,
                       backgroundColor: const Color(0xFFBE1E1E),
                       child: Text(
                         comment.username.isNotEmpty
@@ -383,7 +384,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
                   if (avatarUrl != null && avatarUrl.isNotEmpty) {
                     return CircleAvatar(
-                      radius: 16,
+                      radius: 20,
                       backgroundImage: NetworkImage(avatarUrl),
                       backgroundColor: const Color(0xFFBE1E1E),
                       onBackgroundImageError: (_, __) {},
@@ -392,13 +393,13 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   }
 
                   return CircleAvatar(
-                    radius: 16,
+                    radius: 20,
                     backgroundColor: const Color(0xFFBE1E1E),
                     child: Text(
                       comment.username.isNotEmpty
                           ? comment.username[0].toUpperCase()
                           : '?',
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
                     ),
                   );
                 },
@@ -415,13 +416,13 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                           style: TextStyle(
                             color: textColor,
                             fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                            fontSize: 17,
                           ),
                         ),
                         const SizedBox(width: 8),
                         Text(
                           _formatDate(comment.createdAt),
-                          style: TextStyle(color: subtitleColor, fontSize: 12),
+                          style: TextStyle(color: subtitleColor, fontSize: 13),
                         ),
                         const Spacer(),
                         if (_currentUserId != null &&
@@ -454,12 +455,12 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                     ),
                     const SizedBox(height: 4),
                     LinkableText(
-                      text:
-                          comment.isTranslated &&
-                              comment.translatedContent != null
-                          ? comment.translatedContent!
-                          : comment.content,
-                      style: TextStyle(color: textColor, fontSize: 14),
+                      text: (parentUsername != null ? "@$parentUsername " : "") +
+                          (comment.isTranslated &&
+                                  comment.translatedContent != null
+                              ? comment.translatedContent!
+                              : comment.content),
+                      style: TextStyle(color: textColor, fontSize: 18, height: 1.4),
                     ),
                     const SizedBox(height: 4),
                     // Boutons Répondre, Réaction et Traduire
@@ -480,7 +481,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                             lang.translate('reply'),
                             style: TextStyle(
                               color: subtitleColor,
-                              fontSize: 12,
+                              fontSize: 13,
                             ),
                           ),
                           style: TextButton.styleFrom(
@@ -508,7 +509,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                               color: comment.hasReacted
                                   ? const Color(0xFFBE1E1E)
                                   : subtitleColor,
-                              fontSize: 12,
+                              fontSize: 14,
                             ),
                           ),
                           style: TextButton.styleFrom(
@@ -536,7 +537,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                               color: comment.isTranslated
                                   ? const Color(0xFFBE1E1E)
                                   : subtitleColor,
-                              fontSize: 12,
+                              fontSize: 14,
                             ),
                           ),
                           style: TextButton.styleFrom(
@@ -554,9 +555,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           ),
         ),
         // Afficher les réponses de manière récursive
-        if (comment.replies.isNotEmpty)
           ...comment.replies.map(
-            (reply) => _buildCommentItem(reply, depth: depth + 1),
+            (reply) => _buildCommentItem(reply, depth: depth + 1, parentUsername: comment.username),
           ),
       ],
     );
@@ -720,20 +720,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   }
 
   String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inMinutes < 1) {
-      return 'À l\'instant';
-    } else if (difference.inHours < 1) {
-      return '${difference.inMinutes}min';
-    } else if (difference.inDays < 1) {
-      return '${difference.inHours}h';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays}j';
-    } else {
-      return '${date.day}/${date.month}/${date.year}';
-    }
+    return DateFormatter.formatRelative(date);
   }
 
   Widget _buildCommentInput() {

@@ -271,7 +271,7 @@ class _PostCardState extends State<PostCard> {
                                 style: TextStyle(
                                   color: textColor,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 15,
+                                  fontSize: 17,
                                 ),
                               ),
                               if (widget.post.militantBadge != null) ...[
@@ -324,7 +324,7 @@ class _PostCardState extends State<PostCard> {
                 text: _showTranslation && _translatedContent != null
                     ? _translatedContent!
                     : _currentContent,
-                style: TextStyle(color: textColor, fontSize: 15, height: 1.4),
+                style: TextStyle(color: textColor, fontSize: 18, height: 1.4),
                 onLinksDetected: (urls) {
                   // Filtrer les nouvelles URLs pour éviter les rebuilds inutiles
                   final newUrls = urls

@@ -7,6 +7,7 @@ import 'chat_screen.dart';
 import 'post_detail_screen.dart';
 import 'group_detail_screen.dart';
 import '../models/post.dart';
+import '../utils/date_formatter.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -446,22 +447,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   String _formatDate(String dateStr) {
     try {
-      final lang = LanguageService.instance;
-      final date = DateTime.parse(dateStr.replaceAll(' ', 'T'));
-      final now = DateTime.now();
-      final difference = now.difference(date);
-
-      if (difference.inMinutes < 1) {
-        return lang.translate('just_now');
-      } else if (difference.inHours < 1) {
-        return '${difference.inMinutes}${lang.translate('minutes_short')}';
-      } else if (difference.inDays < 1) {
-        return '${difference.inHours}${lang.translate('hours_short')}';
-      } else if (difference.inDays < 7) {
-        return '${difference.inDays}${lang.translate('days_short')}';
-      } else {
-        return '${date.day}/${date.month}/${date.year}';
-      }
+      final date = DateFormatter.parseApiDate(dateStr);
+      return DateFormatter.formatRelative(date);
     } catch (e) {
       return dateStr;
     }

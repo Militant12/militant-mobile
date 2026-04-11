@@ -2835,35 +2835,7 @@ class _LiveScreenState extends State<LiveScreen> {
               icon: const Icon(Icons.shield_outlined),
             ),
           ),
-        Positioned(
-          top: 86,
-          right: 16,
-          child: Column(
-            children: [
-              IconButton.filledTonal(
-                onPressed: _openCommunityVoteSheet,
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.black45,
-                  foregroundColor: Colors.white,
-                ),
-                icon: const Icon(Icons.how_to_vote),
-              ),
-              if (_reportCount > 0)
-                Container(
-                  margin: const EdgeInsets.only(top: 4),
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    "$_reportCount/5",
-                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                  ),
-                ),
-            ],
-          ),
-        ),
+
         Positioned(
           left: 12,
           right: 12,
@@ -3038,6 +3010,34 @@ class _LiveScreenState extends State<LiveScreen> {
                         : const Icon(Icons.flag_outlined),
                   ),
                 ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Column(
+                  children: [
+                    IconButton.filledTonal(
+                      onPressed: _openCommunityVoteSheet,
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.black45,
+                        foregroundColor: Colors.white,
+                      ),
+                      icon: const Icon(Icons.how_to_vote),
+                    ),
+                    if (_reportCount > 0)
+                      Container(
+                        margin: const EdgeInsets.only(top: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.black54,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          "$_reportCount/5",
+                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
 
               if (_canControlBroadcast) ...[
                 const SizedBox(height: 12),

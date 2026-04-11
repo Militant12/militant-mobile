@@ -1,3 +1,5 @@
+import '../utils/date_formatter.dart';
+
 class User {
   final int id;
   final String username;
@@ -61,12 +63,7 @@ class User {
       followersCount: json['followers_count'] ?? 0,
       followingCount: json['following_count'] ?? 0,
       isFollowing: json['is_following'] == 1 || json['is_following'] == true,
-      createdAt: DateTime.parse(
-        (json['created_at'] ?? DateTime.now().toIso8601String()).replaceAll(
-          ' ',
-          'T',
-        ),
-      ),
+      createdAt: DateFormatter.parseApiDate(json['created_at']),
     );
   }
 }
