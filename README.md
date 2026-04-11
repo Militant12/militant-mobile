@@ -37,10 +37,10 @@ Militant est un réseau social décentralisé conçu pour les mouvements militan
 - **Liens cliquables** : Détection automatique des URLs avec cartes de prévisualisation pour les réseaux sociaux
 
 ### Groupes & Événements
-- **Groupes** : Créez et rejoignez des groupes militants
-- **Événements** : Organisez et participez à des événements
-- **Stories** : Partagez des moments éphémères (24h)
-- **Lives** : Diffusions en direct
+- **Groupes** : Créez et rejoignez des groupes militants avec système d’adhésion privée et invitations.
+- **Événements** : Organisez et participez à des événements militants locaux ou nationaux.
+- **Stories** : Partagez des moments éphémères (24h) avec prévisualisation vidéo.
+- **Lives (v1.0.6)** : Diffusions en direct avec modération communautaire et gestion des invités en temps réel.
 
 ### Modération & Sécurité
 - **Modération Démocratique** : Système révolutionnaire où les modérateurs sont élus par vote (70% consensus)
@@ -105,48 +105,23 @@ flutter build apk --release
 
 L'application se connecte par défaut à `https://militant.revlibertaire.com`. Vous pouvez changer d'instance directement depuis l'écran de connexion.
 
-### Lives (LiveKit) et token militant-api
+### Lives (v1.0.6) - Système Avancé
 
-L’onglet **Live** s’appuie sur [LiveKit](https://livekit.io/) et sur **militant-api** pour émettre les JWT côté serveur. Ne mettez **jamais** `LIVEKIT_API_SECRET` dans une build de production : gardez les secrets uniquement sur le serveur API (variables d’environnement décrites dans le dépôt [militant-api](https://gitlab.com/militant1/militant-api) et le fichier `.env.example`).
+L’onglet **Live** s’appuie sur [LiveKit](https://livekit.io/) et offre une expérience de diffusion militante sécurisée.
 
-**Sur le serveur (militant-api)** : configurez au minimum `LIVEKIT_URL`, `LIVEKIT_API_KEY` et `LIVEKIT_API_SECRET` pour que l’endpoint `POST …/v1/lives.php?path=token` puisse répondre.
+> [!CAUTION]
+> **Sécurité** : Ne compilez **jamais** l'application avec vos secrets (`LIVEKIT_API_SECRET`). L'application utilise uniquement l'URL du serveur et l'URL de l'API pour récupérer des jetons sécurisés. Le secret doit rester exclusivement sur votre serveur `militant-api`.
 
-**Dans l’app** : passez l’URL du serveur LiveKit et l’URL complète de l’endpoint token de **la même instance API** que celle avec laquelle l’utilisateur est connecté (ou l’instance officielle si vous utilisez ce backend).
+> [!TIP]
+> **Format de l'URL** : L'URL du serveur (`LIVEKIT_URL`) doit impérativement commencer par **`wss://`** (ex: `wss://live.votre-instance.org`).
 
-| Variable | Rôle |
-|----------|------|
-| `LIVEKIT_URL` | URL WebSocket du serveur LiveKit (ex. `wss://livekit.votredomaine.tld`) |
-| `LIVEKIT_TOKEN_ENDPOINT` | URL HTTPS du endpoint token : `…/v1/lives.php?path=token` |
+- **Modération démocratique** : Les créateurs peuvent nommer des modérateurs révocables sans hiérarchie. Le blocage des utilisateurs du chat est immédiat.
+- **Gestion des invités (Request Guest)** : Système robuste permettant aux spectateurs de demander à "monter" dans le live, avec approbation/rejet en temps réel par le créateur.
+- **Sécurité u{id}** : Utilisation d'identifiants persistants pour garantir une modération efficace même si l'utilisateur change de pseudonyme.
+- **Auto-nettoyage** : Fermeture automatique des sessions inactives ou suite à une déconnexion prolongée du créateur (timeout 2 min).
+- **Consensus de signalement** : Option de signalement communautaire ; si un seuil de votes est atteint, le live est automatiquement suspendu par sécurité.
 
-**Exemple (instance courante côté API)** — à adapter si votre instance utilise un autre hôte :
-
-```text
-https://api.militant.revlibertaire.com/v1/lives.php?path=token
-```
-
-Pour une **instance auto-hébergée**, remplacez le domaine par celui de votre militant-api (même base que l’API utilisée après connexion, ex. `https://api.votre-instance.org/v1/lives.php?path=token`).
-
-**Lancement / build** (les valeurs sont injectées au compile-time avec `--dart-define`) :
-
-```bash
-flutter run \
-  --dart-define=LIVEKIT_URL=wss://VOTRE_SERVEUR_LIVEKIT \
-  --dart-define=LIVEKIT_TOKEN_ENDPOINT=https://VOTRE_API/v1/lives.php?path=token
-```
-
-```bash
-flutter build apk --release \
-  --dart-define=LIVEKIT_URL=wss://VOTRE_SERVEUR_LIVEKIT \
-  --dart-define=LIVEKIT_TOKEN_ENDPOINT=https://VOTRE_API/v1/lives.php?path=token
-```
-
-L’app envoie le **Bearer token** Militant (session) lors de l’appel à `LIVEKIT_TOKEN_ENDPOINT` : l’utilisateur doit être connecté. En développement uniquement, l’app peut générer un JWT localement si `LIVEKIT_API_KEY` et `LIVEKIT_API_SECRET` sont fournis via `--dart-define` (mode non release) ; évitez cela pour les builds distribuées.
-
-**Sans recompiler (comptes techniciens uniquement)** : si l’API indique que vous êtes technicien (`is_militant_technician` sur votre propre profil, même règle que l’admin LiveKit côté API), l’onglet Live affiche des champs *URL serveur LiveKit* et *Endpoint token* ; ils sont enregistrés sur l’appareil au lancement / rejoindre un live et remplacent les `--dart-define` s’ils sont renseignés. Les autres utilisateurs voient uniquement le flux standard (token + champ **`url`** renvoyé par l’API si `LIVEKIT_URL` est configuré sur le serveur).
-
-**Publication (caméra / micro)** : l’API **ignore** une demande de publication non autorisée. En mode **Lancer**, l’app crée d’abord un enregistrement `lives` puis se connecte au salon **`live-{id}`**. En **Regarder**, indiquez le même identifiant (ex. `live-42`). Les **techniciens** peuvent encore utiliser un nom de salon libre pour les tests. Les **invités** acceptés (`live_guests.status = accepted`) peuvent aussi recevoir un JWT avec publication.
-
-**Découverte & chat (app)** : l’onglet Live affiche un fil horizontal **En direct** (liste des `lives` actifs via l’API) ; un tap préremplit `live-{id}` en mode spectateur. Le **chat** pendant le flux utilise les **paquets de données LiveKit** (`publishData` / `DataReceivedEvent`, topic `militant-live-chat`) : temps réel entre participants dans la room, sans polling HTTP. Le **ping** spectateur (`POST …/join`) reste utilisé pour les compteurs côté API lorsque le salon est `live-{id}`.
+**Configuration technique (militant-api)** : configurez au minimum `LIVEKIT_URL`, `LIVEKIT_API_KEY` et `LIVEKIT_API_SECRET` pour que l’endpoint `POST …/v1/lives.php?path=token` puisse répondre.
 
 ### Badges militants (exclusif mobile)
 
