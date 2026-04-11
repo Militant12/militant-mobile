@@ -50,10 +50,10 @@ Militant est un réseau social décentralisé conçu pour les mouvements militan
 - **Actions** : Suppression directe et avertissements pour les élus
 - **Signalements** : Signalez les contenus inappropriés
 - **Comptes privés** : Contrôlez qui peut vous suivre
-- **Blocage** : Bloquez les utilisateurs indésirables
+
 
 ### Multilingue
-- **3 langues** : Français, Anglais, Espéranto
+- **3 langues** : Français, Anglais, Espagnol 
 - **Traduction automatique** : Traduisez les posts dans votre langue
 
 ### Technique
@@ -103,7 +103,7 @@ flutter build apk --release
 
 ### URL de l'instance
 
-L'application se connecte par défaut à `https://militant.revlibertaire.com`. Vous pouvez changer d'instance directement depuis l'écran de connexion.
+L'application se connecte par défaut à `https://api.militant.revlibertaire.com`. Vous pouvez changer d'instance directement depuis l'écran de connexion.
 
 ### Lives (v1.0.6) - Système Avancé
 
@@ -240,9 +240,9 @@ Ce projet est sous licence AGPL-3.0. Voir le fichier [LICENSE](LICENSE) pour plu
 ## Liens
 
 - [Site web](https://militant.revlibertaire.com)
-- [Documentation](https://jointomilitant.org)
-- [Instance principale](https://militant.revlibertaire.com)
-- [Projet principal](https://gitlab.com/miliant1/militant)
+- [Documentation](https://jointomilitant.revliebrtaire.com)
+- [Instance principale](https://api.militant.revlibertaire.com)
+- [Projet principal](https://gitlab.com/militant1)
 
 ## Support
 
@@ -252,10 +252,5 @@ Pour toute question ou problème :
 - Contacter l'équipe de développement
 - Consulter la documentation
 
-## Changelog
 
-Voir [CHANGELOG.md](CHANGELOG.md) pour l'historique des versions.
 
----
-
-Développé avec Flutter pour le mouvement militant

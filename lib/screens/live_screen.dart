@@ -45,6 +45,7 @@ class _LiveScreenState extends State<LiveScreen> {
   File? _liveBackgroundImageFile;
   String? _liveBackgroundImageUrl;
   String? _errorMessage;
+  String? _currentLiveTitle;
   _LiveMode _mode = _LiveMode.viewer;
   bool _isMilitantTechnician = false;
   bool _isElectedModerator = false;
@@ -172,6 +173,11 @@ class _LiveScreenState extends State<LiveScreen> {
       _reportCount = nextReportCount;
       if (isSuspended) {
         _isSuspendedByConsensus = true;
+      }
+      // Update title as well if present in payload
+      final remoteTitle = payload['title']?.toString().trim();
+      if (remoteTitle != null && remoteTitle.isNotEmpty) {
+        _currentLiveTitle = remoteTitle;
       }
     });
 
@@ -1021,9 +1027,9 @@ class _LiveScreenState extends State<LiveScreen> {
         _guestRequests = [];
         _sessionCanPublish = wantsPublish;
         _sessionIdentity = localIdentity;
-        if (effectiveRoom != _roomController.text.trim()) {
-          _roomController.text = effectiveRoom;
-        }
+        // Optimization: DO NOT overwrite _roomController.text if it was typed by user
+        // Instead, use _currentLiveTitle for display
+        _currentLiveTitle = _currentLiveTitle ?? effectiveRoom;
       });
 
       await _attachLivekitChatListener(room);
@@ -1094,6 +1100,7 @@ class _LiveScreenState extends State<LiveScreen> {
         _liveBackgroundImageUrl = null;
         _guestRequests = [];
         _hasPendingJoinRequest = false;
+        _currentLiveTitle = null;
       });
     }
 
@@ -2755,7 +2762,7 @@ class _LiveScreenState extends State<LiveScreen> {
     final tracks = _participantTracks();
     final viewerCount = _viewerCount();
     final displayName = _displayNameController.text.trim();
-    final roomName = _roomController.text.trim();
+    final displayedTitle = _currentLiveTitle ?? _roomController.text.trim();
     final isChatBlocked = _isLocalBlockedFromChat;
 
     return Stack(
@@ -2797,7 +2804,7 @@ class _LiveScreenState extends State<LiveScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      roomName,
+                      displayedTitle,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
