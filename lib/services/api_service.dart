@@ -948,6 +948,412 @@ class ApiService {
     }
   }
 
+  /// Crée une ligne `lives` (statut live) pour obtenir un id de salon `live-{id}` / token publish.
+  Future<int> createLiveSession({
+    required String title,
+    String description = '',
+    bool isPublic = true,
+    int maxGuests = 3,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/lives.php'),
+      headers: _headers,
+      body: jsonEncode({
+        'title': title,
+        'description': description,
+        'is_public': isPublic,
+        'max_guests': maxGuests,
+      }),
+    );
+
+    Map<String, dynamic>? data;
+    try {
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map<String, dynamic>) {
+        data = decoded;
+      }
+    } catch (_) {}
+
+    if (response.statusCode >= 200 &&
+        response.statusCode < 300 &&
+        data != null &&
+        data['success'] == true) {
+      final id = data['live_id'];
+      if (id != null) {
+        return int.parse(id.toString());
+      }
+    }
+    final err = data?['error']?.toString() ?? '';
+    throw Exception(
+      err.isNotEmpty
+          ? err
+          : 'Impossible de demarrer le live (${response.statusCode})',
+    );
+  }
+
+  /// Marque un live comme terminé (`status = ended`).
+  Future<void> endLiveSession(int liveId) async {
+    final response = await http.put(
+      Uri.parse('$apiUrl/v1/lives.php?path=$liveId/end'),
+      headers: _headers,
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Impossible de terminer le live (${response.statusCode})');
+    }
+  }
+
+  /// Lives actifs (`status = live`) pour fil découverte.
+  Future<List<Map<String, dynamic>>> fetchActiveLives() async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/lives.php'),
+      headers: _headers,
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Erreur chargement des lives (${response.statusCode})');
+    }
+    final data = jsonDecode(response.body);
+    if (data is Map<String, dynamic> &&
+        data['success'] == true &&
+        data['lives'] is List) {
+      return List<Map<String, dynamic>>.from(
+        (data['lives'] as List).map((e) => Map<String, dynamic>.from(e as Map)),
+      );
+    }
+    return [];
+  }
+
+  Future<Map<String, dynamic>> fetchLiveDetails(int liveId) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/lives.php?path=$liveId'),
+      headers: _headers,
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Erreur chargement live (${response.statusCode})');
+    }
+    final data = jsonDecode(response.body);
+    if (data is Map<String, dynamic> &&
+        data['success'] == true &&
+        data['live'] is Map) {
+      return Map<String, dynamic>.from(data['live'] as Map);
+    }
+    throw Exception('Live introuvable');
+  }
+
+  /// Commentaires d'un live (pagination simple côté API).
+  Future<List<Map<String, dynamic>>> fetchLiveComments(
+    int liveId, {
+    int page = 1,
+  }) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/lives.php?path=$liveId/comments&page=$page'),
+      headers: _headers,
+    );
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Erreur chargement commentaires (${response.statusCode})',
+      );
+    }
+    final data = jsonDecode(response.body);
+    if (data is Map<String, dynamic> &&
+        data['success'] == true &&
+        data['comments'] is List) {
+      return List<Map<String, dynamic>>.from(
+        (data['comments'] as List).map(
+          (e) => Map<String, dynamic>.from(e as Map),
+        ),
+      );
+    }
+    return [];
+  }
+
+  Future<int> postLiveComment(int liveId, String content) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/lives.php?path=$liveId/comments'),
+      headers: _headers,
+      body: jsonEncode({'content': content}),
+    );
+    Map<String, dynamic>? data;
+    try {
+      final d = jsonDecode(response.body);
+      if (d is Map<String, dynamic>) data = d;
+    } catch (_) {}
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      final err = data?['error']?.toString() ?? '';
+      throw Exception(
+        err.isNotEmpty
+            ? err
+            : 'Envoi commentaire impossible (${response.statusCode})',
+      );
+    }
+    final commentId = int.tryParse(data?['comment_id']?.toString() ?? '');
+    if (commentId == null || commentId <= 0) {
+      throw Exception('Commentaire live cree sans identifiant serveur');
+    }
+    return commentId;
+  }
+
+  /// Ping spectateur / participant pour `live_viewers`.
+  Future<void> joinLivePing(int liveId) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/lives.php?path=$liveId/join'),
+      headers: _headers,
+      body: jsonEncode({}),
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      // Ne bloque pas la connexion LiveKit si le ping échoue.
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> fetchLiveGuests(
+    int liveId, {
+    String? status,
+  }) async {
+    final suffix = status != null && status.trim().isNotEmpty
+        ? '&status=${Uri.encodeQueryComponent(status.trim())}'
+        : '';
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/lives.php?path=$liveId/guests$suffix'),
+      headers: _headers,
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Erreur chargement invites (${response.statusCode})');
+    }
+    final data = jsonDecode(response.body);
+    if (data is Map<String, dynamic> &&
+        data['success'] == true &&
+        data['guests'] is List) {
+      return List<Map<String, dynamic>>.from(
+        (data['guests'] as List).map((e) => Map<String, dynamic>.from(e as Map)),
+      );
+    }
+    return [];
+  }
+
+  Future<Map<String, dynamic>> fetchLiveModerationState(int liveId) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/lives.php?path=$liveId/moderation'),
+      headers: _headers,
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Erreur chargement moderation (${response.statusCode})');
+    }
+    final data = jsonDecode(response.body);
+    if (data is Map<String, dynamic> && data['success'] == true) {
+      return data;
+    }
+    return const <String, dynamic>{};
+  }
+
+  Future<Map<String, dynamic>> requestLiveGuestAccess(
+    int liveId, {
+    String? message,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/lives.php?path=$liveId/request-guest'),
+      headers: _headers,
+      body: jsonEncode({'message': message ?? ''}),
+    );
+    Map<String, dynamic>? data;
+    try {
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map<String, dynamic>) {
+        data = decoded;
+      }
+    } catch (_) {}
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      final err = data?['error']?.toString() ?? '';
+      throw Exception(
+        err.isNotEmpty
+            ? err
+            : 'Demande invite impossible (${response.statusCode})',
+      );
+    }
+    return data ?? const {'success': true};
+  }
+
+  Future<void> approveLiveGuestRequest(int liveId, int userId) async {
+    final response = await http.put(
+      Uri.parse('$apiUrl/v1/lives.php?path=$liveId/guests/$userId/approve'),
+      headers: _headers,
+      body: jsonEncode({}),
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      Map<String, dynamic>? data;
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          data = decoded;
+        }
+      } catch (_) {}
+      final err = data?['error']?.toString() ?? '';
+      throw Exception(
+        err.isNotEmpty
+            ? err
+            : 'Approbation invite impossible (${response.statusCode})',
+      );
+    }
+  }
+
+  Future<void> rejectLiveGuestRequest(int liveId, int userId) async {
+    final response = await http.put(
+      Uri.parse('$apiUrl/v1/lives.php?path=$liveId/guests/$userId/reject'),
+      headers: _headers,
+      body: jsonEncode({}),
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      Map<String, dynamic>? data;
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          data = decoded;
+        }
+      } catch (_) {}
+      final err = data?['error']?.toString() ?? '';
+      throw Exception(
+        err.isNotEmpty
+            ? err
+            : 'Refus invite impossible (${response.statusCode})',
+      );
+    }
+  }
+
+  Future<void> assignLiveModerator(int liveId, int userId) async {
+    final response = await http.put(
+      Uri.parse('$apiUrl/v1/lives.php?path=$liveId/moderators/$userId'),
+      headers: _headers,
+      body: jsonEncode({}),
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      Map<String, dynamic>? data;
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          data = decoded;
+        }
+      } catch (_) {}
+      final err = data?['error']?.toString() ?? '';
+      throw Exception(
+        err.isNotEmpty
+            ? err
+            : 'Nomination moderateur impossible (${response.statusCode})',
+      );
+    }
+  }
+
+  Future<void> blockLiveChatUser(int liveId, int userId) async {
+    final response = await http.put(
+      Uri.parse('$apiUrl/v1/lives.php?path=$liveId/chat-blocks/$userId'),
+      headers: _headers,
+      body: jsonEncode({}),
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      Map<String, dynamic>? data;
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          data = decoded;
+        }
+      } catch (_) {}
+      final err = data?['error']?.toString() ?? '';
+      throw Exception(
+        err.isNotEmpty
+            ? err
+            : 'Blocage chat impossible (${response.statusCode})',
+      );
+    }
+  }
+
+  Future<void> deleteLiveComment(int liveId, int commentId) async {
+    final response = await http.delete(
+      Uri.parse('$apiUrl/v1/lives.php?path=$liveId/comments/$commentId'),
+      headers: _headers,
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      Map<String, dynamic>? data;
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          data = decoded;
+        }
+      } catch (_) {}
+      final err = data?['error']?.toString() ?? '';
+      throw Exception(
+        err.isNotEmpty
+            ? err
+            : 'Suppression commentaire impossible (${response.statusCode})',
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> reportLive(
+    int liveId, {
+    String reason = 'inappropriate',
+    String description = '',
+  }) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/lives.php?path=$liveId/report'),
+      headers: _headers,
+      body: jsonEncode({'reason': reason, 'description': description}),
+    );
+    Map<String, dynamic>? data;
+    try {
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map<String, dynamic>) {
+        data = decoded;
+      }
+    } catch (_) {}
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      final err = data?['error']?.toString() ?? '';
+      throw Exception(
+        err.isNotEmpty
+            ? err
+            : 'Signalement live impossible (${response.statusCode})',
+      );
+    }
+    return data ?? const <String, dynamic>{'success': true};
+  }
+
+  Future<List<dynamic>> getLiveReports() async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/lives.php?path=moderation/reports'),
+      headers: _headers,
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final data = jsonDecode(response.body);
+      if (data['success'] == true) {
+        return data['reports'] as List<dynamic>;
+      }
+    }
+    return [];
+  }
+
+  Future<void> updateLiveBackground(
+    int liveId, {
+    String? backgroundImage,
+  }) async {
+    final response = await http.put(
+      Uri.parse('$apiUrl/v1/lives.php?path=$liveId/background'),
+      headers: _headers,
+      body: jsonEncode({'background_image': backgroundImage}),
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      Map<String, dynamic>? data;
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          data = decoded;
+        }
+      } catch (_) {}
+      final err = data?['error']?.toString() ?? '';
+      throw Exception(
+        err.isNotEmpty
+            ? err
+            : 'Mise a jour image live impossible (${response.statusCode})',
+      );
+    }
+  }
+
+
   /// Met à jour les champs du profil utilisateur (bio, statut, badge…)
   Future<Map<String, dynamic>> updateUserProfile({
     String? bio,
@@ -1640,7 +2046,7 @@ class ApiService {
         response,
         fallbackError: 'Erreur lors du chargement des demandes',
       );
-      return json['data'] ?? [];
+      return json['data'] ?? json['requests'] ?? [];
     } else {
       throw Exception(
         _extractApiError(
@@ -1670,6 +2076,23 @@ class ApiService {
     } else {
       final data = jsonDecode(response.body);
       throw Exception(data['error'] ?? 'Erreur lors de l\'approbation');
+    }
+  }
+
+  Future<void> inviteToGroup(int groupId, int userId) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/groups.php'),
+      headers: _headers,
+      body: jsonEncode({
+        'action': 'invite',
+        'group_id': groupId,
+        'user_id': userId,
+      }),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      final data = jsonDecode(response.body);
+      throw Exception(data['error'] ?? 'Erreur lors de l\'invitation');
     }
   }
 

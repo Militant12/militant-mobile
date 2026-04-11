@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 import '../widgets/video_player_widget.dart';
+import '../widgets/file_video_player.dart';
 import '../widgets/audio_player_widget.dart';
 import '../widgets/audio_recorder_widget.dart';
 import '../services/api_service.dart';
@@ -828,7 +830,60 @@ class _ChatScreenState extends State<ChatScreen> {
     if (source != null) {
       final picked = await picker.pickMedia();
       if (picked != null) {
-        _uploadAndSend(picked.path);
+        final mediaFile = File(picked.path);
+        final lower = picked.path.toLowerCase();
+        final isVideo = lower.endsWith('.mp4') ||
+            lower.endsWith('.mov') ||
+            lower.endsWith('.webm') ||
+            lower.endsWith('.ogg') ||
+            lower.endsWith('.avi') ||
+            lower.endsWith('.mkv');
+
+        // Afficher l'aperçu avant l'envoi
+        if (mounted) {
+          final confirm = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              backgroundColor: const Color(0xFF1E1E1E),
+              title: Text(
+                lang.translate('preview_label'),
+                style: const TextStyle(color: Colors.white),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: isVideo
+                        ? SizedBox(
+                            height: 300,
+                            width: double.infinity,
+                            child: FileVideoPlayer(file: mediaFile),
+                          )
+                        : Image.file(mediaFile, fit: BoxFit.contain),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: Text(lang.translate('cancel')),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: Text(
+                    lang.translate('send'),
+                    style: const TextStyle(color: Color(0xFFBE1E1E)),
+                  ),
+                ),
+              ],
+            ),
+          );
+
+          if (confirm == true) {
+            _uploadAndSend(picked.path);
+          }
+        }
       }
     }
   }

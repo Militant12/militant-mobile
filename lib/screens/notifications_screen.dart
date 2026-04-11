@@ -46,6 +46,189 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  int? _extractGroupId(dynamic notif) {
+    final directId = int.tryParse(notif['group_id']?.toString() ?? '');
+    if (directId != null && directId > 0) {
+      return directId;
+    }
+
+    final metadata = notif['metadata'];
+    if (metadata is Map) {
+      final metadataId = int.tryParse(metadata['group_id']?.toString() ?? '');
+      if (metadataId != null && metadataId > 0) {
+        return metadataId;
+      }
+    }
+
+    final link = notif['link']?.toString() ?? '';
+    final match = RegExp(r'group_detail\.php\?id=(\d+)').firstMatch(link);
+    if (match == null) {
+      return null;
+    }
+    return int.tryParse(match.group(1)!);
+  }
+
+  Future<void> _openGroupDetails(int groupId) async {
+    final api = await ApiService.getInstance();
+    final groupData = await api.getSocialGroupDetails(groupId);
+    if (!mounted) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => GroupDetailScreen(group: groupData)),
+    );
+  }
+
+  Future<void> _showGroupInviteDialog(dynamic notif) async {
+    final translate = LanguageService.instance.translate;
+    final groupId = _extractGroupId(notif);
+    if (groupId == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(translate('notification_group_invite_missing'))),
+      );
+      return;
+    }
+
+    final username = notif['from_username'] ?? notif['username'] ?? 'Militant';
+    final groupName =
+        notif['group_name']?.toString().trim().isNotEmpty == true
+        ? notif['group_name'].toString().trim()
+        : translate('notification_group_invite_fallback_group');
+
+    final action = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        title: Text(
+          translate('notification_group_invite_title'),
+          style: const TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          translate(
+            'notification_group_invite_message',
+          ).replaceFirst('{user}', username.toString()).replaceFirst(
+            '{group}',
+            groupName,
+          ),
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop('open'),
+            child: Text(translate('notification_group_invite_view')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop('accept'),
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFBE1E1E),
+            ),
+            child: Text(translate('accept')),
+          ),
+        ],
+      ),
+    );
+
+    if (action == null) return;
+
+    try {
+      final api = await ApiService.getInstance();
+      if (action == 'accept') {
+        final result = await api.joinGroup(groupId);
+        if (!mounted) return;
+        final message =
+            result['message']?.toString().trim().isNotEmpty == true
+            ? result['message'].toString().trim()
+            : translate('notification_group_invite_accepted');
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
+      }
+
+      await _openGroupDetails(groupId);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('${translate('error')}: $e')));
+    }
+  }
+
+  Future<void> _handleNotificationTap(dynamic notif) async {
+    final type = notif['type'] ?? 'notification';
+    final username = notif['from_username'] ?? notif['username'] ?? 'Militant';
+
+    if (type == 'follow' ||
+        type == 'friend_request' ||
+        type == 'friend_accept') {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ProfileScreen(userId: notif['from_user_id']),
+        ),
+      );
+      return;
+    }
+
+    if (type == 'message' || type == 'message_request') {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) =>
+              ChatScreen(userId: notif['from_user_id'], username: username),
+        ),
+      );
+      return;
+    }
+
+    if (type == 'group_invite') {
+      await _showGroupInviteDialog(notif);
+      return;
+    }
+
+    if (type == 'group_join_request' ||
+        type == 'group_join_approved' ||
+        type == 'group_join_rejected') {
+      final groupId = _extractGroupId(notif);
+      if (groupId == null) return;
+      try {
+        await _openGroupDetails(groupId);
+      } catch (e) {
+        if (!mounted) return;
+        final lang = LanguageService.instance;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: $e')));
+      }
+      return;
+    }
+
+    if ((type == 'like' ||
+            type == 'comment' ||
+            type == 'mention' ||
+            type == 'reaction') &&
+        notif['post_id'] != null) {
+      try {
+        final api = await ApiService.getInstance();
+        final postData = await api.getPost(notif['post_id']);
+        if (!mounted) return;
+        if (postData.isNotEmpty) {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PostDetailScreen(post: Post.fromJson(postData)),
+            ),
+          );
+        }
+      } catch (e) {
+        if (!mounted) return;
+        final lang = LanguageService.instance;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: $e')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final lang = LanguageService.instance;
@@ -164,103 +347,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
 
     return InkWell(
-      onTap: () async {
-        if (type == 'follow' ||
-            type == 'friend_request' ||
-            type == 'friend_accept') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ProfileScreen(userId: notif['from_user_id']),
-            ),
-          );
-        } else if (type == 'message' || type == 'message_request') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) =>
-                  ChatScreen(userId: notif['from_user_id'], username: username),
-            ),
-          );
-        } else if (type == 'group_join_request') {
-          // Rediriger vers l'écran des demandes d'adhésion du groupe
-          final link = notif['link'];
-          if (link != null && link.toString().contains('group_detail.php?id=')) {
-            final groupId = int.tryParse(
-              link.toString().split('id=').last.split('&').first,
-            );
-            if (groupId != null) {
-              // Charger les détails du groupe et naviguer
-              try {
-                final api = await ApiService.getInstance();
-                final groupData = await api.getSocialGroupDetails(groupId);
-                if (!mounted) return;
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => GroupDetailScreen(group: groupData),
-                  ),
-                );
-              } catch (e) {
-                if (!mounted) return;
-                final lang = LanguageService.instance;
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: $e')));
-              }
-            }
-          }
-        } else if (type == 'group_join_approved' || type == 'group_join_rejected') {
-          // Rediriger vers la page du groupe
-          final link = notif['link'];
-          if (link != null && link.toString().contains('group_detail.php?id=')) {
-            final groupId = int.tryParse(
-              link.toString().split('id=').last.split('&').first,
-            );
-            if (groupId != null) {
-              try {
-                final api = await ApiService.getInstance();
-                final groupData = await api.getSocialGroupDetails(groupId);
-                if (!mounted) return;
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => GroupDetailScreen(group: groupData),
-                  ),
-                );
-              } catch (e) {
-                if (!mounted) return;
-                final lang = LanguageService.instance;
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: $e')));
-              }
-            }
-          }
-        } else if ((type == 'like' || type == 'comment' || type == 'mention' || type == 'reaction') &&
-            notif['post_id'] != null) {
-          try {
-            final api = await ApiService.getInstance();
-            final postData = await api.getPost(notif['post_id']);
-            if (!mounted) return;
-            if (postData.isNotEmpty) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) =>
-                      PostDetailScreen(post: Post.fromJson(postData)),
-                ),
-              );
-            }
-          } catch (e) {
-            if (!mounted) return;
-            final lang = LanguageService.instance;
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: $e')));
-          }
-        }
-      },
+      onTap: () => _handleNotificationTap(notif),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: const BoxDecoration(

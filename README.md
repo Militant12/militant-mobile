@@ -105,6 +105,49 @@ flutter build apk --release
 
 L'application se connecte par défaut à `https://militant.revlibertaire.com`. Vous pouvez changer d'instance directement depuis l'écran de connexion.
 
+### Lives (LiveKit) et token militant-api
+
+L’onglet **Live** s’appuie sur [LiveKit](https://livekit.io/) et sur **militant-api** pour émettre les JWT côté serveur. Ne mettez **jamais** `LIVEKIT_API_SECRET` dans une build de production : gardez les secrets uniquement sur le serveur API (variables d’environnement décrites dans le dépôt [militant-api](https://gitlab.com/militant1/militant-api) et le fichier `.env.example`).
+
+**Sur le serveur (militant-api)** : configurez au minimum `LIVEKIT_URL`, `LIVEKIT_API_KEY` et `LIVEKIT_API_SECRET` pour que l’endpoint `POST …/v1/lives.php?path=token` puisse répondre.
+
+**Dans l’app** : passez l’URL du serveur LiveKit et l’URL complète de l’endpoint token de **la même instance API** que celle avec laquelle l’utilisateur est connecté (ou l’instance officielle si vous utilisez ce backend).
+
+| Variable | Rôle |
+|----------|------|
+| `LIVEKIT_URL` | URL WebSocket du serveur LiveKit (ex. `wss://livekit.votredomaine.tld`) |
+| `LIVEKIT_TOKEN_ENDPOINT` | URL HTTPS du endpoint token : `…/v1/lives.php?path=token` |
+
+**Exemple (instance courante côté API)** — à adapter si votre instance utilise un autre hôte :
+
+```text
+https://api.militant.revlibertaire.com/v1/lives.php?path=token
+```
+
+Pour une **instance auto-hébergée**, remplacez le domaine par celui de votre militant-api (même base que l’API utilisée après connexion, ex. `https://api.votre-instance.org/v1/lives.php?path=token`).
+
+**Lancement / build** (les valeurs sont injectées au compile-time avec `--dart-define`) :
+
+```bash
+flutter run \
+  --dart-define=LIVEKIT_URL=wss://VOTRE_SERVEUR_LIVEKIT \
+  --dart-define=LIVEKIT_TOKEN_ENDPOINT=https://VOTRE_API/v1/lives.php?path=token
+```
+
+```bash
+flutter build apk --release \
+  --dart-define=LIVEKIT_URL=wss://VOTRE_SERVEUR_LIVEKIT \
+  --dart-define=LIVEKIT_TOKEN_ENDPOINT=https://VOTRE_API/v1/lives.php?path=token
+```
+
+L’app envoie le **Bearer token** Militant (session) lors de l’appel à `LIVEKIT_TOKEN_ENDPOINT` : l’utilisateur doit être connecté. En développement uniquement, l’app peut générer un JWT localement si `LIVEKIT_API_KEY` et `LIVEKIT_API_SECRET` sont fournis via `--dart-define` (mode non release) ; évitez cela pour les builds distribuées.
+
+**Sans recompiler (comptes techniciens uniquement)** : si l’API indique que vous êtes technicien (`is_militant_technician` sur votre propre profil, même règle que l’admin LiveKit côté API), l’onglet Live affiche des champs *URL serveur LiveKit* et *Endpoint token* ; ils sont enregistrés sur l’appareil au lancement / rejoindre un live et remplacent les `--dart-define` s’ils sont renseignés. Les autres utilisateurs voient uniquement le flux standard (token + champ **`url`** renvoyé par l’API si `LIVEKIT_URL` est configuré sur le serveur).
+
+**Publication (caméra / micro)** : l’API **ignore** une demande de publication non autorisée. En mode **Lancer**, l’app crée d’abord un enregistrement `lives` puis se connecte au salon **`live-{id}`**. En **Regarder**, indiquez le même identifiant (ex. `live-42`). Les **techniciens** peuvent encore utiliser un nom de salon libre pour les tests. Les **invités** acceptés (`live_guests.status = accepted`) peuvent aussi recevoir un JWT avec publication.
+
+**Découverte & chat (app)** : l’onglet Live affiche un fil horizontal **En direct** (liste des `lives` actifs via l’API) ; un tap préremplit `live-{id}` en mode spectateur. Le **chat** pendant le flux utilise les **paquets de données LiveKit** (`publishData` / `DataReceivedEvent`, topic `militant-live-chat`) : temps réel entre participants dans la room, sans polling HTTP. Le **ping** spectateur (`POST …/join`) reste utilisé pour les compteurs côté API lorsque le salon est `live-{id}`.
+
 ### Badges militants (exclusif mobile)
 
 Les badges militants sont une fonctionnalité exclusive à l'application mobile. Ils permettent d'afficher votre appartenance à un mouvement ou une organisation :

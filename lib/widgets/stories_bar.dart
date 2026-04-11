@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../screens/stories_screen.dart';
+import '../widgets/file_video_player.dart';
 
 class StoriesBar extends StatefulWidget {
   const StoriesBar({super.key});
@@ -28,7 +30,7 @@ class _StoriesBarState extends State<StoriesBar> {
     try {
       final api = await ApiService.getInstance();
       final allStories = await api.getStories(); // Récupère la liste brute
-      // print('DEBUG StoriesBar: Loaded ${allStories.length} raw stories');
+      // debugPrint('DEBUG StoriesBar: Loaded ${allStories.length} raw stories');
 
       // Regrouper par utilisateur
       final Map<int, Map<String, dynamic>> grouped = {};
@@ -64,7 +66,7 @@ class _StoriesBarState extends State<StoriesBar> {
         });
       }
     } catch (e) {
-      print('DEBUG StoriesBar: Error loading stories: $e');
+      debugPrint('DEBUG StoriesBar: Error loading stories: $e');
       if (mounted) {
         setState(() => _isLoading = false);
       }
@@ -72,43 +74,109 @@ class _StoriesBarState extends State<StoriesBar> {
   }
 
   Future<void> _createStory() async {
+    final lang = LanguageService.instance;
     final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.gallery);
 
-    if (image == null) return;
+    // Demander Image ou Vidéo
+    final selection = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      backgroundColor: const Color(0xFF1E1E1E),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo, color: Colors.white),
+              title: Text(lang.translate('image'), style: const TextStyle(color: Colors.white)),
+              onTap: () => Navigator.pop(context, {'type': 'image'}),
+            ),
+            ListTile(
+              leading: const Icon(Icons.videocam, color: Colors.white),
+              title: Text(lang.translate('video'), style: const TextStyle(color: Colors.white)),
+              onTap: () => Navigator.pop(context, {'type': 'video'}),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (selection == null) return;
+
+    XFile? file;
+    if (selection['type'] == 'image') {
+      file = await picker.pickImage(source: ImageSource.gallery);
+    } else {
+      file = await picker.pickVideo(source: ImageSource.gallery);
+    }
+
+    if (file == null) return;
+    final mediaFile = File(file.path);
+    final isVideo = selection['type'] == 'video';
+
+    // Afficher l'aperçu avant l'upload
+    if (!mounted) return;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        title: Text(lang.translate('stories_preview'), style: const TextStyle(color: Colors.white)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: isVideo
+                  ? SizedBox(
+                      height: 300,
+                      width: double.infinity,
+                      child: FileVideoPlayer(file: mediaFile),
+                    )
+                  : Image.file(mediaFile, fit: BoxFit.contain),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(lang.translate('cancel')),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFBE1E1E)),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(lang.translate('publish_button'), style: const TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
 
     // Afficher un indicateur de chargement
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Upload en cours...'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: Text(lang.translate('stories_uploading')),
+          duration: const Duration(seconds: 2),
         ),
       );
     }
 
     try {
       final api = await ApiService.getInstance();
-      print('DEBUG: Uploading file: ${image.path}');
-      final mediaUrl = await api.uploadFile(image.path, type: 'stories');
-      print('DEBUG: Upload successful, mediaUrl: $mediaUrl');
-
+      final mediaUrl = await api.uploadFile(mediaFile.path, type: 'stories');
       await api.createStory(media: mediaUrl);
-      print('DEBUG: Story created successfully');
 
       if (mounted) {
-        final lang = LanguageService.instance;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(lang.translate('stories_created'))),
         );
         _loadStories();
       }
     } catch (e) {
-      print('DEBUG: Error creating story: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur: $e'),
+            content: Text('${lang.translate('stories_error')}: $e'),
             duration: const Duration(seconds: 5),
             backgroundColor: Colors.red,
           ),

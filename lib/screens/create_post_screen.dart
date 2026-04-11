@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import '../widgets/file_video_player.dart';
 
 class CreatePostScreen extends StatefulWidget {
   final int? groupId;
@@ -412,17 +413,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: _isVideo(_mediaFile!.path)
-                              ? Container(
-                                  height: 200,
+                              ? SizedBox(
+                                  height: 300,
                                   width: double.infinity,
-                                  color: Colors.black,
-                                  child: const Center(
-                                    child: Icon(
-                                      Icons.play_circle_outline,
-                                      size: 64,
-                                      color: Colors.white,
-                                    ),
-                                  ),
+                                  child: FileVideoPlayer(file: _mediaFile!),
                                 )
                               : Image.file(
                                   _mediaFile!,

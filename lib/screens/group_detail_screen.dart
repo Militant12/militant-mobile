@@ -8,6 +8,7 @@ import 'create_post_screen.dart';
 import '../widgets/linkable_text.dart';
 import 'users_list_screen.dart';
 import 'group_join_requests_screen.dart';
+import 'group_invite_screen.dart';
 
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
@@ -605,6 +606,27 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                         ],
                       ),
                     ),
+                  Container(
+                    margin: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.black.withOpacity(0.5),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.group_add, color: Colors.white),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => GroupInviteScreen(
+                              groupId: _groupData!['id'],
+                              groupName: _groupData!['name'] ?? '',
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                   Container(
                     margin: const EdgeInsets.all(8),
                     decoration: BoxDecoration(

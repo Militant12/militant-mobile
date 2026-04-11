@@ -21,7 +21,7 @@ class GroupCallService {
   int? currentGroupId;
   Timer? _pollTimer;
   String? _lastPollTime;
-  StreamSubscription<ConnectivityResult>? _connectivitySubscription;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
 
   // Callbacks
   Function(MediaStream)? onLocalStream;
@@ -371,7 +371,7 @@ class GroupCallService {
 
     try {
       _connectivitySubscription = Connectivity().onConnectivityChanged.listen(
-        (result) async {
+        (List<ConnectivityResult> result) async {
           // Ignorer le premier événement (initialisation)
           if (isFirstEvent) {
             isFirstEvent = false;
@@ -380,7 +380,7 @@ class GroupCallService {
 
           if (currentCallId == null) return;
 
-          final hasConnection = result != ConnectivityResult.none;
+          final hasConnection = result.any((r) => r != ConnectivityResult.none);
 
           if (hasConnection) {
             debugPrint('Network change detected in group call');

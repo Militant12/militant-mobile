@@ -1,7 +1,9 @@
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'full_screen_video_page.dart';
 
 class VideoPlayerWidget extends StatefulWidget {
   final String videoUrl;
@@ -152,6 +154,16 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     return '$minutes:$seconds';
   }
 
+  void _enterFullScreen() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => FullScreenVideoPage(
+          controller: _controller!,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_hasError) {
@@ -168,6 +180,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
         constraints: BoxConstraints(maxHeight: widget.maxHeight),
         child: GestureDetector(
           onTap: () => setState(() => _showControls = !_showControls),
+          onDoubleTap: _enterFullScreen,
           child: Stack(
             alignment: Alignment.center,
             children: [
@@ -303,6 +316,16 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                                 _isMuted ? Icons.volume_off : Icons.volume_up,
                                 color: Colors.white70,
                                 size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // Fullscreen toggle
+                            GestureDetector(
+                              onTap: _enterFullScreen,
+                              child: const Icon(
+                                Icons.fullscreen_rounded,
+                                color: Colors.white,
+                                size: 24,
                               ),
                             ),
                           ],

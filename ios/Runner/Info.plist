@@ -60,5 +60,9 @@
 	</array>
 	<key>FlutterDeepLinkingEnabled</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Militant utilise la camera pour lancer des lives video.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Militant utilise le microphone pour diffuser la voix pendant un live.</string>
 </dict>
 </plist>

@@ -15,7 +15,7 @@ class CallService {
   String? currentCallId;
   Timer? _pollTimer;
   String? _lastPollTime;
-  StreamSubscription<ConnectivityResult>? _connectivitySubscription;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   bool _isRestartingIce = false;
 
   // Callbacks
@@ -312,7 +312,7 @@ class CallService {
 
     try {
       _connectivitySubscription = Connectivity().onConnectivityChanged.listen(
-        (result) async {
+        (List<ConnectivityResult> result) async {
           // Ignorer le premier événement (initialisation)
           if (isFirstEvent) {
             isFirstEvent = false;
@@ -322,7 +322,7 @@ class CallService {
           if (currentCallId == null || _peerConnection == null) return;
 
           // Vérifier si on a une connexion
-          final hasConnection = result != ConnectivityResult.none;
+          final hasConnection = result.any((r) => r != ConnectivityResult.none);
 
           if (hasConnection && !_isRestartingIce) {
             debugPrint('Network change detected, restarting ICE...');

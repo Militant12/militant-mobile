@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class LinkableText extends StatelessWidget {
   final String text;
@@ -137,6 +139,7 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
   String? _title;
   String? _description;
   String? _imageUrl;
+  String? _faviconUrl;
   String? _platform;
 
   @override
@@ -145,79 +148,188 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
     _fetchMetadata();
   }
 
+  String _getNormalizedUrl(String url) {
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return 'https://$url';
+    }
+    return url;
+  }
+
   Future<void> _fetchMetadata() async {
     // 1. Détection de plateforme connue (AI & Réseaux sociaux)
-    String normalizedUrl = widget.url;
-    if (!normalizedUrl.startsWith('http://') &&
-        !normalizedUrl.startsWith('https://')) {
-      normalizedUrl = 'https://$normalizedUrl';
+    final normalizedUrl = _getNormalizedUrl(widget.url);
+    final uri = Uri.parse(normalizedUrl);
+
+    if (mounted) {
+      setState(() {
+        _faviconUrl =
+            'https://www.google.com/s2/favicons?domain=${uri.host}&sz=128';
+      });
     }
+
     _platform = _detectPlatform(normalizedUrl);
 
     try {
       // 2. Essayer de récupérer les métadonnées OpenGraph
       final response = await http
-          .get(Uri.parse(normalizedUrl))
+          .get(Uri.parse(normalizedUrl), headers: {
+            'User-Agent':
+                'Mozilla/5.0 (Compatible; MilitantBot/1.0; +https://militant.sh)',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9',
+            'Accept-Charset': 'utf-8',
+          })
           .timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {
-        final body = response.body;
+        // Détecter l'encodage à partir du header Content-Type
+        String encoding = 'utf-8';
+        final contentType = response.headers['content-type'] ?? '';
+        if (contentType.toLowerCase().contains('charset=')) {
+          final match = RegExp(r'charset=([^;]+)').firstMatch(contentType);
+          if (match != null) {
+            encoding = match.group(1)!.trim().toLowerCase();
+          }
+        }
 
-        // Regex simples pour OG tags (évite d'ajouter un parseur HTML lourd)
+        String body;
+        try {
+          if (encoding == 'iso-8859-1' || encoding == 'latin1') {
+            body = latin1.decode(response.bodyBytes);
+          } else {
+            body = utf8.decode(response.bodyBytes, allowMalformed: true);
+          }
+        } catch (_) {
+          body = response.body; // Fallback par défaut
+        }
+
+        // 3. Chercher un favicon dans le HTML si google service échoue ou en complément
+        final iconReg = RegExp(
+          r'<link[^>]+(?:rel=["'
+          "'"
+          r'](?:shortcut )?icon["'
+          "'"
+          r'])[^>]+href=["'
+          "'"
+          r'](.*?)["'
+          "'"
+          r']',
+          caseSensitive: false,
+        );
+        final foundIcon = iconReg.firstMatch(body)?.group(1);
+        if (foundIcon != null && mounted) {
+          String absoluteIcon = foundIcon;
+          if (!foundIcon.startsWith('http')) {
+            if (foundIcon.startsWith('//')) {
+              absoluteIcon = 'https:$foundIcon';
+            } else if (foundIcon.startsWith('/')) {
+              absoluteIcon = '${uri.scheme}://${uri.host}$foundIcon';
+            } else {
+              absoluteIcon = '${uri.scheme}://${uri.host}/${foundIcon}';
+            }
+          }
+          setState(() {
+            _faviconUrl = absoluteIcon;
+          });
+        }
+
+        // Regex robustes pour OG tags (gère double et simple quotes, et espaces)
         final titleReg = RegExp(
-          r'<meta\s+(?:property|name)=["'
+          r'<meta[^>]+(?:property|name)=["'
           "'"
           r']og:title["'
           "'"
-          r']\s+content=["'
+          r'][^>]+content=["'
           "'"
           r'](.*?)["'
           "'"
           r']',
           caseSensitive: false,
+          dotAll: true,
         );
         final descReg = RegExp(
-          r'<meta\s+(?:property|name)=["'
+          r'<meta[^>]+(?:property|name)=["'
           "'"
           r']og:description["'
           "'"
-          r']\s+content=["'
+          r'][^>]+content=["'
           "'"
           r'](.*?)["'
           "'"
           r']',
           caseSensitive: false,
+          dotAll: true,
         );
         final imgReg = RegExp(
-          r'<meta\s+(?:property|name)=["'
+          r'<meta[^>]+(?:property|name)=["'
           "'"
           r']og:image["'
           "'"
-          r']\s+content=["'
+          r'][^>]+content=["'
           "'"
           r'](.*?)["'
           "'"
           r']',
           caseSensitive: false,
+          dotAll: true,
         );
         final titleTagReg = RegExp(
           r'<title>(.*?)</title>',
           caseSensitive: false,
+          dotAll: true,
         );
 
         if (mounted) {
           setState(() {
-            _title =
-                titleReg.firstMatch(body)?.group(1) ??
-                titleTagReg.firstMatch(body)?.group(1);
-            _description = descReg.firstMatch(body)?.group(1);
+            _title = _decodeHtml(
+              titleReg.firstMatch(body)?.group(1) ??
+                  titleTagReg.firstMatch(body)?.group(1),
+            );
+            _description = _decodeHtml(descReg.firstMatch(body)?.group(1));
             _imageUrl = imgReg.firstMatch(body)?.group(1);
+
+            // Si plateforme non détectée, on essaie via le titre
+            if (_platform == null && _title != null) {
+              final lowerTitle = _title!.toLowerCase();
+              if (lowerTitle.contains('twitter') || lowerTitle.contains(' x ')) {
+                _platform = 'twitter';
+              } else if (lowerTitle.contains('facebook')) {
+                _platform = 'facebook';
+              }
+            }
           });
         }
       }
     } catch (e) {
       debugPrint('LinkPreviewCard error: $e');
     }
+  }
+
+  // Décodage basique des entités HTML pour éviter les &amp;, &quot;, etc.
+  String? _decodeHtml(String? input) {
+    if (input == null) return null;
+    return input
+        .replaceAll('&amp;', '&')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&apos;', "'")
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&nbsp;', ' ')
+        // Décodage des entités numériques type &#39; ou &#039; ou &#x27;
+        .replaceAllMapped(RegExp(r'&#(x?[0-9a-fA-F]+);'), (match) {
+          final code = match.group(1)!;
+          try {
+            if (code.startsWith('x')) {
+              return String.fromCharCode(
+                int.parse(code.substring(1), radix: 16),
+              );
+            } else {
+              return String.fromCharCode(int.parse(code));
+            }
+          } catch (e) {
+            return match.group(0)!;
+          }
+        })
+        .trim();
   }
 
   @override
@@ -262,34 +374,50 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
               child: Row(
                 children: [
                   // Icône de la plateforme ou favicon générique
-                  if (_platform != null)
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: _getPlatformColor(_platform!),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        _getPlatformIcon(_platform!),
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    )
-                  else
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[400],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(
-                        Icons.link,
-                        color: Colors.white,
-                        size: 20,
-                      ),
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: _platform != null 
+                          ? _getPlatformColor(_platform)
+                          : isDark ? Colors.white10 : Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: _platform == null ? Border.all(color: isDark ? Colors.white10 : Colors.black12) : null,
                     ),
+                    child: Center(
+                      child: _platform != null
+                          ? FaIcon(
+                            _getPlatformIcon(_platform),
+                            color:
+                                _platform == 'midjourney' ||
+                                        _platform == 'huggingface'
+                                    ? Colors.black
+                                    : Colors.white,
+                            size: 18,
+                          )
+                          : _faviconUrl != null
+                          ? ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: Image.network(
+                              _faviconUrl!,
+                              width: 24,
+                              height: 24,
+                              errorBuilder:
+                                  (context, error, stackTrace) =>
+                                      Icon(
+                                        Icons.link,
+                                        color: isDark ? Colors.white70 : Colors.black54,
+                                        size: 20,
+                                      ),
+                            ),
+                          )
+                          : Icon(
+                            Icons.link,
+                            color: isDark ? Colors.white70 : Colors.black54,
+                            size: 20,
+                          ),
+                    ),
+                  ),
 
                   const SizedBox(width: 12),
 
@@ -398,7 +526,8 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
     return null;
   }
 
-  Color _getPlatformColor(String platform) {
+  Color _getPlatformColor(String? platform) {
+    if (platform == null) return const Color(0xFF888888);
     switch (platform) {
       case 'openai':
         return const Color(0xFF10A37F);
@@ -416,7 +545,7 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
         return const Color(0xFF000000);
 
       case 'twitter':
-        return const Color(0xFF1DA1F2);
+        return const Color(0xFF000000); // X style
       case 'facebook':
         return const Color(0xFF1877F2);
       case 'instagram':
@@ -434,39 +563,47 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
       case 'reddit':
         return const Color(0xFFFF4500);
       default:
-        return const Color(0xFF888888);
+        return const Color(0xFFBE1E1E); // Couleur thème Militant par défaut
     }
   }
 
-  IconData _getPlatformIcon(String platform) {
+  IconData _getPlatformIcon(String? platform) {
+    if (platform == null) return FontAwesomeIcons.link;
     switch (platform) {
       case 'openai':
+        return FontAwesomeIcons.bolt;
       case 'anthropic':
-      case 'perplexity':
-        return Icons.smart_toy; // AI icon
+        return FontAwesomeIcons.feather;
       case 'huggingface':
-        return Icons.emoji_emotions;
+        return FontAwesomeIcons.faceSmile;
+      case 'perplexity':
+        return FontAwesomeIcons.magnifyingGlass;
+      case 'midjourney':
+        return FontAwesomeIcons.paintbrush;
 
       case 'twitter':
-      case 'mastodon':
-        return Icons.chat_bubble_outline;
+        return FontAwesomeIcons.xTwitter;
       case 'facebook':
-      case 'linkedin':
-        return Icons.facebook;
+        return FontAwesomeIcons.facebook;
       case 'instagram':
-        return Icons.camera_alt;
+        return FontAwesomeIcons.instagram;
       case 'tiktok':
-        return Icons.music_note;
+        return FontAwesomeIcons.tiktok;
       case 'youtube':
-        return Icons.play_circle_outline;
+        return FontAwesomeIcons.youtube;
+      case 'mastodon':
+        return FontAwesomeIcons.mastodon;
       case 'github':
-        return Icons.code;
+        return FontAwesomeIcons.github;
+      case 'linkedin':
+        return FontAwesomeIcons.linkedin;
       case 'reddit':
-        return Icons.article;
+        return FontAwesomeIcons.reddit;
       default:
-        return Icons.link;
+        return FontAwesomeIcons.link;
     }
   }
+
 
   String _getPlatformName(String platform) {
     switch (platform) {

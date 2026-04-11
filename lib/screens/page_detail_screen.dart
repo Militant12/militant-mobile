@@ -7,6 +7,7 @@ import '../services/language_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../widgets/linkable_text.dart';
 import '../widgets/video_player_widget.dart';
+import '../widgets/file_video_player.dart';
 
 class PageDetailScreen extends StatefulWidget {
   final dynamic page;
@@ -1134,17 +1135,10 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: _isVideoFile(_mediaFile!.path)
-                              ? Container(
-                                  height: 120,
+                              ? SizedBox(
+                                  height: 200,
                                   width: double.infinity,
-                                  color: Colors.black,
-                                  child: const Center(
-                                    child: Icon(
-                                      Icons.videocam,
-                                      color: Colors.white,
-                                      size: 40,
-                                    ),
-                                  ),
+                                  child: FileVideoPlayer(file: _mediaFile!, autoPlay: false),
                                 )
                               : Image.file(
                                   _mediaFile!,

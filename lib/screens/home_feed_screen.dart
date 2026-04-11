@@ -218,7 +218,7 @@ class _FeedListState extends State<FeedList>
       if (mounted) {
         setState(() => _isLoading = false);
         // SnackBar might annoy user if network is flaky
-        print('Error loading posts: $e');
+        debugPrint('Error loading posts: $e');
       }
     }
   }

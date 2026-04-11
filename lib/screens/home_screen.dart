@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'home_feed_screen.dart';
+import 'live_screen.dart';
 import 'messages_screen.dart';
 import 'profile_screen.dart';
 import 'community_screen.dart';
@@ -52,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _screens = [
       const HomeFeedScreen(),
       const CommunityScreen(), // Menu grille
+      const LiveScreen(),
       const MessagesScreen(),
       ProfileScreen(key: _profileKey),
     ];
@@ -68,7 +70,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       NavigationDestination(
         icon: const Icon(Icons.grid_view_outlined),
         selectedIcon: const Icon(Icons.grid_view),
-        label: lang.translate('community_tab_title'),
+        label: lang.translate('community_nav_title'),
+      ),
+      NavigationDestination(
+        icon: const Icon(Icons.live_tv_outlined),
+        selectedIcon: const Icon(Icons.live_tv),
+        label: 'Live',
       ),
       NavigationDestination(
         icon: const Icon(Icons.message_outlined),
