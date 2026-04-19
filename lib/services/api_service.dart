@@ -2689,7 +2689,31 @@ class ApiService {
     if (response.statusCode == 200 || response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
-      throw Exception('Erreur de signalement');
+      final data = jsonDecode(response.body);
+      throw Exception(data['error'] ?? 'Erreur de signalement');
+    }
+  }
+
+  Future<Map<String, dynamic>> cancelOwnReport({
+    int? reportId,
+    int? postId,
+    int? userId,
+  }) async {
+    final response = await http.delete(
+      Uri.parse('$apiUrl/v1/reports.php'),
+      headers: _headers,
+      body: jsonEncode({
+        if (reportId != null) 'report_id': reportId,
+        if (postId != null) 'post_id': postId,
+        if (userId != null) 'user_id': userId,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final data = jsonDecode(response.body);
+      throw Exception(data['error'] ?? 'Impossible d\'annuler le signalement');
     }
   }
 

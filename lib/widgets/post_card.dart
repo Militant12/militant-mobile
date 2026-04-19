@@ -783,59 +783,166 @@ class _PostCardState extends State<PostCard> {
     final lang = LanguageService.instance;
     final textColor = theme.textTheme.bodyLarge?.color;
     final subtitleColor = theme.textTheme.bodyMedium?.color;
+    final messenger = ScaffoldMessenger.of(context);
+    const reasons = <String>[
+      'spam',
+      'harassment',
+      'hate_speech',
+      'misinformation',
+      'violence',
+      'other',
+    ];
+    final descriptionController = TextEditingController();
+    var selectedReason = reasons.first;
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: theme.cardColor,
-        title: Text(
-          lang.translate('report_post_title'),
-          style: TextStyle(color: textColor),
-        ),
-        content: Text(
-          lang.translate('report_reason_hint'), // Using hint as prompt
-          style: TextStyle(color: subtitleColor),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              lang.translate('cancel'),
-              style: TextStyle(color: subtitleColor),
-            ),
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          backgroundColor: theme.cardColor,
+          title: Text(
+            lang.translate('report_post_title'),
+            style: TextStyle(color: textColor),
           ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              try {
-                final api = await ApiService.getInstance();
-                await api.reportContent(
-                  postId: widget.post.id,
-                  reason: 'other',
-                  description: 'Contenu inapproprié',
-                );
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DropdownButtonFormField<String>(
+                initialValue: selectedReason,
+                dropdownColor: theme.cardColor,
+                decoration: InputDecoration(
+                  labelText: lang.translate('report_reason_hint'),
+                  labelStyle: TextStyle(color: subtitleColor),
+                ),
+                style: TextStyle(color: textColor),
+                items: reasons
+                    .map(
+                      (reason) => DropdownMenuItem<String>(
+                        value: reason,
+                        child: Text(
+                          lang.translate('live_report_reason_$reason'),
+                          style: TextStyle(color: textColor),
+                        ),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value == null) return;
+                  setDialogState(() => selectedReason = value);
+                },
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: descriptionController,
+                maxLines: 3,
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: lang.translate('live_report_details_label'),
+                  labelStyle: TextStyle(color: subtitleColor),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                descriptionController.dispose();
+                Navigator.pop(dialogContext);
+              },
+              child: Text(
+                lang.translate('cancel'),
+                style: TextStyle(color: subtitleColor),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(dialogContext);
+                try {
+                  final api = await ApiService.getInstance();
+                  final result = await api.reportContent(
+                    postId: widget.post.id,
+                    reason: selectedReason,
+                    description: descriptionController.text.trim().isEmpty
+                        ? null
+                        : descriptionController.text.trim(),
+                  );
+                  final reportId = int.tryParse('${result['report_id'] ?? ''}');
 
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(lang.translate('success'))),
-                  );
+                  if (mounted) {
+                    messenger.hideCurrentSnackBar();
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(lang.translate('report_submitted')),
+                        action: reportId == null
+                            ? null
+                            : SnackBarAction(
+                                label: lang.translate('undo'),
+                                onPressed: () {
+                                  _cancelOwnReport(
+                                    reportId: reportId,
+                                    messenger: messenger,
+                                    lang: lang,
+                                  );
+                                },
+                              ),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    final errorMessage = e.toString().replaceFirst(
+                      'Exception: ',
+                      '',
+                    );
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          errorMessage.contains('Already reported')
+                              ? lang.translate('report_already_sent')
+                              : '${lang.translate('error')}: $errorMessage',
+                        ),
+                      ),
+                    );
+                  }
+                } finally {
+                  descriptionController.dispose();
                 }
-              } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Erreur: ${e.toString()}')),
-                  );
-                }
-              }
-            },
-            child: Text(
-              lang.translate('report'),
-              style: const TextStyle(color: Color(0xFFBE1E1E)),
+              },
+              child: Text(
+                lang.translate('report_submit'),
+                style: const TextStyle(color: Color(0xFFBE1E1E)),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  Future<void> _cancelOwnReport({
+    required int reportId,
+    required ScaffoldMessengerState messenger,
+    required LanguageService lang,
+  }) async {
+    try {
+      final api = await ApiService.getInstance();
+      await api.cancelOwnReport(reportId: reportId, postId: widget.post.id);
+
+      if (!mounted) return;
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
+        SnackBar(content: Text(lang.translate('report_cancelled'))),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            '${lang.translate('error')}: ${e.toString().replaceFirst('Exception: ', '')}',
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> _deletePost() async {
