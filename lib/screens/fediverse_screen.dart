@@ -99,7 +99,7 @@ class _FediverseFeedTabState extends State<_FediverseFeedTab> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    _loadFeed(refresh: true);
+    _loadFeed();
   }
 
   @override
@@ -118,7 +118,17 @@ class _FediverseFeedTabState extends State<_FediverseFeedTab> {
     }
   }
 
-  Future<void> _loadFeed({bool refresh = false}) async {
+  bool _isTimeoutLikeError(Object error) {
+    final message = error.toString().toLowerCase();
+    return message.contains('timeout') ||
+        message.contains('time limit') ||
+        message.contains('exceeded');
+  }
+
+  Future<void> _loadFeed({
+    bool refresh = false,
+    bool allowRefreshFallback = true,
+  }) async {
     if (_isLoadingMore || (!_hasMore && !refresh)) {
       return;
     }
@@ -172,6 +182,19 @@ class _FediverseFeedTabState extends State<_FediverseFeedTab> {
         _isLoadingMore = false;
       });
     } catch (e) {
+      if (refresh && allowRefreshFallback && _isTimeoutLikeError(e)) {
+        await _loadFeed(refresh: false, allowRefreshFallback: false);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Le flux Fediverse distant est lent. Affichage du contenu deja synchronise.',
+            ),
+          ),
+        );
+        return;
+      }
+
       if (!mounted) return;
       setState(() {
         _error = e.toString().replaceFirst('Exception: ', '');
@@ -272,6 +295,7 @@ class _FediverseProfilesTab extends StatefulWidget {
 
 class _FediverseProfilesTabState extends State<_FediverseProfilesTab> {
   final TextEditingController _searchController = TextEditingController();
+  final Map<String, bool> _followOverrides = {};
   Timer? _debounce;
 
   ApiService? _api;
@@ -349,7 +373,7 @@ class _FediverseProfilesTabState extends State<_FediverseProfilesTab> {
       setState(() {
         _results = items
             .whereType<Map>()
-            .map((item) => Map<String, dynamic>.from(item))
+            .map((item) => _normalizeAccount(Map<String, dynamic>.from(item)))
             .toList();
         _isSearching = false;
       });
@@ -378,11 +402,18 @@ class _FediverseProfilesTabState extends State<_FediverseProfilesTab> {
 
       if (!mounted) return;
 
+      final nextFollowing = !isFollowing;
+      _followOverrides[actorUrl] = nextFollowing;
       final updated = Map<String, dynamic>.from(account)
-        ..['is_following'] = !isFollowing;
+        ..['is_following'] = nextFollowing;
 
       if (response['profile'] is Map<String, dynamic>) {
-        updated.addAll(response['profile'] as Map<String, dynamic>);
+        updated.addAll(
+          _normalizeAccount(
+            Map<String, dynamic>.from(response['profile'] as Map),
+            fallback: updated,
+          ),
+        );
       }
 
       _updateAccount(updated);
@@ -405,11 +436,22 @@ class _FediverseProfilesTabState extends State<_FediverseProfilesTab> {
   }
 
   void _updateAccount(Map<String, dynamic> updated) {
-    final actorUrl = updated['actor_url'];
+    final actorUrl = (updated['actor_url'] ?? '').toString();
+    if (actorUrl.isEmpty) {
+      return;
+    }
+
+    final existing = _results.cast<Map<String, dynamic>?>().firstWhere(
+      (item) => item?['actor_url'] == actorUrl,
+      orElse: () => null,
+    );
+    final normalized = _normalizeAccount(updated, fallback: existing);
+    _followOverrides[actorUrl] = _isFollowing(normalized);
+
     setState(() {
       _results = _results.map((item) {
         if (item['actor_url'] == actorUrl) {
-          return Map<String, dynamic>.from(item)..addAll(updated);
+          return Map<String, dynamic>.from(item)..addAll(normalized);
         }
         return item;
       }).toList();
@@ -419,6 +461,44 @@ class _FediverseProfilesTabState extends State<_FediverseProfilesTab> {
   bool _isFollowing(Map<String, dynamic> account) {
     final value = account['is_following'];
     return value == true || value == 1 || value == '1';
+  }
+
+  Map<String, dynamic> _normalizeAccount(
+    Map<String, dynamic> account, {
+    Map<String, dynamic>? fallback,
+  }) {
+    final normalized = <String, dynamic>{};
+
+    if (fallback != null) {
+      normalized.addAll(fallback);
+    }
+    normalized.addAll(account);
+
+    final actorUrl = (normalized['actor_url'] ?? '').toString();
+    final override = actorUrl.isNotEmpty ? _followOverrides[actorUrl] : null;
+
+    if (override != null) {
+      normalized['is_following'] = override;
+    } else if (!_hasFollowingValue(account) &&
+        fallback != null &&
+        _hasFollowingValue(fallback)) {
+      normalized['is_following'] = _isFollowing(fallback);
+    }
+
+    return normalized;
+  }
+
+  bool _hasFollowingValue(Map<String, dynamic> account) {
+    if (!account.containsKey('is_following')) {
+      return false;
+    }
+
+    final value = account['is_following'];
+    if (value == null) {
+      return false;
+    }
+
+    return value.toString().trim().isNotEmpty;
   }
 
   @override
@@ -614,6 +694,7 @@ class _FediverseAccountsTab extends StatefulWidget {
 class _FediverseAccountsTabState extends State<_FediverseAccountsTab> {
   final ScrollController _scrollController = ScrollController();
   final List<Map<String, dynamic>> _accounts = [];
+  final Map<String, bool> _followOverrides = {};
 
   ApiService? _api;
   bool _isLoading = true;
@@ -673,7 +754,7 @@ class _FediverseAccountsTabState extends State<_FediverseAccountsTab> {
       final rawItems = data[key] is List ? data[key] as List : const [];
       final items = rawItems
           .whereType<Map>()
-          .map((item) => Map<String, dynamic>.from(item))
+          .map((item) => _normalizeAccount(Map<String, dynamic>.from(item)))
           .toList();
 
       final meta = data['meta'];
@@ -725,10 +806,17 @@ class _FediverseAccountsTabState extends State<_FediverseAccountsTab> {
 
       if (!mounted) return;
 
+      final nextFollowing = !isFollowing;
+      _followOverrides[actorUrl] = nextFollowing;
       final updated = Map<String, dynamic>.from(account)
-        ..['is_following'] = !isFollowing;
+        ..['is_following'] = nextFollowing;
       if (response['profile'] is Map<String, dynamic>) {
-        updated.addAll(response['profile'] as Map<String, dynamic>);
+        updated.addAll(
+          _normalizeAccount(
+            Map<String, dynamic>.from(response['profile'] as Map),
+            fallback: updated,
+          ),
+        );
       }
 
       setState(() {
@@ -759,17 +847,63 @@ class _FediverseAccountsTabState extends State<_FediverseAccountsTab> {
   }
 
   void _replaceAccount(Map<String, dynamic> updated) {
-    final actorUrl = updated['actor_url'];
+    final actorUrl = (updated['actor_url'] ?? '').toString();
+    if (actorUrl.isEmpty) {
+      return;
+    }
+
     final index = _accounts.indexWhere((item) => item['actor_url'] == actorUrl);
+    final existing = index >= 0 ? _accounts[index] : null;
+    final normalized = _normalizeAccount(updated, fallback: existing);
+    _followOverrides[actorUrl] = _isFollowing(normalized);
+
     if (index >= 0) {
       _accounts[index] = Map<String, dynamic>.from(_accounts[index])
-        ..addAll(updated);
+        ..addAll(normalized);
     }
   }
 
   bool _isFollowing(Map<String, dynamic> account) {
     final value = account['is_following'];
     return value == true || value == 1 || value == '1';
+  }
+
+  Map<String, dynamic> _normalizeAccount(
+    Map<String, dynamic> account, {
+    Map<String, dynamic>? fallback,
+  }) {
+    final normalized = <String, dynamic>{};
+
+    if (fallback != null) {
+      normalized.addAll(fallback);
+    }
+    normalized.addAll(account);
+
+    final actorUrl = (normalized['actor_url'] ?? '').toString();
+    final override = actorUrl.isNotEmpty ? _followOverrides[actorUrl] : null;
+
+    if (override != null) {
+      normalized['is_following'] = override;
+    } else if (!_hasFollowingValue(account) &&
+        fallback != null &&
+        _hasFollowingValue(fallback)) {
+      normalized['is_following'] = _isFollowing(fallback);
+    }
+
+    return normalized;
+  }
+
+  bool _hasFollowingValue(Map<String, dynamic> account) {
+    if (!account.containsKey('is_following')) {
+      return false;
+    }
+
+    final value = account['is_following'];
+    if (value == null) {
+      return false;
+    }
+
+    return value.toString().trim().isNotEmpty;
   }
 
   @override
@@ -847,16 +981,14 @@ class _FediverseAccountsTabState extends State<_FediverseAccountsTab> {
           initialProfile: account,
           onProfileUpdated: (updated) {
             if (!mounted) return;
+            final normalized = _normalizeAccount(updated);
             setState(() {
-              if (widget.type == 'following' &&
-                  !(updated['is_following'] == true ||
-                      updated['is_following'] == 1 ||
-                      updated['is_following'] == '1')) {
+              if (widget.type == 'following' && !_isFollowing(normalized)) {
                 _accounts.removeWhere(
-                  (item) => item['actor_url'] == updated['actor_url'],
+                  (item) => item['actor_url'] == normalized['actor_url'],
                 );
               } else {
-                _replaceAccount(updated);
+                _replaceAccount(normalized);
               }
             });
           },

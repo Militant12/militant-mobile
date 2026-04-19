@@ -3393,18 +3393,25 @@ class ApiService {
   }
 
   Future<void> deletePageComment(int commentId) async {
-    final response = await http.post(
+    final response = await http.delete(
       Uri.parse('$apiUrl/v1/pages.php'),
       headers: _headers,
       body: jsonEncode({'action': 'delete_comment', 'comment_id': commentId}),
     );
     if (response.statusCode != 200) {
-      throw Exception('Erreur de suppression du commentaire');
+      try {
+        final data = jsonDecode(response.body);
+        throw Exception(
+          data['error'] ?? 'Erreur de suppression du commentaire',
+        );
+      } catch (_) {
+        throw Exception('Erreur de suppression du commentaire');
+      }
     }
   }
 
   Future<void> updatePageComment(int commentId, String content) async {
-    final response = await http.post(
+    final response = await http.put(
       Uri.parse('$apiUrl/v1/pages.php'),
       headers: _headers,
       body: jsonEncode({
@@ -3414,7 +3421,14 @@ class ApiService {
       }),
     );
     if (response.statusCode != 200) {
-      throw Exception('Erreur de modification du commentaire');
+      try {
+        final data = jsonDecode(response.body);
+        throw Exception(
+          data['error'] ?? 'Erreur de modification du commentaire',
+        );
+      } catch (_) {
+        throw Exception('Erreur de modification du commentaire');
+      }
     }
   }
 

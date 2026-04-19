@@ -27,6 +27,7 @@ class FediverseProfileScreen extends StatefulWidget {
 class _FediverseProfileScreenState extends State<FediverseProfileScreen> {
   ApiService? _api;
   Map<String, dynamic>? _profile;
+  bool? _followOverride;
   bool _isLoading = true;
   bool _isTogglingFollow = false;
   String? _error;
@@ -53,13 +54,17 @@ class _FediverseProfileScreenState extends State<FediverseProfileScreen> {
     try {
       final api = _api ?? await ApiService.getInstance();
       final data = await api.getRemoteFediverseProfile(widget.initialQuery);
+      final merged = _mergeProfile(
+        Map<String, dynamic>.from(data),
+        fallback: _profile,
+      );
       if (!mounted) return;
       setState(() {
         _api = api;
-        _profile = data;
+        _profile = merged;
         _isLoading = false;
       });
-      widget.onProfileUpdated?.call(Map<String, dynamic>.from(data));
+      widget.onProfileUpdated?.call(Map<String, dynamic>.from(merged));
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -91,11 +96,18 @@ class _FediverseProfileScreenState extends State<FediverseProfileScreen> {
 
       if (!mounted) return;
 
+      final nextFollowing = !isFollowing;
+      _followOverride = nextFollowing;
       final updated = Map<String, dynamic>.from(profile);
-      updated['is_following'] = !isFollowing;
+      updated['is_following'] = nextFollowing;
       final returnedProfile = response['profile'];
       if (returnedProfile is Map<String, dynamic>) {
-        updated.addAll(returnedProfile);
+        updated.addAll(
+          _mergeProfile(
+            Map<String, dynamic>.from(returnedProfile),
+            fallback: updated,
+          ),
+        );
       }
 
       setState(() {
@@ -125,6 +137,41 @@ class _FediverseProfileScreenState extends State<FediverseProfileScreen> {
   bool _isFollowing(Map<String, dynamic> profile) {
     final value = profile['is_following'];
     return value == true || value == 1 || value == '1';
+  }
+
+  Map<String, dynamic> _mergeProfile(
+    Map<String, dynamic> incoming, {
+    Map<String, dynamic>? fallback,
+  }) {
+    final merged = <String, dynamic>{};
+
+    if (fallback != null) {
+      merged.addAll(fallback);
+    }
+    merged.addAll(incoming);
+
+    if (_followOverride != null) {
+      merged['is_following'] = _followOverride;
+    } else if (!_hasFollowingValue(incoming) &&
+        fallback != null &&
+        _hasFollowingValue(fallback)) {
+      merged['is_following'] = _isFollowing(fallback);
+    }
+
+    return merged;
+  }
+
+  bool _hasFollowingValue(Map<String, dynamic> profile) {
+    if (!profile.containsKey('is_following')) {
+      return false;
+    }
+
+    final value = profile['is_following'];
+    if (value == null) {
+      return false;
+    }
+
+    return value.toString().trim().isNotEmpty;
   }
 
   @override

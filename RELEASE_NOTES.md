@@ -1,5 +1,33 @@
 # Release Notes - Militant (v1.0.6)
 
+## Fediverse
+- **Arrivée du Fediverse sur mobile** : nouvel espace dédié avec onglets **Flux**, **Profils**, **Abonnements** et **Abonnés**.
+- **Recherche fédérée** : recherche de profils et d’adresses Fediverse, ouverture des profils distants et affichage des posts récents.
+- **Abonnements distants** : abonnement et désabonnement à des comptes Fediverse/Mastodon distants depuis l’application.
+- **Flux Fediverse** : affichage des contenus des comptes distants suivis, avec chargement optimisé pour éviter les blocages inutiles.
+- **Identité locale Fediverse** : affichage de l’identité Fediverse locale de l’utilisateur et meilleure distinction entre comptes locaux et comptes fédérés.
+- **Interface améliorée** : meilleure prise en charge du mode clair sur les écrans Fediverse.
+
+## Corrections Fediverse
+- Correction d’un bug où l’état **Suivre / Suivi** revenait à tort après navigation dans les listes Fediverse.
+- Correction de l’affichage des abonnés Fediverse pour conserver le bon état de suivi après rechargement.
+- Correction de l’affichage des avatars Fediverse dans **Abonnés** sans devoir ouvrir le profil.
+- Correction de plusieurs problèmes API SQL liés à la pagination Fediverse sur MariaDB.
+- Correction d’un conflit de collation SQL qui empêchait le chargement de certaines listes Fediverse.
+- Ajustement du rate limit Fediverse par action pour éviter les erreurs **Rate limit exceeded** en usage classique.
+- Meilleure tolérance aux délais de réponse longs pour éviter les erreurs bloquantes sur le flux.
+
+## Pages et Commentaires
+- **Commentaires de page** : correction de la modification et suppression des commentaires de page dans l’app mobile.
+- **Droits d’administration** : l’auteur du commentaire peut modifier/supprimer, et l’admin de page ou l’auteur du post peut supprimer les commentaires concernés.
+- **Réponse rapide** : ajout d’une action **Répondre** avec préremplissage automatique en `@username`.
+- **Mentions** : ajout des notifications de mention sur les commentaires de page quand un utilisateur est cité.
+- **Réactions emoji** : ajout des réactions emoji sur les commentaires de page.
+
+## Correctifs complémentaires
+- Correction de l’ouverture des liens embed dans les posts.
+- Amélioration de la cohérence entre l’app mobile et l’API sur plusieurs actions sociales récentes.
+
 ## Lives (v1.0.6)
 - **Modération complète** : Nomination de modérateurs révocables sans hiérarchie et blocage d’utilisateurs (consensus communautaire).
 - **Gestion des invités** : Système robuste de demande (*Request Guest*), avec approbation et rejet en temps réel.

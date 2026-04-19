@@ -68,8 +68,11 @@ class _PageDetailScreenState extends State<PageDetailScreen>
 
   Future<void> _loadCurrentUser() async {
     try {
-      final user = await _api!.getProfile();
-      if (mounted) setState(() => _currentUserId = user['id']);
+      final api = _api ?? await ApiService.getInstance();
+      final user = await api.getProfile();
+      if (mounted) {
+        setState(() => _currentUserId = user['id']);
+      }
     } catch (_) {}
   }
 
@@ -1410,7 +1413,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                     ),
                   if (commentCount > 0)
                     GestureDetector(
-                      onTap: () => _showCommentsSheet(post['id']),
+                      onTap: () => _showCommentsSheet(post),
                       child: Text(
                         '$commentCount commentaire${commentCount > 1 ? 's' : ''}',
                         style: TextStyle(
@@ -1468,7 +1471,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 ),
                 Expanded(
                   child: TextButton.icon(
-                    onPressed: () => _showCommentsSheet(post['id']),
+                    onPressed: () => _showCommentsSheet(post),
                     icon: Icon(
                       Icons.comment_outlined,
                       size: 18,
@@ -1491,7 +1494,17 @@ class _PageDetailScreenState extends State<PageDetailScreen>
     );
   }
 
-  void _showCommentsSheet(int postId) {
+  void _showCommentsSheet(dynamic post) {
+    final postId = int.tryParse(post['id'].toString());
+    if (postId == null) return;
+
+    final postAuthorId = int.tryParse((post['user_id'] ?? '').toString());
+    final canDeleteAnyComment =
+        _isAdmin ||
+        (_currentUserId != null &&
+            postAuthorId != null &&
+            _currentUserId == postAuthorId);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1507,6 +1520,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
         api: _api!,
         onCommentAdded: _loadPosts,
         currentUserId: _currentUserId,
+        canDeleteAnyComment: canDeleteAnyComment,
       ),
     );
   }
@@ -2380,6 +2394,7 @@ class _CommentsSheet extends StatefulWidget {
   final ApiService api;
   final VoidCallback onCommentAdded;
   final int? currentUserId;
+  final bool canDeleteAnyComment;
 
   const _CommentsSheet({
     required this.postId,
@@ -2387,6 +2402,7 @@ class _CommentsSheet extends StatefulWidget {
     required this.api,
     required this.onCommentAdded,
     this.currentUserId,
+    this.canDeleteAnyComment = false,
   });
 
   @override
@@ -2398,6 +2414,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
   bool _isLoading = true;
   final _commentController = TextEditingController();
   bool _isSending = false;
+  Map<String, dynamic>? _replyingTo;
 
   @override
   void initState() {
@@ -2430,6 +2447,9 @@ class _CommentsSheetState extends State<_CommentsSheet> {
     try {
       await widget.api.commentOnPagePost(widget.postId, text);
       _commentController.clear();
+      if (mounted) {
+        setState(() => _replyingTo = null);
+      }
       widget.onCommentAdded();
       _loadComments();
     } catch (e) {
@@ -2441,6 +2461,103 @@ class _CommentsSheetState extends State<_CommentsSheet> {
     } finally {
       if (mounted) setState(() => _isSending = false);
     }
+  }
+
+  void _startReply(dynamic comment) {
+    final username = (comment['username'] ?? '').toString().trim();
+    if (username.isEmpty) return;
+
+    final mention = '@$username ';
+    final currentText = _commentController.text;
+    final normalizedText = currentText.trimLeft();
+    final alreadyReplyingToSameUser =
+        _replyingTo?['id'] == comment['id'] &&
+        normalizedText.startsWith(mention);
+
+    setState(() {
+      _replyingTo = Map<String, dynamic>.from(comment as Map);
+
+      if (alreadyReplyingToSameUser) {
+        return;
+      }
+
+      final preservedText = normalizedText.isEmpty
+          ? ''
+          : normalizedText.startsWith('@')
+          ? normalizedText
+          : normalizedText;
+      _commentController.text = mention + preservedText;
+      _commentController.selection = TextSelection.fromPosition(
+        TextPosition(offset: _commentController.text.length),
+      );
+    });
+  }
+
+  Future<void> _reactToComment(dynamic comment, String reactionType) async {
+    final commentId = int.tryParse((comment['id'] ?? '').toString());
+    if (commentId == null) return;
+
+    final currentReaction = (comment['user_reaction'] ?? '').toString();
+
+    try {
+      if (currentReaction == reactionType) {
+        await widget.api.removeCommentReaction(commentId, 'page');
+      } else {
+        await widget.api.reactToComment(
+          commentId,
+          'page',
+          reactionType: reactionType,
+        );
+      }
+      await _loadComments();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+      }
+    }
+  }
+
+  void _showCommentReactionPicker(dynamic comment) {
+    final reactions = {
+      'like': '👍',
+      'love': '❤️',
+      'haha': '😂',
+      'wow': '😮',
+      'sad': '😢',
+      'angry': '😠',
+    };
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? const Color(0xFF1E1E1E)
+          : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: reactions.entries
+              .map(
+                (e) => GestureDetector(
+                  onTap: () {
+                    Navigator.pop(context);
+                    _reactToComment(comment, e.key);
+                  },
+                  child: Text(
+                    e.value,
+                    style: const TextStyle(fontSize: 28),
+                  ),
+                ),
+              )
+              .toList(),
+        ),
+      ),
+    );
   }
 
   Future<void> _deleteComment(int commentId) async {
@@ -2582,6 +2699,29 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                       itemCount: _comments.length,
                       itemBuilder: (context, index) {
                         final comment = _comments[index];
+                        final commentUserId = int.tryParse(
+                          (comment['user_id'] ?? '').toString(),
+                        );
+                        final isCommentOwner =
+                            widget.currentUserId != null &&
+                            commentUserId != null &&
+                            widget.currentUserId == commentUserId;
+                        final canDeleteComment =
+                            isCommentOwner || widget.canDeleteAnyComment;
+                        final reactionsCount = int.tryParse(
+                              (comment['reactions_count'] ?? '0').toString(),
+                            ) ??
+                            0;
+                        final userReaction =
+                            (comment['user_reaction'] ?? '').toString();
+                        final reactionEmoji = {
+                          'like': '👍',
+                          'love': '❤️',
+                          'haha': '😂',
+                          'wow': '😮',
+                          'sad': '😢',
+                          'angry': '😠',
+                        }[userReaction];
                         final String avatarUrl = (comment['user_avatar'] ?? '')
                             .toString();
                         final bool hasAvatar =
@@ -2652,10 +2792,79 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                         fontSize: 14,
                                       ),
                                     ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        TextButton.icon(
+                                          onPressed: () => _startReply(comment),
+                                          icon: Icon(
+                                            Icons.reply,
+                                            size: 14,
+                                            color: isDark
+                                                ? Colors.white54
+                                                : Colors.grey,
+                                          ),
+                                          label: Text(
+                                            'Répondre',
+                                            style: TextStyle(
+                                              color: isDark
+                                                  ? Colors.white54
+                                                  : Colors.grey,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                          style: TextButton.styleFrom(
+                                            padding: EdgeInsets.zero,
+                                            minimumSize: const Size(0, 0),
+                                            tapTargetSize: MaterialTapTargetSize
+                                                .shrinkWrap,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        TextButton.icon(
+                                          onPressed: () =>
+                                              _showCommentReactionPicker(comment),
+                                          icon: userReaction.isNotEmpty &&
+                                                  reactionEmoji != null
+                                              ? Text(
+                                                  reactionEmoji,
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                  ),
+                                                )
+                                              : Icon(
+                                                  Icons.thumb_up_outlined,
+                                                  size: 14,
+                                                  color: isDark
+                                                      ? Colors.white54
+                                                      : Colors.grey,
+                                                ),
+                                          label: Text(
+                                            reactionsCount > 0
+                                                ? '$reactionsCount'
+                                                : 'Réagir',
+                                            style: TextStyle(
+                                              color: userReaction.isNotEmpty
+                                                  ? const Color(0xFFBE1E1E)
+                                                  : (isDark
+                                                        ? Colors.white54
+                                                        : Colors.grey),
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                          style: TextButton.styleFrom(
+                                            padding: EdgeInsets.zero,
+                                            minimumSize: const Size(0, 0),
+                                            tapTargetSize: MaterialTapTargetSize
+                                                .shrinkWrap,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ],
                                 ),
                               ),
-                              if (widget.currentUserId == comment['user_id'])
+                              if (isCommentOwner || canDeleteComment)
                                 PopupMenuButton<String>(
                                   icon: Icon(
                                     Icons.more_vert,
@@ -2665,27 +2874,40 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                         : Colors.grey,
                                   ),
                                   padding: EdgeInsets.zero,
-                                  itemBuilder: (context) => [
-                                    const PopupMenuItem(
-                                      value: 'edit',
-                                      height: 32,
-                                      child: Text(
-                                        'Modifier',
-                                        style: TextStyle(fontSize: 13),
-                                      ),
-                                    ),
-                                    const PopupMenuItem(
-                                      value: 'delete',
-                                      height: 32,
-                                      child: Text(
-                                        'Supprimer',
-                                        style: TextStyle(
-                                          color: Colors.red,
-                                          fontSize: 13,
+                                  itemBuilder: (context) {
+                                    final items = <PopupMenuEntry<String>>[];
+
+                                    if (isCommentOwner) {
+                                      items.add(
+                                        const PopupMenuItem(
+                                          value: 'edit',
+                                          height: 32,
+                                          child: Text(
+                                            'Modifier',
+                                            style: TextStyle(fontSize: 13),
+                                          ),
                                         ),
-                                      ),
-                                    ),
-                                  ],
+                                      );
+                                    }
+
+                                    if (canDeleteComment) {
+                                      items.add(
+                                        const PopupMenuItem(
+                                          value: 'delete',
+                                          height: 32,
+                                          child: Text(
+                                            'Supprimer',
+                                            style: TextStyle(
+                                              color: Colors.red,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }
+
+                                    return items;
+                                  },
                                   onSelected: (val) {
                                     if (val == 'delete') {
                                       _deleteComment(comment['id']);
@@ -2711,47 +2933,103 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                 ),
               ),
               padding: const EdgeInsets.all(8),
-              child: Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _commentController,
-                      style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black,
+                  if (_replyingTo != null)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
                       ),
-                      decoration: InputDecoration(
-                        hintText: 'Écrire un commentaire...',
-                        hintStyle: TextStyle(
-                          color: isDark ? Colors.white38 : Colors.grey,
-                        ),
-                        filled: true,
-                        fillColor: isDark
+                      decoration: BoxDecoration(
+                        color: isDark
                             ? const Color(0xFF2A2A2A)
-                            : Colors.grey[100],
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
+                            : Colors.grey[200],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.reply,
+                            size: 16,
+                            color: isDark ? Colors.white70 : Colors.black54,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Réponse à ${_replyingTo!['username'] ?? ''}',
+                              style: TextStyle(
+                                color: isDark ? Colors.white70 : Colors.black54,
+                                fontSize: 12,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              setState(() => _replyingTo = null);
+                            },
+                            icon: Icon(
+                              Icons.close,
+                              size: 16,
+                              color: isDark ? Colors.white70 : Colors.black54,
+                            ),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: _isSending ? null : _sendComment,
-                    icon: _isSending
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Color(0xFFBE1E1E),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _commentController,
+                          style: TextStyle(
+                            color: isDark ? Colors.white : Colors.black,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: _replyingTo != null
+                                ? 'Répondre à ${_replyingTo!['username'] ?? ''}...'
+                                : 'Écrire un commentaire...',
+                            hintStyle: TextStyle(
+                              color: isDark ? Colors.white38 : Colors.grey,
                             ),
-                          )
-                        : const Icon(Icons.send, color: Color(0xFFBE1E1E)),
+                            filled: true,
+                            fillColor: isDark
+                                ? const Color(0xFF2A2A2A)
+                                : Colors.grey[100],
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        onPressed: _isSending ? null : _sendComment,
+                        icon: _isSending
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Color(0xFFBE1E1E),
+                                ),
+                              )
+                            : const Icon(
+                                Icons.send,
+                                color: Color(0xFFBE1E1E),
+                              ),
+                      ),
+                    ],
                   ),
                 ],
               ),
