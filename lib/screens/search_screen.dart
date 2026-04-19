@@ -5,6 +5,8 @@ import '../services/language_service.dart';
 import 'profile_screen.dart';
 import 'post_detail_screen.dart';
 import '../widgets/linkable_text.dart';
+import '../widgets/militant_badge.dart';
+import '../widgets/technician_badge.dart';
 import 'chat_screen.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -215,13 +217,25 @@ class _SearchScreenState extends State<SearchScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '@${item['username'] ?? LanguageService.instance.translate('unknown_user')}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Row(
+                        children: [
+                          Text(
+                            '@${item['username'] ?? LanguageService.instance.translate('unknown_user')}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          if (item['militant_badge'] != null) ...[
+                            const SizedBox(width: 4),
+                            MilitantBadge(badgeId: item['militant_badge'], size: 16),
+                          ],
+                          if (item['is_militant_technician'] == true || item['is_militant_technician'] == 1 || item['is_militant_technician'] == '1') ...[
+                            const SizedBox(width: 4),
+                            const TechnicianBadge(size: 16),
+                          ],
+                        ],
                       ),
                       Text(
                         item['created_at'] != null
@@ -376,12 +390,28 @@ class _SearchScreenState extends State<SearchScreen> {
           );
         },
       ),
-      title: Text(
-        name,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
+      title: Row(
+        children: [
+          Flexible(
+            child: Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          if (item['militant_badge'] != null) ...[
+            const SizedBox(width: 4),
+            MilitantBadge(badgeId: item['militant_badge'], size: 16),
+          ],
+          if (item['is_militant_technician'] == true || item['is_militant_technician'] == 1 || item['is_militant_technician'] == '1') ...[
+            const SizedBox(width: 4),
+            const TechnicianBadge(size: 16),
+          ],
+        ],
       ),
       subtitle: subtitle.isNotEmpty
           ? Text(

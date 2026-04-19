@@ -6,6 +6,8 @@ import '../services/api_service.dart';
 import '../utils/date_formatter.dart';
 import '../services/language_service.dart';
 import '../widgets/post_card.dart';
+import '../widgets/militant_badge.dart';
+import '../widgets/technician_badge.dart';
 import '../widgets/linkable_text.dart';
 
 class PostDetailScreen extends StatefulWidget {
@@ -411,14 +413,26 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          comment.username,
-                          style: TextStyle(
-                            color: textColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 17,
+                        Flexible(
+                          child: Text(
+                            comment.username,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: textColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 17,
+                            ),
                           ),
                         ),
+                        if (comment.militantBadge != null) ...[
+                          const SizedBox(width: 4),
+                          MilitantBadge(badgeId: comment.militantBadge, size: 16),
+                        ],
+                        if (comment.isMilitantTechnician) ...[
+                          const SizedBox(width: 4),
+                          const TechnicianBadge(size: 16),
+                        ],
                         const SizedBox(width: 8),
                         Text(
                           _formatDate(comment.createdAt),

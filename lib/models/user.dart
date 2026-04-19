@@ -16,6 +16,7 @@ class User {
   final String? facebook;
   final String? tiktok;
   final String? bluesky;
+  final bool isMilitantTechnician;
   final int followersCount;
   final int followingCount;
   final bool isFollowing;
@@ -37,6 +38,7 @@ class User {
     this.facebook,
     this.tiktok,
     this.bluesky,
+    this.isMilitantTechnician = false,
     required this.followersCount,
     required this.followingCount,
     required this.isFollowing,
@@ -60,6 +62,7 @@ class User {
       facebook: json['facebook'],
       tiktok: json['tiktok'],
       bluesky: json['bluesky'],
+      isMilitantTechnician: json['is_militant_technician'] == true || json['is_militant_technician'] == 1 || json['is_militant_technician'] == '1',
       followersCount: json['followers_count'] ?? 0,
       followingCount: json['following_count'] ?? 0,
       isFollowing: json['is_following'] == 1 || json['is_following'] == true,

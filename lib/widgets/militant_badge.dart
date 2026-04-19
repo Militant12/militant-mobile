@@ -26,6 +26,7 @@ class MilitantBadge extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
+        color: Colors.white, // Fond blanc pour faire ressortir les logos foncés comme FA ou l'A cerclé
         shape: BoxShape.circle,
         border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
       ),

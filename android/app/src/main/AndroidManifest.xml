@@ -106,7 +106,7 @@
         
         <!-- Trusted Web Activity -->
         <activity
-            android:name="com.google.androidbrowserhelper.trusted.LauncherActivity"
+            android:name=".MilitantTwaActivity"
             android:label="@string/app_name"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
             android:exported="true">

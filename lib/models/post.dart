@@ -7,6 +7,7 @@ class Post {
   final String username;
   final String? userAvatar;
   final String? militantBadge;
+  final bool isMilitantTechnician;
   final String content;
   final List<String> mediaUrls;
   final String? mediaType; // 'image' ou 'video'
@@ -29,6 +30,7 @@ class Post {
     required this.username,
     this.userAvatar,
     this.militantBadge,
+    this.isMilitantTechnician = false,
     required this.content,
     required this.mediaUrls,
     this.mediaType,
@@ -73,6 +75,7 @@ class Post {
       username: json['username'] ?? 'Utilisateur',
       userAvatar: json['avatar'],
       militantBadge: json['militant_badge'],
+      isMilitantTechnician: json['is_militant_technician'] == true || json['is_militant_technician'] == 1 || json['is_militant_technician'] == '1',
       content: json['content'] ?? '',
       mediaUrls: mediaList,
       mediaType: json['media_type'],

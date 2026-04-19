@@ -7,6 +7,8 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
+import androidx.core.view.WindowCompat
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -19,6 +21,12 @@ import kotlin.random.Random
 class MainActivity : FlutterActivity() {
     private val TWA_CHANNEL = "com.militant.militant_flutter/twa"
     private val NOTIF_CHANNEL = "com.militant.militant_flutter/notifications"
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        // Configurer l'affichage bord à bord manuellement (compatible Android 15)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        super.onCreate(savedInstanceState)
+    }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)

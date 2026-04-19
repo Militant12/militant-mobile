@@ -237,7 +237,7 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
             } else if (foundIcon.startsWith('/')) {
               absoluteIcon = '${uri.scheme}://${uri.host}$foundIcon';
             } else {
-              absoluteIcon = '${uri.scheme}://${uri.host}/${foundIcon}';
+              absoluteIcon = '${uri.scheme}://${uri.host}/$foundIcon';
             }
           }
           setState(() {

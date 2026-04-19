@@ -69,4 +69,7 @@ dependencies {
     
     // Trusted Web Activity support
     implementation("com.google.androidbrowserhelper:androidbrowserhelper:2.5.0")
+    
+    // Core activity components for Edge-to-Edge (Android 15+)
+    implementation("androidx.activity:activity-ktx:1.9.0")
 }

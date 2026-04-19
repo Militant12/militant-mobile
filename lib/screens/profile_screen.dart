@@ -5,6 +5,7 @@ import '../models/post.dart';
 import '../widgets/post_card.dart';
 import '../widgets/profile_stories.dart';
 import '../widgets/militant_badge.dart';
+import '../widgets/technician_badge.dart';
 import '../widgets/status_picker.dart';
 import '../services/user_status_service.dart';
 import 'login_screen.dart';
@@ -438,6 +439,13 @@ class ProfileScreenState extends State<ProfileScreen>
                         badgeId: _profile!['militant_badge'],
                         size: 28,
                       ),
+                    ],
+                    // Badge technicien
+                    if (_profile?['is_militant_technician'] == true ||
+                        _profile?['is_militant_technician'] == 1 ||
+                        _profile?['is_militant_technician'] == '1') ...[
+                      const SizedBox(width: 6),
+                      const TechnicianBadge(size: 26),
                     ],
                     if (_profile?['is_private'] == 1 ||
                         _profile?['is_private'] == true) ...[

@@ -8,6 +8,7 @@ import '../screens/profile_screen.dart';
 import 'video_player_widget.dart';
 import 'linkable_text.dart';
 import 'militant_badge.dart';
+import 'technician_badge.dart';
 import 'package:share_plus/share_plus.dart';
 
 class PostCard extends StatefulWidget {
@@ -280,6 +281,10 @@ class _PostCardState extends State<PostCard> {
                                   badgeId: widget.post.militantBadge,
                                   size: 20,
                                 ),
+                              ],
+                              if (widget.post.isMilitantTechnician) ...[
+                                const SizedBox(width: 4),
+                                const TechnicianBadge(size: 20),
                               ],
                               if (widget.post.isModerator) ...[
                                 const SizedBox(width: 4),

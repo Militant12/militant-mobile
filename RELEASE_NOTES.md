@@ -26,7 +26,13 @@
 
 ## Correctifs complémentaires
 - Correction de l’ouverture des liens embed dans les posts.
+- Correction d’un bug sur certains aperçus de liens où l’icône distante pouvait être mal reconstruite.
 - Amélioration de la cohérence entre l’app mobile et l’API sur plusieurs actions sociales récentes.
+
+## Profils et Badges
+- **Badge technicien** : ajout d’un badge technicien visible dans les profils, posts, commentaires, résultats de recherche et listes d’utilisateurs.
+- **Badges enrichis** : meilleure prise en charge des badges militants et techniciens dans les modèles de données utilisateur, post et commentaire.
+- **Lisibilité UI** : amélioration de l’affichage des noms et badges avec gestion des débordements dans plusieurs listes et écrans.
 
 ## Lives (v1.0.6)
 - **Modération complète** : Nomination de modérateurs révocables sans hiérarchie et blocage d’utilisateurs (consensus communautaire).
@@ -35,6 +41,12 @@
 - **Signalement** : Ajout d’une option pour signaler les lives inappropriés.
 - **Auto-nettoyage** : Fermeture automatique des sessions inactives ou dont le créateur est déconnecté (timeout de 2 minutes).
 - **Refonte de l’interface** : Nouvelle ergonomie avec onglets Découvrir / Créer et interface de chat optimisée.
+- **Invités plus robustes** : meilleure gestion des demandes d’invitation, de leur acceptation/rejet et de la promotion automatique en speaker.
+- **Identités stables** : amélioration de la reconnexion et de la modération grâce à des identités utilisateur plus cohérentes.
+
+## Android
+- **Trusted Web Activity** : ajout d’une activité TWA dédiée pour améliorer l’intégration Android.
+- **Android 15 / Edge-to-Edge** : adaptation de l’app et de la TWA pour une meilleure compatibilité avec les exigences d’affichage récentes.
 
 ## Groupes
 - Correction du bug des demandes d’adhésion privées qui disparaissaient après traitement d’une ancienne demande.

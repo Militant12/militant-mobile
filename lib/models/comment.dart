@@ -6,6 +6,8 @@ class Comment {
   final int userId;
   final String username;
   final String? userAvatar;
+  final String? militantBadge;
+  final bool isMilitantTechnician;
   final String content;
   final DateTime createdAt;
   final int? parentId;
@@ -21,6 +23,8 @@ class Comment {
     required this.userId,
     required this.username,
     this.userAvatar,
+    this.militantBadge,
+    this.isMilitantTechnician = false,
     required this.content,
     required this.createdAt,
     this.parentId,
@@ -38,6 +42,8 @@ class Comment {
       userId: json['user_id'] ?? 0,
       username: json['username'] ?? 'Utilisateur',
       userAvatar: json['avatar'],
+      militantBadge: json['militant_badge'],
+      isMilitantTechnician: json['is_militant_technician'] == true || json['is_militant_technician'] == 1 || json['is_militant_technician'] == '1',
       content: json['content'] ?? '',
       createdAt: DateFormatter.parseApiDate(json['created_at']),
       parentId: json['parent_id'],

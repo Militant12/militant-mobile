@@ -225,7 +225,10 @@ class _LiveScreenState extends State<LiveScreen> {
 
   int? _parseUserIdFromIdentity(String? identity) {
     if (identity == null) return null;
-    final match = RegExp(r'^u(\d+)-', caseSensitive: false).firstMatch(identity);
+    final match = RegExp(
+      r'^u(\d+)-',
+      caseSensitive: false,
+    ).firstMatch(identity);
     if (match == null) return null;
     return int.tryParse(match.group(1)!);
   }
@@ -469,7 +472,9 @@ class _LiveScreenState extends State<LiveScreen> {
 
       if (type == 'moderator-assigned') {
         final targetIdentity = data['targetIdentity']?.toString() ?? '';
-        final targetUserId = int.tryParse(data['targetUserId']?.toString() ?? '');
+        final targetUserId = int.tryParse(
+          data['targetUserId']?.toString() ?? '',
+        );
         if (targetIdentity.isEmpty || !mounted) return;
         setState(() {
           _sessionModeratorIdentities.add(targetIdentity);
@@ -478,8 +483,10 @@ class _LiveScreenState extends State<LiveScreen> {
           }
           _livekitChatMessages = _livekitChatMessages
               .map(
-                (entry) => entry.authorIdentity == targetIdentity ||
-                        (targetUserId != null && entry.authorUserId == targetUserId)
+                (entry) =>
+                    entry.authorIdentity == targetIdentity ||
+                        (targetUserId != null &&
+                            entry.authorUserId == targetUserId)
                     ? entry.copyWith(isModerator: true)
                     : entry,
               )
@@ -497,7 +504,9 @@ class _LiveScreenState extends State<LiveScreen> {
       if (type == 'chat-blocked') {
         final targetIdentity = data['targetIdentity']?.toString() ?? '';
         final targetName = data['targetName']?.toString().trim() ?? '';
-        final targetUserId = int.tryParse(data['targetUserId']?.toString() ?? '');
+        final targetUserId = int.tryParse(
+          data['targetUserId']?.toString() ?? '',
+        );
         if (!mounted) return;
         setState(() {
           if (targetIdentity.isNotEmpty) {
@@ -736,17 +745,27 @@ class _LiveScreenState extends State<LiveScreen> {
       _api ??= await ApiService.getInstance();
       final guests = await _api!.fetchLiveGuests(liveId, status: 'pending');
       if (!mounted) return;
+      final knownRequestsByUserId = {
+        for (final request in _guestRequests)
+          if (request.userId > 0) request.userId: request,
+      };
       setState(() {
         _guestRequests = guests
-            .map(
-              (guest) => _LiveGuestRequest(
-                userId:
-                    int.tryParse(guest['user_id']?.toString() ?? '') ?? 0,
-                name: guest['username']?.toString().trim().isNotEmpty == true
-                    ? guest['username'].toString().trim()
-                    : 'Militant',
-              ),
-            )
+            .map((guest) {
+              final userId =
+                  int.tryParse(guest['user_id']?.toString() ?? '') ?? 0;
+              final existing = knownRequestsByUserId[userId];
+              final username = guest['username']?.toString().trim() ?? '';
+              return _LiveGuestRequest(
+                identity: existing?.identity,
+                userId: userId,
+                name: username.isNotEmpty
+                    ? username
+                    : (existing?.name.isNotEmpty == true
+                          ? existing!.name
+                          : 'Militant'),
+              );
+            })
             .where((guest) => guest.userId > 0)
             .toList();
       });
@@ -779,6 +798,7 @@ class _LiveScreenState extends State<LiveScreen> {
           state['my_chat_blocked'] == true ||
           state['my_chat_blocked'] == 1 ||
           state['my_chat_blocked'] == '1';
+      final myGuestStatus = state['my_guest_status']?.toString().trim() ?? '';
 
       setState(() {
         _sessionModeratorUserIds
@@ -807,6 +827,29 @@ class _LiveScreenState extends State<LiveScreen> {
           ..clear()
           ..addAll(_livekitChatMessages.map((entry) => entry.dedupeKey));
       });
+
+      if (!_isCreator && _hasPendingJoinRequest && !_isPromotingToSpeaker) {
+        if (myGuestStatus == 'accepted') {
+          if (mounted) {
+            setState(() => _hasPendingJoinRequest = false);
+          }
+          await _promoteViewerToSpeaker();
+          return;
+        }
+        if (myGuestStatus == 'rejected') {
+          if (!mounted) return;
+          setState(() => _hasPendingJoinRequest = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                LanguageService.instance.translate(
+                  'live_join_request_rejected',
+                ),
+              ),
+            ),
+          );
+        }
+      }
     } catch (_) {}
   }
 
@@ -930,6 +973,7 @@ class _LiveScreenState extends State<LiveScreen> {
     int? createdLiveId;
 
     try {
+      final currentLiveId = _streamingLiveId;
       await _disconnectRoom();
 
       String effectiveRoom = roomName;
@@ -962,7 +1006,8 @@ class _LiveScreenState extends State<LiveScreen> {
         displayName: displayName,
         canPublish: wantsPublish,
         useDeviceOverrides: _isMilitantTechnician,
-        liveId: liveIdForToken,
+        liveId:
+            liveIdForToken ?? currentLiveId, // Use captured ID during promotion
       );
 
       final wsUrl = await LiveKitRuntimeConfig.effectiveServerUrl(
@@ -1140,11 +1185,12 @@ class _LiveScreenState extends State<LiveScreen> {
         .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
         .replaceAll(RegExp(r'-+'), '-')
         .replaceAll(RegExp(r'^-|-$'), '');
-    final suffix = DateTime.now().millisecondsSinceEpoch.toRadixString(36);
     final base = slug.isEmpty ? 'militant' : slug;
     if (userId != null && userId > 0) {
-      return 'u$userId-$base-$suffix';
+      // Use stable identity for logged in users to handle reconnects gracefully
+      return 'u$userId-$base';
     }
+    final suffix = DateTime.now().millisecondsSinceEpoch.toRadixString(36);
     return '$base-$suffix';
   }
 
@@ -1473,7 +1519,8 @@ class _LiveScreenState extends State<LiveScreen> {
           children: [
             _buildDiscoveryTab(context),
             _buildCreateTab(context),
-            if (_isMilitantTechnician || _isElectedModerator) _buildModerationTab(context),
+            if (_isMilitantTechnician || _isElectedModerator)
+              _buildModerationTab(context),
           ],
         ),
       ),
@@ -1568,12 +1615,15 @@ class _LiveScreenState extends State<LiveScreen> {
                 final isEnded = report['live_status'] == 'ended';
 
                 return Card(
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor:
-                          isEnded ? Colors.grey : const Color(0xFFBE1E1E),
+                      backgroundColor: isEnded
+                          ? Colors.grey
+                          : const Color(0xFFBE1E1E),
                       child: Icon(
                         isEnded ? Icons.stop_rounded : Icons.live_tv_rounded,
                         color: Colors.white,
@@ -1656,7 +1706,9 @@ class _LiveScreenState extends State<LiveScreen> {
     final user = live['username']?.toString() ?? 'Militant';
     final avatarUrl = _api?.getImageUrl(live['avatar']?.toString());
     final viewers = live['current_viewers']?.toString() ?? '0';
-    final backgroundUrl = _api?.getImageUrl(live['background_image']?.toString());
+    final backgroundUrl = _api?.getImageUrl(
+      live['background_image']?.toString(),
+    );
 
     bool isValidUrl(String? url) => url != null && url.startsWith('http');
 
@@ -1770,7 +1822,11 @@ class _LiveScreenState extends State<LiveScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.remove_red_eye, color: Colors.white, size: 12),
+                    const Icon(
+                      Icons.remove_red_eye,
+                      color: Colors.white,
+                      size: 12,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       viewers,
@@ -1814,7 +1870,11 @@ class _LiveScreenState extends State<LiveScreen> {
                             ? NetworkImage(avatarUrl!)
                             : null,
                         child: !isValidUrl(avatarUrl)
-                            ? const Icon(Icons.person, size: 12, color: Colors.white)
+                            ? const Icon(
+                                Icons.person,
+                                size: 12,
+                                color: Colors.white,
+                              )
                             : null,
                       ),
                       const SizedBox(width: 6),
@@ -1964,7 +2024,9 @@ class _LiveScreenState extends State<LiveScreen> {
     final local = _room?.localParticipant;
     if (local == null) {
       throw Exception(
-        LanguageService.instance.translate('live_local_participant_unavailable'),
+        LanguageService.instance.translate(
+          'live_local_participant_unavailable',
+        ),
       );
     }
     await local.publishData(
@@ -2019,9 +2081,7 @@ class _LiveScreenState extends State<LiveScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${translate('live_guest_request_error')}: $e'),
-        ),
+        SnackBar(content: Text('${translate('live_guest_request_error')}: $e')),
       );
     }
   }
@@ -2048,9 +2108,7 @@ class _LiveScreenState extends State<LiveScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${translate('live_guest_approve_error')}: $e')),
       );
     }
@@ -2078,9 +2136,7 @@ class _LiveScreenState extends State<LiveScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${translate('live_guest_reject_error')}: $e')),
       );
     }
@@ -2105,9 +2161,9 @@ class _LiveScreenState extends State<LiveScreen> {
     try {
       await _joinLive(canPublishOverride: true);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(translate('live_guest_promoted'))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(translate('live_guest_promoted'))));
     } finally {
       if (mounted) {
         setState(() => _isPromotingToSpeaker = false);
@@ -2141,9 +2197,9 @@ class _LiveScreenState extends State<LiveScreen> {
     final liveId = _streamingLiveId;
     if (liveId == null || viewer.userId == null || viewer.userId! <= 0) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(translate('live_user_not_found'))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(translate('live_user_not_found'))));
       return;
     }
     try {
@@ -2161,7 +2217,8 @@ class _LiveScreenState extends State<LiveScreen> {
         _sessionModeratorUserIds.add(viewer.userId!);
         _livekitChatMessages = _livekitChatMessages
             .map(
-              (entry) => entry.authorIdentity == viewer.identity ||
+              (entry) =>
+                  entry.authorIdentity == viewer.identity ||
                       entry.authorUserId == viewer.userId
                   ? entry.copyWith(isModerator: true)
                   : entry,
@@ -2193,9 +2250,9 @@ class _LiveScreenState extends State<LiveScreen> {
     final liveId = _streamingLiveId;
     if (liveId == null || viewer.userId == null || viewer.userId! <= 0) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(translate('live_user_not_found'))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(translate('live_user_not_found'))));
       return;
     }
     try {
@@ -2284,12 +2341,7 @@ class _LiveScreenState extends State<LiveScreen> {
     final translate = LanguageService.instance.translate;
     final liveId = _streamingLiveId;
     if (_isCreator || liveId == null || _isReportingLive) return;
-    const reasons = <String>[
-      'inappropriate',
-      'harassment',
-      'violence',
-      'spam',
-    ];
+    const reasons = <String>['inappropriate', 'harassment', 'violence', 'spam'];
     var selectedReason = reasons.first;
     final descriptionController = TextEditingController();
 
@@ -2564,7 +2616,9 @@ class _LiveScreenState extends State<LiveScreen> {
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
                   translate('live_community_vote_title'),
-                  style: theme.textTheme.titleMedium?.copyWith(color: Colors.white),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: Colors.white,
+                  ),
                 ),
               ),
               Padding(
@@ -2577,7 +2631,10 @@ class _LiveScreenState extends State<LiveScreen> {
               ),
               const SizedBox(height: 16),
               ListTile(
-                leading: const Icon(Icons.warning_amber_rounded, color: Colors.orangeAccent),
+                leading: const Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.orangeAccent,
+                ),
                 title: Text(
                   translate('live_community_vote_action'),
                   style: const TextStyle(color: Colors.white),
@@ -3032,14 +3089,21 @@ class _LiveScreenState extends State<LiveScreen> {
                     if (_reportCount > 0)
                       Container(
                         margin: const EdgeInsets.only(top: 4),
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.black54,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
                           "$_reportCount/5",
-                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                   ],
@@ -3258,11 +3322,7 @@ class _LiveGuestRequest {
 }
 
 class _LiveViewer {
-  const _LiveViewer({
-    required this.identity,
-    required this.name,
-    this.userId,
-  });
+  const _LiveViewer({required this.identity, required this.name, this.userId});
 
   final String identity;
   final String name;
@@ -3271,26 +3331,26 @@ class _LiveViewer {
 
 const Object _sentinel = Object();
 
-  Widget _buildMultiVideoGrid(List<VideoTrack> tracks) {
-    if (tracks.length == 2) {
-      return Column(
-        children: [
-          Expanded(child: VideoTrackRenderer(tracks[0], fit: VideoViewFit.cover)),
-          Expanded(child: VideoTrackRenderer(tracks[1], fit: VideoViewFit.cover)),
-        ],
-      );
-    }
-    
-    return GridView.builder(
-      padding: EdgeInsets.zero,
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: tracks.length <= 4 ? 2 : 3,
-        crossAxisSpacing: 2,
-        mainAxisSpacing: 2,
-      ),
-      itemCount: tracks.length,
-      itemBuilder: (context, index) {
-        return VideoTrackRenderer(tracks[index], fit: VideoViewFit.cover);
-      },
+Widget _buildMultiVideoGrid(List<VideoTrack> tracks) {
+  if (tracks.length == 2) {
+    return Column(
+      children: [
+        Expanded(child: VideoTrackRenderer(tracks[0], fit: VideoViewFit.cover)),
+        Expanded(child: VideoTrackRenderer(tracks[1], fit: VideoViewFit.cover)),
+      ],
     );
   }
+
+  return GridView.builder(
+    padding: EdgeInsets.zero,
+    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+      crossAxisCount: tracks.length <= 4 ? 2 : 3,
+      crossAxisSpacing: 2,
+      mainAxisSpacing: 2,
+    ),
+    itemCount: tracks.length,
+    itemBuilder: (context, index) {
+      return VideoTrackRenderer(tracks[index], fit: VideoViewFit.cover);
+    },
+  );
+}

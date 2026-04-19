@@ -3,6 +3,8 @@ import '../services/api_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'profile_screen.dart';
 import 'chat_screen.dart';
+import '../widgets/militant_badge.dart';
+import '../widgets/technician_badge.dart';
 
 class UsersListScreen extends StatefulWidget {
   final int? userId;
@@ -196,12 +198,28 @@ class _UsersListScreenState extends State<UsersListScreen> {
                       ],
                     ),
                   ),
-                  title: Text(
-                    user['username'] ?? 'Utilisateur',
-                    style: TextStyle(
-                      color: theme.textTheme.bodyLarge?.color,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  title: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          user['username'] ?? 'Utilisateur',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: theme.textTheme.bodyLarge?.color,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      if (user['militant_badge'] != null) ...[
+                        const SizedBox(width: 4),
+                        MilitantBadge(badgeId: user['militant_badge'], size: 16),
+                      ],
+                      if (user['is_militant_technician'] == true || user['is_militant_technician'] == 1 || user['is_militant_technician'] == '1') ...[
+                        const SizedBox(width: 4),
+                        const TechnicianBadge(size: 16),
+                      ],
+                    ],
                   ),
                   subtitle: Text(
                     user['bio'] ?? '',
