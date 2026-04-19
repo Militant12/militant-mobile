@@ -80,6 +80,33 @@ class LanguageService extends ValueNotifier<Locale> {
       'community_nav_title': 'Actions',
       'community_tab_title': 'Communauté',
       'explore_mobilize_title': 'Explorez et Mobilisez-vous',
+      'fediverse_title': 'Fediverse',
+      'fediverse_menu_desc':
+          'Flux abonnements, recherche de profils et listes abonnés.',
+      'fediverse_feed_tab': 'Flux',
+      'fediverse_profiles_tab': 'Profils',
+      'fediverse_profiles_title': 'Trouver des profils Fediverse',
+      'fediverse_profiles_subtitle':
+          'Recherchez des personnes, suivez-les et retrouvez vos abonnements.',
+      'fediverse_search_hint':
+          'Rechercher un profil ou une adresse Fediverse...',
+      'fediverse_search_results': 'Résultats',
+      'fediverse_search_helper':
+          'Saisissez une adresse complète comme @utilisateur@instance.tld pour trouver un compte distant.',
+      'fediverse_feed_empty':
+          'Aucun message Fediverse pour le moment. Suivez des comptes distants pour remplir ce flux.',
+      'fediverse_following_empty':
+          'Vous ne suivez encore aucun compte Fediverse distant.',
+      'fediverse_followers_empty':
+          'Aucun abonné Fediverse distant pour le moment.',
+      'fediverse_recent_posts': 'Posts récents',
+      'fediverse_no_posts': 'Aucun post distant trouvé.',
+      'fediverse_local_identity': 'Votre identité Fediverse',
+      'fediverse_unfollow': 'Ne plus suivre',
+      'fediverse_error_load':
+          'Impossible de charger les fonctionnalités Fediverse.',
+      'open': 'Ouvrir',
+      'profile': 'Profil',
       'groups_desc': 'Rejoignez la lutte locale et organisez-vous.',
       'events_desc': 'Manifestations, assemblées et actions.',
       'pages_desc': 'Suivez les collectifs et organisations.',
@@ -167,8 +194,7 @@ class LanguageService extends ValueNotifier<Locale> {
           'La caméra et le micro sont nécessaires pour lancer un live.',
       'live_error_missing_server_url':
           'URL du serveur LiveKit inconnue: renseignez le champ optionnel, ou compilez avec LIVEKIT_URL, ou assurez-vous que l API renvoie le champ url.',
-      'live_local_participant_unavailable':
-          'Participant local indisponible.',
+      'live_local_participant_unavailable': 'Participant local indisponible.',
       'live_not_found_for_request': 'Live introuvable pour cette demande.',
       'live_user_not_found': 'Utilisateur introuvable.',
       'live_join_request_rejected': 'La demande de monter a été refusée.',
@@ -178,11 +204,9 @@ class LanguageService extends ValueNotifier<Locale> {
       'live_guest_promotion_requires_media':
           'La caméra et le micro sont nécessaires pour monter dans le live.',
       'live_guest_promoted': 'Tu peux maintenant monter dans le live.',
-      'live_moderator_assigned_self':
-          'Tu es maintenant modérateur de ce live.',
+      'live_moderator_assigned_self': 'Tu es maintenant modérateur de ce live.',
       'live_moderator_assigned_other': '{name} est maintenant modérateur.',
-      'live_assign_moderator_error':
-          'Impossible de nommer le modérateur',
+      'live_assign_moderator_error': 'Impossible de nommer le modérateur',
       'live_chat_blocked_other': '{name} est bloqué du chat.',
       'live_block_user_error': 'Impossible de bloquer cet utilisateur',
       'live_delete_message_success': 'Message supprimé du chat.',
@@ -219,8 +243,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'live_community_vote_description':
           'Si 5 personnes votent pour couper ce live, il sera automatiquement arrêté.',
       'live_community_vote_action': 'Voter pour couper ce live',
-      'live_community_vote_reason':
-          'Contenu inapproprié ou dangereux',
+      'live_community_vote_reason': 'Contenu inapproprié ou dangereux',
       'live_community_vote_success': 'Votre vote a été pris en compte.',
       'live_community_vote_threshold_reached':
           'Le seuil de 5 votes a été atteint. Le live est arrêté.',
@@ -231,8 +254,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'live_join_request_connecting': 'Connexion...',
       'live_join_request_cta': 'Demander à monter',
       'live_guest_requests_title': 'Demandes pour monter',
-      'notification_group_invite_missing':
-          'Invitation de groupe introuvable.',
+      'notification_group_invite_missing': 'Invitation de groupe introuvable.',
       'notification_group_invite_title': 'Invitation de groupe',
       'notification_group_invite_message':
           '{user} vous invite à rejoindre {group}.',
@@ -456,6 +478,7 @@ class LanguageService extends ValueNotifier<Locale> {
 
       // Additional translations
       'badge_updated': 'Badge mis à jour avec succès',
+      'technician_badge_tooltip': 'Technicien·ne Militant',
       'group_created': 'Groupe créé avec succès',
       'new_group': 'Nouveau groupe',
       'create_group': 'Créer le groupe',
@@ -905,6 +928,30 @@ class LanguageService extends ValueNotifier<Locale> {
       'community_nav_title': 'Actions',
       'community_tab_title': 'Community',
       'explore_mobilize_title': 'Explore and Mobilize',
+      'fediverse_title': 'Fediverse',
+      'fediverse_menu_desc':
+          'Following feed, profile search, and follower lists.',
+      'fediverse_feed_tab': 'Feed',
+      'fediverse_profiles_tab': 'Profiles',
+      'fediverse_profiles_title': 'Find Fediverse profiles',
+      'fediverse_profiles_subtitle':
+          'Search people, follow them, and browse your network.',
+      'fediverse_search_hint': 'Search a profile or Fediverse address...',
+      'fediverse_search_results': 'Results',
+      'fediverse_search_helper':
+          'Enter a full address like @user@instance.tld to find a remote account.',
+      'fediverse_feed_empty':
+          'No Fediverse posts yet. Follow remote accounts to populate this feed.',
+      'fediverse_following_empty':
+          'You are not following any remote Fediverse accounts yet.',
+      'fediverse_followers_empty': 'No remote Fediverse followers yet.',
+      'fediverse_recent_posts': 'Recent posts',
+      'fediverse_no_posts': 'No remote posts found.',
+      'fediverse_local_identity': 'Your Fediverse identity',
+      'fediverse_unfollow': 'Unfollow',
+      'fediverse_error_load': 'Unable to load Fediverse features.',
+      'open': 'Open',
+      'profile': 'Profile',
       'groups_desc': 'Join the local struggle and organize.',
       'events_desc': 'Protests, assemblies, and actions.',
       'pages_desc': 'Follow collectives and organizations.',
@@ -989,19 +1036,18 @@ class LanguageService extends ValueNotifier<Locale> {
           'Camera and microphone are required to start a live.',
       'live_error_missing_server_url':
           'Unknown LiveKit server URL: fill in the optional field, or build with LIVEKIT_URL, or make sure the API returns the url field.',
-      'live_local_participant_unavailable':
-          'Local participant unavailable.',
+      'live_local_participant_unavailable': 'Local participant unavailable.',
       'live_not_found_for_request': 'Live not found for this request.',
       'live_user_not_found': 'User not found.',
-      'live_join_request_rejected': 'The request to join on stage was rejected.',
+      'live_join_request_rejected':
+          'The request to join on stage was rejected.',
       'live_guest_request_error': 'Unable to send the request',
       'live_guest_approve_error': 'Unable to approve',
       'live_guest_reject_error': 'Unable to reject',
       'live_guest_promotion_requires_media':
           'Camera and microphone are required to join on stage.',
       'live_guest_promoted': 'You can now join on stage.',
-      'live_moderator_assigned_self':
-          'You are now a moderator of this live.',
+      'live_moderator_assigned_self': 'You are now a moderator of this live.',
       'live_moderator_assigned_other': '{name} is now a moderator.',
       'live_assign_moderator_error': 'Unable to assign the moderator',
       'live_chat_blocked_other': '{name} is blocked from chat.',
@@ -1051,8 +1097,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'live_join_request_connecting': 'Connecting...',
       'live_join_request_cta': 'Request to join',
       'live_guest_requests_title': 'Requests to join',
-      'notification_group_invite_missing':
-          'Group invitation not found.',
+      'notification_group_invite_missing': 'Group invitation not found.',
       'notification_group_invite_title': 'Group invitation',
       'notification_group_invite_message':
           '{user} invited you to join {group}.',
@@ -1262,6 +1307,7 @@ class LanguageService extends ValueNotifier<Locale> {
 
       // Additional translations
       'badge_updated': 'Badge updated successfully',
+      'technician_badge_tooltip': 'Militant Technician',
       'group_created': 'Group created successfully',
       'new_group': 'New group',
       'create_group': 'Create group',
@@ -1713,6 +1759,33 @@ class LanguageService extends ValueNotifier<Locale> {
       'community_nav_title': 'Acciones',
       'community_tab_title': 'Comunidad',
       'explore_mobilize_title': 'Explora y Movilízate',
+      'fediverse_title': 'Fediverse',
+      'fediverse_menu_desc':
+          'Flujo de seguidos, búsqueda de perfiles y listas de seguidores.',
+      'fediverse_feed_tab': 'Flujo',
+      'fediverse_profiles_tab': 'Perfiles',
+      'fediverse_profiles_title': 'Buscar perfiles del Fediverse',
+      'fediverse_profiles_subtitle':
+          'Busca personas, síguelas y consulta tu red.',
+      'fediverse_search_hint':
+          'Buscar un perfil o una dirección del Fediverse...',
+      'fediverse_search_results': 'Resultados',
+      'fediverse_search_helper':
+          'Introduce una dirección completa como @usuario@instancia.tld para encontrar una cuenta remota.',
+      'fediverse_feed_empty':
+          'Aún no hay publicaciones del Fediverse. Sigue cuentas remotas para llenar este flujo.',
+      'fediverse_following_empty':
+          'Todavía no sigues ninguna cuenta remota del Fediverse.',
+      'fediverse_followers_empty':
+          'Todavía no hay seguidores remotos del Fediverse.',
+      'fediverse_recent_posts': 'Publicaciones recientes',
+      'fediverse_no_posts': 'No se encontraron publicaciones remotas.',
+      'fediverse_local_identity': 'Tu identidad del Fediverse',
+      'fediverse_unfollow': 'Dejar de seguir',
+      'fediverse_error_load':
+          'No se pudieron cargar las funciones del Fediverse.',
+      'open': 'Abrir',
+      'profile': 'Perfil',
       'groups_desc': 'Únete a la lucha local y organízate.',
       'events_desc': 'Manifestaciones, asambleas y acciones.',
       'pages_desc': 'Sigue a colectivos y organizaciones.',
@@ -1800,8 +1873,7 @@ class LanguageService extends ValueNotifier<Locale> {
           'La cámara y el micrófono son necesarios para iniciar un live.',
       'live_error_missing_server_url':
           'URL del servidor LiveKit desconocida: completa el campo opcional, o compila con LIVEKIT_URL, o asegúrate de que la API devuelva el campo url.',
-      'live_local_participant_unavailable':
-          'Participante local no disponible.',
+      'live_local_participant_unavailable': 'Participante local no disponible.',
       'live_not_found_for_request': 'Live no encontrado para esta solicitud.',
       'live_user_not_found': 'Usuario no encontrado.',
       'live_join_request_rejected':
@@ -1812,8 +1884,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'live_guest_promotion_requires_media':
           'La cámara y el micrófono son necesarios para subir al live.',
       'live_guest_promoted': 'Ahora puedes subir al live.',
-      'live_moderator_assigned_self':
-          'Ahora eres moderador de este live.',
+      'live_moderator_assigned_self': 'Ahora eres moderador de este live.',
       'live_moderator_assigned_other': '{name} ahora es moderador.',
       'live_assign_moderator_error': 'No se pudo asignar el moderador',
       'live_chat_blocked_other': '{name} fue bloqueado del chat.',
@@ -1863,8 +1934,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'live_join_request_connecting': 'Conectando...',
       'live_join_request_cta': 'Solicitar subir',
       'live_guest_requests_title': 'Solicitudes para subir',
-      'notification_group_invite_missing':
-          'Invitación de grupo no encontrada.',
+      'notification_group_invite_missing': 'Invitación de grupo no encontrada.',
       'notification_group_invite_title': 'Invitación de grupo',
       'notification_group_invite_message':
           '{user} te invita a unirte a {group}.',
@@ -2025,6 +2095,7 @@ class LanguageService extends ValueNotifier<Locale> {
 
       // Additional translations
       'badge_updated': 'Insignia actualizada con éxito',
+      'technician_badge_tooltip': 'Técnico/a Militante',
       'group_created': 'Grupo creado con éxito',
       'new_group': 'Nuevo grupo',
       'create_group': 'Crear grupo',
@@ -2322,9 +2393,11 @@ class LanguageService extends ValueNotifier<Locale> {
       'mod_vote_against': 'En contra',
       'mod_vote_revoke': 'Revocar',
       'mod_confirm_delete_title': 'Eliminación directa',
-      'mod_confirm_delete_text': '¿Eliminar esta publicación de inmediato?\nEsta acción es irreversible.',
+      'mod_confirm_delete_text':
+          '¿Eliminar esta publicación de inmediato?\nEsta acción es irreversible.',
       'mod_confirm_warn_title': 'Advertir al usuario',
-      'mod_confirm_warn_text': '¿Enviar una advertencia oficial a este usuario?',
+      'mod_confirm_warn_text':
+          '¿Enviar una advertencia oficial a este usuario?',
 
       // Moderation additional keys
       'mod_already_moderator': '¡Ya eres moderador!',

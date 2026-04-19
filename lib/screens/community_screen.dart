@@ -5,6 +5,7 @@ import 'events_screen.dart';
 import 'pages_screen.dart';
 import 'moderation_screen.dart';
 import 'discovery_screen.dart';
+import 'fediverse_screen.dart';
 
 class CommunityScreen extends StatelessWidget {
   const CommunityScreen({super.key});
@@ -46,6 +47,16 @@ class CommunityScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+                _buildMenuCard(
+                  context,
+                  translate('fediverse_title'),
+                  translate('fediverse_menu_desc'),
+                  Icons.hub_outlined,
+                  const FediverseScreen(),
+                  Colors.teal[700]!,
+                  isDark,
+                ),
+                const SizedBox(height: 8),
                 _buildMenuCard(
                   context,
                   translate('discover'),
@@ -125,7 +136,7 @@ class CommunityScreen extends StatelessWidget {
     // Je vais tricher : si title correspond à 'Pages' (ou traduit), on force le noir.
 
     Color iconColor = accentColor;
-    Color iconBgColor = accentColor.withOpacity(0.15);
+    Color iconBgColor = accentColor.withValues(alpha: 0.15);
 
     // Special handling for Pages/Black Flag request
     if (title == 'Pages' || title == 'Páginas') {
@@ -143,8 +154,8 @@ class CommunityScreen extends StatelessWidget {
     final cardBg = isDark ? const Color(0xFF151515) : Colors.white;
     final borderColor = isDark ? Colors.white10 : Colors.grey[300]!;
     final shadowColor = isDark
-        ? Colors.black.withOpacity(0.4)
-        : Colors.grey.withOpacity(0.2);
+        ? Colors.black.withValues(alpha: 0.4)
+        : Colors.grey.withValues(alpha: 0.2);
 
     // Gradient only for dark mode to keep "premium" look, flat/clean for light mode
     final gradient = isDark
@@ -195,7 +206,11 @@ class CommunityScreen extends StatelessWidget {
                       color: iconBgColor,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(icon, size: isNarrow ? 20 : 24, color: iconColor),
+                    child: Icon(
+                      icon,
+                      size: isNarrow ? 20 : 24,
+                      color: iconColor,
+                    ),
                   ),
                   SizedBox(width: isNarrow ? 8 : 20),
                   Expanded(

@@ -953,7 +953,7 @@ class ApiService {
     required String title,
     String description = '',
     bool isPublic = true,
-    int maxGuests = 3,
+    int maxGuests = 8,
   }) async {
     final response = await http.post(
       Uri.parse('$apiUrl/v1/lives.php'),
@@ -998,7 +998,9 @@ class ApiService {
       headers: _headers,
     );
     if (response.statusCode != 200) {
-      throw Exception('Impossible de terminer le live (${response.statusCode})');
+      throw Exception(
+        'Impossible de terminer le live (${response.statusCode})',
+      );
     }
   }
 
@@ -1123,7 +1125,9 @@ class ApiService {
         data['success'] == true &&
         data['guests'] is List) {
       return List<Map<String, dynamic>>.from(
-        (data['guests'] as List).map((e) => Map<String, dynamic>.from(e as Map)),
+        (data['guests'] as List).map(
+          (e) => Map<String, dynamic>.from(e as Map),
+        ),
       );
     }
     return [];
@@ -1353,7 +1357,6 @@ class ApiService {
     }
   }
 
-
   /// Met à jour les champs du profil utilisateur (bio, statut, badge…)
   Future<Map<String, dynamic>> updateUserProfile({
     String? bio,
@@ -1436,6 +1439,192 @@ class ApiService {
     } else {
       throw Exception('Erreur lors du désabonnement');
     }
+  }
+
+  // === FEDIVERSE ===
+
+  Future<Map<String, dynamic>> getFediverseProfile({int? userId}) async {
+    final query = userId != null ? '&user_id=$userId' : '';
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/fediverse.php?action=profile$query'),
+      headers: _headers,
+    );
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return _decodeJsonMap(
+        response,
+        fallbackError: 'Erreur de chargement du profil Fediverse',
+      );
+    }
+
+    throw Exception(
+      _extractApiError(
+        response,
+        fallbackError: 'Erreur de chargement du profil Fediverse',
+      ),
+    );
+  }
+
+  Future<Map<String, dynamic>> getFediverseFeed({
+    int page = 1,
+    int perPage = 20,
+    bool refresh = false,
+  }) async {
+    final response = await http.get(
+      Uri.parse(
+        '$apiUrl/v1/fediverse.php?action=feed&page=$page&per_page=$perPage&refresh=${refresh ? 1 : 0}',
+      ),
+      headers: _headers,
+    );
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return _decodeJsonMap(
+        response,
+        fallbackError: 'Erreur de chargement du flux Fediverse',
+      );
+    }
+
+    throw Exception(
+      _extractApiError(
+        response,
+        fallbackError: 'Erreur de chargement du flux Fediverse',
+      ),
+    );
+  }
+
+  Future<Map<String, dynamic>> getFediverseConnections({
+    int? userId,
+    required String type,
+    int page = 1,
+    int perPage = 20,
+  }) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/fediverse.php').replace(
+        queryParameters: {
+          'action': type,
+          'page': '$page',
+          'per_page': '$perPage',
+          if (userId != null) 'user_id': '$userId',
+        },
+      ),
+      headers: _headers,
+    );
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return _decodeJsonMap(
+        response,
+        fallbackError: 'Erreur de chargement de la liste Fediverse',
+      );
+    }
+
+    throw Exception(
+      _extractApiError(
+        response,
+        fallbackError: 'Erreur de chargement de la liste Fediverse',
+      ),
+    );
+  }
+
+  Future<Map<String, dynamic>> searchRemoteFediverse(
+    String query, {
+    int page = 1,
+    int perPage = 20,
+  }) async {
+    final response = await http.get(
+      Uri.parse(
+        '$apiUrl/v1/fediverse.php?action=search_remote&q=${Uri.encodeComponent(query)}&page=$page&per_page=$perPage',
+      ),
+      headers: _headers,
+    );
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return _decodeJsonMap(
+        response,
+        fallbackError: 'Erreur de recherche Fediverse',
+      );
+    }
+
+    throw Exception(
+      _extractApiError(
+        response,
+        fallbackError: 'Erreur de recherche Fediverse',
+      ),
+    );
+  }
+
+  Future<Map<String, dynamic>> getRemoteFediverseProfile(
+    String query, {
+    bool includePosts = true,
+    int postsLimit = 20,
+  }) async {
+    final response = await http.get(
+      Uri.parse(
+        '$apiUrl/v1/fediverse.php?action=remote_profile&q=${Uri.encodeComponent(query)}&include_posts=${includePosts ? 1 : 0}&posts_limit=$postsLimit',
+      ),
+      headers: _headers,
+    );
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return _decodeJsonMap(
+        response,
+        fallbackError: 'Erreur de chargement du profil Fediverse',
+      );
+    }
+
+    throw Exception(
+      _extractApiError(
+        response,
+        fallbackError: 'Erreur de chargement du profil Fediverse',
+      ),
+    );
+  }
+
+  Future<Map<String, dynamic>> followRemoteFediverse(
+    String query, {
+    bool isActorUrl = false,
+  }) async {
+    final body = <String, dynamic>{isActorUrl ? 'actor_url' : 'handle': query};
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/fediverse.php?action=follow_remote'),
+      headers: _headers,
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return _decodeJsonMap(
+        response,
+        fallbackError: 'Erreur de suivi Fediverse',
+      );
+    }
+
+    throw Exception(
+      _extractApiError(response, fallbackError: 'Erreur de suivi Fediverse'),
+    );
+  }
+
+  Future<Map<String, dynamic>> unfollowRemoteFediverse(
+    String query, {
+    bool isActorUrl = false,
+  }) async {
+    final response = await http.delete(
+      Uri.parse('$apiUrl/v1/fediverse.php?action=unfollow_remote'),
+      headers: _headers,
+      body: jsonEncode({isActorUrl ? 'actor_url' : 'handle': query}),
+    );
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return _decodeJsonMap(
+        response,
+        fallbackError: 'Erreur de désabonnement Fediverse',
+      );
+    }
+
+    throw Exception(
+      _extractApiError(
+        response,
+        fallbackError: 'Erreur de désabonnement Fediverse',
+      ),
+    );
   }
 
   // === AMIS ===
@@ -3204,7 +3393,7 @@ class ApiService {
   }
 
   Future<void> deletePageComment(int commentId) async {
-    final response = await http.delete(
+    final response = await http.post(
       Uri.parse('$apiUrl/v1/pages.php'),
       headers: _headers,
       body: jsonEncode({'action': 'delete_comment', 'comment_id': commentId}),
@@ -3215,7 +3404,7 @@ class ApiService {
   }
 
   Future<void> updatePageComment(int commentId, String content) async {
-    final response = await http.put(
+    final response = await http.post(
       Uri.parse('$apiUrl/v1/pages.php'),
       headers: _headers,
       body: jsonEncode({
