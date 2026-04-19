@@ -42,6 +42,14 @@ Militant est un réseau social décentralisé conçu pour les mouvements militan
 - **Stories** : Partagez des moments éphémères (24h) avec prévisualisation vidéo.
 - **Lives (v1.0.6)** : Diffusions en direct avec modération communautaire et gestion des invités en temps réel.
 
+### Fediverse
+- **Espace Fediverse mobile** : onglets dédiés **Flux**, **Profils**, **Abonnements** et **Abonnés**.
+- **Recherche fédérée** : recherche de profils et d’adresses comme `@user@instance.tld`.
+- **Profils distants** : ouverture des profils Fediverse externes avec affichage des posts récents.
+- **Abonnements distants** : suivi et désabonnement de comptes ActivityPub/Mastodon depuis l’application.
+- **Flux distant** : consultation des contenus publiés par les comptes fédérés suivis.
+- **Identité locale** : affichage de l’identité Fediverse locale de l’utilisateur dans l’application.
+
 ### Modération & Sécurité
 - **Modération Démocratique** : Système révolutionnaire où les modérateurs sont élus par vote (70% consensus)
 - **Transparence** : Journal public de toutes les actions de modération
@@ -122,6 +130,22 @@ L’onglet **Live** s’appuie sur [LiveKit](https://livekit.io/) et offre une e
 - **Consensus de signalement** : Option de signalement communautaire ; si un seuil de votes est atteint, le live est automatiquement suspendu par sécurité.
 
 **Configuration technique (militant-api)** : configurez au minimum `LIVEKIT_URL`, `LIVEKIT_API_KEY` et `LIVEKIT_API_SECRET` pour que l’endpoint `POST …/v1/lives.php?path=token` puisse répondre.
+
+### Fediverse mobile
+
+L’application intègre désormais un espace **Fediverse** permettant de se connecter plus directement à l’écosystème ActivityPub.
+
+- **Recherche de comptes distants** : prise en charge des handles et profils fédérés.
+- **Abonnements / abonnés** : listes dédiées pour retrouver les comptes suivis et les abonnés Fediverse.
+- **Flux Fediverse** : lecture des contenus distants synchronisés par l’API.
+- **Profils distants** : affichage des avatars, bios, handles et posts récents.
+
+**Côté API (`militant-api`)**, cela suppose l’activation des endpoints Fediverse mobiles, notamment pour :
+- la recherche distante
+- le suivi / désabonnement de comptes externes
+- la récupération des listes `followers` / `following`
+- l’exposition du `feed` Fediverse
+- la résolution des profils distants
 
 ### Badges militants (exclusif mobile)
 
@@ -251,6 +275,5 @@ Pour toute question ou problème :
 - Ouvrir une issue sur GitLab
 - Contacter l'équipe de développement
 - Consulter la documentation
-
 
 
