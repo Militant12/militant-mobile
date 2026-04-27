@@ -46,12 +46,18 @@ class ProfileScreenState extends State<ProfileScreen>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
-      setState(() => _selectedTab = _tabController.index);
+      _safeSetState(() => _selectedTab = _tabController.index);
     });
     _loadProfile();
   }
 
   String? _avatarUrl;
+
+  void _safeSetState(VoidCallback fn) {
+    if (mounted) {
+      setState(fn);
+    }
+  }
 
   // Public method to refresh profile from outside
   void refreshProfile() {
@@ -60,16 +66,22 @@ class ProfileScreenState extends State<ProfileScreen>
     }
   }
 
+  Future<void> _reloadProfileIfMounted() async {
+    if (!mounted) return;
+    await _loadProfile();
+    _safeSetState(() {});
+  }
+
   Future<void> _loadProfile() async {
     final lang = LanguageService.instance;
-    setState(() => _isLoading = true);
+    _safeSetState(() => _isLoading = true);
     try {
       final api = await ApiService.getInstance();
       final myProfile = await api.getProfile();
 
       final profile = await api.getProfile(userId: widget.userId);
 
-      setState(() {
+      _safeSetState(() {
         _profile = profile;
         _isMe = widget.userId == null || widget.userId == myProfile['id'];
         _isFollowing =
@@ -101,13 +113,13 @@ class ProfileScreenState extends State<ProfileScreen>
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      _safeSetState(() => _isLoading = false);
     }
   }
 
   Future<void> _loadUserPosts(int userId) async {
     final lang = LanguageService.instance;
-    setState(() => _isLoadingPosts = true);
+    _safeSetState(() => _isLoadingPosts = true);
     try {
       final api = await ApiService.getInstance();
 
@@ -125,7 +137,7 @@ class ProfileScreenState extends State<ProfileScreen>
         page++;
       } while (page <= 50); // Safety limit
 
-      setState(() {
+      _safeSetState(() {
         _posts.clear();
         _posts.addAll(allPosts.map((p) => Post.fromJson(p)).toList());
       });
@@ -140,7 +152,7 @@ class ProfileScreenState extends State<ProfileScreen>
         );
       }
     } finally {
-      setState(() => _isLoadingPosts = false);
+      _safeSetState(() => _isLoadingPosts = false);
     }
   }
 
@@ -152,7 +164,7 @@ class ProfileScreenState extends State<ProfileScreen>
       final result = await api.sendFriendRequest(
         widget.userId ?? _profile!['id'],
       );
-      setState(() => _sentRequestId = result['request_id']);
+      _safeSetState(() => _sentRequestId = result['request_id']);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(lang.translate('friend_request_sent'))),
@@ -177,7 +189,7 @@ class ProfileScreenState extends State<ProfileScreen>
       final api = await ApiService.getInstance();
       if (_receivedRequestId != null) {
         await api.handleFriendRequest(_receivedRequestId!, 'accept');
-        setState(() {
+        _safeSetState(() {
           _isFriend = true;
           _receivedRequestId = null;
         });
@@ -233,7 +245,7 @@ class ProfileScreenState extends State<ProfileScreen>
       try {
         final api = await ApiService.getInstance();
         await api.unfriend(widget.userId ?? _profile!['id']);
-        setState(() => _isFriend = false);
+        _safeSetState(() => _isFriend = false);
         _loadProfile();
       } catch (e) {
         if (mounted) {
@@ -255,7 +267,7 @@ class ProfileScreenState extends State<ProfileScreen>
       final api = await ApiService.getInstance();
       if (_receivedRequestId != null) {
         await api.handleFriendRequest(_receivedRequestId!, 'reject');
-        setState(() {
+        _safeSetState(() {
           _receivedRequestId = null;
         });
       }
@@ -280,14 +292,14 @@ class ProfileScreenState extends State<ProfileScreen>
       final api = await ApiService.getInstance();
       if (_isFollowing) {
         await api.unfollowUser(widget.userId ?? _profile!['id']);
-        setState(() {
+        _safeSetState(() {
           _isFollowing = false;
           _profile!['followers_count'] =
               (_profile!['followers_count'] ?? 1) - 1;
         });
       } else {
         await api.followUser(widget.userId ?? _profile!['id']);
-        setState(() {
+        _safeSetState(() {
           _isFollowing = true;
           _profile!['followers_count'] =
               (_profile!['followers_count'] ?? 0) + 1;
@@ -596,8 +608,7 @@ class ProfileScreenState extends State<ProfileScreen>
                   MaterialPageRoute(builder: (_) => const EditProfileScreen()),
                 );
                 if (result == true && mounted) {
-                  await _loadProfile();
-                  setState(() {});
+                  await _reloadProfileIfMounted();
                 }
               },
             ),
@@ -611,8 +622,7 @@ class ProfileScreenState extends State<ProfileScreen>
                 );
                 // Refresh profile after returning from settings
                 if (mounted) {
-                  await _loadProfile();
-                  setState(() {});
+                  await _reloadProfileIfMounted();
                 }
               },
             ),
@@ -872,7 +882,7 @@ class ProfileScreenState extends State<ProfileScreen>
                   return PostCard(
                     post: _posts[index],
                     onDeleted: () {
-                      setState(() => _posts.removeAt(index));
+                      _safeSetState(() => _posts.removeAt(index));
                     },
                   );
                 }),

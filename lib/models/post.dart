@@ -11,6 +11,7 @@ class Post {
   final String content;
   final List<String> mediaUrls;
   final String? mediaType; // 'image' ou 'video'
+  final String? thumbnailUrl;
   final int likesCount;
   final int commentsCount;
   final int sharesCount;
@@ -34,6 +35,7 @@ class Post {
     required this.content,
     required this.mediaUrls,
     this.mediaType,
+    this.thumbnailUrl,
     required this.likesCount,
     required this.commentsCount,
     required this.sharesCount,
@@ -79,6 +81,12 @@ class Post {
       content: json['content'] ?? '',
       mediaUrls: mediaList,
       mediaType: json['media_type'],
+      thumbnailUrl: (json['thumbnail_url'] ??
+              json['media_thumbnail'] ??
+              json['media_thumb'] ??
+              json['preview_image'] ??
+              json['media_preview'])
+          ?.toString(),
       likesCount: json['likes_count'] ?? 0,
       commentsCount: json['comments_count'] ?? 0,
       sharesCount: json['shares_count'] ?? 0,

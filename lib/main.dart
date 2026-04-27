@@ -27,10 +27,19 @@ void main() async {
     OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
   }
 
-  // Register FVP with options to handle more formats and network streams better
-  fvp.registerWith(
-    options: {'hwdec': 'auto', 'network-timeout': '10', 'ytdl-format': 'best'},
-  );
+  // FVP is useful for desktop playback, but Android already has a native
+  // backend for video_player and early registration here can destabilize
+  // startup on the emulator before the debug service is attached.
+  if (!kIsWeb &&
+      (Platform.isLinux || Platform.isWindows || Platform.isMacOS)) {
+    fvp.registerWith(
+      options: {
+        'hwdec': 'auto',
+        'network-timeout': '10',
+        'ytdl-format': 'best',
+      },
+    );
+  }
   await ThemeManager.instance.loadTheme();
   await LanguageService.instance.loadLanguage();
   runApp(const MilitantApp());
@@ -206,6 +215,9 @@ class _SplashScreenState extends State<SplashScreen>
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          IncomingCallService.instance.flushPendingAndroidIncomingIntent();
+        });
       } else {
         print(
           '=== SPLASH: Pas de token ou base_url, navigation vers LoginScreen ===',

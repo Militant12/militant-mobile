@@ -11,8 +11,13 @@ import '../widgets/audio_recorder_widget.dart';
 import '../utils/date_formatter.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
+import 'call_screen.dart';
 import '../widgets/linkable_text.dart';
 import '../widgets/incoming_call_banner.dart';
+import '../widgets/signal_typing_indicator.dart';
+
+const Duration _privateChatPollInterval = Duration(seconds: 10);
+const Duration _privateTypingPollInterval = Duration(seconds: 6);
 
 class ChatScreen extends StatefulWidget {
   final int userId;
@@ -36,17 +41,25 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isLoading = false;
   bool _isSending = false;
   bool _isRecording = false;
+  bool _isRefreshing = false;
+  bool _isTypingSent = false;
   Map<String, dynamic>? _currentUser;
   ApiService? _api;
   StreamSubscription<IncomingCallData?>? _callEndSub;
+  Timer? _pollTimer;
+  Timer? _typingPollTimer;
+  Timer? _typingIdleTimer;
+  DateTime? _lastTypingHeartbeatAt;
+  List<Map<String, dynamic>> _typingUsers = [];
+  int _autoDeleteTime = 0;
 
   @override
   void initState() {
     super.initState();
-    _messageController.addListener(() {
-      setState(() {}); // Rebuild pour afficher/cacher le bouton micro
-    });
-    _loadMessages();
+    _messageController.addListener(_handleMessageChanged);
+    _loadConversationDetails();
+    _loadMessages(showLoader: true);
+    _startPolling();
     // Rafraîchir le chat quand un appel se termine (pour afficher le message système)
     _callEndSub = IncomingCallController.instance.stream.listen((event) {
       if (event == null && mounted) {
@@ -58,29 +71,74 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  Future<void> _loadMessages() async {
-    setState(() => _isLoading = true);
+  Future<void> _loadConversationDetails() async {
     try {
-      _api = await ApiService.getInstance();
-      _currentUser = await _api!.getProfile();
+      _api ??= await ApiService.getInstance();
+      final details = await _api!.getPrivateConversationDetails(widget.userId);
+      if (!mounted) return;
+      setState(() {
+        _autoDeleteTime =
+            int.tryParse('${details['auto_delete_time'] ?? 0}') ?? 0;
+      });
+    } catch (_) {
+      // Non bloquant: l'option reste masquée si l'API ne répond pas.
+    }
+  }
+
+  void _startPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(_privateChatPollInterval, (_) {
+      _loadMessages();
+    });
+
+    _typingPollTimer?.cancel();
+    _typingPollTimer = Timer.periodic(_privateTypingPollInterval, (_) {
+      _refreshTypingUsers();
+    });
+  }
+
+  void _handleMessageChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+    _syncTypingState();
+  }
+
+  Future<void> _loadMessages({bool showLoader = false}) async {
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+
+    if (showLoader && mounted) {
+      setState(() => _isLoading = true);
+    }
+
+    try {
+      _api ??= await ApiService.getInstance();
+      _currentUser ??= await _api!.getProfile();
       final messages = await _api!.getMessages(userId: widget.userId);
+      final typingUsers = await _api!.getPrivateTypingUsers(widget.userId);
+      if (!mounted) return;
       setState(() {
         _messages.clear();
         _messages.addAll(
           messages,
         ); // API returns newest first, correct for ListView(reverse:true)
+        _typingUsers = typingUsers;
       });
     } catch (e) {
-      if (mounted) {
+      if (mounted && showLoader) {
         final lang = LanguageService.instance;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(
-          SnackBar(content: Text('${lang.translate('error')}: ${e.toString()}')),
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${lang.translate('error')}: ${e.toString()}'),
+          ),
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      _isRefreshing = false;
+      if (showLoader && mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -107,6 +165,7 @@ class _ChatScreenState extends State<ChatScreen> {
       ); // Add at the beginning (bottom of the UI)
     });
     _messageController.clear();
+    unawaited(_setTyping(false, force: true));
 
     try {
       final api = await ApiService.getInstance();
@@ -118,15 +177,228 @@ class _ChatScreenState extends State<ChatScreen> {
       });
       if (mounted) {
         final lang = LanguageService.instance;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(
-          SnackBar(content: Text('${lang.translate('error')}: ${e.toString()}')),
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${lang.translate('error')}: ${e.toString()}'),
+          ),
         );
       }
     } finally {
       setState(() => _isSending = false);
     }
+  }
+
+  void _syncTypingState() {
+    final hasText = _messageController.text.trim().isNotEmpty;
+
+    if (!hasText) {
+      _typingIdleTimer?.cancel();
+      unawaited(_setTyping(false, force: true));
+      return;
+    }
+
+    final lastHeartbeat = _lastTypingHeartbeatAt;
+    if (!_isTypingSent ||
+        lastHeartbeat == null ||
+        DateTime.now().difference(lastHeartbeat) >=
+            const Duration(seconds: 4)) {
+      unawaited(_setTyping(true));
+    }
+
+    _typingIdleTimer?.cancel();
+    _typingIdleTimer = Timer(const Duration(seconds: 2), () {
+      unawaited(_setTyping(false, force: true));
+    });
+  }
+
+  Future<void> _setTyping(bool isTyping, {bool force = false}) async {
+    if (!force && _isTypingSent == isTyping) {
+      return;
+    }
+
+    try {
+      _api ??= await ApiService.getInstance();
+      await _api!.setPrivateTyping(widget.userId, isTyping);
+      _isTypingSent = isTyping;
+      _lastTypingHeartbeatAt = isTyping ? DateTime.now() : null;
+    } catch (_) {
+      // Non bloquant: le typing ne doit pas casser le chat.
+    }
+  }
+
+  Future<void> _refreshTypingUsers() async {
+    if (_isRefreshing || !mounted) return;
+
+    try {
+      _api ??= await ApiService.getInstance();
+      final typingUsers = await _api!.getPrivateTypingUsers(widget.userId);
+      if (!mounted) return;
+      setState(() {
+        _typingUsers = typingUsers;
+      });
+    } catch (_) {
+      // Non bloquant: le typing ne doit pas casser le chat.
+    }
+  }
+
+  String? _buildTypingText() {
+    if (_typingUsers.isEmpty) return null;
+    final lang = LanguageService.instance;
+    final username = (_typingUsers.first['username'] ?? widget.username)
+        .toString()
+        .trim();
+    if (username.isEmpty) {
+      return lang.translate('typing_someone');
+    }
+    return lang.translate('typing_single').replaceAll('{username}', username);
+  }
+
+  Widget _buildTypingIndicator() {
+    final text = _buildTypingText();
+    if (text == null) {
+      return const SizedBox.shrink();
+    }
+    return SignalTypingIndicator(text: text);
+  }
+
+  String _autoDeleteSubtitle() {
+    final lang = LanguageService.instance;
+    final disabled = lang.translate('disabled');
+    final template = lang.translate('ephemeral_delete_after');
+
+    if (_autoDeleteTime <= 0) {
+      return disabled;
+    }
+    if (_autoDeleteTime == 1) {
+      return template.replaceAll(
+        '{duration}',
+        lang.translate('duration_1_minute'),
+      );
+    }
+    if (_autoDeleteTime == 5) {
+      return template.replaceAll(
+        '{duration}',
+        lang.translate('duration_5_minutes'),
+      );
+    }
+    if (_autoDeleteTime < 60) {
+      return template.replaceAll('{duration}', '$_autoDeleteTime minutes');
+    }
+    if (_autoDeleteTime == 60) {
+      return template.replaceAll('{duration}', lang.translate('duration_1_hour'));
+    }
+    if (_autoDeleteTime == 1440) {
+      return template.replaceAll(
+        '{duration}',
+        lang.translate('duration_24_hours'),
+      );
+    }
+    if (_autoDeleteTime == 10080) {
+      return template.replaceAll('{duration}', lang.translate('duration_1_week'));
+    }
+    return template.replaceAll('{duration}', '$_autoDeleteTime min');
+  }
+
+  Future<void> _showConversationSettings() async {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final selected = await showDialog<int>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        title: Text(LanguageService.instance.translate('ephemeral_messages')),
+        children: [
+          _timeOption(0, LanguageService.instance.translate('disabled')),
+          _timeOption(1, LanguageService.instance.translate('duration_1_minute')),
+          _timeOption(
+            5,
+            LanguageService.instance.translate('duration_5_minutes'),
+          ),
+          _timeOption(60, LanguageService.instance.translate('duration_1_hour')),
+          _timeOption(
+            1440,
+            LanguageService.instance.translate('duration_24_hours'),
+          ),
+          _timeOption(
+            10080,
+            LanguageService.instance.translate('duration_1_week'),
+          ),
+        ],
+      ),
+    );
+
+    if (selected == null || selected == _autoDeleteTime) {
+      return;
+    }
+
+    try {
+      _api ??= await ApiService.getInstance();
+      final result = await _api!.updatePrivateConversationSettings(
+        widget.userId,
+        autoDeleteTime: selected,
+      );
+      if (!mounted) return;
+      setState(() {
+        _autoDeleteTime = int.tryParse(
+              '${result['conversation']?['auto_delete_time'] ?? selected}',
+            ) ??
+            selected;
+      });
+      await _loadMessages();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_autoDeleteSubtitle())),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+    }
+  }
+
+  Widget _timeOption(int value, String label) {
+    return SimpleDialogOption(
+      onPressed: () => Navigator.pop(context, value),
+      child: Row(
+        children: [
+          Icon(
+            _autoDeleteTime == value ? Icons.radio_button_checked : Icons.radio_button_off,
+            size: 20,
+            color: const Color(0xFFBE1E1E),
+          ),
+          const SizedBox(width: 12),
+          Text(label),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAutoDeleteBanner() {
+    if (_autoDeleteTime <= 0) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      color: const Color(0xFFBE1E1E).withValues(alpha: 0.10),
+      child: Row(
+        children: [
+          const Icon(Icons.timer_outlined, size: 18, color: Color(0xFFBE1E1E)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              _autoDeleteSubtitle(),
+              style: const TextStyle(
+                color: Color(0xFFBE1E1E),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -148,7 +420,6 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         ),
         actions: [
-          /* Boutons d'appels temporairement désactivés
           // Bouton appel audio
           IconButton(
             icon: const Icon(Icons.call),
@@ -170,6 +441,7 @@ class _ChatScreenState extends State<ChatScreen> {
             },
             tooltip: LanguageService.instance.translate('call_audio'),
           ),
+
           // Bouton appel vidéo
           IconButton(
             icon: const Icon(Icons.videocam),
@@ -191,13 +463,32 @@ class _ChatScreenState extends State<ChatScreen> {
             },
             tooltip: LanguageService.instance.translate('call_video'),
           ),
-          */
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'ephemeral') {
+                _showConversationSettings();
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem<String>(
+                value: 'ephemeral',
+                child: Row(
+                  children: [
+                    const Icon(Icons.timer_outlined),
+                    const SizedBox(width: 12),
+                    Text(LanguageService.instance.translate('ephemeral_messages')),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ],
       ),
       body: Stack(
         children: [
           Column(
             children: [
+              _buildAutoDeleteBanner(),
               Expanded(
                 child: _isLoading
                     ? const Center(
@@ -223,6 +514,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         },
                       ),
               ),
+              _buildTypingIndicator(),
               _buildMessageInput(),
             ],
           ),
@@ -347,9 +639,11 @@ class _ChatScreenState extends State<ChatScreen> {
                     await api.deleteMessage(message['id']);
                     _loadMessages();
                   } catch (e) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text(e.toString())));
+                    if (mounted) {
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(e.toString())));
+                    }
                   }
                 }
               },
@@ -374,7 +668,7 @@ class _ChatScreenState extends State<ChatScreen> {
         content: TextField(
           controller: controller,
           style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(border: OutlineInputBorder()),
+          decoration: InputDecoration(border: OutlineInputBorder()),
           maxLines: null,
         ),
         actions: [
@@ -401,9 +695,11 @@ class _ChatScreenState extends State<ChatScreen> {
         await api.editMessage(message['id'], newContent);
         _loadMessages();
       } catch (e) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.toString())));
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(e.toString())));
+        }
       }
     }
   }
@@ -497,7 +793,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             Icon(
                               Icons.translate,
                               size: 14,
-                              color: textColor.withOpacity(0.7),
+                              color: textColor.withValues(alpha: 0.7),
                             ),
                             const SizedBox(width: 4),
                             Text(
@@ -505,7 +801,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   ? lang.translate('original_label')
                                   : lang.translate('translate_action'),
                               style: TextStyle(
-                                color: textColor.withOpacity(0.7),
+                                color: textColor.withValues(alpha: 0.7),
                                 fontSize: 11,
                               ),
                             ),
@@ -523,7 +819,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     Text(
                       '${lang.translate('edited_label')} ',
                       style: TextStyle(
-                        color: textColor.withOpacity(0.5),
+                        color: textColor.withValues(alpha: 0.5),
                         fontSize: 9,
                         fontStyle: FontStyle.italic,
                       ),
@@ -531,7 +827,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   Text(
                     _formatTime(createdAt),
                     style: TextStyle(
-                      color: textColor.withOpacity(0.7),
+                      color: textColor.withValues(alpha: 0.7),
                       fontSize: 11,
                     ),
                   ),
@@ -570,9 +866,7 @@ class _ChatScreenState extends State<ChatScreen> {
       } catch (e) {
         if (mounted) {
           final lang = LanguageService.instance;
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('${lang.translate('error_translation')}: $e'),
             ),
@@ -683,10 +977,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
     return Container(
       padding: EdgeInsets.only(
-        left: 16,
+        left: 12,
         right: 8,
-        top: 8,
-        bottom: 8 + MediaQuery.of(context).viewInsets.bottom,
+        top: 6,
+        bottom: 6 + MediaQuery.of(context).viewInsets.bottom,
       ),
       decoration: BoxDecoration(
         color: theme.cardColor,
@@ -699,15 +993,32 @@ class _ChatScreenState extends State<ChatScreen> {
             onPressed: _pickMedia,
           ),
           Expanded(
-            child: TextField(
-              controller: _messageController,
-              style: TextStyle(color: theme.textTheme.bodyLarge?.color),
-              decoration: InputDecoration(
-                hintText: lang.translate('message_hint'),
-                hintStyle: TextStyle(color: theme.hintColor),
-                border: InputBorder.none,
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 42, maxHeight: 120),
+              decoration: BoxDecoration(
+                color: theme.inputDecorationTheme.fillColor ??
+                    theme.colorScheme.surfaceContainerHighest.withValues(
+                      alpha: 0.55,
+                    ),
+                borderRadius: BorderRadius.circular(22),
               ),
-              maxLines: null,
+              child: TextField(
+                controller: _messageController,
+                style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+                textAlignVertical: TextAlignVertical.center,
+                minLines: 1,
+                maxLines: 5,
+                decoration: InputDecoration(
+                  hintText: lang.translate('message_hint'),
+                  hintStyle: TextStyle(color: theme.hintColor),
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 11,
+                  ),
+                ),
+              ),
             ),
           ),
           if (_messageController.text.trim().isEmpty)
@@ -798,7 +1109,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     content: TextField(
                       controller: controller,
                       style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText: 'https://...',
                         hintStyle: TextStyle(color: Colors.white38),
                       ),
@@ -833,7 +1144,8 @@ class _ChatScreenState extends State<ChatScreen> {
       if (picked != null) {
         final mediaFile = File(picked.path);
         final lower = picked.path.toLowerCase();
-        final isVideo = lower.endsWith('.mp4') ||
+        final isVideo =
+            lower.endsWith('.mp4') ||
             lower.endsWith('.mov') ||
             lower.endsWith('.webm') ||
             lower.endsWith('.ogg') ||
@@ -944,7 +1256,12 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    _pollTimer?.cancel();
+    _typingPollTimer?.cancel();
+    _typingIdleTimer?.cancel();
+    unawaited(_setTyping(false, force: true));
     _callEndSub?.cancel();
+    _messageController.removeListener(_handleMessageChanged);
     _messageController.dispose();
     super.dispose();
   }

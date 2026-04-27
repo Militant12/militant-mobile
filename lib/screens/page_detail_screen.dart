@@ -77,6 +77,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
   }
 
   Future<void> _launchUrl(String url) async {
+    final lang = LanguageService.instance;
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       url = 'https://$url';
     }
@@ -86,7 +87,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Impossible d\'ouvrir le lien : $url')),
+          SnackBar(
+            content: Text('${lang.translate('page_open_link_error')} : $url'),
+          ),
         );
       }
     }
@@ -183,6 +186,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
   }
 
   Future<void> _toggleFollow() async {
+    final lang = LanguageService.instance;
     try {
       final api = await ApiService.getInstance();
       if (_isFollowed) {
@@ -190,7 +194,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
         setState(() => _isFollowed = false);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Vous ne suivez plus cette page')),
+            SnackBar(content: Text(lang.translate('page_unfollowed'))),
           );
         }
       } else {
@@ -200,7 +204,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Vous suivez ${_pageDetail?['name'] ?? 'cette page'}',
+                '${lang.translate('following_page')} ${_pageDetail?['name'] ?? lang.translate('pages_title')}',
               ),
             ),
           );
@@ -211,19 +215,24 @@ class _PageDetailScreenState extends State<PageDetailScreen>
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(
+          SnackBar(
+            content: Text('${lang.translate('error')}: ${e.toString()}'),
+          ),
+        );
       }
     }
   }
 
   Future<void> _pickMedia() async {
+    final lang = LanguageService.instance;
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Theme.of(context).brightness == Brightness.dark
             ? const Color(0xFF1E1E1E)
             : Colors.white,
-        title: const Text('Choisir un média'),
+        title: Text(lang.translate('choose_media')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -232,7 +241,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 Icons.photo_library,
                 color: Color(0xFFBE1E1E),
               ),
-              title: const Text('Image de la galerie'),
+              title: Text(lang.translate('image_from_gallery')),
               onTap: () => Navigator.pop(context, {
                 'source': ImageSource.gallery,
                 'isVideo': false,
@@ -240,7 +249,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             ),
             ListTile(
               leading: const Icon(Icons.videocam, color: Color(0xFFBE1E1E)),
-              title: const Text('Vidéo de la galerie'),
+              title: Text(lang.translate('video_from_gallery')),
               onTap: () => Navigator.pop(context, {
                 'source': ImageSource.gallery,
                 'isVideo': true,
@@ -248,7 +257,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt, color: Color(0xFFBE1E1E)),
-              title: const Text('Prendre une photo'),
+              title: Text(lang.translate('take_photo')),
               onTap: () => Navigator.pop(context, {
                 'source': ImageSource.camera,
                 'isVideo': false,
@@ -259,7 +268,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 Icons.videocam_outlined,
                 color: Color(0xFFBE1E1E),
               ),
-              title: const Text('Filmer une vidéo'),
+              title: Text(lang.translate('record_video')),
               onTap: () => Navigator.pop(context, {
                 'source': ImageSource.camera,
                 'isVideo': true,
@@ -285,13 +294,18 @@ class _PageDetailScreenState extends State<PageDetailScreen>
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+          ).showSnackBar(
+            SnackBar(
+              content: Text('${lang.translate('error')}: ${e.toString()}'),
+            ),
+          );
         }
       }
     }
   }
 
   Future<void> _createPost() async {
+    final lang = LanguageService.instance;
     final content = _postController.text.trim();
     if (content.isEmpty && _mediaFile == null) return;
 
@@ -322,13 +336,19 @@ class _PageDetailScreenState extends State<PageDetailScreen>
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Publication ajoutée !')));
+        ).showSnackBar(
+          SnackBar(content: Text(lang.translate('post_added'))),
+        );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(
+          SnackBar(
+            content: Text('${lang.translate('error')}: ${e.toString()}'),
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _isUploading = false);
@@ -336,20 +356,21 @@ class _PageDetailScreenState extends State<PageDetailScreen>
   }
 
   Future<void> _deletePost(dynamic post) async {
+    final lang = LanguageService.instance;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Supprimer la publication ?'),
-        content: const Text('Cette action est irréversible.'),
+        title: Text(lang.translate('delete_post_question')),
+        content: Text(lang.translate('action_irreversible')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler'),
+            child: Text(lang.translate('cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Supprimer'),
+            child: Text(lang.translate('delete')),
           ),
         ],
       ),
@@ -361,37 +382,42 @@ class _PageDetailScreenState extends State<PageDetailScreen>
         _loadPosts();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Publication supprimée')),
+            SnackBar(content: Text(lang.translate('post_deleted'))),
           );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+          ).showSnackBar(
+            SnackBar(
+              content: Text('${lang.translate('error')}: ${e.toString()}'),
+            ),
+          );
         }
       }
     }
   }
 
   Future<void> _editPost(dynamic post) async {
+    final lang = LanguageService.instance;
     final controller = TextEditingController(text: post['content']);
     final newContent = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Modifier la publication'),
+        title: Text(lang.translate('edit_post_title')),
         content: TextField(
           controller: controller,
           maxLines: 5,
-          decoration: const InputDecoration(
-            hintText: 'Contenu de la publication...',
+          decoration: InputDecoration(
+            hintText: lang.translate('post_content_hint'),
             border: OutlineInputBorder(),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(lang.translate('cancel')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
@@ -399,7 +425,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               backgroundColor: const Color(0xFFBE1E1E),
               foregroundColor: Colors.white,
             ),
-            child: const Text('Enregistrer'),
+            child: Text(lang.translate('save')),
           ),
         ],
       ),
@@ -412,13 +438,19 @@ class _PageDetailScreenState extends State<PageDetailScreen>
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text('Publication modifiée')));
+          ).showSnackBar(
+            SnackBar(content: Text(lang.translate('post_updated'))),
+          );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+          ).showSnackBar(
+            SnackBar(
+              content: Text('${lang.translate('error')}: ${e.toString()}'),
+            ),
+          );
         }
       }
     }
@@ -483,6 +515,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
   }
 
   Future<void> _saveSettings() async {
+    final lang = LanguageService.instance;
     setState(() => _isUploading = true);
     try {
       final settings = {
@@ -527,7 +560,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Paramètres enregistrés !')),
+          SnackBar(content: Text(lang.translate('settings_saved'))),
         );
       }
       _loadPageDetail();
@@ -535,7 +568,11 @@ class _PageDetailScreenState extends State<PageDetailScreen>
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(
+          SnackBar(
+            content: Text('${lang.translate('error')}: ${e.toString()}'),
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _isUploading = false);
@@ -573,7 +610,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                       : Colors.black,
                 ),
                 decoration: InputDecoration(
-                  labelText: "Nom d'utilisateur",
+                  labelText: lang.translate('username_label'),
                   labelStyle: TextStyle(
                     color: Theme.of(context).brightness == Brightness.dark
                         ? Colors.white54
@@ -600,11 +637,14 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                       ? Colors.white
                       : Colors.black,
                 ),
-                items: const [
-                  DropdownMenuItem(value: 'admin', child: Text('Admin (tout)')),
+                items: [
+                  DropdownMenuItem(
+                    value: 'admin',
+                    child: Text(lang.translate('page_team_role_admin')),
+                  ),
                   DropdownMenuItem(
                     value: 'editor',
-                    child: Text('Éditeur (publier)'),
+                    child: Text(lang.translate('page_team_role_editor')),
                   ),
                 ],
                 onChanged: (val) => setDialogState(() => role = val!),
@@ -624,7 +664,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
+              child: Text(lang.translate('cancel')),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -639,13 +679,17 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                   _loadTeam();
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Membre ajouté !')),
+                      SnackBar(content: Text(lang.translate('member_added'))),
                     );
                   }
                 } catch (e) {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Erreur: ${e.toString()}')),
+                      SnackBar(
+                        content: Text(
+                          '${lang.translate('error')}: ${e.toString()}',
+                        ),
+                      ),
                     );
                   }
                 }
@@ -799,7 +843,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                   ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  '$followersCount abonné${followersCount > 1 ? 's' : ''}',
+                                  '$followersCount ${followersCount > 1 ? lang.translate('followers_count_plural') : lang.translate('followers_count')}',
                                   style: TextStyle(
                                     color: isDark
                                         ? const Color(0xFF888888)
@@ -823,8 +867,8 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                             color: const Color(0xFFBE1E1E),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Text(
-                            'Admin',
+                          child: Text(
+                            lang.translate('admin_badge'),
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 12,
@@ -852,7 +896,11 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                               borderRadius: BorderRadius.circular(20),
                             ),
                           ),
-                          child: Text(_isFollowed ? 'Abonné' : 'Suivre'),
+                          child: Text(
+                            _isFollowed
+                                ? lang.translate('subscribed')
+                                : lang.translate('follow_button'),
+                          ),
                         ),
                     ],
                   ),
@@ -1116,7 +1164,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                       color: isDark ? Colors.white : Colors.black,
                     ),
                     decoration: InputDecoration(
-                      hintText: 'Quoi de neuf ?...',
+                      hintText: lang.translate('post_content_hint'),
                       hintStyle: TextStyle(
                         color: isDark ? Colors.white38 : Colors.grey,
                       ),
@@ -1200,7 +1248,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                           Icons.image,
                           color: isDark ? Colors.white54 : Colors.grey[600],
                         ),
-                        tooltip: 'Image rapide',
+                        tooltip: lang.translate('quick_image'),
                       ),
                       const Spacer(),
                       ElevatedButton.icon(
@@ -1215,7 +1263,11 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                 ),
                               )
                             : const Icon(Icons.send, size: 16),
-                        label: Text(_isUploading ? 'Envoi...' : 'Publier'),
+                        label: Text(
+                          _isUploading
+                              ? lang.translate('publishing')
+                              : lang.translate('publish'),
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFBE1E1E),
                           foregroundColor: Colors.white,
@@ -1247,7 +1299,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Aucune publication',
+                      lang.translate('no_posts_message'),
                       style: TextStyle(
                         color: isDark
                             ? const Color(0xFF888888)
@@ -1328,25 +1380,29 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                       color: isDark ? Colors.white54 : Colors.grey,
                     ),
                     itemBuilder: (context) => [
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'edit',
                         child: Row(
                           children: [
-                            Icon(Icons.edit, size: 18),
-                            SizedBox(width: 8),
-                            Text('Modifier'),
+                            const Icon(Icons.edit, size: 18),
+                            const SizedBox(width: 8),
+                            Text(LanguageService.instance.translate('edit')),
                           ],
                         ),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete, color: Colors.red, size: 18),
-                            SizedBox(width: 8),
+                            const Icon(
+                              Icons.delete,
+                              color: Colors.red,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
                             Text(
-                              'Supprimer',
-                              style: TextStyle(color: Colors.red),
+                              LanguageService.instance.translate('delete'),
+                              style: const TextStyle(color: Colors.red),
                             ),
                           ],
                         ),
@@ -1635,7 +1691,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(ctx, false),
-                            child: const Text('Annuler'),
+                            child: Text(lang.translate('cancel')),
                           ),
                           TextButton(
                             onPressed: () => Navigator.pop(ctx, true),
@@ -1797,7 +1853,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(ctx, false),
-                                child: const Text('Annuler'),
+                                child: Text(lang.translate('cancel')),
                               ),
                               TextButton(
                                 onPressed: () => Navigator.pop(ctx, true),
@@ -2145,9 +2201,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             dropdownColor: isDark ? const Color(0xFF2A2A2A) : Colors.white,
             style: TextStyle(color: isDark ? Colors.white : Colors.black),
             items: [
-              const DropdownMenuItem(
+              DropdownMenuItem(
                 value: 'public',
-                child: Text('Publique - Tout le monde peut voir'),
+                child: Text(lang.translate('page_public_everyone')),
               ),
               DropdownMenuItem(
                 value: 'private',
@@ -2227,7 +2283,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             child: ElevatedButton.icon(
               onPressed: _saveSettings,
               icon: const Icon(Icons.check),
-              label: const Text('Enregistrer'),
+              label: Text(lang.translate('save')),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFBE1E1E),
                 foregroundColor: Colors.white,
@@ -2440,6 +2496,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
   }
 
   Future<void> _sendComment() async {
+    final lang = LanguageService.instance;
     final text = _commentController.text.trim();
     if (text.isEmpty) return;
 
@@ -2456,7 +2513,11 @@ class _CommentsSheetState extends State<_CommentsSheet> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(
+          SnackBar(
+            content: Text('${lang.translate('error')}: ${e.toString()}'),
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _isSending = false);
@@ -2494,6 +2555,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
   }
 
   Future<void> _reactToComment(dynamic comment, String reactionType) async {
+    final lang = LanguageService.instance;
     final commentId = int.tryParse((comment['id'] ?? '').toString());
     if (commentId == null) return;
 
@@ -2514,7 +2576,11 @@ class _CommentsSheetState extends State<_CommentsSheet> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(
+          SnackBar(
+            content: Text('${lang.translate('error')}: ${e.toString()}'),
+          ),
+        );
       }
     }
   }
@@ -2561,20 +2627,21 @@ class _CommentsSheetState extends State<_CommentsSheet> {
   }
 
   Future<void> _deleteComment(int commentId) async {
+    final lang = LanguageService.instance;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Supprimer'),
-        content: const Text('Supprimer ce commentaire ?'),
+        title: Text(lang.translate('delete')),
+        content: Text(lang.translate('delete_comment_question')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler'),
+            child: Text(lang.translate('cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Supprimer'),
+            child: Text(lang.translate('delete')),
           ),
         ],
       ),
@@ -2589,30 +2656,35 @@ class _CommentsSheetState extends State<_CommentsSheet> {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+          ).showSnackBar(
+            SnackBar(
+              content: Text('${lang.translate('error')}: ${e.toString()}'),
+            ),
+          );
         }
       }
     }
   }
 
   Future<void> _editComment(dynamic comment) async {
+    final lang = LanguageService.instance;
     final controller = TextEditingController(text: comment['content']);
     final newContent = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Modifier le commentaire'),
+        title: Text(lang.translate('edit_comment_title')),
         content: TextField(
           controller: controller,
           maxLines: 3,
-          decoration: const InputDecoration(
-            hintText: 'Votre commentaire...',
+          decoration: InputDecoration(
+            hintText: lang.translate('comment_hint'),
             border: OutlineInputBorder(),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(lang.translate('cancel')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
@@ -2620,7 +2692,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
               backgroundColor: const Color(0xFFBE1E1E),
               foregroundColor: Colors.white,
             ),
-            child: const Text('Enregistrer'),
+            child: Text(lang.translate('save')),
           ),
         ],
       ),
@@ -2634,7 +2706,11 @@ class _CommentsSheetState extends State<_CommentsSheet> {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+          ).showSnackBar(
+            SnackBar(
+              content: Text('${lang.translate('error')}: ${e.toString()}'),
+            ),
+          );
         }
       }
     }

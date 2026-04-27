@@ -6,11 +6,13 @@ import 'full_screen_video_page.dart';
 
 class VideoPlayerWidget extends StatefulWidget {
   final String videoUrl;
+  final String? thumbnailUrl;
   final double maxHeight;
 
   const VideoPlayerWidget({
     super.key,
     required this.videoUrl,
+    this.thumbnailUrl,
     this.maxHeight = 400,
   });
 
@@ -22,6 +24,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   VideoPlayerController? _controller;
   bool _isInitialized = false;
   bool _isStarted = false; // Flag to know if the video is actually PLAYING (not just thumbnailed)
+  bool _isPreparing = false;
   bool _hasError = false;
   bool _showControls = true;
   bool _isMuted = true;
@@ -33,13 +36,11 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     _isDesktop = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
     if (_isDesktop) {
       _hasError = true;
-    } else {
-      // AUTO-THUMBNAIL: Start initialization immediately but stay PAUSED
-      _initializePlayer(autoPlay: false);
     }
   }
 
   void _startPlayback() {
+    if (_isPreparing) return;
     if (!_isInitialized) {
       _initializePlayer(autoPlay: true);
       return;
@@ -52,7 +53,14 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   }
 
   void _initializePlayer({bool autoPlay = false}) {
-    debugPrint('[VideoPlayer] Initializing thumbnail for: ${widget.videoUrl}');
+    if (_isPreparing || _controller != null) return;
+
+    setState(() {
+      _isPreparing = true;
+      _hasError = false;
+    });
+
+    debugPrint('[VideoPlayer] Initializing player for: ${widget.videoUrl}');
 
     try {
       final newController = VideoPlayerController.networkUrl(
@@ -65,15 +73,17 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       newController
           .initialize()
           .then((_) {
-            debugPrint('[VideoPlayer] Thumb Ready - Size: ${newController.value.size}');
+            debugPrint('[VideoPlayer] Ready - Size: ${newController.value.size}');
             if (mounted) {
               setState(() {
                 _controller = newController;
                 _isInitialized = true;
+                _isPreparing = false;
                 _hasError = false;
                 if (autoPlay) {
                   _isStarted = true;
                   newController.play();
+                  _showControls = false;
                 }
               });
               newController.addListener(_videoListener);
@@ -89,6 +99,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
 
             if (mounted) {
               setState(() {
+                _isPreparing = false;
                 _hasError = true;
               });
             }
@@ -97,6 +108,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       debugPrint('[VideoPlayer] INIT ERROR: $e');
       if (mounted) {
         setState(() {
+          _isPreparing = false;
           _hasError = true;
         });
       }
@@ -180,8 +192,12 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       return _buildErrorWidget();
     }
 
-    if (!_isInitialized) {
+    if (_isPreparing && !_isInitialized) {
       return _buildLoadingWidget();
+    }
+
+    if (!_isInitialized) {
+      return _buildIdleWidget();
     }
 
     return RepaintBoundary( // Optimization for scrolling
@@ -377,21 +393,112 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       child: Container(
         height: 220,
         width: double.infinity,
-        color: const Color(0xFF111111),
-        child: const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(
-                color: Color(0xFFBE1E1E),
-                strokeWidth: 2,
-              ),
-              SizedBox(height: 16),
-              Text(
-                'Préparation de l\'aperçu...',
-                style: TextStyle(color: Colors.white38, fontSize: 12),
-              ),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF1A1A1A),
+              Color(0xFF111111),
             ],
+          ),
+        ),
+        child: const Stack(
+          alignment: Alignment.center,
+          children: [
+            Positioned(
+              top: 10,
+              left: 10,
+              child: _VideoBadge(),
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(
+                  color: Color(0xFFBE1E1E),
+                  strokeWidth: 2,
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Chargement de l\'aperçu...',
+                  style: TextStyle(color: Colors.white54, fontSize: 12),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIdleWidget() {
+    return RepaintBoundary(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: GestureDetector(
+          onTap: _startPlayback,
+          child: Container(
+            height: 220,
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF202020),
+                  Color(0xFF111111),
+                ],
+              ),
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Positioned.fill(
+                  child: _VideoThumbnailBackground(
+                    thumbnailUrl: widget.thumbnailUrl,
+                  ),
+                ),
+                const Positioned(
+                  top: 10,
+                  left: 10,
+                  child: _VideoBadge(),
+                ),
+                Positioned(
+                  bottom: 18,
+                  left: 18,
+                  right: 18,
+                  child: Text(
+                    'Touchez pour charger la video',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFBE1E1E).withOpacity(0.9),
+                    shape: BoxShape.circle,
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black45,
+                        blurRadius: 15,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.play_arrow_rounded,
+                    color: Colors.white,
+                    size: 40,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -433,6 +540,102 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                 label: const Text('Voir la vidéo'),
                 style: TextButton.styleFrom(foregroundColor: const Color(0xFFBE1E1E)),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _VideoBadge extends StatelessWidget {
+  const _VideoBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.black54,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.videocam_rounded, color: Colors.white, size: 14),
+          SizedBox(width: 4),
+          Text(
+            'VIDÉO',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _VideoThumbnailBackground extends StatelessWidget {
+  final String? thumbnailUrl;
+
+  const _VideoThumbnailBackground({this.thumbnailUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    if (thumbnailUrl == null || thumbnailUrl!.trim().isEmpty) {
+      return _buildFallback();
+    }
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.network(
+          thumbnailUrl!,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _buildFallback(),
+        ),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.black.withOpacity(0.08),
+                Colors.transparent,
+                Colors.black.withOpacity(0.35),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFallback() {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFF202020),
+            const Color(0xFF111111),
+          ],
+        ),
+      ),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.white.withOpacity(0.04),
+              Colors.transparent,
+              Colors.black.withOpacity(0.18),
             ],
           ),
         ),

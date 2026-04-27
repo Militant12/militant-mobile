@@ -13,6 +13,7 @@ class FediversePost {
   final String content;
   final String? mediaUrl;
   final String? mediaType;
+  final String? thumbnailUrl;
   final String? profileUrl;
   final DateTime publishedAt;
 
@@ -29,6 +30,7 @@ class FediversePost {
     required this.content,
     this.mediaUrl,
     this.mediaType,
+    this.thumbnailUrl,
     this.profileUrl,
     required this.publishedAt,
   });
@@ -51,6 +53,12 @@ class FediversePost {
       content: (json['content'] ?? '').toString(),
       mediaUrl: json['media_url']?.toString(),
       mediaType: json['media_type']?.toString(),
+      thumbnailUrl: (json['thumbnail_url'] ??
+              json['media_thumbnail'] ??
+              json['media_thumb'] ??
+              json['preview_image'] ??
+              json['media_preview'])
+          ?.toString(),
       profileUrl: json['profile_url']?.toString(),
       publishedAt: DateFormatter.parseApiDate(
         json['published_at'] ?? json['created_at'],

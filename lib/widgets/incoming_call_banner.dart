@@ -1,15 +1,70 @@
+import 'dart:io';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import '../screens/call_screen.dart';
 import '../screens/group_call_screen.dart';
 import '../services/api_service.dart';
+
+String? _payloadString(Map<String, dynamic>? data, List<String> keys) {
+  if (data == null) return null;
+
+  for (final key in keys) {
+    final value = data[key];
+    if (value == null) continue;
+    final normalized = value.toString().trim();
+    if (normalized.isEmpty ||
+        normalized == 'null' ||
+        normalized == 'undefined') {
+      continue;
+    }
+    return normalized;
+  }
+
+  return null;
+}
+
+bool _payloadBool(Map<String, dynamic>? data, List<String> keys) {
+  if (data == null) return false;
+
+  for (final key in keys) {
+    final value = data[key];
+    if (value is bool) return value;
+
+    final normalized = value?.toString().trim().toLowerCase();
+    if (normalized == null || normalized.isEmpty) continue;
+    if (normalized == 'true' || normalized == '1') return true;
+    if (normalized == 'false' || normalized == '0') return false;
+  }
+
+  return false;
+}
+
+String? _payloadOfferSdp(Map<String, dynamic>? data) {
+  return _payloadString(data, const ['offer_sdp', 'offerSdp', 'offer']);
+}
+
+String? _payloadAvatar(Map<String, dynamic>? data) {
+  final rawAvatar = _payloadString(data, const [
+    'caller_avatar',
+    'callerAvatar',
+    'avatar',
+    'profile_picture',
+    'profilePicture',
+    'user_avatar',
+    'userAvatar',
+  ]);
+  if (rawAvatar == null) return null;
+  return ApiService(baseUrl: '').getImageUrl(rawAvatar) ?? rawAvatar;
+}
 
 /// Données d'un appel entrant
 class IncomingCallData {
   final String callId;
   final int callerId;
   final String callerName;
+  final String? callerAvatar;
   final bool isVideo;
   final bool isGroup;
   final int? groupId;
@@ -19,6 +74,7 @@ class IncomingCallData {
     required this.callId,
     required this.callerId,
     required this.callerName,
+    this.callerAvatar,
     required this.isVideo,
     required this.isGroup,
     this.groupId,
@@ -37,9 +93,20 @@ class IncomingCallController {
   Stream<IncomingCallData?> get stream => _streamController.stream;
 
   bool _isListening = false;
+  Timer? _fallbackPollTimer;
+  bool _isPollingFallback = false;
+  String? _activeCallId;
+  final Set<String> _dismissedCallIds = <String>{};
 
   void startListening() {
     if (_isListening) return;
+
+    // Sur Android on s'appuie uniquement sur la notification d'appel native
+    // pour éviter le doublon "notification système + bannière dans l'app".
+    if (!kIsWeb && Platform.isAndroid) {
+      return;
+    }
+
     _isListening = true;
 
     OneSignal.Notifications.addForegroundWillDisplayListener((event) {
@@ -50,7 +117,7 @@ class IncomingCallController {
       }
 
       final type = data['type']?.toString();
-      if (type != 'call' && type != 'talk_invite') {
+      if (type != 'call') {
         event.notification.display();
         return;
       }
@@ -58,28 +125,30 @@ class IncomingCallController {
       // Appel entrant — on supprime la notification système et on affiche la bannière
       event.preventDefault();
 
-      final isTalk = type == 'talk_invite';
-      final callId = isTalk
-          ? data['room_token']?.toString() ?? ''
-          : data['call_id']?.toString() ?? '';
+      final callId = data['call_id']?.toString() ?? '';
 
       final callerId = int.tryParse(data['caller_id']?.toString() ?? '') ?? 0;
       final callerName =
-          data['caller_name']?.toString() ??
+          _payloadString(data, const ['caller_name', 'callerName']) ??
           event.notification.body ??
-          (isTalk ? 'Appel de groupe' : 'Appel entrant');
+          'Appel entrant';
 
-      final isVideo = data['call_type'] == 'video' || data['is_video'] == true;
-      final isGroup = isTalk || data['is_group_call'] == true || data['group_id'] != null;
+      final isVideo =
+          _payloadString(data, const ['call_type', 'callType']) == 'video' ||
+          _payloadBool(data, const ['is_video', 'isVideo']);
+      final isGroup =
+          _payloadBool(data, const ['is_group_call', 'isGroupCall']) ||
+          _payloadString(data, const ['group_id', 'groupId']) != null;
       final groupId = int.tryParse(data['group_id']?.toString() ?? '');
-      final offerSdp = data['offer_sdp']?.toString();
+      final offerSdp = _payloadOfferSdp(data);
 
       if (callId.isNotEmpty) {
-        _streamController.add(
+        _emitIncomingCall(
           IncomingCallData(
             callId: callId,
             callerId: callerId,
             callerName: callerName,
+            callerAvatar: _payloadAvatar(data),
             isVideo: isVideo,
             isGroup: isGroup,
             groupId: groupId,
@@ -88,9 +157,87 @@ class IncomingCallController {
         );
       }
     });
+
+    _startFallbackPolling();
   }
 
-  void dismiss() {
+  void _emitIncomingCall(IncomingCallData call) {
+    if (_dismissedCallIds.contains(call.callId) ||
+        _activeCallId == call.callId) {
+      return;
+    }
+
+    _activeCallId = call.callId;
+    _streamController.add(call);
+  }
+
+  void _startFallbackPolling() {
+    _fallbackPollTimer?.cancel();
+    _pollIncomingPrivateCalls();
+    _fallbackPollTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      _pollIncomingPrivateCalls();
+    });
+  }
+
+  Future<void> _pollIncomingPrivateCalls() async {
+    if (_isPollingFallback) return;
+    _isPollingFallback = true;
+
+    try {
+      final api = await ApiService.getInstance();
+      final history = await api.getCallHistory(page: 1);
+
+      for (final item in history) {
+        if (item is! Map) continue;
+        final call = Map<String, dynamic>.from(item);
+        final callId = call['call_id']?.toString() ?? '';
+        final direction = call['direction']?.toString();
+        final status = call['status']?.toString();
+        final isGroup =
+            call['is_group_call'] == true ||
+            call['is_group_call']?.toString() == '1';
+
+        if (callId.isEmpty ||
+            direction != 'incoming' ||
+            status != 'ringing' ||
+            isGroup) {
+          continue;
+        }
+
+        _emitIncomingCall(
+          IncomingCallData(
+            callId: callId,
+            callerId: int.tryParse(call['caller_id']?.toString() ?? '') ?? 0,
+            callerName:
+                call['caller_username']?.toString().trim().isNotEmpty == true
+                ? call['caller_username'].toString()
+                : 'Appel entrant',
+            callerAvatar: _payloadAvatar(call),
+            isVideo: call['call_type']?.toString() == 'video',
+            isGroup: false,
+            offerSdp: _payloadOfferSdp(call),
+          ),
+        );
+        break;
+      }
+    } catch (_) {
+      // Ignore fallback polling errors; push handling remains the primary path.
+    } finally {
+      _isPollingFallback = false;
+    }
+  }
+
+  void dismiss([String? callId]) {
+    final effectiveCallId = callId ?? _activeCallId;
+    if (effectiveCallId != null && effectiveCallId.isNotEmpty) {
+      _dismissedCallIds.add(effectiveCallId);
+      if (_dismissedCallIds.length > 20) {
+        _dismissedCallIds.remove(_dismissedCallIds.first);
+      }
+    }
+    if (_activeCallId == effectiveCallId) {
+      _activeCallId = null;
+    }
     _streamController.add(null);
   }
 }
@@ -184,7 +331,7 @@ class _IncomingCallBannerState extends State<IncomingCallBanner>
     final call = _call;
     if (call == null) return;
     _dismiss();
-    IncomingCallController.instance.dismiss();
+    IncomingCallController.instance.dismiss(call.callId);
 
     if (!mounted) return;
 
@@ -209,6 +356,7 @@ class _IncomingCallBannerState extends State<IncomingCallBanner>
             callId: call.callId,
             recipientId: call.callerId,
             recipientName: call.callerName,
+            recipientAvatar: call.callerAvatar,
             isVideo: call.isVideo,
             isIncoming: true,
             offerSdp: call.offerSdp ?? '',
@@ -221,7 +369,7 @@ class _IncomingCallBannerState extends State<IncomingCallBanner>
   Future<void> _refuse() async {
     final call = _call;
     _dismiss();
-    IncomingCallController.instance.dismiss();
+    IncomingCallController.instance.dismiss(call?.callId);
 
     if (call != null) {
       try {
@@ -243,7 +391,13 @@ class _IncomingCallBannerState extends State<IncomingCallBanner>
     if (_call == null) return const SizedBox.shrink();
 
     final call = _call!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final accent = const Color(0xFFBE1E1E);
+    final surface = colorScheme.surface;
+    final onSurface = colorScheme.onSurface;
+    final muted = onSurface.withValues(alpha: 0.72);
+    final border = onSurface.withValues(alpha: 0.10);
 
     return Positioned(
       top: 0,
@@ -257,7 +411,7 @@ class _IncomingCallBannerState extends State<IncomingCallBanner>
             bottomLeft: Radius.circular(16),
             bottomRight: Radius.circular(16),
           ),
-          color: isDark ? const Color(0xFF1E2A3A) : const Color(0xFF0D1B2A),
+          color: surface,
           child: SafeArea(
             bottom: false,
             child: Padding(
@@ -276,8 +430,8 @@ class _IncomingCallBannerState extends State<IncomingCallBanner>
                       children: [
                         Text(
                           call.callerName,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: onSurface,
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
                           ),
@@ -288,15 +442,12 @@ class _IncomingCallBannerState extends State<IncomingCallBanner>
                         Text(
                           call.isGroup
                               ? (call.isVideo
-                                    ? '📹 Appel vidéo de groupe'
-                                    : '📞 Appel audio de groupe')
+                                    ? 'Appel vidéo de groupe'
+                                    : 'Appel audio de groupe')
                               : (call.isVideo
-                                    ? '📹 Appel vidéo entrant'
-                                    : '📞 Appel audio entrant'),
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.75),
-                            fontSize: 12,
-                          ),
+                                    ? 'Appel vidéo entrant'
+                                    : 'Appel audio entrant'),
+                          style: TextStyle(color: muted, fontSize: 12),
                         ),
                       ],
                     ),
@@ -307,8 +458,12 @@ class _IncomingCallBannerState extends State<IncomingCallBanner>
                   // Bouton Refuser
                   _CallButton(
                     icon: Icons.call_end,
-                    color: const Color(0xFFE53935),
+                    color: accent,
+                    foregroundColor: Colors.white,
+                    backgroundColor: accent,
+                    outlined: false,
                     label: 'Refuser',
+                    labelColor: muted,
                     onTap: _refuse,
                   ),
                   const SizedBox(width: 8),
@@ -316,8 +471,13 @@ class _IncomingCallBannerState extends State<IncomingCallBanner>
                   // Bouton Rejoindre
                   _CallButton(
                     icon: call.isVideo ? Icons.videocam : Icons.call,
-                    color: const Color(0xFF43A047),
-                    label: 'Rejoindre',
+                    color: accent,
+                    foregroundColor: onSurface,
+                    backgroundColor: surface,
+                    borderColor: border,
+                    outlined: true,
+                    label: call.isGroup ? 'Rejoindre' : 'Répondre',
+                    labelColor: muted,
                     onTap: _accept,
                   ),
                 ],
@@ -365,6 +525,7 @@ class _PulsingIconState extends State<_PulsingIcon>
 
   @override
   Widget build(BuildContext context) {
+    final accent = const Color(0xFFBE1E1E);
     return ScaleTransition(
       scale: _scale,
       child: Container(
@@ -372,12 +533,12 @@ class _PulsingIconState extends State<_PulsingIcon>
         height: 44,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: const Color(0xFF43A047).withValues(alpha: 0.2),
-          border: Border.all(color: const Color(0xFF43A047), width: 2),
+          color: accent.withValues(alpha: 0.12),
+          border: Border.all(color: accent, width: 2),
         ),
         child: Icon(
-          widget.isVideo ? Icons.videocam : Icons.call,
-          color: const Color(0xFF43A047),
+          widget.isVideo ? Icons.videocam_rounded : Icons.call_rounded,
+          color: accent,
           size: 22,
         ),
       ),
@@ -389,14 +550,24 @@ class _PulsingIconState extends State<_PulsingIcon>
 class _CallButton extends StatelessWidget {
   final IconData icon;
   final Color color;
+  final Color foregroundColor;
+  final Color backgroundColor;
+  final Color? borderColor;
+  final Color labelColor;
   final String label;
   final VoidCallback onTap;
+  final bool outlined;
 
   const _CallButton({
     required this.icon,
     required this.color,
+    required this.foregroundColor,
+    required this.backgroundColor,
+    this.borderColor,
+    required this.labelColor,
     required this.label,
     required this.onTap,
+    required this.outlined,
   });
 
   @override
@@ -409,14 +580,15 @@ class _CallButton extends StatelessWidget {
           Container(
             width: 44,
             height: 44,
-            decoration: BoxDecoration(shape: BoxShape.circle, color: color),
-            child: Icon(icon, color: Colors.white, size: 22),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: backgroundColor,
+              border: outlined ? Border.all(color: borderColor ?? color) : null,
+            ),
+            child: Icon(icon, color: foregroundColor, size: 22),
           ),
           const SizedBox(height: 3),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white70, fontSize: 10),
-          ),
+          Text(label, style: TextStyle(color: labelColor, fontSize: 10)),
         ],
       ),
     );

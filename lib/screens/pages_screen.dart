@@ -134,7 +134,7 @@ class _PagesScreenState extends State<PagesScreen>
                 children: [
                   const Icon(Icons.explore, size: 18),
                   const SizedBox(width: 6),
-                  Text(lang.translate('discover')),
+                  Text(lang.translate('discover_pages')),
                 ],
               ),
             ),
@@ -342,7 +342,7 @@ class _PagesScreenState extends State<PagesScreen>
     final lang = LanguageService.instance;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final name = page['name'] ?? lang.translate('page');
+    final name = page['name'] ?? lang.translate('pages_title');
     final description = page['description'] ?? '';
     final category = page['category'] ?? '';
     final followersCount =

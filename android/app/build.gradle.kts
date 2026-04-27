@@ -69,6 +69,9 @@ dependencies {
     
     // Trusted Web Activity support
     implementation("com.google.androidbrowserhelper:androidbrowserhelper:2.5.0")
+
+    // Expose OneSignal native notification extension interfaces to the app module
+    implementation("com.onesignal:core:5.6.1")
     
     // Core activity components for Edge-to-Edge (Android 15+)
     implementation("androidx.activity:activity-ktx:1.9.0")

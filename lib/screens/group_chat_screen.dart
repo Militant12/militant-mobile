@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
@@ -12,6 +14,11 @@ import 'group_call_screen.dart';
 import 'group_settings_screen.dart';
 import '../widgets/linkable_text.dart';
 import '../widgets/incoming_call_banner.dart';
+import '../widgets/signal_typing_indicator.dart';
+
+const String _groupCallMessagePrefix = '__militant_group_call__:';
+const Duration _groupChatPollInterval = Duration(seconds: 10);
+const Duration _groupTypingPollInterval = Duration(seconds: 6);
 
 class GroupChatScreen extends StatefulWidget {
   final int groupId;
@@ -35,35 +42,70 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   bool _isLoading = false;
   bool _isSending = false;
   bool _isRecording = false;
+  bool _isRefreshing = false;
+  bool _isTypingSent = false;
   ApiService? _api;
   Map<String, dynamic>? _groupDetails;
+  Timer? _pollTimer;
+  Timer? _typingPollTimer;
+  Timer? _typingIdleTimer;
+  DateTime? _lastTypingHeartbeatAt;
+  List<Map<String, dynamic>> _typingUsers = [];
+  Map<String, String>? _activeGroupCall;
 
   @override
   void initState() {
     super.initState();
-    _messageController.addListener(() {
-      setState(() {}); // Rebuild pour afficher/cacher le bouton micro
-    });
-    _loadMessages();
+    _messageController.addListener(_handleMessageChanged);
+    _loadMessages(showLoader: true);
+    _startPolling();
   }
 
-  Future<void> _loadMessages() async {
-    setState(() => _isLoading = true);
+  void _startPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(_groupChatPollInterval, (_) {
+      _loadMessages();
+    });
+
+    _typingPollTimer?.cancel();
+    _typingPollTimer = Timer.periodic(_groupTypingPollInterval, (_) {
+      _refreshTypingUsers();
+    });
+  }
+
+  void _handleMessageChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+    _syncTypingState();
+  }
+
+  Future<void> _loadMessages({bool showLoader = false}) async {
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+
+    if (showLoader && mounted) {
+      setState(() => _isLoading = true);
+    }
+
     try {
-      _api = await ApiService.getInstance();
+      _api ??= await ApiService.getInstance();
       final messages = await _api!.getGroupMessages(widget.groupId);
-      print('DEBUG: Loaded ${messages.length} messages');
-      if (messages.isNotEmpty) {
-        print('DEBUG: First message: ${messages.first}');
-      }
-      _groupDetails = await _api!.getGroupDetails(widget.groupId);
+      final typingUsers = await _api!.getGroupTypingUsers(widget.groupId);
+      final groupDetails = _groupDetails == null || showLoader
+          ? await _api!.getGroupDetails(widget.groupId)
+          : _groupDetails;
+      final activeGroupCall = await _resolveActiveGroupCall(messages);
+      if (!mounted) return;
       setState(() {
         _messages.clear();
         _messages.addAll(messages.reversed);
+        _typingUsers = typingUsers;
+        _groupDetails = groupDetails;
+        _activeGroupCall = activeGroupCall;
       });
     } catch (e) {
-      print('DEBUG: Error loading messages: $e');
-      if (mounted) {
+      if (mounted && showLoader) {
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
@@ -72,7 +114,10 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      _isRefreshing = false;
+      if (showLoader && mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -97,6 +142,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       _messages.insert(0, tempMessage);
     });
     _messageController.clear();
+    unawaited(_setTyping(false, force: true));
 
     try {
       final api = await ApiService.getInstance();
@@ -117,6 +163,151 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     } finally {
       setState(() => _isSending = false);
     }
+  }
+
+  void _syncTypingState() {
+    final hasText = _messageController.text.trim().isNotEmpty;
+
+    if (!hasText) {
+      _typingIdleTimer?.cancel();
+      unawaited(_setTyping(false, force: true));
+      return;
+    }
+
+    final lastHeartbeat = _lastTypingHeartbeatAt;
+    if (!_isTypingSent ||
+        lastHeartbeat == null ||
+        DateTime.now().difference(lastHeartbeat) >= const Duration(seconds: 4)) {
+      unawaited(_setTyping(true));
+    }
+
+    _typingIdleTimer?.cancel();
+    _typingIdleTimer = Timer(const Duration(seconds: 2), () {
+      unawaited(_setTyping(false, force: true));
+    });
+  }
+
+  Future<void> _setTyping(bool isTyping, {bool force = false}) async {
+    if (!force && _isTypingSent == isTyping) {
+      return;
+    }
+
+    try {
+      _api ??= await ApiService.getInstance();
+      await _api!.setGroupTyping(widget.groupId, isTyping);
+      _isTypingSent = isTyping;
+      _lastTypingHeartbeatAt = isTyping ? DateTime.now() : null;
+    } catch (_) {
+      // Non bloquant: le typing ne doit pas casser le chat.
+    }
+  }
+
+  Future<void> _refreshTypingUsers() async {
+    if (_isRefreshing || !mounted) return;
+
+    try {
+      _api ??= await ApiService.getInstance();
+      final typingUsers = await _api!.getGroupTypingUsers(widget.groupId);
+      if (!mounted) return;
+      setState(() {
+        _typingUsers = typingUsers;
+      });
+    } catch (_) {
+      // Non bloquant: le typing ne doit pas casser le chat.
+    }
+  }
+
+  String? _buildTypingText() {
+    if (_typingUsers.isEmpty) return null;
+    final lang = LanguageService.instance;
+
+    final names = _typingUsers
+        .map((user) => (user['username'] ?? '').toString().trim())
+        .where((name) => name.isNotEmpty)
+        .toList();
+
+    if (names.isEmpty) {
+      return lang.translate('typing_people');
+    }
+
+    if (names.length == 1) {
+      return lang.translate('typing_single').replaceAll(
+        '{username}',
+        names.first,
+      );
+    }
+
+    if (names.length == 2) {
+      return lang
+          .translate('typing_dual')
+          .replaceAll('{username1}', names[0])
+          .replaceAll('{username2}', names[1]);
+    }
+
+    return lang
+        .translate('typing_multiple')
+        .replaceAll('{username1}', names[0])
+        .replaceAll('{username2}', names[1])
+        .replaceAll('{count}', '${names.length - 2}');
+  }
+
+  Widget _buildTypingIndicator() {
+    final text = _buildTypingText();
+    if (text == null) {
+      return const SizedBox.shrink();
+    }
+    return SignalTypingIndicator(text: text);
+  }
+
+  Future<Map<String, String>?> _resolveActiveGroupCall(
+    List<dynamic> messages,
+  ) async {
+    for (final rawMessage in messages) {
+      if (rawMessage is! Map) continue;
+      final message = Map<String, dynamic>.from(rawMessage);
+      final parsed = _parseGroupCallMessage((message['content'] ?? '').toString());
+      if (parsed == null) continue;
+
+      final callId = parsed['call_id']?.trim() ?? '';
+      if (callId.isEmpty) continue;
+
+      try {
+        _api ??= await ApiService.getInstance();
+        final callInfo = await _api!.getCallInfo(callId);
+        final status = callInfo['status']?.toString().trim() ?? '';
+        if (status == 'ended' || status == 'rejected' || status == 'missed') {
+          continue;
+        }
+        return parsed;
+      } catch (_) {
+        continue;
+      }
+    }
+    return null;
+  }
+
+  Future<void> _openGroupCallScreen({
+    String? callId,
+    required bool isVideo,
+    required bool isIncoming,
+  }) async {
+    if (!mounted) return;
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => GroupCallScreen(
+          callId: callId,
+          groupId: widget.groupId,
+          groupName: widget.groupName,
+          isVideo: isVideo,
+          isIncoming: isIncoming,
+        ),
+      ),
+    );
+
+    if (!mounted) return;
+    await _loadMessages();
   }
 
   @override
@@ -165,20 +356,13 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           ],
         ),
         actions: [
-          if (AppFeatureFlags.showGroupCallButtons) ...[
+          if (AppFeatureFlags.showGroupCallButtons && _activeGroupCall == null) ...[
             IconButton(
               icon: const Icon(Icons.call),
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => GroupCallScreen(
-                      groupId: widget.groupId,
-                      groupName: widget.groupName,
-                      isVideo: false,
-                      isIncoming: false,
-                    ),
-                  ),
+                _openGroupCallScreen(
+                  isVideo: false,
+                  isIncoming: false,
                 );
               },
               tooltip: LanguageService.instance.translate('call_group_audio'),
@@ -186,16 +370,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             IconButton(
               icon: const Icon(Icons.videocam),
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => GroupCallScreen(
-                      groupId: widget.groupId,
-                      groupName: widget.groupName,
-                      isVideo: true,
-                      isIncoming: false,
-                    ),
-                  ),
+                _openGroupCallScreen(
+                  isVideo: true,
+                  isIncoming: false,
                 );
               },
               tooltip: LanguageService.instance.translate('call_group_video'),
@@ -249,11 +426,12 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                         },
                       ),
               ),
+              _buildTypingIndicator(),
               _buildMessageInput(),
             ],
           ),
-          // Bannière d'appel entrant (affichée au-dessus du chat de groupe)
-          IncomingCallBanner(groupId: widget.groupId),
+          // Évite le doublon avec la bannière d'appel de groupe active du chat.
+          if (_activeGroupCall == null) IncomingCallBanner(groupId: widget.groupId),
         ],
       ),
     );
@@ -378,7 +556,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         content: TextField(
           controller: controller,
           style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(border: OutlineInputBorder()),
+          decoration: InputDecoration(border: OutlineInputBorder()),
           maxLines: null,
         ),
         actions: [
@@ -417,6 +595,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     final content = message['content'] ?? '';
+    final groupCallMessage = _parseGroupCallMessage(content.toString());
     final media = message['media'];
     final username = message['username'] ?? lang.translate('anonymous_user');
     final isMine = message['is_mine'] == true || message['is_mine'] == 1;
@@ -470,7 +649,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                 children: [
                   if (media != null && media.toString().isNotEmpty)
                     _buildMedia(media, isMine),
-                  if (content.isNotEmpty)
+                  if (groupCallMessage != null)
+                    _buildGroupCallMessageCard(groupCallMessage)
+                  else if (content.isNotEmpty)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -565,6 +746,120 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         ),
       ),
     );
+  }
+
+  Map<String, String>? _parseGroupCallMessage(String content) {
+    if (!content.startsWith(_groupCallMessagePrefix)) return null;
+    final rawPayload = content.substring(_groupCallMessagePrefix.length).trim();
+    if (rawPayload.isEmpty) return null;
+
+    final values = <String, String>{};
+    for (final segment in rawPayload.split('&')) {
+      if (segment.isEmpty) continue;
+      final separatorIndex = segment.indexOf('=');
+      if (separatorIndex <= 0) continue;
+      final key = Uri.decodeQueryComponent(segment.substring(0, separatorIndex));
+      final value = Uri.decodeQueryComponent(segment.substring(separatorIndex + 1));
+      values[key] = value;
+    }
+
+    final callId = values['call_id']?.trim() ?? '';
+    if (callId.isEmpty) return null;
+    return values;
+  }
+
+  Widget _buildGroupCallMessageCard(Map<String, String> data) {
+    final isVideo = (data['call_type'] ?? 'audio') == 'video';
+    final label = isVideo ? 'Appel video de groupe' : 'Appel audio de groupe';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                isVideo ? Icons.videocam : Icons.call,
+                color: Colors.white,
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Touchez pour rejoindre depuis le groupe.',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.88),
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FilledButton.icon(
+              onPressed: () => _joinGroupCallFromMessage(data),
+              icon: const Icon(Icons.login, size: 18),
+              label: const Text('Rejoindre'),
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: const Color(0xFFBE1E1E),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _joinGroupCallFromMessage(Map<String, String> data) async {
+    final callId = data['call_id']?.trim() ?? '';
+    if (callId.isEmpty) return;
+
+    try {
+      _api ??= await ApiService.getInstance();
+      final callInfo = await _api!.getCallInfo(callId);
+      final status = callInfo['status']?.toString().trim() ?? '';
+      if (status == 'ended' || status == 'rejected' || status == 'missed') {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Cet appel de groupe est termine.')),
+        );
+        return;
+      }
+
+      if (!mounted) return;
+      await _openGroupCallScreen(
+        callId: callId,
+        isVideo: (data['call_type'] ?? 'audio') == 'video',
+        isIncoming: true,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Impossible de rejoindre l appel: $e')),
+      );
+    }
   }
 
   Future<void> _toggleTranslation(dynamic message) async {
@@ -722,10 +1017,10 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
 
     return Container(
       padding: EdgeInsets.only(
-        left: 16,
+        left: 12,
         right: 8,
-        top: 8,
-        bottom: 8 + MediaQuery.of(context).viewInsets.bottom,
+        top: 6,
+        bottom: 6 + MediaQuery.of(context).viewInsets.bottom,
       ),
       decoration: BoxDecoration(
         color: theme.cardColor,
@@ -738,15 +1033,32 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             onPressed: _pickMedia,
           ),
           Expanded(
-            child: TextField(
-              controller: _messageController,
-              style: TextStyle(color: theme.textTheme.bodyLarge?.color),
-              decoration: InputDecoration(
-                hintText: lang.translate('message_group_hint'),
-                hintStyle: TextStyle(color: theme.hintColor),
-                border: InputBorder.none,
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 42, maxHeight: 120),
+              decoration: BoxDecoration(
+                color: theme.inputDecorationTheme.fillColor ??
+                    theme.colorScheme.surfaceContainerHighest.withValues(
+                      alpha: 0.55,
+                    ),
+                borderRadius: BorderRadius.circular(22),
               ),
-              maxLines: null,
+              child: TextField(
+                controller: _messageController,
+                style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+                textAlignVertical: TextAlignVertical.center,
+                minLines: 1,
+                maxLines: 5,
+                decoration: InputDecoration(
+                  hintText: lang.translate('message_group_hint'),
+                  hintStyle: TextStyle(color: theme.hintColor),
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 11,
+                  ),
+                ),
+              ),
             ),
           ),
           if (_messageController.text.trim().isEmpty)
@@ -837,7 +1149,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     content: TextField(
                       controller: controller,
                       style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText: 'https://...',
                         hintStyle: TextStyle(color: Colors.white38),
                       ),
@@ -932,6 +1244,11 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
 
   @override
   void dispose() {
+    _pollTimer?.cancel();
+    _typingPollTimer?.cancel();
+    _typingIdleTimer?.cancel();
+    unawaited(_setTyping(false, force: true));
+    _messageController.removeListener(_handleMessageChanged);
     _messageController.dispose();
     super.dispose();
   }

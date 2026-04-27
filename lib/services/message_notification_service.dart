@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+const String _groupCallMessagePrefix = '__militant_group_call__:';
+
 /// Service qui affiche des notifications locales avec bouton "Répondre"
 /// pour les messages privés et de groupe — comme Signal/WhatsApp
 class MessageNotificationService {
@@ -30,6 +32,19 @@ class MessageNotificationService {
       }
 
       final type = data['type']?.toString();
+      if (type == 'call') {
+        return;
+      }
+
+      final messagePreview = data['message_preview']?.toString().trim() ?? '';
+      final isGroupCallMarker =
+          type == 'group_message' &&
+          messagePreview.startsWith(_groupCallMessagePrefix);
+
+      if (isGroupCallMarker) {
+        event.preventDefault();
+        return;
+      }
 
       // Pour les messages, on affiche notre propre notification avec le bouton Répondre
       if (type == 'message' || type == 'group_message') {

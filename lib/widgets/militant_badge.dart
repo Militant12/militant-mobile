@@ -26,7 +26,8 @@ class MilitantBadge extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: Colors.white, // Fond blanc pour faire ressortir les logos foncés comme FA ou l'A cerclé
+        color: Colors
+            .white, // Fond blanc pour faire ressortir les logos foncés comme FA ou l'A cerclé
         shape: BoxShape.circle,
         border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
       ),
@@ -50,6 +51,7 @@ class MilitantBadge extends StatelessWidget {
 
   String? _getBadgePath(String badgeId) {
     final badges = {
+      'militant': 'assets/badges/militant.svg',
       'maknosocial': 'assets/badges/militant.svg',
       'antifa': 'assets/badges/antifa.svg',
       'anarchist': 'assets/badges/anarchist.svg',
@@ -62,6 +64,11 @@ class MilitantBadge extends StatelessWidget {
       'ucl': 'assets/badges/ucl.jpg',
       'fll': 'assets/badges/fll.jpg',
       'slm': 'assets/badges/slm.png',
+      'iwa-ait': 'assets/badges/iwa-ait.png',
+      'iww': 'assets/badges/iww.svg',
+      'iaf-ifa': 'assets/badges/iaf-ifa.png',
+      'cnt-ait-e': 'assets/badges/cnt-ait-e.jpg',
+      'ulet-ait': 'assets/badges/ulet-ait.png',
     };
 
     return badges[badgeId];

@@ -13,6 +13,10 @@ class ApiService {
 
   ApiService({required this.baseUrl, this.token});
 
+  String _bodyPreview(String body) {
+    return body.length > 300 ? '${body.substring(0, 300)}...' : body;
+  }
+
   // Singleton pattern pour accès global
   static ApiService? _instance;
 
@@ -144,7 +148,10 @@ class ApiService {
   /// Récupère la configuration publique du serveur (comme l'App ID OneSignal)
   Future<Map<String, dynamic>> getServerSettings() async {
     try {
-      final response = await http.get(Uri.parse('$apiUrl/v1/settings.php'));
+      final response = await http.get(
+        Uri.parse('$apiUrl/v1/settings.php'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       }
@@ -175,22 +182,51 @@ class ApiService {
     }
   }
 
-  // Helper pour les URLs d'images et médias
-  String? getImageUrl(String? path) {
-    if (path == null || path.isEmpty || path == 'default.svg') return null;
+  static String? resolveImageUrl(String? rawPath, {String? baseUrl}) {
+    if (rawPath == null) return null;
+
+    String path = rawPath.trim();
+    if (path.isEmpty || path == 'default.svg') return null;
     if (path.startsWith('http')) return path;
 
-    // Nettoyer le chemin (enlever les espaces et slashes au début)
-    path = path.trim();
     if (path.startsWith('/')) {
       path = path.substring(1);
     }
 
-    // Les médias sont servis depuis le domaine principal (pas /api)
-    String mainUrl = mainSiteUrl;
+    final normalizedBase = normalizeBaseUrl(
+      baseUrl ?? 'https://api.militant.revlibertaire.com',
+    );
+    final parsed = Uri.tryParse(normalizedBase);
 
-    // Si le chemin ne contient pas de slash, c'est juste un nom de fichier
-    // Il faut ajouter le dossier approprié
+    String mainUrl = 'https://militant.revlibertaire.com';
+    if (parsed != null && parsed.host.isNotEmpty) {
+      var host = parsed.host;
+      if (host.startsWith('api.')) {
+        host = host.substring(4);
+      }
+
+      var cleanedPath = parsed.path.replaceFirst(
+        RegExp(r'/api(?:/v\d+)?/?$'),
+        '',
+      );
+      if (cleanedPath == '/') {
+        cleanedPath = '';
+      }
+
+      final mainUri = Uri(
+        scheme: parsed.scheme.isEmpty ? 'https' : parsed.scheme,
+        userInfo: parsed.userInfo.isNotEmpty ? parsed.userInfo : null,
+        host: host,
+        port: parsed.hasPort ? parsed.port : null,
+        path: cleanedPath,
+      );
+
+      mainUrl = mainUri.toString();
+      if (mainUrl.endsWith('/')) {
+        mainUrl = mainUrl.substring(0, mainUrl.length - 1);
+      }
+    }
+
     if (!path.contains('/')) {
       if (path.startsWith('media_')) {
         path = 'uploads/posts/$path';
@@ -207,14 +243,58 @@ class ApiService {
       } else if (path.startsWith('group_')) {
         path = 'uploads/$path';
       } else {
-        // Par défaut, on suppose que c'est dans uploads/
         path = 'uploads/$path';
       }
     } else if (path.startsWith('uploads/')) {
-      // Si le chemin commence déjà par uploads/, on ne fait rien
+      // no-op
     }
 
     return '$mainUrl/$path';
+  }
+
+  // Helper pour les URLs d'images et médias
+  String? getImageUrl(String? path) {
+    return resolveImageUrl(path, baseUrl: baseUrl);
+  }
+
+  static String? resolveVideoThumbnailUrl(
+    String? videoPath, {
+    String? thumbnailPath,
+    String? baseUrl,
+  }) {
+    final explicit = resolveImageUrl(thumbnailPath, baseUrl: baseUrl);
+    if (explicit != null) {
+      return explicit;
+    }
+
+    if (videoPath == null) {
+      return null;
+    }
+
+    final trimmed = videoPath.trim();
+    if (trimmed.isEmpty) {
+      return null;
+    }
+
+    final parsed = Uri.tryParse(trimmed);
+    final rawPath = parsed != null && parsed.hasScheme ? parsed.path : trimmed;
+    final lastDot = rawPath.lastIndexOf('.');
+    if (lastDot <= 0 || lastDot == rawPath.length - 1) {
+      return null;
+    }
+
+    final extension = rawPath.substring(lastDot + 1).toLowerCase();
+    const videoExtensions = {'mp4', 'webm', 'mov', 'm4v', 'avi', 'mkv'};
+    if (!videoExtensions.contains(extension)) {
+      return null;
+    }
+
+    final thumbnailCandidate = '${rawPath.substring(0, lastDot)}.jpg';
+    if (parsed != null && parsed.hasScheme) {
+      return parsed.replace(path: thumbnailCandidate).toString();
+    }
+
+    return resolveImageUrl(thumbnailCandidate, baseUrl: baseUrl);
   }
 
   // Sauvegarder le token
@@ -1732,7 +1812,82 @@ class ApiService {
       }
       return data['messages'] ?? []; // Very old fallback
     } else {
-      throw Exception('Erreur de chargement des messages');
+      throw Exception(
+        _extractApiError(
+          response,
+          fallbackError: 'Erreur de chargement des messages',
+        ),
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> getPrivateConversationDetails(int userId) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/messages.php?user_id=$userId&page=1&per_page=1'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return Map<String, dynamic>.from(data['conversation'] ?? {'user_id': userId});
+    } else {
+      throw Exception(
+        _extractApiError(
+          response,
+          fallbackError: 'Erreur de chargement des paramètres de la conversation',
+        ),
+      );
+    }
+  }
+
+  Future<Map<String, dynamic>> updatePrivateConversationSettings(
+    int userId, {
+    int? autoDeleteTime,
+  }) async {
+    final response = await http.put(
+      Uri.parse('$apiUrl/v1/messages.php?user_id=$userId'),
+      headers: _headers,
+      body: jsonEncode({
+        if (autoDeleteTime != null) 'auto_delete_time': autoDeleteTime,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception(
+        _extractApiError(
+          response,
+          fallbackError: 'Erreur lors de la mise à jour de la conversation',
+        ),
+      );
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getPrivateTypingUsers(int userId) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/messages.php?typing_user_id=$userId'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final users = data['typing_users'] ?? [];
+      return List<Map<String, dynamic>>.from(users);
+    } else {
+      throw Exception('Erreur de chargement du typing privé');
+    }
+  }
+
+  Future<void> setPrivateTyping(int userId, bool isTyping) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/messages.php?action=typing'),
+      headers: _headers,
+      body: jsonEncode({'recipient_id': userId, 'is_typing': isTyping}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors de la mise à jour du typing privé');
     }
   }
 
@@ -1748,7 +1903,39 @@ class ApiService {
       final data = jsonDecode(response.body);
       return data['messages'] ?? [];
     } else {
-      throw Exception('Erreur de chargement des messages du groupe');
+      throw Exception(
+        _extractApiError(
+          response,
+          fallbackError: 'Erreur de chargement des messages du groupe',
+        ),
+      );
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getGroupTypingUsers(int groupId) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/message_groups.php?path=$groupId/typing'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final users = data['typing_users'] ?? [];
+      return List<Map<String, dynamic>>.from(users);
+    } else {
+      throw Exception('Erreur de chargement du typing du groupe');
+    }
+  }
+
+  Future<void> setGroupTyping(int groupId, bool isTyping) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/message_groups.php?path=$groupId/typing'),
+      headers: _headers,
+      body: jsonEncode({'is_typing': isTyping}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors de la mise à jour du typing du groupe');
     }
   }
 
@@ -1771,7 +1958,12 @@ class ApiService {
     if (response.statusCode == 200 || response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
-      throw Exception('Erreur d\'envoi du message au groupe');
+      throw Exception(
+        _extractApiError(
+          response,
+          fallbackError: 'Erreur d\'envoi du message au groupe',
+        ),
+      );
     }
   }
 
@@ -1913,7 +2105,12 @@ class ApiService {
     if (response.statusCode == 200 || response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
-      throw Exception('Erreur d\'envoi du message: ${response.statusCode}');
+      throw Exception(
+        _extractApiError(
+          response,
+          fallbackError: 'Erreur d\'envoi du message: ${response.statusCode}',
+        ),
+      );
     }
   }
 
@@ -2448,10 +2645,18 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      final data = _decodeJsonMap(
+        response,
+        fallbackError: 'Erreur de chargement des groupes de discussion',
+      );
       return data['groups'] ?? [];
     } else {
-      throw Exception('Erreur de chargement des groupes de discussion');
+      throw Exception(
+        _extractApiError(
+          response,
+          fallbackError: 'Erreur de chargement des groupes de discussion',
+        ),
+      );
     }
   }
 
@@ -2939,13 +3144,18 @@ class ApiService {
     final response = await http.put(
       Uri.parse('$apiUrl/v1/users.php'),
       headers: _headers,
-      body: jsonEncode({'militant_badge': badge}),
+      body: jsonEncode({'militant_badge': badge ?? ''}),
     );
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      throw Exception('Erreur de mise à jour du badge');
+      throw Exception(
+        _extractApiError(
+          response,
+          fallbackError: 'Erreur de mise à jour du badge',
+        ),
+      );
     }
   }
 
@@ -3525,16 +3735,23 @@ class ApiService {
 
   Future<void> sendIceCandidate(
     String callId,
-    Map<String, dynamic> candidate,
-  ) async {
+    Map<String, dynamic> candidate, {
+    int? toUserId,
+  }) async {
     final response = await http.post(
       Uri.parse('$apiUrl/v1/calls.php?action=ice_candidate'),
       headers: _flutterHeaders,
-      body: jsonEncode({'call_id': callId, 'candidate': candidate}),
+      body: jsonEncode({
+        'call_id': callId,
+        'candidate': candidate,
+        if (toUserId != null) 'to_user_id': toUserId,
+      }),
     );
 
     if (response.statusCode != 200) {
-      throw Exception('Erreur lors de l\'envoi du ICE candidate');
+      throw Exception(
+        'Erreur lors de l\'envoi du ICE candidate: HTTP ${response.statusCode} body=${_bodyPreview(response.body)}',
+      );
     }
   }
 
@@ -3593,7 +3810,12 @@ class ApiService {
       }
       return body;
     } else {
-      throw Exception('Erreur lors du polling');
+      final bodyPreview = response.body.length > 300
+          ? '${response.body.substring(0, 300)}...'
+          : response.body;
+      throw Exception(
+        'Erreur lors du polling: HTTP ${response.statusCode} body=$bodyPreview',
+      );
     }
   }
 
@@ -3657,44 +3879,17 @@ class ApiService {
     }
   }
 
-  /// Enregistre un salon Nextcloud Talk dans la BDD Militant et notifie
-  /// tous les membres du groupe avec le [roomToken] pour qu'ils puissent
-  /// rejoindre directement le salon audio/vidéo depuis l'app.
-  Future<Map<String, dynamic>> initiateTalkRoom({
-    required int groupId,
-    required String roomToken,
-    String callType = 'audio',
-  }) async {
-    final response = await http.post(
-      Uri.parse('$apiUrl/v1/calls.php?action=initiate_talk'),
-      headers: _flutterHeaders,
-      body: jsonEncode({
-        'group_id': groupId,
-        'room_token': roomToken,
-        'call_type': callType,
-      }),
-    );
-
-    if (response.statusCode == 201 || response.statusCode == 200) {
-      final body = jsonDecode(response.body);
-      return (body['data'] as Map<String, dynamic>?) ?? body;
-    } else {
-      final error = jsonDecode(response.body);
-      throw Exception(
-        error['error'] ??
-            'Erreur lors de l\'envoi de l\'invitation au salon Talk',
-      );
-    }
-  }
-
   Future<Map<String, dynamic>> joinGroupCall(
-    String callId,
-    String offerSdp,
-  ) async {
+    String callId, {
+    String? offerSdp,
+  }) async {
     final response = await http.post(
       Uri.parse('$apiUrl/v1/calls.php?action=join'),
       headers: _flutterHeaders,
-      body: jsonEncode({'call_id': callId, 'offer': offerSdp}),
+      body: jsonEncode({
+        'call_id': callId,
+        if (offerSdp != null && offerSdp.trim().isNotEmpty) 'offer': offerSdp,
+      }),
     );
 
     if (response.statusCode == 200) {
@@ -3718,11 +3913,14 @@ class ApiService {
         'call_id': callId,
         'to_user_id': toUserId,
         'offer': offerSdp,
+        'offer_sdp': offerSdp,
       }),
     );
 
     if (response.statusCode != 200) {
-      throw Exception('Erreur lors de l\'envoi de l\'offre au pair');
+      throw Exception(
+        'Erreur lors de l\'envoi de l\'offre au pair: HTTP ${response.statusCode} body=${_bodyPreview(response.body)}',
+      );
     }
   }
 
@@ -3738,11 +3936,14 @@ class ApiService {
         'call_id': callId,
         'to_user_id': toUserId,
         'answer': answerSdp,
+        'answer_sdp': answerSdp,
       }),
     );
 
     if (response.statusCode != 200) {
-      throw Exception('Erreur lors de l\'envoi de la réponse au pair');
+      throw Exception(
+        'Erreur lors de l\'envoi de la réponse au pair: HTTP ${response.statusCode} body=${_bodyPreview(response.body)}',
+      );
     }
   }
 }

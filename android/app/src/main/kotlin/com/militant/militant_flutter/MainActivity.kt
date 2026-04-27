@@ -16,16 +16,24 @@ import androidx.core.app.RemoteInput
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import org.json.JSONArray
+import org.json.JSONObject
 import kotlin.random.Random
 
 class MainActivity : FlutterActivity() {
     private val TWA_CHANNEL = "com.militant.militant_flutter/twa"
     private val NOTIF_CHANNEL = "com.militant.militant_flutter/notifications"
+    private val CALLS_CHANNEL = "com.militant.militant_flutter/calls"
+    private var callsChannel: MethodChannel? = null
+    private var pendingIncomingCallPayload: HashMap<String, Any?>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Configurer l'affichage bord à bord manuellement (compatible Android 15)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         super.onCreate(savedInstanceState)
+        pendingIncomingCallPayload = extractIncomingCallPayload(intent)
+        cancelIncomingCallNotification(intent)
+        applyIncomingCallWindowFlags(pendingIncomingCallPayload)
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -79,6 +87,52 @@ class MainActivity : FlutterActivity() {
                     else -> result.notImplemented()
                 }
             }
+
+        callsChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CALLS_CHANNEL)
+        callsChannel?.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "showIncomingCall" -> {
+                    val rawPayload = call.arguments as? Map<*, *>
+                    val payload = rawPayload?.entries?.associate { (key, value) ->
+                        key.toString() to value
+                    }?.let { HashMap(it) }
+                    if (payload != null) {
+                        showIncomingCallNotification(payload)
+                        result.success(null)
+                    } else {
+                        result.error("INVALID_ARGS", "Incoming call payload is required", null)
+                    }
+                }
+                "endCall" -> {
+                    val callId = call.argument<String>("callId")
+                    if (!callId.isNullOrBlank()) {
+                        NotificationManagerCompat.from(this).cancel(callId.hashCode())
+                    }
+                    result.success(null)
+                }
+                "endAllCalls" -> {
+                    NotificationManagerCompat.from(this).cancelAll()
+                    result.success(null)
+                }
+                "getInitialIncomingCallIntent" -> {
+                    val payload = pendingIncomingCallPayload ?: extractIncomingCallPayload(intent)
+                    pendingIncomingCallPayload = null
+                    result.success(payload)
+                }
+                else -> result.notImplemented()
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+
+        val payload = extractIncomingCallPayload(intent) ?: return
+        cancelIncomingCallNotification(intent)
+        pendingIncomingCallPayload = payload
+        applyIncomingCallWindowFlags(payload)
+        callsChannel?.invokeMethod("incomingCallIntent", payload)
     }
 
     private fun createNotificationChannels() {
@@ -197,5 +251,99 @@ class MainActivity : FlutterActivity() {
         customTabsIntent.intent.data = Uri.parse(url)
         customTabsIntent.intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         customTabsIntent.launchUrl(this, Uri.parse(url))
+    }
+
+    private fun showIncomingCallNotification(payload: HashMap<String, Any?>) {
+        IncomingCallNotificationHelper.showIncomingCallNotification(this, payload)
+    }
+
+    private fun applyIncomingCallWindowFlags(payload: Map<String, Any?>?) {
+        if (payload == null) return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true)
+            setTurnScreenOn(true)
+        }
+    }
+
+    private fun extractIncomingCallPayload(intent: Intent?): HashMap<String, Any?>? {
+        val extras = intent?.extras ?: return null
+        val payload = hashMapOf<String, Any?>()
+
+        val interestingKeys = setOf(
+            "type",
+            "notification_action",
+            "notification_id",
+            "call_id",
+            "caller_id",
+            "caller_name",
+            "caller_avatar",
+            "call_type",
+            "is_video",
+            "offer_sdp",
+            "is_group_call",
+            "group_id",
+            "room_token",
+            "group_name"
+        )
+
+        for (key in extras.keySet()) {
+            val value = extras.get(key)
+            if (interestingKeys.contains(key)) {
+                payload[key] = normalizeIntentValue(value)
+            }
+
+            if (value is String && (key == "onesignalData" || key == "custom")) {
+                mergeCallPayloadFromJson(value, payload)
+            }
+        }
+
+        val type = payload["type"]?.toString()
+        val hasCallId = !payload["call_id"]?.toString().isNullOrBlank()
+        val hasRoomToken = !payload["room_token"]?.toString().isNullOrBlank()
+
+        return if (type == "call" || type == "talk_invite" || hasCallId || hasRoomToken) {
+            payload
+        } else {
+            null
+        }
+    }
+
+    private fun mergeCallPayloadFromJson(rawJson: String, target: HashMap<String, Any?>) {
+        try {
+            flattenJsonObject(JSONObject(rawJson), target)
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun flattenJsonObject(json: JSONObject, target: HashMap<String, Any?>) {
+        val iterator = json.keys()
+        while (iterator.hasNext()) {
+            val key = iterator.next()
+            val value = json.opt(key)
+            when (value) {
+                is JSONObject -> flattenJsonObject(value, target)
+                is JSONArray -> {
+                    // Ignore arrays for incoming-call routing.
+                }
+                else -> {
+                    if (!target.containsKey(key)) {
+                        target[key] = normalizeIntentValue(value)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun normalizeIntentValue(value: Any?): Any? {
+        return when (value) {
+            is Boolean, is Int, is Long, is Double -> value
+            else -> value?.toString()
+        }
+    }
+
+    private fun cancelIncomingCallNotification(intent: Intent?) {
+        val notificationId = intent?.getIntExtra("notification_id", -1) ?: -1
+        if (notificationId == -1) return
+        NotificationManagerCompat.from(this).cancel(notificationId)
     }
 }

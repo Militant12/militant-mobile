@@ -16,8 +16,15 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
   bool _isLoading = true;
   bool _isSaving = false;
 
+  String? _normalizeBadgeId(String? badgeId) {
+    final normalized = badgeId?.trim();
+    if (normalized == null || normalized.isEmpty) return null;
+    if (normalized == 'militant') return 'maknosocial';
+    return normalized;
+  }
+
   final List<Map<String, String>> _badges = [
-    {'id': 'militant', 'name': 'Militant'},
+    {'id': 'maknosocial', 'name': 'Militant'},
     {'id': 'antifa', 'name': 'Antifa'},
     {'id': 'anarchist', 'name': 'Anarchiste'},
     {'id': 'cnt-ait', 'name': 'CNT-AIT'},
@@ -29,6 +36,14 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
     {'id': 'ucl', 'name': 'UCL'},
     {'id': 'fll', 'name': 'FLL'},
     {'id': 'slm', 'name': 'SLM'},
+    {'id': 'iwa-ait', 'name': 'IWA-AIT (International Workers\' Association)'},
+    {'id': 'iww', 'name': 'IWW (Industrial Workers of the World)'},
+    {
+      'id': 'iaf-ifa',
+      'name': 'IAF-IFA (Internationale des Fédérations Anarchistes)',
+    },
+    {'id': 'cnt-ait-e', 'name': 'CNT-AIT (Confederación Nacional del Trabajo)'},
+    {'id': 'ulet-ait', 'name': 'ULET-AIT'},
   ];
 
   @override
@@ -42,8 +57,11 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
     try {
       final api = await ApiService.getInstance();
       final profile = await api.getProfile();
+      final currentBadge = _normalizeBadgeId(
+        profile['militant_badge']?.toString(),
+      );
       setState(() {
-        _currentBadge = profile['militant_badge'];
+        _currentBadge = currentBadge;
         _selectedBadge = _currentBadge;
         _isLoading = false;
       });
@@ -172,7 +190,7 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
     return InkWell(
       onTap: () {
         setState(() {
-          _selectedBadge = id;
+          _selectedBadge = _normalizeBadgeId(id);
         });
       },
       child: Container(

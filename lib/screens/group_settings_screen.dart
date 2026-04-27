@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 
 class GroupSettingsScreen extends StatefulWidget {
   final int groupId;
@@ -25,6 +26,32 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
   bool _isLoading = true;
   ApiService? _api;
 
+  String _errorText(Object error) => '${LanguageService.instance.translate('error')}: $error';
+
+  String _replacePlaceholder(String template, String key, String value) {
+    return template.replaceAll('{$key}', value);
+  }
+
+  String _autoDeleteLabel() {
+    final lang = LanguageService.instance;
+    switch (_autoDeleteTime) {
+      case 0:
+        return lang.translate('disabled');
+      case 1:
+        return '${lang.translate('ephemeral_delete_after')} ${lang.translate('duration_1_minute')}';
+      case 5:
+        return '${lang.translate('ephemeral_delete_after')} ${lang.translate('duration_5_minutes')}';
+      case 60:
+        return '${lang.translate('ephemeral_delete_after')} ${lang.translate('duration_1_hour')}';
+      case 1440:
+        return '${lang.translate('ephemeral_delete_after')} ${lang.translate('duration_24_hours')}';
+      case 10080:
+        return '${lang.translate('ephemeral_delete_after')} ${lang.translate('duration_1_week')}';
+      default:
+        return '${lang.translate('ephemeral_delete_after')} $_autoDeleteTime min';
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -47,7 +74,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+        ).showSnackBar(SnackBar(content: Text(_errorText(e))));
       }
     }
   }
@@ -66,20 +93,21 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+        ).showSnackBar(SnackBar(content: Text(_errorText(e))));
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguageService.instance;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     if (_isLoading) {
       return Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
-        appBar: AppBar(title: const Text('Paramètres')),
+        appBar: AppBar(title: Text(lang.translate('settings'))),
         body: const Center(
           child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
         ),
@@ -89,7 +117,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Paramètres du groupe'),
+        title: Text(lang.translate('group_settings')),
         actions: [
           IconButton(icon: const Icon(Icons.check), onPressed: _saveSettings),
         ],
@@ -104,8 +132,8 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Général',
+                  Text(
+                    lang.translate('general'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -117,7 +145,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                     controller: _nameController,
                     style: TextStyle(color: theme.textTheme.bodyLarge?.color),
                     decoration: InputDecoration(
-                      labelText: 'Nom du groupe',
+                      labelText: lang.translate('group_name_label'),
                       labelStyle: TextStyle(color: theme.hintColor),
                       border: const OutlineInputBorder(),
                       enabledBorder: OutlineInputBorder(
@@ -135,10 +163,10 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Padding(
+                Padding(
                   padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
                   child: Text(
-                    'Partage et Invitation',
+                    lang.translate('sharing_and_invitation'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -149,11 +177,11 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                 ListTile(
                   leading: const Icon(Icons.link, color: Colors.green),
                   title: Text(
-                    'Lien d\'invitation',
+                    lang.translate('invite_link'),
                     style: TextStyle(color: theme.textTheme.bodyLarge?.color),
                   ),
                   subtitle: Text(
-                    'Copier le lien pour inviter des membres',
+                    lang.translate('copy_invite_link'),
                     style: TextStyle(color: theme.hintColor),
                   ),
                   onTap: () {
@@ -161,9 +189,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                         'https://militant.revlibertaire.com/message_groups_v2.php?group=${widget.groupId}';
                     Clipboard.setData(ClipboardData(text: link));
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Lien copié dans le presse-papier'),
-                      ),
+                      SnackBar(content: Text(lang.translate('link_copied'))),
                     );
                   },
                 ),
@@ -176,10 +202,10 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Padding(
+                Padding(
                   padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
                   child: Text(
-                    'Confidentialité',
+                    lang.translate('privacy'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -190,13 +216,11 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                 ListTile(
                   leading: const Icon(Icons.timer_outlined, color: Colors.blue),
                   title: Text(
-                    'Messages éphémères',
+                    lang.translate('ephemeral_messages'),
                     style: TextStyle(color: theme.textTheme.bodyLarge?.color),
                   ),
                   subtitle: Text(
-                    _autoDeleteTime == 0
-                        ? 'Désactivé'
-                        : 'Suppression après $_autoDeleteTime min',
+                    _autoDeleteLabel(),
                     style: TextStyle(color: theme.hintColor),
                   ),
                   onTap: () async {
@@ -206,13 +230,14 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                         backgroundColor: isDark
                             ? const Color(0xFF1E1E1E)
                             : Colors.white,
-                        title: const Text('Délai de suppression'),
+                        title: Text(lang.translate('deletion_delay')),
                         children: [
-                          _timeOption(0, 'Désactivé'),
-                          _timeOption(1, '1 minute'),
-                          _timeOption(5, '5 minutes'),
-                          _timeOption(60, '1 heure'),
-                          _timeOption(1440, '24 heures'),
+                          _timeOption(0, lang.translate('disabled')),
+                          _timeOption(1, lang.translate('duration_1_minute')),
+                          _timeOption(5, lang.translate('duration_5_minutes')),
+                          _timeOption(60, lang.translate('duration_1_hour')),
+                          _timeOption(1440, lang.translate('duration_24_hours')),
+                          _timeOption(10080, lang.translate('duration_1_week')),
                         ],
                       ),
                     );
@@ -223,11 +248,11 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                 ListTile(
                   leading: const Icon(Icons.security, color: Colors.orange),
                   title: Text(
-                    'Tout le monde est Admin',
+                    lang.translate('everyone_is_admin'),
                     style: TextStyle(color: theme.textTheme.bodyLarge?.color),
                   ),
                   subtitle: Text(
-                    'Donner les pleins pouvoirs à tous les membres',
+                    lang.translate('grant_full_powers_to_members'),
                     style: TextStyle(color: theme.hintColor),
                   ),
                   onTap: () async {
@@ -237,19 +262,19 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                         backgroundColor: isDark
                             ? const Color(0xFF1E1E1E)
                             : Colors.white,
-                        title: const Text('Confirmer ?'),
-                        content: const Text(
-                          'Cela accordera les droits d\'administration à tous les membres actuels du groupe.',
+                        title: Text(lang.translate('confirm_question')),
+                        content: Text(
+                          lang.translate('grant_admin_rights'),
                         ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context),
-                            child: const Text('Annuler'),
+                            child: Text(lang.translate('cancel')),
                           ),
                           TextButton(
                             onPressed: () => Navigator.pop(context, true),
-                            child: const Text(
-                              'Confirmer',
+                            child: Text(
+                              lang.translate('confirm'),
                               style: TextStyle(color: Color(0xFFBE1E1E)),
                             ),
                           ),
@@ -265,9 +290,9 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                         _loadData();
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
+                            SnackBar(
                               content: Text(
-                                'Tous les membres sont désormais admins',
+                                lang.translate('all_members_now_admins'),
                               ),
                             ),
                           );
@@ -276,7 +301,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                         if (mounted) {
                           ScaffoldMessenger.of(
                             context,
-                          ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+                          ).showSnackBar(SnackBar(content: Text(_errorText(e))));
                         }
                       }
                     }
@@ -296,8 +321,8 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Membres',
+                      Text(
+                        lang.translate('members_title'),
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -345,7 +370,9 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                       style: TextStyle(color: theme.textTheme.bodyLarge?.color),
                     ),
                     subtitle: Text(
-                      isAdmin ? 'Administrateur' : 'Membre',
+                      isAdmin
+                          ? lang.translate('administrator')
+                          : lang.translate('member'),
                       style: TextStyle(
                         color: isAdmin
                             ? const Color(0xFFBE1E1E)
@@ -383,8 +410,8 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Demandes d\'adhésion',
+                        Text(
+                          lang.translate('join_requests'),
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -452,7 +479,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
             child: ListTile(
               leading: const Icon(Icons.exit_to_app, color: Color(0xFFBE1E1E)),
               title: Text(
-                'Quitter le groupe',
+                lang.translate('leave_group_action'),
                 style: TextStyle(
                   color: const Color(0xFFBE1E1E),
                   fontWeight: FontWeight.bold,
@@ -467,6 +494,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
   }
 
   Future<void> _handleRequest(int requestId, bool approve) async {
+    final lang = LanguageService.instance;
     try {
       if (approve) {
         await _api!.approveGroupRequest(widget.groupId, requestId);
@@ -477,7 +505,11 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(approve ? 'Demande approuvée' : 'Demande refusée'),
+            content: Text(
+              approve
+                  ? lang.translate('request_approved')
+                  : lang.translate('request_rejected'),
+            ),
           ),
         );
       }
@@ -485,7 +517,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+        ).showSnackBar(SnackBar(content: Text(_errorText(e))));
       }
     }
   }
@@ -518,7 +550,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                 backgroundColor: Theme.of(context).brightness == Brightness.dark
                     ? const Color(0xFF1E1E1E)
                     : Colors.white,
-                title: const Text('Ajouter un membre'),
+                title: Text(LanguageService.instance.translate('add_member')),
                 content: SizedBox(
                   width: double.maxFinite,
                   height: 400,
@@ -530,7 +562,9 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                           color: Theme.of(context).textTheme.bodyLarge?.color,
                         ),
                         decoration: InputDecoration(
-                          hintText: 'Rechercher un utilisateur...',
+                          hintText: LanguageService.instance.translate(
+                            'search_user',
+                          ),
                           hintStyle: TextStyle(
                             color: Theme.of(context).hintColor,
                           ),
@@ -578,8 +612,12 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                                 ),
                               )
                             : displayUsers.isEmpty
-                            ? const Center(
-                                child: Text('Aucun utilisateur trouvé'),
+                            ? Center(
+                                child: Text(
+                                  LanguageService.instance.translate(
+                                    'no_user_found',
+                                  ),
+                                ),
                               )
                             : ListView.builder(
                                 itemCount: displayUsers.length,
@@ -591,7 +629,9 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                                   final username =
                                       user['username'] ??
                                       user['name'] ??
-                                      'Utilisateur inconnu';
+                                      LanguageService.instance.translate(
+                                        'unknown_user',
+                                      );
 
                                   return ListTile(
                                     leading: CircleAvatar(
@@ -630,7 +670,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                                           ).showSnackBar(
                                             SnackBar(
                                               content: Text(
-                                                '$username ajouté(e)',
+                                                '$username ${LanguageService.instance.translate('member_added')}',
                                               ),
                                             ),
                                           );
@@ -641,7 +681,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                                             context,
                                           ).showSnackBar(
                                             SnackBar(
-                                              content: Text('Erreur: $e'),
+                                              content: Text(_errorText(e)),
                                             ),
                                           );
                                         }
@@ -657,7 +697,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Fermer'),
+                    child: Text(LanguageService.instance.translate('close')),
                   ),
                 ],
               );
@@ -670,7 +710,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
         Navigator.pop(context); // close loading
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+        ).showSnackBar(SnackBar(content: Text(_errorText(e))));
       }
     }
   }
@@ -682,17 +722,23 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
         backgroundColor: Theme.of(context).brightness == Brightness.dark
             ? const Color(0xFF1E1E1E)
             : Colors.white,
-        title: const Text('Retirer ce membre ?'),
-        content: Text('Voulez-vous retirer $username du groupe ?'),
+        title: Text(LanguageService.instance.translate('remove_member_question')),
+        content: Text(
+          _replacePlaceholder(
+            LanguageService.instance.translate('remove_member_confirm'),
+            'username',
+            username,
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler'),
+            child: Text(LanguageService.instance.translate('cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              'Retirer',
+            child: Text(
+              LanguageService.instance.translate('remove'),
               style: TextStyle(color: Color(0xFFBE1E1E)),
             ),
           ),
@@ -706,14 +752,18 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
         _loadData();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('$username a été retiré du groupe')),
+            SnackBar(
+              content: Text(
+                '$username ${LanguageService.instance.translate('remove_member')}',
+              ),
+            ),
           );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+          ).showSnackBar(SnackBar(content: Text(_errorText(e))));
         }
       }
     }
@@ -726,19 +776,19 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
         backgroundColor: Theme.of(context).brightness == Brightness.dark
             ? const Color(0xFF1E1E1E)
             : Colors.white,
-        title: const Text('Quitter le groupe ?'),
-        content: const Text(
-          'Êtes-vous sûr de vouloir quitter ce groupe ? Vous ne pourrez plus accéder aux messages.',
+        title: Text(LanguageService.instance.translate('leave_group_title')),
+        content: Text(
+          LanguageService.instance.translate('leave_group_confirm'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler'),
+            child: Text(LanguageService.instance.translate('cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              'Quitter',
+            child: Text(
+              LanguageService.instance.translate('leave'),
               style: TextStyle(color: Color(0xFFBE1E1E)),
             ),
           ),
@@ -753,14 +803,16 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
           Navigator.pop(context, true); // Return to messages screen
           Navigator.pop(context, true); // Close chat screen
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Vous avez quitté le groupe')),
+            SnackBar(
+              content: Text(LanguageService.instance.translate('left_group')),
+            ),
           );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+          ).showSnackBar(SnackBar(content: Text(_errorText(e))));
         }
       }
     }

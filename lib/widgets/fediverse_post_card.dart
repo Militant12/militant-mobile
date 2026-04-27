@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/fediverse_post.dart';
+import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../utils/date_formatter.dart';
 import '../utils/fediverse_text.dart';
@@ -104,7 +105,13 @@ class FediversePostCard extends StatelessWidget {
             if (post.mediaUrl != null && post.mediaUrl!.trim().isNotEmpty) ...[
               const SizedBox(height: 12),
               if (post.isVideo)
-                VideoPlayerWidget(videoUrl: post.mediaUrl!)
+                VideoPlayerWidget(
+                  videoUrl: post.mediaUrl!,
+                  thumbnailUrl: ApiService.resolveVideoThumbnailUrl(
+                    post.mediaUrl,
+                    thumbnailPath: post.thumbnailUrl,
+                  ),
+                )
               else
                 ClipRRect(
                   borderRadius: BorderRadius.circular(14),

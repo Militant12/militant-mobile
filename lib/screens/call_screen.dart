@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import '../services/call_service.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
+import '../services/private_call_session.dart';
 
 class CallScreen extends StatefulWidget {
   final String? callId;
@@ -29,7 +32,7 @@ class CallScreen extends StatefulWidget {
 }
 
 class _CallScreenState extends State<CallScreen> {
-  late CallService _callService;
+  final PrivateCallSession _callSession = PrivateCallSession.instance;
   final RTCVideoRenderer _localRenderer = RTCVideoRenderer();
   final RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
 
@@ -38,59 +41,103 @@ class _CallScreenState extends State<CallScreen> {
   bool _isConnected = false;
   bool _isRinging = true;
   String _callStatus = '';
+  String? _resolvedRecipientAvatar;
+  PrivateCallTerminalState _lastHandledTerminalState =
+      PrivateCallTerminalState.none;
 
   @override
   void initState() {
     super.initState();
     _callStatus = LanguageService.instance.translate('call_connecting');
-    _initRenderers();
-    _setupCallService();
+    unawaited(_resolveRecipientAvatar());
+    _setupSession();
   }
 
-  Future<void> _initRenderers() async {
-    await _localRenderer.initialize();
-    await _remoteRenderer.initialize();
-  }
+  Future<void> _resolveRecipientAvatar() async {
+    final avatar = widget.recipientAvatar?.trim();
+    if (avatar == null || avatar.isEmpty) return;
 
-  void _setupCallService() async {
     try {
-      final apiService = await ApiService.getInstance();
-      _callService = CallService(apiService: apiService);
+      final api = await ApiService.getInstance();
+      final resolved =
+          api.getImageUrl(avatar) ??
+          ApiService.resolveImageUrl(avatar) ??
+          avatar;
+      if (!mounted) return;
+      setState(() {
+        _resolvedRecipientAvatar = resolved;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _resolvedRecipientAvatar =
+            ApiService.resolveImageUrl(avatar) ?? avatar;
+      });
+    }
+  }
 
-      _callService.onLocalStream = (stream) {
-        if (mounted) {
-          setState(() {
-            _localRenderer.srcObject = stream;
-          });
+  Future<void> _setupSession() async {
+    debugPrint(
+      '[WebRTC][private][screen] setup incoming=${widget.isIncoming} callId=${widget.callId} recipientId=${widget.recipientId} video=${widget.isVideo}',
+    );
+    if (widget.isVideo) {
+      await _localRenderer.initialize();
+      await _remoteRenderer.initialize();
+    }
+    if (!mounted) return;
+
+    _callSession.addListener(_handleSessionChanged);
+
+    await _callSession.configure(
+      callId: widget.callId,
+      recipientId: widget.recipientId,
+      recipientName: widget.recipientName,
+      recipientAvatar: widget.recipientAvatar,
+      isVideo: widget.isVideo,
+      isIncoming: widget.isIncoming,
+      offerSdp: widget.offerSdp,
+    );
+    if (!mounted) return;
+
+    _handleSessionChanged();
+    await _callSession.ensureStarted();
+  }
+
+  void _handleSessionChanged() {
+    if (!mounted) return;
+
+    setState(() {
+      if (widget.isVideo) {
+        _localRenderer.srcObject = _callSession.localStream;
+        _remoteRenderer.srcObject = _callSession.remoteStream;
+      }
+      _isMuted = _callSession.isMuted;
+      _isCameraOff = _callSession.isCameraOff;
+      _isConnected = _callSession.isConnected;
+      _isRinging = _callSession.isRinging;
+      _callStatus = _callSession.callStatus;
+    });
+
+    if (_callSession.terminalState != PrivateCallTerminalState.none &&
+        _callSession.terminalState != _lastHandledTerminalState) {
+      _lastHandledTerminalState = _callSession.terminalState;
+      unawaited(_handleTerminalState(_callSession.terminalState));
+    }
+  }
+
+  Future<void> _handleTerminalState(PrivateCallTerminalState state) async {
+    if (!mounted) return;
+
+    switch (state) {
+      case PrivateCallTerminalState.localEnded:
+        if (mounted && Navigator.canPop(context)) {
+          Navigator.pop(context);
         }
-      };
-
-      _callService.onRemoteStream = (stream) {
-        if (mounted) {
-          setState(() {
-            _remoteRenderer.srcObject = stream;
-            _isConnected = true;
-            _isRinging = false;
-            _callStatus = LanguageService.instance.translate('call_active');
-          });
-        }
-      };
-
-      _callService.onCallEnded = (reason) async {
-        if (!mounted) return;
-        // Annuler les vidéos locales proprement
-        setState(() {
-          _isConnected = false;
-          _callStatus = '📵 Appel terminé';
-        });
-        // Attendre 2s pour que l'utilisateur voie le message
+        return;
+      case PrivateCallTerminalState.remoteEnded:
         await Future.delayed(const Duration(seconds: 2));
-        if (mounted) Navigator.pop(context);
-      };
-
-      _callService.onCallRejected = (reason) async {
-        if (!mounted) return;
-        setState(() => _callStatus = '❌ Appel refusé');
+        break;
+      case PrivateCallTerminalState.rejected:
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(LanguageService.instance.translate('call_rejected')),
@@ -99,99 +146,26 @@ class _CallScreenState extends State<CallScreen> {
           ),
         );
         await Future.delayed(const Duration(seconds: 2));
-        if (mounted) Navigator.pop(context);
-      };
-
-      _callService.onNetworkChange = (message) {
-        if (mounted) {
-          setState(
-            () => _callStatus = LanguageService.instance.translate(
-              'call_network_reconnecting',
-            ),
-          );
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(message), duration: Duration(seconds: 2)),
-          );
-        }
-      };
-
-      // Initier ou répondre à l'appel
-      if (widget.isIncoming && widget.callId != null) {
-        if (mounted) {
-          setState(
-            () => _callStatus = LanguageService.instance.translate(
-              'call_connecting',
-            ),
-          );
-        }
-
-        String remoteSdp = widget.offerSdp ?? '';
-
-        // Si le SDP n'est pas fourni (cas CallKit), on le récupère via l'API
-        if (remoteSdp.isEmpty) {
-          try {
-            final callInfo = await apiService.getCallInfo(widget.callId!);
-            remoteSdp = callInfo['offer_sdp'] ?? '';
-          } catch (e) {
-            print('Erreur récupération infos appel: $e');
-            if (mounted) Navigator.pop(context);
-            return;
-          }
-        }
-
-        if (remoteSdp.isNotEmpty) {
-          await _callService.answerCall(
-            widget.callId!,
-            remoteSdp,
-            widget.isVideo ? 'video' : 'audio',
-          );
-        }
-      } else if (!widget.isIncoming && widget.recipientId != null) {
-        if (mounted) {
-          setState(
-            () => _callStatus = LanguageService.instance.translate(
-              'call_ringing',
-            ),
-          );
-        }
-        if (widget.isVideo) {
-          await _callService.initiateVideoCall(widget.recipientId!);
-        } else {
-          await _callService.initiateAudioCall(widget.recipientId!);
-        }
-      }
-    } catch (e) {
-      print('Erreur lors de la configuration de l\'appel: $e');
-      if (mounted) {
-        String errorMessage = e.toString().replaceAll('Exception: ', '');
-
-        // Messages d'erreur plus clairs
-        if (errorMessage.contains('Permission') ||
-            errorMessage.contains('permission')) {
-          errorMessage =
-              'Permission refusée. Veuillez autoriser l\'accès au microphone et à la caméra.';
-        } else if (errorMessage.contains('NotFoundError') ||
-            errorMessage.contains('not found')) {
-          errorMessage = 'Aucun microphone ou caméra trouvé sur cet appareil.';
-        } else if (errorMessage.contains('NotAllowedError')) {
-          errorMessage =
-              'Accès refusé. Veuillez autoriser les permissions dans les paramètres.';
-        }
-
+        break;
+      case PrivateCallTerminalState.error:
+        final message =
+            _callSession.errorMessage ??
+            LanguageService.instance.translate('call_ended');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(errorMessage),
+            content: Text(message),
             backgroundColor: Colors.red,
-            duration: Duration(seconds: 5),
+            duration: const Duration(seconds: 5),
           ),
         );
+        await Future.delayed(const Duration(milliseconds: 500));
+        break;
+      case PrivateCallTerminalState.none:
+        return;
+    }
 
-        // Attendre un peu avant de fermer pour que l'utilisateur puisse lire le message
-        await Future.delayed(Duration(milliseconds: 500));
-        if (mounted) {
-          Navigator.pop(context);
-        }
-      }
+    if (mounted && Navigator.canPop(context)) {
+      Navigator.pop(context);
     }
   }
 
@@ -259,8 +233,7 @@ class _CallScreenState extends State<CallScreen> {
                   _buildControlButton(
                     icon: _isMuted ? Icons.mic_off : Icons.mic,
                     onPressed: () {
-                      _callService.toggleMicrophone();
-                      setState(() => _isMuted = !_isMuted);
+                      _callSession.toggleMicrophone();
                     },
                     color: _isMuted ? Colors.red : Colors.white,
                   ),
@@ -270,8 +243,7 @@ class _CallScreenState extends State<CallScreen> {
                     _buildControlButton(
                       icon: _isCameraOff ? Icons.videocam_off : Icons.videocam,
                       onPressed: () {
-                        _callService.toggleCamera();
-                        setState(() => _isCameraOff = !_isCameraOff);
+                        _callSession.toggleCamera();
                       },
                       color: _isCameraOff ? Colors.red : Colors.white,
                     ),
@@ -280,8 +252,10 @@ class _CallScreenState extends State<CallScreen> {
                   _buildControlButton(
                     icon: Icons.call_end,
                     onPressed: () async {
-                      await _callService.endCall();
-                      if (mounted) Navigator.pop(context);
+                      debugPrint(
+                        '[WebRTC][private][screen] hangup button pressed callId=${_callSession.callId}',
+                      );
+                      await _callSession.endCall();
                     },
                     color: Colors.white,
                     backgroundColor: Colors.red,
@@ -291,7 +265,7 @@ class _CallScreenState extends State<CallScreen> {
                   if (widget.isVideo)
                     _buildControlButton(
                       icon: Icons.flip_camera_ios,
-                      onPressed: () => _callService.switchCamera(),
+                      onPressed: () => _callSession.switchCamera(),
                       color: Colors.white,
                     ),
                 ],
@@ -308,23 +282,20 @@ class _CallScreenState extends State<CallScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (widget.recipientAvatar != null)
+          if (_resolvedRecipientAvatar != null)
             CircleAvatar(
               radius: 60,
-              backgroundImage: NetworkImage(widget.recipientAvatar!),
+              backgroundImage: NetworkImage(_resolvedRecipientAvatar!),
             )
           else
             CircleAvatar(
               radius: 60,
               backgroundColor: const Color(0xFFBE1E1E),
-              child: Text(
-                widget.recipientName.isNotEmpty
-                    ? widget.recipientName[0].toUpperCase()
-                    : '?',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 48,
-                  fontWeight: FontWeight.bold,
+              child: Padding(
+                padding: const EdgeInsets.all(18),
+                child: SvgPicture.asset(
+                  'assets/logo.svg',
+                  fit: BoxFit.contain,
                 ),
               ),
             ),
@@ -356,12 +327,16 @@ class _CallScreenState extends State<CallScreen> {
 
   @override
   void dispose() {
-    _localRenderer.dispose();
-    _remoteRenderer.dispose();
-    // Nettoyer le service d'appel de manière asynchrone
-    _callService.cleanup().catchError((e) {
-      print('Erreur lors du nettoyage du service d\'appel: $e');
-    });
+    debugPrint(
+      '[WebRTC][private][screen] dispose callId=${_callSession.callId} terminal=${_callSession.terminalState}',
+    );
+    _callSession.removeListener(_handleSessionChanged);
+    if (widget.isVideo) {
+      _localRenderer.srcObject = null;
+      _remoteRenderer.srcObject = null;
+      _localRenderer.dispose();
+      _remoteRenderer.dispose();
+    }
     super.dispose();
   }
 }

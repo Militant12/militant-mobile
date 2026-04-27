@@ -37,8 +37,13 @@ class _GroupsScreenState extends State<GroupsScreen>
     setState(() => _isLoading = true);
     try {
       _api = await ApiService.getInstance();
+      debugPrint('[GroupsScreen] loading groups baseUrl=${_api!.apiUrl}');
       final myGroups = await _api!.getGroups();
+      debugPrint('[GroupsScreen] myGroups loaded count=${myGroups.length}');
       final discoverGroups = await _api!.discoverGroups();
+      debugPrint(
+        '[GroupsScreen] discoverGroups loaded count=${discoverGroups.length}',
+      );
       final discoverGroupsWithStatus = await _enrichDiscoverGroups(
         discoverGroups,
       );
@@ -49,6 +54,7 @@ class _GroupsScreenState extends State<GroupsScreen>
         _discoverGroups.addAll(discoverGroupsWithStatus);
       });
     } catch (e) {
+      debugPrint('[GroupsScreen] loadGroups error=$e');
       if (mounted) {
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(context).showSnackBar(

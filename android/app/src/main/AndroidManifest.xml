@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
     <!-- Android 13+ (API 33+) granular media permissions -->
@@ -33,6 +34,9 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/militant_notification_accent" />
+        <meta-data
+            android:name="com.onesignal.NotificationServiceExtension"
+            android:value="com.militant.militant_flutter.OneSignalCallNotificationServiceExtension" />
 
         <!-- Activité CallKit supprimée pour éviter duplication du manifest merger -->
         
@@ -162,6 +166,15 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="com.militant.militant_flutter.REPLY_ACTION" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".CallActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.militant.militant_flutter.CALL_ACCEPT" />
+                <action android:name="com.militant.militant_flutter.CALL_DECLINE" />
             </intent-filter>
         </receiver>
 

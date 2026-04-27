@@ -139,6 +139,9 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          IncomingCallService.instance.flushPendingAndroidIncomingIntent();
+        });
       } else {
         setState(() {
           _errorMessage =

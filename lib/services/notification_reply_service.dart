@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'api_service.dart';
 
+const String _groupCallMessagePrefix = '__militant_group_call__:';
+
 /// Service de réponse rapide depuis les notifications
 /// Permet de répondre à un message privé ou de groupe
 /// directement depuis la notification Android (comme Signal/WhatsApp)
@@ -28,9 +30,14 @@ class NotificationReplyService {
     if (data == null) return;
 
     final type = data['type']?.toString();
+    final messagePreview = data['message_preview']?.toString().trim() ?? '';
 
     // Ne traiter que les messages privés et de groupe
     if (type != 'message' && type != 'group_message') return;
+    if (type == 'group_message' &&
+        messagePreview.startsWith(_groupCallMessagePrefix)) {
+      return;
+    }
 
     // On laisse la navigation normale faire son travail
     // La réponse rapide est gérée via l'action Android inline reply

@@ -26,6 +26,7 @@ class _PostCardState extends State<PostCard> {
   late int _likesCount;
   String? _avatarUrl;
   String? _mediaUrl;
+  String? _videoThumbnailUrl;
   String? _translatedContent;
   bool _showTranslation = false;
   bool _isTranslating = false;
@@ -63,12 +64,33 @@ class _PostCardState extends State<PostCard> {
   Future<void> _resolveUrls() async {
     final api = await ApiService.getInstance();
     final currentId = await api.getCurrentUserId();
+    final mediaPaths = widget.post.mediaUrls;
+    final isVideoPost = widget.post.mediaType == 'video';
+    final rawVideoPath = isVideoPost
+        ? mediaPaths.cast<String?>().firstWhere(
+            (path) => path != null && _isVideoUrl(path),
+            orElse: () => mediaPaths.isNotEmpty ? mediaPaths.first : null,
+          )
+        : mediaPaths.isNotEmpty
+        ? mediaPaths.first
+        : null;
+    final rawThumbnailPath = isVideoPost
+        ? mediaPaths.cast<String?>().firstWhere(
+            (path) => path != null && !_isVideoUrl(path),
+            orElse: () => widget.post.thumbnailUrl,
+          )
+        : null;
     if (mounted) {
       setState(() {
         _currentUserId = currentId;
         _avatarUrl = api.getImageUrl(widget.post.userAvatar);
-        if (widget.post.mediaUrls.isNotEmpty) {
-          _mediaUrl = api.getImageUrl(widget.post.mediaUrls.first);
+        if (rawVideoPath != null) {
+          _mediaUrl = api.getImageUrl(rawVideoPath);
+          _videoThumbnailUrl = ApiService.resolveVideoThumbnailUrl(
+            rawVideoPath,
+            thumbnailPath: rawThumbnailPath,
+            baseUrl: api.baseUrl,
+          );
         }
       });
     }
@@ -397,7 +419,10 @@ class _PostCardState extends State<PostCard> {
               if (_mediaUrl != null) ...[
                 const SizedBox(height: 12),
                 if (widget.post.mediaType == 'video' || _isVideoUrl(_mediaUrl!))
-                  VideoPlayerWidget(videoUrl: _mediaUrl!)
+                  VideoPlayerWidget(
+                    videoUrl: _mediaUrl!,
+                    thumbnailUrl: _videoThumbnailUrl,
+                  )
                 else
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
