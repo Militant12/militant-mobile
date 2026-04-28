@@ -56,9 +56,9 @@ class LinkableText extends StatelessWidget {
   ) {
     final List<TextSpan> spans = [];
 
-    // Regex pour détecter les URLs et les Mentions (@pseudo)
+    // Regex pour détecter les URLs, les Mentions (@pseudo) et les hashtags
     final combinedPattern = RegExp(
-      r'(https?://[^\s]+|www\.[^\s]+)|(@\w+)',
+      r'(https?://[^\s]+|www\.[^\s]+)|(@\w+)|(#[A-Za-z0-9_]+)',
       caseSensitive: false,
     );
 
@@ -78,9 +78,10 @@ class LinkableText extends StatelessWidget {
 
       final matchText = match.group(0)!;
       final isMention = match.group(2) != null;
+      final isHashtag = match.group(3) != null;
 
-      if (isMention) {
-        // Ajouter la mention en gras
+      if (isMention || isHashtag) {
+        // Ajouter la mention ou le hashtag en gras
         spans.add(
           TextSpan(
             text: matchText,

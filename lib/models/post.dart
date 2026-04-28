@@ -1,5 +1,6 @@
 import 'dart:convert';
 import '../utils/date_formatter.dart';
+import '../utils/post_tags.dart';
 
 class Post {
   final int id;
@@ -21,6 +22,7 @@ class Post {
   final DateTime createdAt;
   final String? sharedByUsername;
   final DateTime feedDate;
+  final List<String> tags;
 
   final String type; // 'post', 'group', 'page'
   final int? groupId;
@@ -45,6 +47,7 @@ class Post {
     required this.createdAt,
     this.sharedByUsername,
     required this.feedDate,
+    this.tags = const [],
     this.type = 'post',
     this.groupId,
   });
@@ -69,6 +72,27 @@ class Post {
       } else if (media is List) {
         mediaList = media.map((e) => e.toString()).toList();
       }
+    }
+
+    List<String> parsedTags = [];
+    final rawTags = json['tags'] ?? json['hashtags'] ?? json['post_tags'];
+    if (rawTags is List) {
+      parsedTags = rawTags
+          .map((tag) => tag.toString().trim().toLowerCase())
+          .where((tag) => tag.isNotEmpty)
+          .toSet()
+          .toList()
+        ..sort();
+    } else if (rawTags is String && rawTags.trim().isNotEmpty) {
+      parsedTags = rawTags
+          .split(RegExp(r'[,;\s]+'))
+          .map((tag) => tag.replaceAll('#', '').trim().toLowerCase())
+          .where((tag) => tag.isNotEmpty)
+          .toSet()
+          .toList()
+        ..sort();
+    } else {
+      parsedTags = extractPostTags(json['content']?.toString() ?? '');
     }
 
     return Post(
@@ -96,6 +120,7 @@ class Post {
       createdAt: DateFormatter.parseApiDate(json['created_at']),
       sharedByUsername: json['shared_by_username'],
       feedDate: DateFormatter.parseApiDate(json['feed_date'] ?? json['created_at']),
+      tags: parsedTags,
       type: json['type'] ?? 'post',
       groupId: json['group_id'],
     );

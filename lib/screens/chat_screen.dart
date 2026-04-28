@@ -18,6 +18,7 @@ import '../widgets/signal_typing_indicator.dart';
 
 const Duration _privateChatPollInterval = Duration(seconds: 10);
 const Duration _privateTypingPollInterval = Duration(seconds: 6);
+const List<String> _messageReactionChoices = ['like', 'love', 'haha', 'wow', 'sad', 'angry'];
 
 class ChatScreen extends StatefulWidget {
   final int userId;
@@ -52,6 +53,7 @@ class _ChatScreenState extends State<ChatScreen> {
   DateTime? _lastTypingHeartbeatAt;
   List<Map<String, dynamic>> _typingUsers = [];
   int _autoDeleteTime = 0;
+  Map<String, dynamic>? _replyingTo;
 
   @override
   void initState() {
@@ -155,6 +157,10 @@ class _ChatScreenState extends State<ChatScreen> {
       'content': content,
       'is_mine': true,
       'created_at': DateTime.now().toIso8601String(),
+      if (_replyingTo != null) 'parent_id': _replyingTo!['id'],
+      if (_replyingTo != null)
+        'parent_sender_username': _replyingTo!['sender_username'] ?? widget.username,
+      if (_replyingTo != null) 'parent_content': _replyingTo!['content'] ?? '',
     };
 
     setState(() {
@@ -169,7 +175,16 @@ class _ChatScreenState extends State<ChatScreen> {
 
     try {
       final api = await ApiService.getInstance();
-      await api.sendMessage(widget.userId, content);
+      await api.sendMessage(
+        widget.userId,
+        content,
+        parentId: _replyingTo?['id'] is int
+            ? _replyingTo!['id'] as int
+            : int.tryParse('${_replyingTo?['id'] ?? ''}'),
+      );
+      if (mounted) {
+        setState(() => _replyingTo = null);
+      }
       await _loadMessages(); // Refresh to get official data and server timestamps
     } catch (e) {
       setState(() {
@@ -564,17 +579,13 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _showOptions(dynamic message) {
+    final messageMap = Map<String, dynamic>.from(message as Map);
     bool isMine = message['is_mine'] == true || message['is_mine'] == 1;
 
     // Fallback if is_mine is missing (e.g. from local update or specific API response)
     if (!isMine && _currentUser != null && message['sender_id'] != null) {
       isMine =
           message['sender_id'].toString() == _currentUser!['id'].toString();
-    }
-
-    // Private chat: never allow edit/delete options on received messages.
-    if (!isMine) {
-      return;
     }
 
     final lang = LanguageService.instance;
@@ -586,6 +597,39 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: _messageReactionChoices.map((reactionType) {
+                  return InkWell(
+                    onTap: () async {
+                      Navigator.pop(context);
+                      await _toggleReaction(messageMap, reactionType);
+                    },
+                    borderRadius: BorderRadius.circular(20),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      child: Text(
+                        _reactionEmoji(reactionType),
+                        style: const TextStyle(fontSize: 22),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.reply, color: Colors.white),
+              title: Text(
+                lang.translate('reply'),
+                style: const TextStyle(color: Colors.white),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _prepareReply(messageMap);
+              },
+            ),
             if (isMine)
               ListTile(
                 leading: const Icon(Icons.edit, color: Colors.white),
@@ -598,56 +642,57 @@ class _ChatScreenState extends State<ChatScreen> {
                   _editMessage(message);
                 },
               ),
-            ListTile(
-              leading: const Icon(Icons.delete, color: Color(0xFFBE1E1E)),
-              title: Text(
-                lang.translate('delete'),
-                style: const TextStyle(color: Color(0xFFBE1E1E)),
-              ),
-              onTap: () async {
-                Navigator.pop(context);
-                final confirm = await showDialog<bool>(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    backgroundColor: const Color(0xFF1E1E1E),
-                    title: Text(
-                      lang.translate('delete_question'),
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                    content: Text(
-                      lang.translate('delete_message_confirm'),
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: Text(lang.translate('cancel')),
+            if (isMine)
+              ListTile(
+                leading: const Icon(Icons.delete, color: Color(0xFFBE1E1E)),
+                title: Text(
+                  lang.translate('delete'),
+                  style: const TextStyle(color: Color(0xFFBE1E1E)),
+                ),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      backgroundColor: const Color(0xFF1E1E1E),
+                      title: Text(
+                        lang.translate('delete_question'),
+                        style: const TextStyle(color: Colors.white),
                       ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        child: Text(
-                          lang.translate('delete'),
-                          style: const TextStyle(color: Color(0xFFBE1E1E)),
+                      content: Text(
+                        lang.translate('delete_message_confirm'),
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: Text(lang.translate('cancel')),
                         ),
-                      ),
-                    ],
-                  ),
-                );
-                if (confirm == true) {
-                  try {
-                    final api = await ApiService.getInstance();
-                    await api.deleteMessage(message['id']);
-                    _loadMessages();
-                  } catch (e) {
-                    if (mounted) {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text(e.toString())));
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: Text(
+                            lang.translate('delete'),
+                            style: const TextStyle(color: Color(0xFFBE1E1E)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirm == true) {
+                    try {
+                      final api = await ApiService.getInstance();
+                      await api.deleteMessage(message['id']);
+                      _loadMessages();
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text(e.toString())));
+                      }
                     }
                   }
-                }
-              },
-            ),
+                },
+              ),
           ],
         ),
       ),
@@ -704,6 +749,118 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  void _prepareReply(Map<String, dynamic> message) {
+    setState(() {
+      _replyingTo = Map<String, dynamic>.from(message);
+    });
+  }
+
+  String _reactionEmoji(String reactionType) {
+    switch (reactionType) {
+      case 'love':
+        return '❤️';
+      case 'haha':
+        return '😂';
+      case 'wow':
+        return '😮';
+      case 'sad':
+        return '😢';
+      case 'angry':
+        return '😡';
+      case 'like':
+      default:
+        return '👍';
+    }
+  }
+
+  String _messagePreviewText(dynamic rawContent) {
+    final content = (rawContent ?? '').toString().trim();
+    if (content.isNotEmpty) {
+      return content;
+    }
+    return LanguageService.instance.translate('reply_preview_empty');
+  }
+
+  Map<String, int> _reactionCounts(dynamic rawValue) {
+    if (rawValue is Map) {
+      return rawValue.map(
+        (key, value) => MapEntry(
+          key.toString(),
+          int.tryParse(value.toString()) ?? 0,
+        ),
+      )..removeWhere((key, value) => value <= 0);
+    }
+    if (rawValue is List) {
+      final counts = <String, int>{};
+      for (final item in rawValue) {
+        if (item is Map) {
+          final type = item['reaction_type']?.toString() ?? item['type']?.toString() ?? '';
+          final count = int.tryParse('${item['count'] ?? 0}') ?? 0;
+          if (type.isNotEmpty && count > 0) {
+            counts[type] = count;
+          }
+        }
+      }
+      return counts;
+    }
+    return <String, int>{};
+  }
+
+  Future<void> _toggleReaction(
+    Map<String, dynamic> message,
+    String reactionType,
+  ) async {
+    final messageId = int.tryParse('${message['id'] ?? ''}');
+    if (messageId == null) return;
+    final targetMessage = _messages.cast<dynamic>().firstWhere(
+      (item) => '${item['id'] ?? ''}' == '$messageId',
+      orElse: () => message,
+    );
+    final currentReaction = (targetMessage['user_reaction'] ?? '').toString();
+    final counts = Map<String, int>.from(
+      _reactionCounts(targetMessage['reactions_summary']),
+    );
+
+    setState(() {
+      if (currentReaction == reactionType) {
+        targetMessage['user_reaction'] = '';
+        final currentCount = counts[reactionType] ?? 0;
+        if (currentCount > 1) {
+          counts[reactionType] = currentCount - 1;
+        } else {
+          counts.remove(reactionType);
+        }
+      } else {
+        if (currentReaction.isNotEmpty) {
+          final previousCount = counts[currentReaction] ?? 0;
+          if (previousCount > 1) {
+            counts[currentReaction] = previousCount - 1;
+          } else {
+            counts.remove(currentReaction);
+          }
+        }
+        targetMessage['user_reaction'] = reactionType;
+        counts[reactionType] = (counts[reactionType] ?? 0) + 1;
+      }
+      targetMessage['reactions_summary'] = counts;
+    });
+
+    try {
+      final api = await ApiService.getInstance();
+      if (currentReaction == reactionType) {
+        await api.removePrivateMessageReaction(messageId);
+      } else {
+        await api.reactToPrivateMessage(messageId, reactionType);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      await _loadMessages();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(LanguageService.instance.translate('reaction_failed'))),
+      );
+    }
+  }
+
   Widget _buildMessageBubble(dynamic message) {
     final lang = LanguageService.instance;
     final theme = Theme.of(context);
@@ -714,6 +871,10 @@ class _ChatScreenState extends State<ChatScreen> {
     final isMine = message['is_mine'] == true || message['is_mine'] == 1;
     final createdAt = message['created_at'] ?? '';
     final editedAt = message['edited_at'];
+    final replyAuthor = (message['parent_sender_username'] ?? message['parent_username'] ?? '').toString();
+    final replyContent = message['parent_content'];
+    final reactionCounts = _reactionCounts(message['reactions_summary']);
+    final userReaction = (message['user_reaction'] ?? '').toString();
 
     // État de traduction pour ce message
     final isTranslated = message['_isTranslated'] == true;
@@ -730,8 +891,8 @@ class _ChatScreenState extends State<ChatScreen> {
     return Align(
       alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
       child: GestureDetector(
-        onLongPress: isMine ? () => _showOptions(message) : null,
-        onSecondaryTap: isMine ? () => _showOptions(message) : null,
+        onLongPress: () => _showOptions(message),
+        onSecondaryTap: () => _showOptions(message),
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -745,6 +906,45 @@ class _ChatScreenState extends State<ChatScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (message['parent_id'] != null)
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: isMine ? 0.16 : 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border(
+                      left: BorderSide(
+                        color: isMine ? Colors.white70 : const Color(0xFFBE1E1E),
+                        width: 3,
+                      ),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        replyAuthor.isNotEmpty ? replyAuthor : widget.username,
+                        style: TextStyle(
+                          color: textColor.withValues(alpha: 0.85),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _messagePreviewText(replyContent),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: textColor.withValues(alpha: 0.72),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               if (media != null && media.toString().isNotEmpty)
                 _buildMedia(media, isMine),
               if (content.isNotEmpty)
@@ -833,6 +1033,52 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                 ],
               ),
+              if (reactionCounts.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: reactionCounts.entries.map((entry) {
+                      final isSelected = userReaction == entry.key;
+                      return InkWell(
+                        onTap: () => _toggleReaction(
+                          Map<String, dynamic>.from(message as Map),
+                          entry.key,
+                        ),
+                        borderRadius: BorderRadius.circular(999),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? (isMine
+                                      ? Colors.white
+                                      : const Color(0xFFFFE5E5))
+                                : (isMine
+                                      ? Colors.white.withValues(alpha: 0.16)
+                                      : Colors.black.withValues(alpha: 0.08)),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                              color: isSelected
+                                  ? const Color(0xFFBE1E1E)
+                                  : Colors.transparent,
+                            ),
+                          ),
+                          child: Text(
+                            '${_reactionEmoji(entry.key)} ${entry.value}',
+                            style: TextStyle(
+                              color: isSelected
+                                  ? const Color(0xFFBE1E1E)
+                                  : textColor,
+                              fontSize: 12,
+                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
             ],
           ),
         ),
@@ -986,8 +1232,64 @@ class _ChatScreenState extends State<ChatScreen> {
         color: theme.cardColor,
         border: Border(top: BorderSide(color: theme.dividerColor)),
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
+          if (_replyingTo != null)
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 3,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFBE1E1E),
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          lang.translate('replying_to_message').replaceAll(
+                            '{username}',
+                            (_replyingTo!['sender_username'] ?? widget.username).toString(),
+                          ),
+                          style: TextStyle(
+                            color: theme.textTheme.bodyMedium?.color,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          _messagePreviewText(_replyingTo!['content']),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: theme.hintColor, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => setState(() => _replyingTo = null),
+                    icon: Icon(Icons.close, color: theme.hintColor, size: 18),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ],
+              ),
+            ),
+          Row(
+            children: [
           IconButton(
             icon: const Icon(Icons.attach_file, color: Color(0xFFBE1E1E)),
             onPressed: _pickMedia,
@@ -1009,7 +1311,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 minLines: 1,
                 maxLines: 5,
                 decoration: InputDecoration(
-                  hintText: lang.translate('message_hint'),
+                  hintText: _replyingTo != null
+                      ? lang.translate('reply_to_message_hint')
+                      : lang.translate('message_hint'),
                   hintStyle: TextStyle(color: theme.hintColor),
                   border: InputBorder.none,
                   isDense: true,
@@ -1042,6 +1346,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   : const Icon(Icons.send, color: Color(0xFFBE1E1E)),
               onPressed: () => _isSending ? null : _sendMessage(),
             ),
+            ],
+          ),
         ],
       ),
     );
@@ -1229,7 +1535,13 @@ class _ChatScreenState extends State<ChatScreen> {
         '',
         media: mediaPath,
         mediaType: mediaType,
+        parentId: _replyingTo?['id'] is int
+            ? _replyingTo!['id'] as int
+            : int.tryParse('${_replyingTo?['id'] ?? ''}'),
       );
+      if (mounted) {
+        setState(() => _replyingTo = null);
+      }
       _loadMessages();
     } catch (e) {
       if (mounted) {

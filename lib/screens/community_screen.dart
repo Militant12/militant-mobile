@@ -6,6 +6,7 @@ import 'pages_screen.dart';
 import 'moderation_screen.dart';
 import 'discovery_screen.dart';
 import 'fediverse_screen.dart';
+import 'feature_suggestions_screen.dart';
 
 class CommunityScreen extends StatelessWidget {
   const CommunityScreen({super.key});
@@ -16,12 +17,9 @@ class CommunityScreen extends StatelessWidget {
       valueListenable: LanguageService.instance,
       builder: (context, locale, child) {
         final theme = Theme.of(context);
-        final isDark =
-            theme.brightness ==
-            Brightness.dark; // Keep isDark as it's used in _buildMenuCard
+        final isDark = theme.brightness == Brightness.dark;
         final translate = LanguageService.instance.translate;
 
-        // Couleurs adaptées au thème
         final backgroundColor = theme.scaffoldBackgroundColor;
         final textColor = theme.textTheme.bodyLarge?.color ?? Colors.black;
 
@@ -79,11 +77,11 @@ class CommunityScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 _buildMenuCard(
                   context,
-                  translate('events_title'),
-                  translate('events_desc'),
-                  Icons.event,
-                  const EventsScreen(),
-                  Colors.orange[800]!,
+                  translate('feature_suggestions'),
+                  translate('suggest_features_desc'),
+                  Icons.lightbulb_outline,
+                  const FeatureSuggestionsScreen(),
+                  const Color(0xFF6D5DF6),
                   isDark,
                 ),
                 const SizedBox(height: 8),
@@ -94,6 +92,16 @@ class CommunityScreen extends StatelessWidget {
                   Icons.flag,
                   const PagesScreen(),
                   Colors.blue[700]!,
+                  isDark,
+                ),
+                const SizedBox(height: 8),
+                _buildMenuCard(
+                  context,
+                  translate('events_title'),
+                  translate('events_desc'),
+                  Icons.event,
+                  const EventsScreen(),
+                  Colors.orange[800]!,
                   isDark,
                 ),
                 const SizedBox(height: 8),
@@ -124,25 +132,11 @@ class CommunityScreen extends StatelessWidget {
     Color accentColor,
     bool isDark,
   ) {
-    // Si la couleur est noire (Drapeau Noir) ET qu'on est en mode sombre, on adapte
-    // Mais ici accentColor pour Pages est bleu, on va gérer le cas spécifique
-    // Pour Pages, on veut un drapeau noir.
-    // Si le thème est clair, drapeau noir sur fond clair passe.
-    // Si le thème est sombre, drapeau noir sur fond blanc passe.
-
-    // Logique spécifique pour l'icône Pages (qui est bleue ici pour uniformité code mais on veut effet drapeau noir ?)
-    // Non, restons sur les couleurs de marque.
-    // POur "Pages", l'utilisateur voulait un drapeau noir.
-    // Je vais tricher : si title correspond à 'Pages' (ou traduit), on force le noir.
-
     Color iconColor = accentColor;
     Color iconBgColor = accentColor.withValues(alpha: 0.15);
 
-    // Special handling for Pages/Black Flag request
     if (title == 'Pages' || title == 'Páginas') {
-      // Simple detection
       iconColor = Colors.black;
-      // On dark mode, black icon needs white background circle
       if (isDark) {
         iconBgColor = Colors.white;
       } else {
@@ -150,19 +144,17 @@ class CommunityScreen extends StatelessWidget {
       }
     }
 
-    // Card background
     final cardBg = isDark ? const Color(0xFF151515) : Colors.white;
     final borderColor = isDark ? Colors.white10 : Colors.grey[300]!;
     final shadowColor = isDark
         ? Colors.black.withValues(alpha: 0.4)
         : Colors.grey.withValues(alpha: 0.2);
 
-    // Gradient only for dark mode to keep "premium" look, flat/clean for light mode
     final gradient = isDark
-        ? LinearGradient(
+        ? const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [const Color(0xFF252525), const Color(0xFF151515)],
+            colors: [Color(0xFF252525), Color(0xFF151515)],
           )
         : null;
 

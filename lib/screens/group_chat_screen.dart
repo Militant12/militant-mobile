@@ -19,6 +19,7 @@ import '../widgets/signal_typing_indicator.dart';
 const String _groupCallMessagePrefix = '__militant_group_call__:';
 const Duration _groupChatPollInterval = Duration(seconds: 10);
 const Duration _groupTypingPollInterval = Duration(seconds: 6);
+const List<String> _groupMessageReactionChoices = ['like', 'love', 'haha', 'wow', 'sad', 'angry'];
 
 class GroupChatScreen extends StatefulWidget {
   final int groupId;
@@ -52,6 +53,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   DateTime? _lastTypingHeartbeatAt;
   List<Map<String, dynamic>> _typingUsers = [];
   Map<String, String>? _activeGroupCall;
+  Map<String, dynamic>? _replyingTo;
 
   @override
   void initState() {
@@ -135,6 +137,10 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       'is_mine': true,
       'username': lang.translate('me_label'), // Placeholder
       'created_at': DateTime.now().toIso8601String(),
+      if (_replyingTo != null) 'parent_id': _replyingTo!['id'],
+      if (_replyingTo != null)
+        'parent_username': _replyingTo!['username'] ?? lang.translate('me_label'),
+      if (_replyingTo != null) 'parent_content': _replyingTo!['content'] ?? '',
     };
 
     setState(() {
@@ -146,7 +152,16 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
 
     try {
       final api = await ApiService.getInstance();
-      await api.sendGroupMessage(widget.groupId, content);
+      await api.sendGroupMessage(
+        widget.groupId,
+        content,
+        parentId: _replyingTo?['id'] is int
+            ? _replyingTo!['id'] as int
+            : int.tryParse('${_replyingTo?['id'] ?? ''}'),
+      );
+      if (mounted) {
+        setState(() => _replyingTo = null);
+      }
       await _loadMessages(); // Refresh
     } catch (e) {
       setState(() {
@@ -477,6 +492,44 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: _groupMessageReactionChoices.map((reactionType) {
+                  return InkWell(
+                    onTap: () async {
+                      Navigator.pop(context);
+                      await _toggleReaction(
+                        Map<String, dynamic>.from(message as Map),
+                        reactionType,
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(20),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      child: Text(
+                        _reactionEmoji(reactionType),
+                        style: const TextStyle(fontSize: 22),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.reply, color: Colors.white),
+              title: Text(
+                lang.translate('reply'),
+                style: const TextStyle(color: Colors.white),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                setState(() {
+                  _replyingTo = Map<String, dynamic>.from(message as Map);
+                });
+              },
+            ),
             if (isMine)
               ListTile(
                 leading: const Icon(Icons.edit, color: Colors.white),
@@ -589,6 +642,111 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     }
   }
 
+  String _reactionEmoji(String reactionType) {
+    switch (reactionType) {
+      case 'love':
+        return '❤️';
+      case 'haha':
+        return '😂';
+      case 'wow':
+        return '😮';
+      case 'sad':
+        return '😢';
+      case 'angry':
+        return '😡';
+      case 'like':
+      default:
+        return '👍';
+    }
+  }
+
+  String _messagePreviewText(dynamic rawContent) {
+    final content = (rawContent ?? '').toString().trim();
+    if (content.isNotEmpty) {
+      return content;
+    }
+    return LanguageService.instance.translate('reply_preview_empty');
+  }
+
+  Map<String, int> _reactionCounts(dynamic rawValue) {
+    if (rawValue is Map) {
+      return rawValue.map(
+        (key, value) => MapEntry(
+          key.toString(),
+          int.tryParse(value.toString()) ?? 0,
+        ),
+      )..removeWhere((key, value) => value <= 0);
+    }
+    if (rawValue is List) {
+      final counts = <String, int>{};
+      for (final item in rawValue) {
+        if (item is Map) {
+          final type = item['reaction_type']?.toString() ?? item['type']?.toString() ?? '';
+          final count = int.tryParse('${item['count'] ?? 0}') ?? 0;
+          if (type.isNotEmpty && count > 0) {
+            counts[type] = count;
+          }
+        }
+      }
+      return counts;
+    }
+    return <String, int>{};
+  }
+
+  Future<void> _toggleReaction(
+    Map<String, dynamic> message,
+    String reactionType,
+  ) async {
+    final messageId = int.tryParse('${message['id'] ?? ''}');
+    if (messageId == null) return;
+    final targetMessage = _messages.cast<dynamic>().firstWhere(
+      (item) => '${item['id'] ?? ''}' == '$messageId',
+      orElse: () => message,
+    );
+    final currentReaction = (targetMessage['user_reaction'] ?? '').toString();
+    final counts = Map<String, int>.from(
+      _reactionCounts(targetMessage['reactions_summary']),
+    );
+
+    setState(() {
+      if (currentReaction == reactionType) {
+        targetMessage['user_reaction'] = '';
+        final currentCount = counts[reactionType] ?? 0;
+        if (currentCount > 1) {
+          counts[reactionType] = currentCount - 1;
+        } else {
+          counts.remove(reactionType);
+        }
+      } else {
+        if (currentReaction.isNotEmpty) {
+          final previousCount = counts[currentReaction] ?? 0;
+          if (previousCount > 1) {
+            counts[currentReaction] = previousCount - 1;
+          } else {
+            counts.remove(currentReaction);
+          }
+        }
+        targetMessage['user_reaction'] = reactionType;
+        counts[reactionType] = (counts[reactionType] ?? 0) + 1;
+      }
+      targetMessage['reactions_summary'] = counts;
+    });
+
+    try {
+      if (currentReaction == reactionType) {
+        await _api!.removeGroupMessageReaction(messageId);
+      } else {
+        await _api!.reactToGroupMessage(messageId, reactionType);
+      }
+    } catch (_) {
+      if (!mounted) return;
+      await _loadMessages();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(LanguageService.instance.translate('reaction_failed'))),
+      );
+    }
+  }
+
   Widget _buildMessageBubble(dynamic message) {
     final lang = LanguageService.instance;
     final theme = Theme.of(context);
@@ -601,6 +759,10 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     final isMine = message['is_mine'] == true || message['is_mine'] == 1;
     final createdAt = message['created_at'] ?? '';
     final editedAt = message['edited_at'];
+    final replyAuthor = (message['parent_username'] ?? '').toString();
+    final replyContent = message['parent_content'];
+    final reactionCounts = _reactionCounts(message['reactions_summary']);
+    final userReaction = (message['user_reaction'] ?? '').toString();
 
     // État de traduction pour ce message
     final isTranslated = message['_isTranslated'] == true;
@@ -647,6 +809,45 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (message['parent_id'] != null)
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: isMine ? 0.16 : 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border(
+                          left: BorderSide(
+                            color: isMine ? Colors.white70 : const Color(0xFFBE1E1E),
+                            width: 3,
+                          ),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            replyAuthor.isNotEmpty ? replyAuthor : lang.translate('anonymous_user'),
+                            style: TextStyle(
+                              color: textColor.withOpacity(0.85),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            _messagePreviewText(replyContent),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: textColor.withOpacity(0.72),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   if (media != null && media.toString().isNotEmpty)
                     _buildMedia(media, isMine),
                   if (groupCallMessage != null)
@@ -739,6 +940,54 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                       ),
                     ],
                   ),
+                  if (reactionCounts.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: reactionCounts.entries.map((entry) {
+                          final isSelected = userReaction == entry.key;
+                          return InkWell(
+                            onTap: () => _toggleReaction(
+                              Map<String, dynamic>.from(message as Map),
+                              entry.key,
+                            ),
+                            borderRadius: BorderRadius.circular(999),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? (isMine
+                                          ? Colors.white
+                                          : const Color(0xFFFFE5E5))
+                                    : (isMine
+                                          ? Colors.white.withOpacity(0.16)
+                                          : Colors.black.withOpacity(0.08)),
+                                borderRadius: BorderRadius.circular(999),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? const Color(0xFFBE1E1E)
+                                      : Colors.transparent,
+                                ),
+                              ),
+                              child: Text(
+                                '${_reactionEmoji(entry.key)} ${entry.value}',
+                                style: TextStyle(
+                                  color: isSelected
+                                      ? const Color(0xFFBE1E1E)
+                                      : textColor,
+                                  fontSize: 12,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w700
+                                      : FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -1026,8 +1275,64 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         color: theme.cardColor,
         border: Border(top: BorderSide(color: theme.dividerColor)),
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
+          if (_replyingTo != null)
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 3,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFBE1E1E),
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          lang.translate('replying_to_message').replaceAll(
+                            '{username}',
+                            (_replyingTo!['username'] ?? lang.translate('anonymous_user')).toString(),
+                          ),
+                          style: TextStyle(
+                            color: theme.textTheme.bodyMedium?.color,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          _messagePreviewText(_replyingTo!['content']),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: theme.hintColor, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => setState(() => _replyingTo = null),
+                    icon: Icon(Icons.close, color: theme.hintColor, size: 18),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ],
+              ),
+            ),
+          Row(
+            children: [
           IconButton(
             icon: const Icon(Icons.attach_file, color: Color(0xFFBE1E1E)),
             onPressed: _pickMedia,
@@ -1049,7 +1354,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                 minLines: 1,
                 maxLines: 5,
                 decoration: InputDecoration(
-                  hintText: lang.translate('message_group_hint'),
+                  hintText: _replyingTo != null
+                      ? lang.translate('reply_to_message_hint')
+                      : lang.translate('message_group_hint'),
                   hintStyle: TextStyle(color: theme.hintColor),
                   border: InputBorder.none,
                   isDense: true,
@@ -1082,6 +1389,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   : const Icon(Icons.send, color: Color(0xFFBE1E1E)),
               onPressed: () => _isSending ? null : _sendMessage(),
             ),
+            ],
+          ),
         ],
       ),
     );
@@ -1216,7 +1525,13 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         '',
         media: mediaPath,
         mediaType: mediaType,
+        parentId: _replyingTo?['id'] is int
+            ? _replyingTo!['id'] as int
+            : int.tryParse('${_replyingTo?['id'] ?? ''}'),
       );
+      if (mounted) {
+        setState(() => _replyingTo = null);
+      }
       _loadMessages();
     } catch (e) {
       print('DEBUG: Error in _uploadAndSend: $e');

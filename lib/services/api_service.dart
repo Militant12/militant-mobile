@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
+import '../models/feature_suggestion.dart';
 
 class ApiService {
   String baseUrl;
@@ -664,6 +665,7 @@ class ApiService {
     String content, {
     List<String>? mediaUrls,
     String? mediaType,
+    List<String>? tags,
   }) async {
     final response = await http.post(
       Uri.parse('$apiUrl/v1/posts.php'),
@@ -672,6 +674,7 @@ class ApiService {
         'content': content,
         if (mediaUrls != null && mediaUrls.isNotEmpty) 'media': mediaUrls,
         if (mediaType != null) 'media_type': mediaType,
+        if (tags != null && tags.isNotEmpty) 'tags': tags,
       }),
     );
 
@@ -1025,6 +1028,231 @@ class ApiService {
       return jsonDecode(response.body);
     } else {
       throw Exception('Erreur de chargement du profil');
+    }
+  }
+
+  Future<List<FeatureSuggestion>> getFeatureSuggestions({
+    String filter = 'popular',
+    int page = 1,
+    int perPage = 20,
+  }) async {
+    final response = await http.get(
+      Uri.parse(
+        '$apiUrl/v1/feature_suggestions.php?filter=$filter&page=$page&per_page=$perPage',
+      ),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = _decodeJsonMap(response);
+      final raw = data['suggestions'];
+      if (raw is List) {
+        return raw
+            .whereType<Map>()
+            .map(
+              (item) => FeatureSuggestion.fromJson(
+                item.map((key, value) => MapEntry(key.toString(), value)),
+              ),
+            )
+            .toList();
+      }
+      return [];
+    }
+
+    throw Exception(
+      _extractApiError(
+        response,
+        fallbackError: 'Erreur de chargement des suggestions',
+      ),
+    );
+  }
+
+  Future<Map<String, dynamic>> getFeatureSuggestionDetail(int suggestionId) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/feature_suggestions.php?id=$suggestionId'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = _decodeJsonMap(response);
+      final suggestion = FeatureSuggestion.fromJson(
+        (data['suggestion'] as Map).map(
+          (key, value) => MapEntry(key.toString(), value),
+        ),
+      );
+      final rawComments = data['comments'];
+      final comments = rawComments is List
+          ? rawComments
+                .whereType<Map>()
+                .map(
+                  (item) => FeatureSuggestionComment.fromJson(
+                    item.map((key, value) => MapEntry(key.toString(), value)),
+                  ),
+                )
+                .toList()
+          : <FeatureSuggestionComment>[];
+      return {'suggestion': suggestion, 'comments': comments};
+    }
+
+    throw Exception(
+      _extractApiError(
+        response,
+        fallbackError: 'Erreur de chargement de la suggestion',
+      ),
+    );
+  }
+
+  Future<Map<String, int>> getFeatureSuggestionStats() async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/v1/feature_suggestions.php?action=stats'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = _decodeJsonMap(response);
+      final rawStats = data['stats'];
+      if (rawStats is Map) {
+        return rawStats.map(
+          (key, value) => MapEntry(
+            key.toString(),
+            int.tryParse(value.toString()) ?? 0,
+          ),
+        );
+      }
+      return {};
+    }
+
+    throw Exception(
+      _extractApiError(
+        response,
+        fallbackError: 'Erreur de chargement des statistiques',
+      ),
+    );
+  }
+
+  Future<FeatureSuggestion> createFeatureSuggestion(
+    String title,
+    String description,
+  ) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/feature_suggestions.php'),
+      headers: _headers,
+      body: jsonEncode({'title': title, 'description': description}),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final data = _decodeJsonMap(response);
+      return FeatureSuggestion.fromJson(
+        (data['suggestion'] as Map).map(
+          (key, value) => MapEntry(key.toString(), value),
+        ),
+      );
+    }
+
+    throw Exception(
+      _extractApiError(
+        response,
+        fallbackError: 'Erreur de creation de la suggestion',
+      ),
+    );
+  }
+
+  Future<FeatureSuggestion> voteFeatureSuggestion(
+    int suggestionId,
+    int vote,
+  ) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/feature_suggestions.php?action=vote'),
+      headers: _headers,
+      body: jsonEncode({'suggestion_id': suggestionId, 'vote': vote}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = _decodeJsonMap(response);
+      return FeatureSuggestion.fromJson(
+        (data['suggestion'] as Map).map(
+          (key, value) => MapEntry(key.toString(), value),
+        ),
+      );
+    }
+
+    throw Exception(
+      _extractApiError(response, fallbackError: 'Erreur de vote'),
+    );
+  }
+
+  Future<FeatureSuggestionComment> commentFeatureSuggestion(
+    int suggestionId,
+    String content,
+  ) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/feature_suggestions.php?action=comment'),
+      headers: _headers,
+      body: jsonEncode({'suggestion_id': suggestionId, 'content': content}),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final data = _decodeJsonMap(response);
+      return FeatureSuggestionComment.fromJson(
+        (data['comment'] as Map).map(
+          (key, value) => MapEntry(key.toString(), value),
+        ),
+      );
+    }
+
+    throw Exception(
+      _extractApiError(
+        response,
+        fallbackError: 'Erreur d ajout du commentaire',
+      ),
+    );
+  }
+
+  Future<FeatureSuggestion> updateFeatureSuggestionStatus(
+    int suggestionId,
+    String status, {
+    String adminResponse = '',
+  }) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/feature_suggestions.php?action=update_status'),
+      headers: _headers,
+      body: jsonEncode({
+        'suggestion_id': suggestionId,
+        'status': status,
+        'admin_response': adminResponse,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = _decodeJsonMap(response);
+      return FeatureSuggestion.fromJson(
+        (data['suggestion'] as Map).map(
+          (key, value) => MapEntry(key.toString(), value),
+        ),
+      );
+    }
+
+    throw Exception(
+      _extractApiError(
+        response,
+        fallbackError: 'Erreur de mise a jour du statut',
+      ),
+    );
+  }
+
+  Future<void> deleteFeatureSuggestion(int suggestionId) async {
+    final response = await http.delete(
+      Uri.parse('$apiUrl/v1/feature_suggestions.php?id=$suggestionId'),
+      headers: _headers,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        _extractApiError(
+          response,
+          fallbackError: 'Erreur de suppression de la suggestion',
+        ),
+      );
     }
   }
 
@@ -1944,6 +2172,7 @@ class ApiService {
     String content, {
     String? media,
     String? mediaType,
+    int? parentId,
   }) async {
     final response = await http.post(
       Uri.parse('$apiUrl/v1/message_groups.php?path=$groupId/messages'),
@@ -1952,6 +2181,7 @@ class ApiService {
         'content': content,
         'media': media,
         if (mediaType != null) 'media_type': mediaType,
+        if (parentId != null) 'parent_id': parentId,
       }),
     );
 
@@ -2090,6 +2320,7 @@ class ApiService {
     String content, {
     String? media,
     String? mediaType,
+    int? parentId,
   }) async {
     final response = await http.post(
       Uri.parse('$apiUrl/v1/messages.php'),
@@ -2099,6 +2330,7 @@ class ApiService {
         'content': content,
         'media': media,
         if (mediaType != null) 'media_type': mediaType,
+        if (parentId != null) 'parent_id': parentId,
       }),
     );
 
@@ -2145,6 +2377,75 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception('Erreur lors de la modification du message');
+    }
+  }
+
+  Future<Map<String, dynamic>> reactToPrivateMessage(
+    int messageId,
+    String reactionType,
+  ) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/messages.php?action=react'),
+      headers: _headers,
+      body: jsonEncode({
+        'message_id': messageId,
+        'reaction_type': reactionType,
+      }),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception(
+        _extractApiError(
+          response,
+          fallbackError: 'Erreur lors de la reaction au message',
+        ),
+      );
+    }
+  }
+
+  Future<void> removePrivateMessageReaction(int messageId) async {
+    final response = await http.delete(
+      Uri.parse('$apiUrl/v1/messages.php?action=react&message_id=$messageId'),
+      headers: _headers,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors de la suppression de la reaction');
+    }
+  }
+
+  Future<Map<String, dynamic>> reactToGroupMessage(
+    int messageId,
+    String reactionType,
+  ) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/message_groups.php?path=messages/$messageId/reactions'),
+      headers: _headers,
+      body: jsonEncode({'reaction_type': reactionType}),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception(
+        _extractApiError(
+          response,
+          fallbackError: 'Erreur lors de la reaction au message du groupe',
+        ),
+      );
+    }
+  }
+
+  Future<void> removeGroupMessageReaction(int messageId) async {
+    final response = await http.delete(
+      Uri.parse('$apiUrl/v1/message_groups.php?path=messages/$messageId/reactions'),
+      headers: _headers,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur lors de la suppression de la reaction');
     }
   }
 
@@ -2557,14 +2858,19 @@ class ApiService {
     String content, {
     List<String>? media,
     String? mediaType,
+    List<String>? tags,
   }) async {
-    final body = {'group_id': groupId, 'content': content};
+    final body = <String, dynamic>{'group_id': groupId, 'content': content};
 
     if (media != null && media.isNotEmpty) {
       body['media'] = media.first; // Pour l'instant, un seul média
       if (mediaType != null) {
         body['media_type'] = mediaType;
       }
+    }
+
+    if (tags != null && tags.isNotEmpty) {
+      body['tags'] = tags;
     }
 
     final response = await http.post(

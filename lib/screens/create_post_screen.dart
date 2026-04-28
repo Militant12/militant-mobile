@@ -5,6 +5,7 @@ import '../services/language_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../widgets/file_video_player.dart';
+import '../utils/post_tags.dart';
 
 class CreatePostScreen extends StatefulWidget {
   final int? groupId;
@@ -23,6 +24,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   bool _isMentionLoading = false;
   List<Map<String, dynamic>> _mentionSuggestions = [];
   int _mentionRequestId = 0;
+
+  List<String> get _detectedTags => extractPostTags(_contentController.text);
 
   @override
   void initState() {
@@ -261,12 +264,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           _contentController.text.trim(),
           media: mediaUrl != null ? [mediaUrl] : null,
           mediaType: mediaType,
+          tags: _detectedTags,
         );
       } else {
         await api.createPost(
           _contentController.text.trim(),
           mediaUrls: mediaUrl != null ? [mediaUrl] : null,
           mediaType: mediaType,
+          tags: _detectedTags,
         );
       }
 
@@ -350,6 +355,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       border: InputBorder.none,
                     ),
                   ),
+                  if (_detectedTags.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    _buildDetectedTags(theme, lang),
+                  ],
                   if (_isMentionLoading || _mentionSuggestions.isNotEmpty)
                     Container(
                       margin: const EdgeInsets.only(top: 8),
@@ -472,6 +481,71 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   bool _isVideo(String path) {
     final ext = path.split('.').last.toLowerCase();
     return ['mp4', 'webm', 'mov', 'avi'].contains(ext);
+  }
+
+  Widget _buildDetectedTags(ThemeData theme, LanguageService lang) {
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.04)
+            : Colors.black.withValues(alpha: 0.025),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: const Color(0xFFBE1E1E).withValues(alpha: 0.12),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.sell_outlined,
+                size: 16,
+                color: Color(0xFFBE1E1E),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                lang.translate('detected_tags_title'),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _detectedTags
+                .map(
+                  (tag) => Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFBE1E1E).withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      '#$tag',
+                      style: const TextStyle(
+                        color: Color(0xFFBE1E1E),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
