@@ -33,6 +33,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'share': 'Partager',
       'edit': 'Modifier',
       'close': 'Fermer',
+      'clear_draft': 'Effacer le brouillon',
       'settings_updated': 'Réglages mis à jour',
       'invite_to_group': 'Inviter au groupe',
       'search_users': 'Rechercher des utilisateurs...',
@@ -78,7 +79,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'discover': 'Découvrir',
       'live_title': 'Direct',
       'community_nav_title': 'Actions',
-      'community_tab_title': 'Communauté',
+      'community_tab_title': 'Actions',
       'explore_mobilize_title': 'Explorez et Mobilisez-vous',
       'fediverse_title': 'Fediverse',
       'fediverse_menu_desc':
@@ -111,9 +112,8 @@ class LanguageService extends ValueNotifier<Locale> {
       'events_desc': 'Manifestations, assemblées et actions.',
       'pages_desc': 'Suivez les collectifs et organisations.',
       'moderation_desc': 'Gérez les signalements et la sécurité.',
-      'feature_suggestions': 'Suggestions d idées',
-      'suggest_features_desc':
-          'Propose des idées pour améliorer Militant et vote pour les plus utiles.',
+      'feature_suggestions': 'Suggestions idées',
+      'suggest_features_desc': 'Proposez et votez des idées.',
       'new_suggestion': 'Nouvelle suggestion',
       'suggestion_title': 'Titre de ta suggestion',
       'suggestion_description': 'Décris ta suggestion en détail...',
@@ -302,6 +302,12 @@ class LanguageService extends ValueNotifier<Locale> {
       'like_action': 'J\'aime',
       'comment_action': 'Commenter',
       'share_action': 'Partager',
+      'share_via': 'Partager via...',
+      'repost_to_wall': 'Republier sur mon mur',
+      'repost_to_group': 'Republier dans un groupe',
+      'choose_group': 'Choisir un groupe',
+      'reposted_to_group': 'Republié dans {group}',
+      'repost_source': 'Republié depuis @{username}',
       'delete_post_confirm': 'Voulez-vous vraiment supprimer ce post ?',
       'report_post_title': 'Signaler le post',
       'report_reason_hint': 'Raison du signalement',
@@ -344,7 +350,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'subtitle_notifications': 'Gérer les notifications',
       'subtitle_security': 'Changer de mot de passe',
       'subtitle_privacy': 'Paramètres de confidentialité',
-      'version': 'Version 1.0.6',
+      'version': 'Version 1.0.7',
 
       // Notifications Settings
       'notifications_push': 'Notifications push',
@@ -563,7 +569,8 @@ class LanguageService extends ValueNotifier<Locale> {
       'typing_people': 'Des personnes écrivent...',
       'typing_single': '{username} écrit...',
       'typing_dual': '{username1} et {username2} écrivent...',
-      'typing_multiple': '{username1}, {username2} et {count} autres écrivent...',
+      'typing_multiple':
+          '{username1}, {username2} et {count} autres écrivent...',
       'remove_member_question': 'Retirer ce membre ?',
       'remove_member_confirm': 'Voulez-vous retirer {username} du groupe ?',
       'leave_group_question': 'Quitter le groupe ?',
@@ -957,6 +964,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'share': 'Share',
       'edit': 'Edit',
       'close': 'Close',
+      'clear_draft': 'Clear draft',
       'settings_updated': 'Settings updated',
       'invite_to_group': 'Invite to group',
       'search_users': 'Search users...',
@@ -1002,7 +1010,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'discover': 'Discover',
       'live_title': 'Live',
       'community_nav_title': 'Actions',
-      'community_tab_title': 'Community',
+      'community_tab_title': 'Actions',
       'explore_mobilize_title': 'Explore and Mobilize',
       'fediverse_title': 'Fediverse',
       'fediverse_menu_desc':
@@ -1033,8 +1041,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'pages_desc': 'Follow collectives and organizations.',
       'moderation_desc': 'Manage reports and security.',
       'feature_suggestions': 'Feature suggestions',
-      'suggest_features_desc':
-          'Share ideas to improve Militant and vote for the most useful ones.',
+      'suggest_features_desc': 'Suggest and vote on ideas.',
       'new_suggestion': 'New suggestion',
       'suggestion_title': 'Title of your suggestion',
       'suggestion_description': 'Describe your suggestion in detail...',
@@ -1059,8 +1066,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'feed_interests_title': 'Feed interests',
       'feed_interests_edit': 'Edit',
       'feed_interests_hint': 'Add a tag or keyword',
-      'feed_interests_empty':
-          'Add interests to personalize this feed.',
+      'feed_interests_empty': 'Add interests to personalize this feed.',
       'feed_interests_suggestions': 'Suggestions',
       'feed_interests_main_cause': 'Main cause',
       'live_tab_discover': 'Live now',
@@ -1221,6 +1227,12 @@ class LanguageService extends ValueNotifier<Locale> {
       'like_action': 'Like',
       'comment_action': 'Comment',
       'share_action': 'Share',
+      'share_via': 'Share via...',
+      'repost_to_wall': 'Repost to my wall',
+      'repost_to_group': 'Repost to a group',
+      'choose_group': 'Choose a group',
+      'reposted_to_group': 'Reposted to {group}',
+      'repost_source': 'Reposted from @{username}',
       'delete_post_confirm': 'Do you really want to delete this post?',
       'report_post_title': 'Report Post',
       'report_reason_hint': 'Reason for reporting',
@@ -1263,7 +1275,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'subtitle_notifications': 'Manage notifications',
       'subtitle_security': 'Change password',
       'subtitle_privacy': 'Privacy settings',
-      'version': 'Version 1.0.6',
+      'version': 'Version 1.0.7',
 
       // Notifications Settings
       'notifications_push': 'Push notifications',
@@ -1454,8 +1466,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'disabled': 'Disabled',
       'confirm_question': 'Confirm?',
       'everyone_is_admin': 'Everyone is admin',
-      'grant_full_powers_to_members':
-          'Give full powers to all members',
+      'grant_full_powers_to_members': 'Give full powers to all members',
       'grant_admin_rights':
           'This will grant admin rights to all current group members.',
       'all_members_now_admins': 'All members are now admins',
@@ -1468,7 +1479,8 @@ class LanguageService extends ValueNotifier<Locale> {
       'typing_people': 'People are typing...',
       'typing_single': '{username} is typing...',
       'typing_dual': '{username1} and {username2} are typing...',
-      'typing_multiple': '{username1}, {username2} and {count} others are typing...',
+      'typing_multiple':
+          '{username1}, {username2} and {count} others are typing...',
       'remove_member_question': 'Remove this member?',
       'remove_member_confirm':
           'Do you want to remove {username} from the group?',
@@ -1864,6 +1876,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'share': 'Compartir',
       'edit': 'Editar',
       'close': 'Cerrar',
+      'clear_draft': 'Borrar borrador',
       'settings_updated': 'Ajustes actualizados',
       'invite_to_group': 'Invitar al grupo',
       'search_users': 'Buscar usuarios...',
@@ -1909,7 +1922,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'discover': 'Descubrir',
       'live_title': 'Directo',
       'community_nav_title': 'Acciones',
-      'community_tab_title': 'Comunidad',
+      'community_tab_title': 'Acciones',
       'explore_mobilize_title': 'Explora y Movilízate',
       'fediverse_title': 'Fediverse',
       'fediverse_menu_desc':
@@ -1943,8 +1956,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'pages_desc': 'Sigue a colectivos y organizaciones.',
       'moderation_desc': 'Gestiona reportes y seguridad.',
       'feature_suggestions': 'Sugerencias de funciones',
-      'suggest_features_desc':
-          'Propón ideas para mejorar Militant y vota por las más útiles.',
+      'suggest_features_desc': 'Sugiere y vota ideas.',
       'new_suggestion': 'Nueva sugerencia',
       'suggestion_title': 'Título de tu sugerencia',
       'suggestion_description': 'Describe tu sugerencia en detalle...',
@@ -1969,8 +1981,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'feed_interests_title': 'Intereses del feed',
       'feed_interests_edit': 'Editar',
       'feed_interests_hint': 'Anadir una etiqueta o palabra clave',
-      'feed_interests_empty':
-          'Anade intereses para personalizar este feed.',
+      'feed_interests_empty': 'Anade intereses para personalizar este feed.',
       'feed_interests_suggestions': 'Sugerencias',
       'feed_interests_main_cause': 'Causa principal',
       'live_tab_discover': 'En vivo',
@@ -2134,6 +2145,12 @@ class LanguageService extends ValueNotifier<Locale> {
       'like_action': 'Me gusta',
       'comment_action': 'Comentar',
       'share_action': 'Compartir',
+      'share_via': 'Compartir vía...',
+      'repost_to_wall': 'Republicar en mi muro',
+      'repost_to_group': 'Republicar en un grupo',
+      'choose_group': 'Elegir un grupo',
+      'reposted_to_group': 'Republicado en {group}',
+      'repost_source': 'Republicado desde @{username}',
       'delete_post_confirm': '¿Realmente quieres eliminar esta publicación?',
       'report_post_title': 'Reportar publicación',
       'report_reason_hint': 'Razón del reporte',
@@ -2176,7 +2193,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'subtitle_notifications': 'Gestionar notificaciones',
       'subtitle_security': 'Cambiar contraseña',
       'subtitle_privacy': 'Configuración de privacidad',
-      'version': 'Versión 1.0.6',
+      'version': 'Versión 1.0.7',
 
       // Notifications Settings
       'notifications_push': 'Notificaciones push',
@@ -2318,8 +2335,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'disabled': 'Desactivado',
       'confirm_question': '¿Confirmar?',
       'everyone_is_admin': 'Todos son administradores',
-      'grant_full_powers_to_members':
-          'Dar plenos poderes a todos los miembros',
+      'grant_full_powers_to_members': 'Dar plenos poderes a todos los miembros',
       'grant_admin_rights':
           'Esto otorgará derechos de administrador a todos los miembros actuales del grupo.',
       'all_members_now_admins': 'Todos los miembros son ahora administradores',
@@ -2331,7 +2347,8 @@ class LanguageService extends ValueNotifier<Locale> {
       'typing_people': 'Hay personas escribiendo...',
       'typing_single': '{username} está escribiendo...',
       'typing_dual': '{username1} y {username2} están escribiendo...',
-      'typing_multiple': '{username1}, {username2} y {count} personas más están escribiendo...',
+      'typing_multiple':
+          '{username1}, {username2} y {count} personas más están escribiendo...',
       'remove_member_question': '¿Eliminar este miembro?',
       'remove_member_confirm': '¿Quieres eliminar a {username} del grupo?',
       'leave_group_question': '¿Salir del grupo?',

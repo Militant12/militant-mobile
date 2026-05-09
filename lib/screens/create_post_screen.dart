@@ -1,9 +1,12 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image_picker/image_picker.dart';
+
 import '../services/api_service.dart';
 import '../services/language_service.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import '../widgets/file_video_player.dart';
 import '../utils/post_tags.dart';
 
@@ -21,19 +24,24 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   File? _mediaFile;
   final ImagePicker _picker = ImagePicker();
   Timer? _mentionDebounce;
+  Timer? _draftDebounce;
   bool _isMentionLoading = false;
+  bool _hasDraft = false;
   List<Map<String, dynamic>> _mentionSuggestions = [];
   int _mentionRequestId = 0;
 
   List<String> get _detectedTags => extractPostTags(_contentController.text);
+  String get _draftKey => 'draft_post_${widget.groupId ?? 'global'}';
 
   @override
   void initState() {
     super.initState();
     _contentController.addListener(_onContentChanged);
+    _loadDraft();
   }
 
   void _onContentChanged() {
+    _scheduleDraftSave();
     final query = _extractMentionQuery(
       _contentController.text,
       _contentController.selection.baseOffset,
@@ -41,10 +49,56 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     _scheduleMentionSearch(query);
   }
 
+  Future<void> _loadDraft() async {
+    final prefs = await SharedPreferences.getInstance();
+    final draft = prefs.getString(_draftKey);
+    if (!mounted || draft == null || draft.trim().isEmpty) return;
+    _contentController.text = draft;
+    setState(() => _hasDraft = true);
+  }
+
+  void _scheduleDraftSave() {
+    _draftDebounce?.cancel();
+    _draftDebounce = Timer(const Duration(milliseconds: 350), _saveDraft);
+  }
+
+  Future<void> _saveDraft() async {
+    final text = _contentController.text;
+    final prefs = await SharedPreferences.getInstance();
+    if (text.trim().isEmpty) {
+      await prefs.remove(_draftKey);
+      if (mounted && _hasDraft) {
+        setState(() => _hasDraft = false);
+      }
+      return;
+    }
+
+    await prefs.setString(_draftKey, text);
+    if (mounted && !_hasDraft) {
+      setState(() => _hasDraft = true);
+    }
+  }
+
+  Future<void> _clearDraft() async {
+    _draftDebounce?.cancel();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_draftKey);
+    _contentController.clear();
+    if (mounted) {
+      setState(() {
+        _hasDraft = false;
+        _mentionSuggestions = [];
+        _isMentionLoading = false;
+      });
+    }
+  }
+
   String? _extractMentionQuery(String text, int cursor) {
     if (cursor < 0 || cursor > text.length) return null;
     final beforeCursor = text.substring(0, cursor);
-    final match = RegExp(r'(^|[\s\n])@([A-Za-z0-9_]*)$').firstMatch(beforeCursor);
+    final match = RegExp(
+      r'(^|[\s\n])@([A-Za-z0-9_]*)$',
+    ).firstMatch(beforeCursor);
     if (match == null) return null;
     final query = match.group(2) ?? '';
     if (query.isEmpty) return null;
@@ -104,7 +158,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     if (cursor < 0 || cursor > value.text.length) return;
 
     final beforeCursor = value.text.substring(0, cursor);
-    final match = RegExp(r'(^|[\s\n])@([A-Za-z0-9_]*)$').firstMatch(beforeCursor);
+    final match = RegExp(
+      r'(^|[\s\n])@([A-Za-z0-9_]*)$',
+    ).firstMatch(beforeCursor);
     if (match == null) return;
 
     final prefix = match.group(1) ?? '';
@@ -141,7 +197,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 Icons.photo_library,
                 color: Color(0xFFBE1E1E),
               ),
-              title: Text(LanguageService.instance.translate('image_from_gallery')),
+              title: Text(
+                LanguageService.instance.translate('image_from_gallery'),
+              ),
               onTap: () => Navigator.pop(context, {
                 'source': ImageSource.gallery,
                 'isVideo': false,
@@ -149,7 +207,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.videocam, color: Color(0xFFBE1E1E)),
-              title: Text(LanguageService.instance.translate('video_from_gallery')),
+              title: Text(
+                LanguageService.instance.translate('video_from_gallery'),
+              ),
               onTap: () => Navigator.pop(context, {
                 'source': ImageSource.gallery,
                 'isVideo': true,
@@ -275,13 +335,21 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         );
       }
 
+      _draftDebounce?.cancel();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_draftKey);
+
       if (mounted) {
         Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
+          SnackBar(
+            content: Text(
+              '${lang.translate('error_generic')}: ${e.toString()}',
+            ),
+          ),
         );
       }
     } finally {
@@ -374,7 +442,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                                 child: SizedBox(
                                   width: 18,
                                   height: 18,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 ),
                               ),
                             )
@@ -389,8 +459,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                                 ),
                                 itemBuilder: (context, index) {
                                   final user = _mentionSuggestions[index];
-                                  final username =
-                                      (user['username'] ?? '').toString();
+                                  final username = (user['username'] ?? '')
+                                      .toString();
                                   return ListTile(
                                     dense: true,
                                     contentPadding: const EdgeInsets.symmetric(
@@ -470,6 +540,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   onPressed: _pickMedia,
                   tooltip: 'Ajouter une image ou vidéo',
                 ),
+                const Spacer(),
+                if (_hasDraft)
+                  IconButton(
+                    icon: Icon(Icons.delete_outline, color: theme.hintColor),
+                    onPressed: _clearDraft,
+                    tooltip: lang.translate('clear_draft'),
+                  ),
               ],
             ),
           ),
@@ -551,6 +628,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   @override
   void dispose() {
     _mentionDebounce?.cancel();
+    _draftDebounce?.cancel();
     _contentController.removeListener(_onContentChanged);
     _contentController.dispose();
     super.dispose();

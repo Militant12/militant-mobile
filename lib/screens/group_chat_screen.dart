@@ -19,7 +19,14 @@ import '../widgets/signal_typing_indicator.dart';
 const String _groupCallMessagePrefix = '__militant_group_call__:';
 const Duration _groupChatPollInterval = Duration(seconds: 10);
 const Duration _groupTypingPollInterval = Duration(seconds: 6);
-const List<String> _groupMessageReactionChoices = ['like', 'love', 'haha', 'wow', 'sad', 'angry'];
+const List<String> _groupMessageReactionChoices = [
+  'like',
+  'love',
+  'haha',
+  'wow',
+  'sad',
+  'angry',
+];
 
 class GroupChatScreen extends StatefulWidget {
   final int groupId;
@@ -54,6 +61,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   List<Map<String, dynamic>> _typingUsers = [];
   Map<String, String>? _activeGroupCall;
   Map<String, dynamic>? _replyingTo;
+  final Set<int> _expiredGroupCallMessageIds = <int>{};
+  final Set<int> _deletingExpiredGroupCallMessageIds = <int>{};
 
   @override
   void initState() {
@@ -98,10 +107,16 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           ? await _api!.getGroupDetails(widget.groupId)
           : _groupDetails;
       final activeGroupCall = await _resolveActiveGroupCall(messages);
+      final visibleMessages = messages.where((message) {
+        if (message is! Map) return true;
+        final messageId = _messageId(message);
+        return messageId == null ||
+            !_expiredGroupCallMessageIds.contains(messageId);
+      }).toList();
       if (!mounted) return;
       setState(() {
         _messages.clear();
-        _messages.addAll(messages.reversed);
+        _messages.addAll(visibleMessages.reversed);
         _typingUsers = typingUsers;
         _groupDetails = groupDetails;
         _activeGroupCall = activeGroupCall;
@@ -109,10 +124,10 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     } catch (e) {
       if (mounted && showLoader) {
         final lang = LanguageService.instance;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(
-          SnackBar(content: Text('${lang.translate('error')}: ${e.toString()}')),
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${lang.translate('error')}: ${e.toString()}'),
+          ),
         );
       }
     } finally {
@@ -139,7 +154,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       'created_at': DateTime.now().toIso8601String(),
       if (_replyingTo != null) 'parent_id': _replyingTo!['id'],
       if (_replyingTo != null)
-        'parent_username': _replyingTo!['username'] ?? lang.translate('me_label'),
+        'parent_username':
+            _replyingTo!['username'] ?? lang.translate('me_label'),
       if (_replyingTo != null) 'parent_content': _replyingTo!['content'] ?? '',
     };
 
@@ -169,10 +185,10 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       });
       if (mounted) {
         final lang = LanguageService.instance;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(
-          SnackBar(content: Text('${lang.translate('error')}: ${e.toString()}')),
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${lang.translate('error')}: ${e.toString()}'),
+          ),
         );
       }
     } finally {
@@ -192,7 +208,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     final lastHeartbeat = _lastTypingHeartbeatAt;
     if (!_isTypingSent ||
         lastHeartbeat == null ||
-        DateTime.now().difference(lastHeartbeat) >= const Duration(seconds: 4)) {
+        DateTime.now().difference(lastHeartbeat) >=
+            const Duration(seconds: 4)) {
       unawaited(_setTyping(true));
     }
 
@@ -246,10 +263,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     }
 
     if (names.length == 1) {
-      return lang.translate('typing_single').replaceAll(
-        '{username}',
-        names.first,
-      );
+      return lang
+          .translate('typing_single')
+          .replaceAll('{username}', names.first);
     }
 
     if (names.length == 2) {
@@ -280,7 +296,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     for (final rawMessage in messages) {
       if (rawMessage is! Map) continue;
       final message = Map<String, dynamic>.from(rawMessage);
-      final parsed = _parseGroupCallMessage((message['content'] ?? '').toString());
+      final parsed = _parseGroupCallMessage(
+        (message['content'] ?? '').toString(),
+      );
       if (parsed == null) continue;
 
       final callId = parsed['call_id']?.trim() ?? '';
@@ -290,7 +308,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         _api ??= await ApiService.getInstance();
         final callInfo = await _api!.getCallInfo(callId);
         final status = callInfo['status']?.toString().trim() ?? '';
-        if (status == 'ended' || status == 'rejected' || status == 'missed') {
+        if (_isFinishedCallStatus(status)) {
+          unawaited(_autoDeleteEndedGroupCallMessage(message));
           continue;
         }
         return parsed;
@@ -299,6 +318,46 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       }
     }
     return null;
+  }
+
+  bool _isFinishedCallStatus(String status) {
+    return {
+      'ended',
+      'rejected',
+      'missed',
+      'finished',
+      'completed',
+      'cancelled',
+      'canceled',
+      'failed',
+    }.contains(status.toLowerCase());
+  }
+
+  int? _messageId(Map<dynamic, dynamic> message) {
+    final value = message['id'];
+    if (value is int) return value;
+    return int.tryParse(value?.toString() ?? '');
+  }
+
+  Future<void> _autoDeleteEndedGroupCallMessage(
+    Map<String, dynamic> message,
+  ) async {
+    final messageId = _messageId(message);
+    if (messageId == null) return;
+
+    _expiredGroupCallMessageIds.add(messageId);
+    if (!_deletingExpiredGroupCallMessageIds.add(messageId)) return;
+
+    try {
+      _api ??= await ApiService.getInstance();
+      await _api!.deleteGroupMessage(messageId);
+    } catch (e) {
+      debugPrint(
+        '[GroupChat] unable to auto-delete ended group call message $messageId: $e',
+      );
+    } finally {
+      _deletingExpiredGroupCallMessageIds.remove(messageId);
+    }
   }
 
   Future<void> _openGroupCallScreen({
@@ -371,24 +430,19 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           ],
         ),
         actions: [
-          if (AppFeatureFlags.showGroupCallButtons && _activeGroupCall == null) ...[
+          if (AppFeatureFlags.showGroupCallButtons &&
+              _activeGroupCall == null) ...[
             IconButton(
               icon: const Icon(Icons.call),
               onPressed: () {
-                _openGroupCallScreen(
-                  isVideo: false,
-                  isIncoming: false,
-                );
+                _openGroupCallScreen(isVideo: false, isIncoming: false);
               },
               tooltip: LanguageService.instance.translate('call_group_audio'),
             ),
             IconButton(
               icon: const Icon(Icons.videocam),
               onPressed: () {
-                _openGroupCallScreen(
-                  isVideo: true,
-                  isIncoming: false,
-                );
+                _openGroupCallScreen(isVideo: true, isIncoming: false);
               },
               tooltip: LanguageService.instance.translate('call_group_video'),
             ),
@@ -446,7 +500,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             ],
           ),
           // Évite le doublon avec la bannière d'appel de groupe active du chat.
-          if (_activeGroupCall == null) IncomingCallBanner(groupId: widget.groupId),
+          if (_activeGroupCall == null)
+            IncomingCallBanner(groupId: widget.groupId),
         ],
       ),
     );
@@ -507,7 +562,10 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     },
                     borderRadius: BorderRadius.circular(20),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 6,
+                      ),
                       child: Text(
                         _reactionEmoji(reactionType),
                         style: const TextStyle(fontSize: 22),
@@ -671,17 +729,18 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   Map<String, int> _reactionCounts(dynamic rawValue) {
     if (rawValue is Map) {
       return rawValue.map(
-        (key, value) => MapEntry(
-          key.toString(),
-          int.tryParse(value.toString()) ?? 0,
-        ),
+        (key, value) =>
+            MapEntry(key.toString(), int.tryParse(value.toString()) ?? 0),
       )..removeWhere((key, value) => value <= 0);
     }
     if (rawValue is List) {
       final counts = <String, int>{};
       for (final item in rawValue) {
         if (item is Map) {
-          final type = item['reaction_type']?.toString() ?? item['type']?.toString() ?? '';
+          final type =
+              item['reaction_type']?.toString() ??
+              item['type']?.toString() ??
+              '';
           final count = int.tryParse('${item['count'] ?? 0}') ?? 0;
           if (type.isNotEmpty && count > 0) {
             counts[type] = count;
@@ -742,7 +801,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       if (!mounted) return;
       await _loadMessages();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(LanguageService.instance.translate('reaction_failed'))),
+        SnackBar(
+          content: Text(LanguageService.instance.translate('reaction_failed')),
+        ),
       );
     }
   }
@@ -815,11 +876,15 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                       margin: const EdgeInsets.only(bottom: 8),
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: isMine ? 0.16 : 0.08),
+                        color: Colors.black.withValues(
+                          alpha: isMine ? 0.16 : 0.08,
+                        ),
                         borderRadius: BorderRadius.circular(12),
                         border: Border(
                           left: BorderSide(
-                            color: isMine ? Colors.white70 : const Color(0xFFBE1E1E),
+                            color: isMine
+                                ? Colors.white70
+                                : const Color(0xFFBE1E1E),
                             width: 3,
                           ),
                         ),
@@ -828,7 +893,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            replyAuthor.isNotEmpty ? replyAuthor : lang.translate('anonymous_user'),
+                            replyAuthor.isNotEmpty
+                                ? replyAuthor
+                                : lang.translate('anonymous_user'),
                             style: TextStyle(
                               color: textColor.withOpacity(0.85),
                               fontSize: 12,
@@ -955,7 +1022,10 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                             ),
                             borderRadius: BorderRadius.circular(999),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? (isMine
@@ -1007,8 +1077,12 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       if (segment.isEmpty) continue;
       final separatorIndex = segment.indexOf('=');
       if (separatorIndex <= 0) continue;
-      final key = Uri.decodeQueryComponent(segment.substring(0, separatorIndex));
-      final value = Uri.decodeQueryComponent(segment.substring(separatorIndex + 1));
+      final key = Uri.decodeQueryComponent(
+        segment.substring(0, separatorIndex),
+      );
+      final value = Uri.decodeQueryComponent(
+        segment.substring(separatorIndex + 1),
+      );
       values[key] = value;
     }
 
@@ -1137,9 +1211,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       } catch (e) {
         if (mounted) {
           final lang = LanguageService.instance;
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('${lang.translate('error_translation')}: $e'),
             ),
@@ -1283,7 +1355,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                color: theme.colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.5,
+                ),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Row(
@@ -1303,10 +1377,14 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          lang.translate('replying_to_message').replaceAll(
-                            '{username}',
-                            (_replyingTo!['username'] ?? lang.translate('anonymous_user')).toString(),
-                          ),
+                          lang
+                              .translate('replying_to_message')
+                              .replaceAll(
+                                '{username}',
+                                (_replyingTo!['username'] ??
+                                        lang.translate('anonymous_user'))
+                                    .toString(),
+                              ),
                           style: TextStyle(
                             color: theme.textTheme.bodyMedium?.color,
                             fontWeight: FontWeight.w700,
@@ -1318,7 +1396,10 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                           _messagePreviewText(_replyingTo!['content']),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: theme.hintColor, fontSize: 12),
+                          style: TextStyle(
+                            color: theme.hintColor,
+                            fontSize: 12,
+                          ),
                         ),
                       ],
                     ),
@@ -1333,62 +1414,66 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             ),
           Row(
             children: [
-          IconButton(
-            icon: const Icon(Icons.attach_file, color: Color(0xFFBE1E1E)),
-            onPressed: _pickMedia,
-          ),
-          Expanded(
-            child: Container(
-              constraints: const BoxConstraints(minHeight: 42, maxHeight: 120),
-              decoration: BoxDecoration(
-                color: theme.inputDecorationTheme.fillColor ??
-                    theme.colorScheme.surfaceContainerHighest.withValues(
-                      alpha: 0.55,
-                    ),
-                borderRadius: BorderRadius.circular(22),
+              IconButton(
+                icon: const Icon(Icons.attach_file, color: Color(0xFFBE1E1E)),
+                onPressed: _pickMedia,
               ),
-              child: TextField(
-                controller: _messageController,
-                style: TextStyle(color: theme.textTheme.bodyLarge?.color),
-                textAlignVertical: TextAlignVertical.center,
-                minLines: 1,
-                maxLines: 5,
-                decoration: InputDecoration(
-                  hintText: _replyingTo != null
-                      ? lang.translate('reply_to_message_hint')
-                      : lang.translate('message_group_hint'),
-                  hintStyle: TextStyle(color: theme.hintColor),
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 11,
+              Expanded(
+                child: Container(
+                  constraints: const BoxConstraints(
+                    minHeight: 42,
+                    maxHeight: 120,
+                  ),
+                  decoration: BoxDecoration(
+                    color:
+                        theme.inputDecorationTheme.fillColor ??
+                        theme.colorScheme.surfaceContainerHighest.withValues(
+                          alpha: 0.55,
+                        ),
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  child: TextField(
+                    controller: _messageController,
+                    style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+                    textAlignVertical: TextAlignVertical.center,
+                    minLines: 1,
+                    maxLines: 5,
+                    decoration: InputDecoration(
+                      hintText: _replyingTo != null
+                          ? lang.translate('reply_to_message_hint')
+                          : lang.translate('message_group_hint'),
+                      hintStyle: TextStyle(color: theme.hintColor),
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 11,
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-          if (_messageController.text.trim().isEmpty)
-            IconButton(
-              icon: const Icon(Icons.mic, color: Color(0xFFBE1E1E)),
-              onPressed: () {
-                setState(() => _isRecording = true);
-              },
-            )
-          else
-            IconButton(
-              icon: _isSending
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Color(0xFFBE1E1E),
-                      ),
-                    )
-                  : const Icon(Icons.send, color: Color(0xFFBE1E1E)),
-              onPressed: () => _isSending ? null : _sendMessage(),
-            ),
+              if (_messageController.text.trim().isEmpty)
+                IconButton(
+                  icon: const Icon(Icons.mic, color: Color(0xFFBE1E1E)),
+                  onPressed: () {
+                    setState(() => _isRecording = true);
+                  },
+                )
+              else
+                IconButton(
+                  icon: _isSending
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Color(0xFFBE1E1E),
+                          ),
+                        )
+                      : const Icon(Icons.send, color: Color(0xFFBE1E1E)),
+                  onPressed: () => _isSending ? null : _sendMessage(),
+                ),
             ],
           ),
         ],

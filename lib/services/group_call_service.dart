@@ -226,7 +226,9 @@ class GroupCallService {
 
     final camera = await Permission.camera.request();
     if (!camera.isGranted) {
-      throw Exception('Autorisation camera refusee pour l appel video de groupe');
+      throw Exception(
+        'Autorisation camera refusee pour l appel video de groupe',
+      );
     }
   }
 
@@ -251,7 +253,10 @@ class GroupCallService {
     }
 
     final room = Room(
-      roomOptions: const RoomOptions(adaptiveStream: true, dynacast: true),
+      // Group calls render LiveKit tracks through RTCVideoView, not LiveKit's
+      // visibility-aware video widget. Keep streams active to avoid server-side
+      // pauses that can look like a frozen remote image.
+      roomOptions: const RoomOptions(adaptiveStream: false, dynacast: false),
     );
     await room.connect(wsUrl, creds.token);
     await Future<void>.delayed(const Duration(milliseconds: 250));
@@ -354,6 +359,21 @@ class GroupCallService {
       final userId = _parseUserIdFromIdentity(event.participant.identity);
       if (userId == null) return;
       await _detachRemoteTrack(userId, event.track.mediaStreamTrack);
+    });
+
+    listener.on<TrackUnmutedEvent>((event) async {
+      final track = event.publication.track;
+      if (track != null) {
+        await _attachRemoteTrack(event.participant, track);
+      }
+    });
+
+    listener.on<TrackStreamStateUpdatedEvent>((event) async {
+      if (event.streamState != StreamState.active) return;
+      final track = event.publication.track;
+      if (track != null) {
+        await _attachRemoteTrack(event.participant, track);
+      }
     });
 
     listener.on<ActiveSpeakersChangedEvent>((event) {

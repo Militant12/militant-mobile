@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 
@@ -20,13 +22,159 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   TimeOfDay? _selectedTime;
   String? _imagePath;
   bool _isSubmitting = false;
+  bool _hasDraft = false;
+  Timer? _draftDebounce;
+
+  static const _draftTitleKey = 'draft_event_title';
+  static const _draftDescriptionKey = 'draft_event_description';
+  static const _draftLocationKey = 'draft_event_location';
+  static const _draftDateKey = 'draft_event_date';
+  static const _draftTimeKey = 'draft_event_time';
+  static const _draftImageKey = 'draft_event_image';
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController.addListener(_scheduleDraftSave);
+    _descriptionController.addListener(_scheduleDraftSave);
+    _locationController.addListener(_scheduleDraftSave);
+    _loadDraft();
+  }
 
   @override
   void dispose() {
+    _draftDebounce?.cancel();
+    _titleController.removeListener(_scheduleDraftSave);
+    _descriptionController.removeListener(_scheduleDraftSave);
+    _locationController.removeListener(_scheduleDraftSave);
     _titleController.dispose();
     _descriptionController.dispose();
     _locationController.dispose();
     super.dispose();
+  }
+
+  bool get _hasDraftContent =>
+      _titleController.text.trim().isNotEmpty ||
+      _descriptionController.text.trim().isNotEmpty ||
+      _locationController.text.trim().isNotEmpty ||
+      _selectedDate != null ||
+      _selectedTime != null ||
+      _imagePath != null;
+
+  Future<void> _loadDraft() async {
+    final prefs = await SharedPreferences.getInstance();
+    final title = prefs.getString(_draftTitleKey) ?? '';
+    final description = prefs.getString(_draftDescriptionKey) ?? '';
+    final location = prefs.getString(_draftLocationKey) ?? '';
+    final dateValue = prefs.getInt(_draftDateKey);
+    final timeValue = prefs.getString(_draftTimeKey);
+    final imagePath = prefs.getString(_draftImageKey);
+
+    DateTime? date;
+    if (dateValue != null) {
+      date = DateTime.fromMillisecondsSinceEpoch(dateValue);
+    }
+
+    TimeOfDay? time;
+    if (timeValue != null && timeValue.contains(':')) {
+      final parts = timeValue.split(':');
+      final hour = int.tryParse(parts.first);
+      final minute = int.tryParse(parts.last);
+      if (hour != null && minute != null) {
+        time = TimeOfDay(hour: hour, minute: minute);
+      }
+    }
+
+    if (!mounted) return;
+    _titleController.text = title;
+    _descriptionController.text = description;
+    _locationController.text = location;
+    setState(() {
+      _selectedDate = date;
+      _selectedTime = time;
+      _imagePath = imagePath != null && File(imagePath).existsSync()
+          ? imagePath
+          : null;
+      _hasDraft = _hasDraftContent;
+    });
+  }
+
+  void _scheduleDraftSave() {
+    _draftDebounce?.cancel();
+    _draftDebounce = Timer(const Duration(milliseconds: 350), _saveDraft);
+  }
+
+  Future<void> _saveDraft() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!_hasDraftContent) {
+      await _removeDraft(prefs);
+      if (mounted && _hasDraft) {
+        setState(() => _hasDraft = false);
+      }
+      return;
+    }
+
+    await prefs.setString(_draftTitleKey, _titleController.text);
+    await prefs.setString(_draftDescriptionKey, _descriptionController.text);
+    await prefs.setString(_draftLocationKey, _locationController.text);
+
+    if (_selectedDate == null) {
+      await prefs.remove(_draftDateKey);
+    } else {
+      await prefs.setInt(
+        _draftDateKey,
+        DateTime(
+          _selectedDate!.year,
+          _selectedDate!.month,
+          _selectedDate!.day,
+        ).millisecondsSinceEpoch,
+      );
+    }
+
+    if (_selectedTime == null) {
+      await prefs.remove(_draftTimeKey);
+    } else {
+      await prefs.setString(
+        _draftTimeKey,
+        '${_selectedTime!.hour}:${_selectedTime!.minute}',
+      );
+    }
+
+    if (_imagePath == null) {
+      await prefs.remove(_draftImageKey);
+    } else {
+      await prefs.setString(_draftImageKey, _imagePath!);
+    }
+
+    if (mounted && !_hasDraft) {
+      setState(() => _hasDraft = true);
+    }
+  }
+
+  Future<void> _removeDraft([SharedPreferences? prefs]) async {
+    final storage = prefs ?? await SharedPreferences.getInstance();
+    await storage.remove(_draftTitleKey);
+    await storage.remove(_draftDescriptionKey);
+    await storage.remove(_draftLocationKey);
+    await storage.remove(_draftDateKey);
+    await storage.remove(_draftTimeKey);
+    await storage.remove(_draftImageKey);
+  }
+
+  Future<void> _clearDraft() async {
+    _draftDebounce?.cancel();
+    await _removeDraft();
+    _titleController.clear();
+    _descriptionController.clear();
+    _locationController.clear();
+    if (mounted) {
+      setState(() {
+        _selectedDate = null;
+        _selectedTime = null;
+        _imagePath = null;
+        _hasDraft = false;
+      });
+    }
   }
 
   Future<void> _pickImage() async {
@@ -34,6 +182,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     final image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       setState(() => _imagePath = image.path);
+      _scheduleDraftSave();
     }
   }
 
@@ -57,6 +206,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     );
     if (date != null) {
       setState(() => _selectedDate = date);
+      _scheduleDraftSave();
     }
   }
 
@@ -78,6 +228,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     );
     if (time != null) {
       setState(() => _selectedTime = time);
+      _scheduleDraftSave();
     }
   }
 
@@ -85,9 +236,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     final lang = LanguageService.instance;
     if (!_formKey.currentState!.validate()) return;
     if (_selectedDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(lang.translate('date_required'))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(lang.translate('date_required'))));
       return;
     }
 
@@ -122,17 +273,24 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         image: imageUrl,
       );
 
+      _draftDebounce?.cancel();
+      await _removeDraft();
+
       if (mounted) {
         Navigator.pop(context, true);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(lang.translate('event_created'))));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(lang.translate('event_created'))),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${lang.translate('error_loading')}: ${e.toString()}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${lang.translate('error_loading')}: ${e.toString()}',
+            ),
+          ),
+        );
       }
     } finally {
       if (mounted) {
@@ -170,9 +328,18 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   )
                 : Text(
                     lang.translate('create'),
-                    style: const TextStyle(color: Color(0xFFBE1E1E), fontSize: 16),
+                    style: const TextStyle(
+                      color: Color(0xFFBE1E1E),
+                      fontSize: 16,
+                    ),
                   ),
           ),
+          if (_hasDraft)
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.white70),
+              onPressed: _isSubmitting ? null : _clearDraft,
+              tooltip: lang.translate('clear_draft'),
+            ),
         ],
       ),
       body: Form(
@@ -207,7 +374,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     right: 8,
                     child: IconButton(
                       icon: const Icon(Icons.close, color: Colors.white),
-                      onPressed: () => setState(() => _imagePath = null),
+                      onPressed: () {
+                        setState(() => _imagePath = null);
+                        _scheduleDraftSave();
+                      },
                       style: IconButton.styleFrom(
                         backgroundColor: Colors.black54,
                       ),
@@ -292,7 +462,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               decoration: InputDecoration(
                 labelText: lang.translate('event_location_label'),
                 labelStyle: const TextStyle(color: Color(0xFF888888)),
-                prefixIcon: const Icon(Icons.location_on, color: Color(0xFF888888)),
+                prefixIcon: const Icon(
+                  Icons.location_on,
+                  color: Color(0xFF888888),
+                ),
                 enabledBorder: const OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.white10),
                 ),

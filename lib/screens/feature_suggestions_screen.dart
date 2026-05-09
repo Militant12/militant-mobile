@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/feature_suggestion.dart';
 import '../services/api_service.dart';
@@ -63,8 +66,12 @@ class _FeatureSuggestionsScreenState extends State<FeatureSuggestionsScreen> {
     final dynamic directMilitantTechnician = profile['is_militant_technician'];
     final nested = profile['user'];
     final dynamic nestedAdmin = nested is Map ? nested['is_admin'] : null;
-    final dynamic nestedModerator = nested is Map ? nested['is_moderator'] : null;
-    final dynamic nestedTechnician = nested is Map ? nested['is_technician'] : null;
+    final dynamic nestedModerator = nested is Map
+        ? nested['is_moderator']
+        : null;
+    final dynamic nestedTechnician = nested is Map
+        ? nested['is_technician']
+        : null;
     final dynamic nestedMilitantTechnician = nested is Map
         ? nested['is_militant_technician']
         : null;
@@ -126,13 +133,13 @@ class _FeatureSuggestionsScreenState extends State<FeatureSuggestionsScreen> {
     final translate = LanguageService.instance.translate;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final backgroundColor = isDark ? const Color(0xFF121212) : const Color(0xFFF5F5F5);
+    final backgroundColor = isDark
+        ? const Color(0xFF121212)
+        : const Color(0xFFF5F5F5);
 
     return Scaffold(
       backgroundColor: backgroundColor,
-      appBar: AppBar(
-        title: Text(translate('feature_suggestions')),
-      ),
+      appBar: AppBar(title: Text(translate('feature_suggestions'))),
       floatingActionButton: FloatingActionButton(
         onPressed: _openCreateDialog,
         backgroundColor: const Color(0xFFBE1E1E),
@@ -270,9 +277,7 @@ class _FeatureSuggestionsScreenState extends State<FeatureSuggestionsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white10
-            : const Color(0xFFF1F3F4),
+        color: isDark ? Colors.white10 : const Color(0xFFF1F3F4),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
@@ -350,9 +355,7 @@ class _FeatureSuggestionsScreenState extends State<FeatureSuggestionsScreen> {
           const SizedBox(height: 12),
           Text(
             translate('no_suggestions'),
-            style: TextStyle(
-              color: isDark ? Colors.white70 : Colors.black54,
-            ),
+            style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
           ),
         ],
       ),
@@ -441,7 +444,10 @@ class _FeatureSuggestionDetailScreenState
     setState(() => _isSubmittingComment = true);
     try {
       final api = await ApiService.getInstance();
-      final comment = await api.commentFeatureSuggestion(_suggestion!.id, content);
+      final comment = await api.commentFeatureSuggestion(
+        _suggestion!.id,
+        content,
+      );
       _commentController.clear();
       setState(() {
         _comments = [comment, ..._comments];
@@ -464,9 +470,8 @@ class _FeatureSuggestionDetailScreenState
     if (_suggestion == null) return;
     final changed = await showDialog<bool>(
       context: context,
-      builder: (context) => _SuggestionModerationDialog(
-        suggestion: _suggestion!,
-      ),
+      builder: (context) =>
+          _SuggestionModerationDialog(suggestion: _suggestion!),
     );
     if (changed == true) {
       _hasChanged = true;
@@ -479,7 +484,9 @@ class _FeatureSuggestionDetailScreenState
     final translate = LanguageService.instance.translate;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final backgroundColor = isDark ? const Color(0xFF121212) : const Color(0xFFF5F5F5);
+    final backgroundColor = isDark
+        ? const Color(0xFF121212)
+        : const Color(0xFFF5F5F5);
 
     return PopScope(
       canPop: false,
@@ -548,7 +555,9 @@ class _FeatureSuggestionDetailScreenState
                         color: isDark ? const Color(0xFF171717) : Colors.white,
                         border: Border(
                           top: BorderSide(
-                            color: isDark ? Colors.white10 : const Color(0xFFE3E3E3),
+                            color: isDark
+                                ? Colors.white10
+                                : const Color(0xFFE3E3E3),
                           ),
                         ),
                         boxShadow: isDark
@@ -583,7 +592,9 @@ class _FeatureSuggestionDetailScreenState
                           ),
                           const SizedBox(width: 10),
                           IconButton.filled(
-                            onPressed: _isSubmittingComment ? null : _submitComment,
+                            onPressed: _isSubmittingComment
+                                ? null
+                                : _submitComment,
                             style: IconButton.styleFrom(
                               backgroundColor: const Color(0xFFBE1E1E),
                             ),
@@ -608,10 +619,7 @@ class _FeatureSuggestionDetailScreenState
     );
   }
 
-  Widget _buildDetailCard(
-    String Function(String) translate,
-    bool isDark,
-  ) {
+  Widget _buildDetailCard(String Function(String) translate, bool isDark) {
     final suggestion = _suggestion!;
     final borderColor = isDark ? Colors.white10 : const Color(0xFFE3E3E3);
     return Container(
@@ -827,7 +835,9 @@ class _SuggestionCard extends StatelessWidget {
                           child: Text(
                             suggestion.title,
                             style: TextStyle(
-                              color: isDark ? Colors.white : const Color(0xFF111111),
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF111111),
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                             ),
@@ -858,14 +868,18 @@ class _SuggestionCard extends StatelessWidget {
                         Text(
                           suggestion.username,
                           style: TextStyle(
-                            color: isDark ? Colors.white60 : const Color(0xFF5F6368),
+                            color: isDark
+                                ? Colors.white60
+                                : const Color(0xFF5F6368),
                             fontSize: 12,
                           ),
                         ),
                         Text(
                           '${translate('comments_title')} ${suggestion.commentCount}',
                           style: TextStyle(
-                            color: isDark ? Colors.white60 : const Color(0xFF5F6368),
+                            color: isDark
+                                ? Colors.white60
+                                : const Color(0xFF5F6368),
                             fontSize: 12,
                           ),
                         ),
@@ -922,9 +936,7 @@ class _CommentTile extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             comment.content,
-            style: TextStyle(
-              color: isDark ? Colors.white70 : Colors.black87,
-            ),
+            style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
           ),
         ],
       ),
@@ -992,9 +1004,7 @@ class _MiniVoteButton extends StatelessWidget {
         width: 34,
         height: 34,
         decoration: BoxDecoration(
-          color: selected
-              ? const Color(0xFFBE1E1E)
-              : Colors.transparent,
+          color: selected ? const Color(0xFFBE1E1E) : Colors.transparent,
           shape: BoxShape.circle,
           border: Border.all(
             color: Theme.of(context).brightness == Brightness.dark
@@ -1057,12 +1067,82 @@ class _CreateFeatureSuggestionDialogState
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   bool _isSaving = false;
+  bool _hasDraft = false;
+  Timer? _draftDebounce;
+
+  static const _draftTitleKey = 'draft_feature_suggestion_title';
+  static const _draftDescriptionKey = 'draft_feature_suggestion_description';
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController.addListener(_scheduleDraftSave);
+    _descriptionController.addListener(_scheduleDraftSave);
+    _loadDraft();
+  }
 
   @override
   void dispose() {
+    _draftDebounce?.cancel();
+    _titleController.removeListener(_scheduleDraftSave);
+    _descriptionController.removeListener(_scheduleDraftSave);
     _titleController.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  bool get _hasDraftContent =>
+      _titleController.text.trim().isNotEmpty ||
+      _descriptionController.text.trim().isNotEmpty;
+
+  Future<void> _loadDraft() async {
+    final prefs = await SharedPreferences.getInstance();
+    final title = prefs.getString(_draftTitleKey) ?? '';
+    final description = prefs.getString(_draftDescriptionKey) ?? '';
+    if (!mounted || (title.trim().isEmpty && description.trim().isEmpty)) {
+      return;
+    }
+    _titleController.text = title;
+    _descriptionController.text = description;
+    setState(() => _hasDraft = true);
+  }
+
+  void _scheduleDraftSave() {
+    _draftDebounce?.cancel();
+    _draftDebounce = Timer(const Duration(milliseconds: 350), _saveDraft);
+  }
+
+  Future<void> _saveDraft() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!_hasDraftContent) {
+      await _removeDraft(prefs);
+      if (mounted && _hasDraft) {
+        setState(() => _hasDraft = false);
+      }
+      return;
+    }
+
+    await prefs.setString(_draftTitleKey, _titleController.text);
+    await prefs.setString(_draftDescriptionKey, _descriptionController.text);
+    if (mounted && !_hasDraft) {
+      setState(() => _hasDraft = true);
+    }
+  }
+
+  Future<void> _removeDraft([SharedPreferences? prefs]) async {
+    final storage = prefs ?? await SharedPreferences.getInstance();
+    await storage.remove(_draftTitleKey);
+    await storage.remove(_draftDescriptionKey);
+  }
+
+  Future<void> _clearDraft() async {
+    _draftDebounce?.cancel();
+    await _removeDraft();
+    _titleController.clear();
+    _descriptionController.clear();
+    if (mounted) {
+      setState(() => _hasDraft = false);
+    }
   }
 
   Future<void> _submit() async {
@@ -1070,7 +1150,9 @@ class _CreateFeatureSuggestionDialogState
     final description = _descriptionController.text.trim();
     if (title.length < 5 || description.length < 20) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Le titre ou la description est trop court.')),
+        const SnackBar(
+          content: Text('Le titre ou la description est trop court.'),
+        ),
       );
       return;
     }
@@ -1078,6 +1160,8 @@ class _CreateFeatureSuggestionDialogState
     try {
       final api = await ApiService.getInstance();
       await api.createFeatureSuggestion(title, description);
+      _draftDebounce?.cancel();
+      await _removeDraft();
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {
@@ -1121,6 +1205,12 @@ class _CreateFeatureSuggestionDialogState
         ),
       ),
       actions: [
+        if (_hasDraft)
+          IconButton(
+            onPressed: _isSaving ? null : _clearDraft,
+            icon: const Icon(Icons.delete_outline),
+            tooltip: translate('clear_draft'),
+          ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
           child: Text(translate('cancel')),
@@ -1225,19 +1315,20 @@ class _SuggestionModerationDialogState
           mainAxisSize: MainAxisSize.min,
           children: [
             DropdownButtonFormField<String>(
-              value: _status,
-              items: const [
-                'pending',
-                'planned',
-                'in_progress',
-                'done',
-                'rejected',
-              ].map((status) {
-                return DropdownMenuItem<String>(
-                  value: status,
-                  child: Text(translate('status_$status')),
-                );
-              }).toList(),
+              initialValue: _status,
+              items:
+                  const [
+                    'pending',
+                    'planned',
+                    'in_progress',
+                    'done',
+                    'rejected',
+                  ].map((status) {
+                    return DropdownMenuItem<String>(
+                      value: status,
+                      child: Text(translate('status_$status')),
+                    );
+                  }).toList(),
               onChanged: (value) {
                 if (value != null) {
                   setState(() => _status = value);

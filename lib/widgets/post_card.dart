@@ -563,7 +563,7 @@ class _PostCardState extends State<PostCard> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => SafeArea(
+      builder: (sheetContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -574,7 +574,7 @@ class _PostCardState extends State<PostCard> {
                 style: TextStyle(color: textColor),
               ),
               onTap: () {
-                Navigator.pop(context);
+                Navigator.pop(sheetContext);
                 _savePost();
               },
             ),
@@ -586,7 +586,7 @@ class _PostCardState extends State<PostCard> {
                   style: TextStyle(color: textColor),
                 ),
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.pop(sheetContext);
                   _editPost(context);
                 },
               ),
@@ -597,7 +597,7 @@ class _PostCardState extends State<PostCard> {
                 style: TextStyle(color: textColor),
               ),
               onTap: () {
-                Navigator.pop(context);
+                Navigator.pop(sheetContext);
                 _reportPost(context);
               },
             ),
@@ -609,7 +609,7 @@ class _PostCardState extends State<PostCard> {
                   style: const TextStyle(color: Colors.red),
                 ),
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.pop(sheetContext);
                   _deletePost();
                 },
               ),
@@ -625,6 +625,7 @@ class _PostCardState extends State<PostCard> {
   Future<void> _sharePost(BuildContext context) async {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final lang = LanguageService.instance;
 
     showModalBottomSheet(
       context: context,
@@ -632,7 +633,7 @@ class _PostCardState extends State<PostCard> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => SafeArea(
+      builder: (sheetContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -642,11 +643,11 @@ class _PostCardState extends State<PostCard> {
                 color: isDark ? Colors.white : Colors.black,
               ),
               title: Text(
-                'Partager via...',
+                lang.translate('share_via'),
                 style: TextStyle(color: isDark ? Colors.white : Colors.black),
               ),
               onTap: () async {
-                Navigator.pop(context);
+                Navigator.pop(sheetContext);
                 final api = await ApiService.getInstance();
                 String baseUrl = api.baseUrl;
                 if (baseUrl.endsWith('/api')) {
@@ -666,6 +667,20 @@ class _PostCardState extends State<PostCard> {
                 await Share.share('Regarde ce post sur Militant !\n$url');
               },
             ),
+            ListTile(
+              leading: Icon(
+                Icons.groups_outlined,
+                color: isDark ? Colors.white : Colors.black,
+              ),
+              title: Text(
+                lang.translate('repost_to_group'),
+                style: TextStyle(color: isDark ? Colors.white : Colors.black),
+              ),
+              onTap: () async {
+                Navigator.pop(sheetContext);
+                _showRepostToGroupSheet(context);
+              },
+            ),
             if (widget.post.type != 'group')
               ListTile(
                 leading: Icon(
@@ -673,12 +688,12 @@ class _PostCardState extends State<PostCard> {
                   color: isDark ? Colors.white : Colors.black,
                 ),
                 title: Text(
-                  'Republier sur mon mur',
+                  lang.translate('repost_to_wall'),
                   style: TextStyle(color: isDark ? Colors.white : Colors.black),
                 ),
                 onTap: () async {
-                  Navigator.pop(context);
-                  _repostInternal(context);
+                  Navigator.pop(sheetContext);
+                  _repostInternal();
                 },
               ),
             const SizedBox(height: 8),
@@ -688,7 +703,239 @@ class _PostCardState extends State<PostCard> {
     );
   }
 
-  Future<void> _repostInternal(BuildContext context) async {
+  Future<void> _showRepostToGroupSheet(BuildContext context) async {
+    final theme = Theme.of(context);
+    final lang = LanguageService.instance;
+    final textColor = theme.textTheme.bodyLarge?.color;
+    final subtitleColor = theme.textTheme.bodyMedium?.color;
+    final groupsFuture = _loadRepostGroups();
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: theme.scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: FutureBuilder<List<dynamic>>(
+          future: groupsFuture,
+          builder: (_, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const Padding(
+                padding: EdgeInsets.all(28),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            if (snapshot.hasError) {
+              return Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  '${lang.translate('error_loading')}: ${snapshot.error}',
+                  style: TextStyle(color: textColor),
+                ),
+              );
+            }
+
+            final groups = snapshot.data ?? [];
+            if (groups.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  lang.translate('no_groups_message'),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: subtitleColor),
+                ),
+              );
+            }
+
+            return ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 420),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.groups_outlined,
+                          color: theme.iconTheme.color,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            lang.translate('choose_group'),
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Flexible(
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: groups.length,
+                      separatorBuilder: (_, __) =>
+                          Divider(height: 1, color: theme.dividerColor),
+                      itemBuilder: (context, index) {
+                        final group = groups[index];
+                        final name =
+                            _stringFromGroup(group, 'name') ??
+                            lang.translate('group');
+                        final description =
+                            _stringFromGroup(group, 'description') ?? '';
+                        final groupId = _intFromGroup(group, 'id');
+
+                        return ListTile(
+                          leading: _buildRepostGroupAvatar(group, name),
+                          title: Text(
+                            name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(color: textColor),
+                          ),
+                          subtitle: description.isEmpty
+                              ? null
+                              : Text(
+                                  description,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(color: subtitleColor),
+                                ),
+                          onTap: groupId == null
+                              ? null
+                              : () {
+                                  Navigator.pop(sheetContext);
+                                  _repostToGroup(groupId, name);
+                                },
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<List<dynamic>> _loadRepostGroups() async {
+    final api = await ApiService.getInstance();
+    final groups = await api.getGroups();
+    return groups.map((group) {
+      if (group is! Map) return group;
+      final copy = Map<String, dynamic>.from(group);
+      copy['_resolved_avatar_url'] = api.getImageUrl(
+        _stringFromGroup(copy, 'avatar') ??
+            _stringFromGroup(copy, 'avatar_url') ??
+            _stringFromGroup(copy, 'image'),
+      );
+      return copy;
+    }).toList();
+  }
+
+  Widget _buildRepostGroupAvatar(dynamic group, String name) {
+    final avatarUrl = _stringFromGroup(group, '_resolved_avatar_url');
+
+    if (avatarUrl != null && avatarUrl.endsWith('.svg')) {
+      return ClipOval(
+        child: SvgPicture.network(
+          avatarUrl,
+          width: 40,
+          height: 40,
+          fit: BoxFit.cover,
+          placeholderBuilder: (_) => const CircleAvatar(
+            backgroundColor: Color(0xFFBE1E1E),
+            child: SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (avatarUrl != null) {
+      return CircleAvatar(
+        backgroundColor: const Color(0xFFBE1E1E),
+        backgroundImage: NetworkImage(avatarUrl),
+      );
+    }
+
+    return CircleAvatar(
+      backgroundColor: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(6),
+        child: SvgPicture.asset('assets/logo.svg', fit: BoxFit.contain),
+      ),
+    );
+  }
+
+  int? _intFromGroup(dynamic group, String key) {
+    if (group is! Map) return null;
+    final value = group[key];
+    if (value is int) return value;
+    return int.tryParse(value?.toString() ?? '');
+  }
+
+  String? _stringFromGroup(dynamic group, String key) {
+    if (group is! Map) return null;
+    final value = group[key];
+    final text = value?.toString().trim();
+    return text == null || text.isEmpty ? null : text;
+  }
+
+  Future<void> _repostToGroup(int groupId, String groupName) async {
+    final lang = LanguageService.instance;
+    try {
+      final api = await ApiService.getInstance();
+      final source = lang
+          .translate('repost_source')
+          .replaceAll('{username}', widget.post.username);
+      final originalContent = widget.post.content.trim();
+      final content = originalContent.isEmpty
+          ? source
+          : '$source\n\n$originalContent';
+
+      await api.createGroupPost(
+        groupId,
+        content,
+        media: widget.post.mediaUrls,
+        mediaType: widget.post.mediaType,
+        tags: widget.post.tags,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              lang
+                  .translate('reposted_to_group')
+                  .replaceAll('{group}', groupName),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+      }
+    }
+  }
+
+  Future<void> _repostInternal() async {
     try {
       final api = await ApiService.getInstance();
       await api.sharePost(widget.post.id);
