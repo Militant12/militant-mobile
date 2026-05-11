@@ -428,9 +428,13 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             _buildAvatar(),
             const SizedBox(width: 12),
-            Text(
-              widget.username,
-              style: TextStyle(color: theme.textTheme.titleLarge?.color),
+            Expanded(
+              child: Text(
+                widget.username,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: theme.textTheme.titleLarge?.color),
+              ),
             ),
           ],
         ),

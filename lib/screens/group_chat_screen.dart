@@ -403,6 +403,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                 children: [
                   Text(
                     _groupDetails?['name'] ?? widget.groupName,
+                    maxLines: 1,
                     style: TextStyle(
                       color: theme.textTheme.titleLarge?.color,
                       fontSize: 16,
