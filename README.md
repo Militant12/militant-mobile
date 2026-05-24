@@ -28,7 +28,7 @@ Militant est un réseau social décentralisé conçu pour les mouvements militan
 - **Posts** : Création, modification, suppression de publications avec support multimédia (images, vidéos, audio)
 - **Interactions** : Likes, commentaires, partages, réactions
 - **Profils** : Personnalisation complète avec avatar, bannière, bio, liens sociaux
-- **Badges militants** : Système de badges exclusif à l'app mobile (militant, antifa, anarchiste, CNT-AIT, CNT-F, CNT-SO, FA, OCL, CGA, UCL, FLL, SLM)
+- **Badges militants** : Système de badges exclusif à l'app mobile (Militant, Antifa, Anarchiste, CNT-AIT, CNT-F, CNT-SO, FA, OCL, CGA, UCL, FLL, SLM, IWA-AIT, IWW, IAF-IFA, CNT-AIT-E, ULET-AIT)
 
 ### Communication
 - **Messages privés** : Conversations individuelles et groupes
@@ -161,6 +161,11 @@ Les badges militants sont une fonctionnalité exclusive à l'application mobile.
 - UCL (Union Communiste Libertaire)
 - FLL (Front de Libération Libertaire)
 - SLM (Solidarité Libertaire Militante)
+- IWA-AIT (International Workers' Association)
+- IWW (Industrial Workers of the World)
+- IAF-IFA (Internationale des Fédérations Anarchistes)
+- CNT-AIT-E (Confederación Nacional del Trabajo)
+- ULET-AIT
 
 Pour choisir votre badge : Profil → Paramètres → Mon badge militant
 
@@ -199,6 +204,20 @@ militant_flutter/
 │   │   ├── militant.svg
 │   │   ├── antifa.svg
 │   │   ├── anarchist.svg
+│   │   ├── cnt-ait.png
+│   │   ├── cnt-f.jpg
+│   │   ├── cnt-so.png
+│   │   ├── fa.png
+│   │   ├── ocl.gif
+│   │   ├── cga.svg
+│   │   ├── ucl.jpg
+│   │   ├── fll.jpg
+│   │   ├── slm.png
+│   │   ├── iwa-ait.png
+│   │   ├── iww.svg
+│   │   ├── iaf-ifa.png
+│   │   ├── cnt-ait-e.jpg
+│   │   ├── ulet-ait.png
 │   │   └── ...
 │   └── offline.html                # Page hors ligne
 └── pubspec.yaml                    # Dépendances Flutter
@@ -275,5 +294,4 @@ Pour toute question ou problème :
 - Ouvrir une issue sur GitLab
 - Contacter l'équipe de développement
 - Consulter la documentation
-
 

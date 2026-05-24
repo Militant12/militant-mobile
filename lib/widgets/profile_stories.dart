@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 import '../screens/stories_screen.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -28,7 +29,6 @@ class _ProfileStoriesState extends State<ProfileStories> {
     try {
       final api = await ApiService.getInstance();
       final stories = await api.getUserStories(widget.userId);
-      // print('DEBUG ProfileStories: Loaded ${stories.length} stories');
       if (mounted) {
         setState(() {
           _stories = stories;
@@ -36,7 +36,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
         });
       }
     } catch (e) {
-      print('DEBUG ProfileStories: Error loading stories: $e');
+      debugPrint('DEBUG ProfileStories: Error loading stories: $e');
       if (mounted) {
         setState(() => _isLoading = false);
       }
@@ -44,44 +44,45 @@ class _ProfileStoriesState extends State<ProfileStories> {
   }
 
   Future<void> _createStory() async {
+    final lang = LanguageService.instance;
     final picker = ImagePicker();
     final image = await picker.pickImage(source: ImageSource.gallery);
 
     if (image != null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Upload en cours...'),
-            duration: Duration(seconds: 2),
-            backgroundColor: Color(0xFFBE1E1E),
+          SnackBar(
+            content: Text(lang.translate('stories_uploading')),
+            duration: const Duration(seconds: 2),
+            backgroundColor: const Color(0xFFBE1E1E),
           ),
         );
       }
 
       try {
         final api = await ApiService.getInstance();
-        print('DEBUG: Uploading file: ${image.path}');
+        debugPrint('DEBUG: Uploading file: ${image.path}');
         final mediaUrl = await api.uploadFile(image.path, type: 'stories');
-        print('DEBUG: Upload successful, mediaUrl: $mediaUrl');
+        debugPrint('DEBUG: Upload successful, mediaUrl: $mediaUrl');
 
         await api.createStory(media: mediaUrl);
-        print('DEBUG: Story created successfully');
+        debugPrint('DEBUG: Story created successfully');
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Story créée avec succès!'),
+            SnackBar(
+              content: Text(lang.translate('stories_created')),
               backgroundColor: Colors.green,
             ),
           );
           _loadStories();
         }
       } catch (e) {
-        print('DEBUG: Error creating story: $e');
+        debugPrint('DEBUG: Error creating story: $e');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Erreur: $e'),
+              content: Text('${lang.translate('stories_error')}: $e'),
               duration: const Duration(seconds: 5),
               backgroundColor: Colors.red,
             ),
@@ -93,6 +94,12 @@ class _ProfileStoriesState extends State<ProfileStories> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final lang = LanguageService.instance;
+    final isDark = theme.brightness == Brightness.dark;
+    final titleColor = theme.textTheme.bodyLarge?.color;
+    final subtitleColor = theme.textTheme.bodyMedium?.color;
+
     if (_isLoading) {
       return const SizedBox(
         height: 100,
@@ -112,10 +119,10 @@ class _ProfileStoriesState extends State<ProfileStories> {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         margin: const EdgeInsets.symmetric(vertical: 8),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           border: Border(
-            top: BorderSide(color: Color(0xFF2C2C2C)),
-            bottom: BorderSide(color: Color(0xFF2C2C2C)),
+            top: BorderSide(color: theme.dividerColor),
+            bottom: BorderSide(color: theme.dividerColor),
           ),
         ),
         child: GestureDetector(
@@ -128,7 +135,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(color: const Color(0xFFBE1E1E), width: 2),
-                  color: const Color(0xFF1E1E1E),
+                  color: isDark ? const Color(0xFF1E1E1E) : Colors.grey[100],
                 ),
                 child: const Icon(
                   Icons.add,
@@ -137,22 +144,29 @@ class _ProfileStoriesState extends State<ProfileStories> {
                 ),
               ),
               const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Ajouter une story',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      lang.translate('stories_add'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: titleColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
-                  ),
-                  Text(
-                    'Partagez un moment avec vos abonnés',
-                    style: TextStyle(color: Colors.grey[400], fontSize: 13),
-                  ),
-                ],
+                    Text(
+                      lang.translate('profile_stories_add_subtitle'),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: subtitleColor, fontSize: 13),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -167,10 +181,10 @@ class _ProfileStoriesState extends State<ProfileStories> {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(
-          top: BorderSide(color: Color(0xFF2C2C2C)),
-          bottom: BorderSide(color: Color(0xFF2C2C2C)),
+          top: BorderSide(color: theme.dividerColor),
+          bottom: BorderSide(color: theme.dividerColor),
         ),
       ),
       child: GestureDetector(
@@ -203,13 +217,20 @@ class _ProfileStoriesState extends State<ProfileStories> {
                       future: _getMediaUrl(media),
                       builder: (context, snapshot) {
                         if (!snapshot.hasData) {
-                          return Container(color: const Color(0xFF1E1E1E));
+                          return Container(
+                            color: isDark
+                                ? const Color(0xFF1E1E1E)
+                                : Colors.grey[100],
+                          );
                         }
                         return Image.network(
                           snapshot.data!,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) =>
-                              Container(color: const Color(0xFF1E1E1E)),
+                          errorBuilder: (_, __, ___) => Container(
+                            color: isDark
+                                ? const Color(0xFF1E1E1E)
+                                : Colors.grey[100],
+                          ),
                         );
                       },
                     ),
@@ -257,34 +278,51 @@ class _ProfileStoriesState extends State<ProfileStories> {
               ],
             ),
             const SizedBox(width: 16),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.isMe ? 'Vos stories' : 'Stories à la une',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    widget.isMe
+                        ? lang.translate('profile_stories_yours')
+                        : lang.translate('profile_stories_featured'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: titleColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  widget.isMe
-                      ? '$count story${count > 1 ? 's' : ''} visible${count > 1 ? 's' : ''}'
-                      : 'Regarder les stories',
-                  style: TextStyle(color: Colors.grey[400], fontSize: 13),
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  Text(
+                    widget.isMe
+                        ? lang
+                              .translate(
+                                count > 1
+                                    ? 'profile_stories_visible_plural'
+                                    : 'profile_stories_visible_singular',
+                              )
+                              .replaceAll('{count}', '$count')
+                        : lang.translate('profile_stories_watch'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: subtitleColor, fontSize: 13),
+                  ),
+                ],
+              ),
             ),
-            const Spacer(),
             if (widget.isMe)
               IconButton(
-                icon: const Icon(Icons.add_circle_outline, color: Colors.white),
+                icon: Icon(
+                  Icons.add_circle_outline,
+                  color: theme.iconTheme.color,
+                ),
                 onPressed: _createStory,
               )
             else
-              const Icon(Icons.chevron_right, color: Colors.grey),
+              Icon(Icons.chevron_right, color: subtitleColor),
           ],
         ),
       ),

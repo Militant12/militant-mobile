@@ -444,6 +444,12 @@ class LanguageService extends ValueNotifier<Locale> {
 
       // Stories
       'stories_add': 'Ajouter une story',
+      'profile_stories_add_subtitle': 'Partagez un moment avec vos abonnés',
+      'profile_stories_yours': 'Vos stories',
+      'profile_stories_featured': 'Stories à la une',
+      'profile_stories_visible_singular': '{count} story visible',
+      'profile_stories_visible_plural': '{count} stories visibles',
+      'profile_stories_watch': 'Regarder les stories',
       'stories_preview': 'Aperçu de la story',
       'stories_uploading': 'Upload de la story en cours...',
       'stories_created': 'Story publiée avec succès !',
@@ -564,7 +570,6 @@ class LanguageService extends ValueNotifier<Locale> {
       'leave_group_action': 'Quitter le groupe',
       'search_user': 'Rechercher un utilisateur...',
       'no_user_found': 'Aucun utilisateur trouvé',
-      'unknown_user': 'Utilisateur inconnu',
       'typing_someone': 'Quelqu\'un écrit...',
       'typing_people': 'Des personnes écrivent...',
       'typing_single': '{username} écrit...',
@@ -1360,6 +1365,12 @@ class LanguageService extends ValueNotifier<Locale> {
 
       // Stories
       'stories_add': 'Add a story',
+      'profile_stories_add_subtitle': 'Share a moment with your followers',
+      'profile_stories_yours': 'Your stories',
+      'profile_stories_featured': 'Featured stories',
+      'profile_stories_visible_singular': '{count} visible story',
+      'profile_stories_visible_plural': '{count} visible stories',
+      'profile_stories_watch': 'Watch stories',
       'stories_preview': 'Story Preview',
       'stories_uploading': 'Uploading story...',
       'stories_created': 'Story published successfully!',
@@ -1474,7 +1485,6 @@ class LanguageService extends ValueNotifier<Locale> {
       'leave_group_action': 'Leave group',
       'search_user': 'Search for a user...',
       'no_user_found': 'No user found',
-      'unknown_user': 'Unknown user',
       'typing_someone': 'Someone is typing...',
       'typing_people': 'People are typing...',
       'typing_single': '{username} is typing...',
@@ -2284,6 +2294,12 @@ class LanguageService extends ValueNotifier<Locale> {
 
       // Stories
       'stories_add': 'Añadir una historia',
+      'profile_stories_add_subtitle': 'Comparte un momento con tus seguidores',
+      'profile_stories_yours': 'Tus historias',
+      'profile_stories_featured': 'Historias destacadas',
+      'profile_stories_visible_singular': '{count} historia visible',
+      'profile_stories_visible_plural': '{count} historias visibles',
+      'profile_stories_watch': 'Ver historias',
       'stories_preview': 'Vista previa',
       'stories_uploading': 'Subiendo historia...',
       'stories_created': '¡Historia publicada con éxito!',
