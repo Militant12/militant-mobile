@@ -16,6 +16,15 @@
   Application mobile Flutter pour le réseau social militant décentralisé
 </p>
 
+<p align="center">
+  <a href="https://play.google.com/store/apps/details?id=com.militant.militant_flutter&pcampaignid=web_share">
+    <img src="https://img.shields.io/badge/Google%20Play-T%C3%A9l%C3%A9charger-414141?style=for-the-badge&logo=google-play&logoColor=white" alt="Télécharger sur Google Play">
+  </a>
+  <a href="https://apkpure.com/p/com.militant.militant_flutter">
+    <img src="assets/apkpure-logo.svg" alt="Disponible sur APKPure" height="40">
+  </a>
+</p>
+
 ---
 
 ## Description
@@ -283,6 +292,8 @@ Ce projet est sous licence AGPL-3.0. Voir le fichier [LICENSE](LICENSE) pour plu
 ## Liens
 
 - [Site web](https://militant.revlibertaire.com)
+- [Google Play](https://play.google.com/store/apps/details?id=com.militant.militant_flutter&pcampaignid=web_share)
+- [APKPure](https://apkpure.com/p/com.militant.militant_flutter)
 - [Documentation](https://jointomilitant.revliebrtaire.com)
 - [Instance principale](https://api.militant.revlibertaire.com)
 - [Projet principal](https://gitlab.com/militant1)
@@ -294,4 +305,3 @@ Pour toute question ou problème :
 - Ouvrir une issue sur GitLab
 - Contacter l'équipe de développement
 - Consulter la documentation
-
