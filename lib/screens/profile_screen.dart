@@ -1,5 +1,11 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../services/account_switcher_service.dart';
 import '../services/api_service.dart';
+import '../services/incoming_call_service.dart';
+import '../services/message_notification_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../models/post.dart';
 import '../widgets/post_card.dart';
@@ -8,6 +14,7 @@ import '../widgets/militant_badge.dart';
 import '../widgets/technician_badge.dart';
 import '../widgets/status_picker.dart';
 import '../services/user_status_service.dart';
+import 'home_screen.dart';
 import 'login_screen.dart';
 import 'edit_profile_screen.dart';
 import 'bookmarks_screen.dart';
@@ -15,6 +22,7 @@ import 'settings_screen.dart';
 import 'users_list_screen.dart';
 import 'friends_screen.dart';
 import '../services/language_service.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../widgets/linkable_text.dart';
 import 'chat_screen.dart';
@@ -318,6 +326,257 @@ class ProfileScreenState extends State<ProfileScreen>
     }
   }
 
+  int? _parseUserId(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    return int.tryParse(value.toString());
+  }
+
+  int? _profileUserId(Map<String, dynamic> profile) {
+    return _parseUserId(profile['id'] ?? profile['user_id']);
+  }
+
+  String? _profileString(Map<String, dynamic> profile, List<String> keys) {
+    for (final key in keys) {
+      final value = profile[key];
+      if (value != null && value.toString().trim().isNotEmpty) {
+        return value.toString();
+      }
+    }
+    return null;
+  }
+
+  Future<void> _openHomeAfterAccountSwitch(ApiService api, int? userId) async {
+    try {
+      await api.initializeOneSignal();
+      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+        if (userId != null) {
+          final externalId = ApiService.oneSignalExternalIdFromUserId(userId);
+          if (externalId.isNotEmpty) {
+            OneSignal.login(externalId);
+          }
+        }
+      }
+    } catch (_) {}
+
+    try {
+      await IncomingCallService.instance.initialize();
+      await MessageNotificationService.instance.initialize();
+    } catch (_) {}
+
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
+      (route) => false,
+    );
+  }
+
+  Future<SavedAccount?> _saveCurrentAccountForSwitching() async {
+    try {
+      final api = await ApiService.getInstance();
+      final token = api.token;
+      if (token == null || token.trim().isEmpty) {
+        return AccountSwitcherService.activeSessionSnapshot();
+      }
+
+      final profile = _profile ?? await api.getProfile();
+      final userId = _profileUserId(profile) ?? await api.getCurrentUserId();
+      final username =
+          _profileString(profile, ['username', 'name']) ??
+          LanguageService.instance.translate('profile_title');
+      final avatarUrl = ApiService.resolveImageUrl(
+        _profileString(profile, ['avatar_url', 'avatar']),
+        baseUrl: api.baseUrl,
+      );
+
+      final account = SavedAccount(
+        id: SavedAccount.buildId(api.baseUrl, userId, username),
+        username: username,
+        baseUrl: ApiService.normalizeBaseUrl(api.baseUrl),
+        token: token,
+        userId: userId,
+        avatarUrl: avatarUrl,
+        updatedAt: DateTime.now(),
+      );
+      await AccountSwitcherService.upsertAccount(account);
+
+      return account;
+    } catch (_) {
+      return AccountSwitcherService.activeSessionSnapshot();
+    }
+  }
+
+  Future<void> _activateSavedAccount(SavedAccount account) async {
+    Navigator.pop(context);
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
+      ),
+    );
+
+    final previousAccount =
+        await AccountSwitcherService.activeSessionSnapshot();
+
+    try {
+      await AccountSwitcherService.activateAccount(account);
+      final api = await ApiService.getInstance();
+      final profile = await api.getProfile();
+      final userId = _profileUserId(profile) ?? account.userId;
+
+      await AccountSwitcherService.saveAccount(
+        baseUrl: account.baseUrl,
+        token: account.token,
+        username:
+            _profileString(profile, ['username', 'name']) ?? account.username,
+        userId: userId,
+        avatarUrl: _profileString(profile, ['avatar_url', 'avatar']),
+      );
+
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+      await _openHomeAfterAccountSwitch(api, userId);
+    } catch (e) {
+      if (previousAccount != null) {
+        await AccountSwitcherService.activateAccount(previousAccount);
+      }
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            LanguageService.instance.translate('saved_session_expired'),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _openAddAccount(
+    SavedAccount? previousAccount,
+    BuildContext dialogContext,
+  ) async {
+    Navigator.of(dialogContext).pop();
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => LoginScreen(
+          fallbackAccount: previousAccount,
+          replaceStackOnAuth: true,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    await _loadProfile();
+  }
+
+  Future<void> _showAccountSwitcher() async {
+    final lang = LanguageService.instance;
+    final previousAccount = await _saveCurrentAccountForSwitching();
+    final accounts = await AccountSwitcherService.loadAccounts();
+    final currentAccountId = await AccountSwitcherService.currentAccountId();
+
+    if (!mounted) return;
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        final theme = Theme.of(dialogContext);
+        final isDark = theme.brightness == Brightness.dark;
+        return AlertDialog(
+          backgroundColor: theme.scaffoldBackgroundColor,
+          title: Text(
+            lang.translate('switch_account'),
+            style: TextStyle(color: theme.colorScheme.onSurface),
+          ),
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (accounts.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      lang.translate('no_other_accounts'),
+                      style: TextStyle(
+                        color: isDark ? Colors.white70 : Colors.black87,
+                      ),
+                    ),
+                  )
+                else
+                  ...accounts.map((account) {
+                    final isCurrent = account.id == currentAccountId;
+                    return ListTile(
+                      enabled: !isCurrent,
+                      leading: CircleAvatar(
+                        backgroundColor: const Color(0xFFBE1E1E),
+                        foregroundColor: Colors.white,
+                        backgroundImage:
+                            account.avatarUrl != null &&
+                                account.avatarUrl!.isNotEmpty
+                            ? NetworkImage(account.avatarUrl!)
+                            : null,
+                        child:
+                            account.avatarUrl == null ||
+                                account.avatarUrl!.isEmpty
+                            ? Text(account.initial)
+                            : null,
+                      ),
+                      title: Text(
+                        account.displayName,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: isCurrent
+                              ? (isDark ? Colors.white70 : Colors.black54)
+                              : (isDark ? Colors.white : Colors.black),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      subtitle: Text(
+                        isCurrent
+                            ? lang.translate('current_account')
+                            : account.baseUrl,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: isDark
+                              ? const Color(0xFFAAAAAA)
+                              : Colors.grey[700],
+                        ),
+                      ),
+                      trailing: isCurrent
+                          ? const Icon(Icons.check, color: Color(0xFFBE1E1E))
+                          : null,
+                      onTap: isCurrent
+                          ? null
+                          : () => _activateSavedAccount(account),
+                    );
+                  }),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(lang.translate('cancel')),
+            ),
+            ElevatedButton.icon(
+              onPressed: () => _openAddAccount(previousAccount, dialogContext),
+              icon: const Icon(Icons.person_add),
+              label: Text(lang.translate('add_account')),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFBE1E1E),
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _logout() async {
     final lang = LanguageService.instance;
     final confirm = await showDialog<bool>(
@@ -393,6 +652,11 @@ class ProfileScreenState extends State<ProfileScreen>
           style: TextStyle(color: theme.textTheme.titleLarge?.color),
         ),
         actions: [
+          IconButton(
+            tooltip: lang.translate('switch_account'),
+            icon: Icon(Icons.switch_account, color: theme.iconTheme.color),
+            onPressed: _showAccountSwitcher,
+          ),
           IconButton(
             icon: Icon(Icons.logout, color: theme.iconTheme.color),
             onPressed: _logout,
@@ -1018,11 +1282,7 @@ class ProfileScreenState extends State<ProfileScreen>
     if (_profile == null) return const SizedBox.shrink();
 
     final socials = [
-      {
-        'key': 'website',
-        'icon': Icons.link,
-        'url': '\$value',
-      },
+      {'key': 'website', 'icon': Icons.link, 'url': '\$value'},
       {
         'key': 'mastodon',
         'icon': Icons.alternate_email,

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/account_switcher_service.dart';
 import '../services/api_service.dart';
 import '../services/incoming_call_service.dart';
 import '../services/language_service.dart';
@@ -12,7 +13,14 @@ import 'home_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final SavedAccount? fallbackAccount;
+  final bool replaceStackOnAuth;
+
+  const LoginScreen({
+    super.key,
+    this.fallbackAccount,
+    this.replaceStackOnAuth = false,
+  });
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -26,6 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
   );
 
   final _totpController = TextEditingController();
+  List<SavedAccount> _savedAccounts = [];
   bool _isLoading = false;
   bool _showServerField = false;
   bool _requires2FA = false;
@@ -35,6 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     _loadSavedServerUrl();
+    _loadSavedAccounts();
   }
 
   Future<void> _loadSavedServerUrl() async {
@@ -68,11 +78,127 @@ class _LoginScreenState extends State<LoginScreen> {
     return null;
   }
 
+  Future<void> _loadSavedAccounts() async {
+    final accounts = await AccountSwitcherService.loadAccounts();
+    if (!mounted) return;
+    setState(() {
+      _savedAccounts = accounts;
+    });
+  }
+
+  String? _extractString(Map<String, dynamic> data, List<String> keys) {
+    for (final key in keys) {
+      final value = data[key];
+      if (value != null && value.toString().trim().isNotEmpty) {
+        return value.toString();
+      }
+    }
+    return null;
+  }
+
+  Future<void> _openHomeAfterAuth(ApiService api, int? loggedUserId) async {
+    try {
+      await api.initializeOneSignal();
+
+      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+        if (loggedUserId != null) {
+          final externalId = ApiService.oneSignalExternalIdFromUserId(
+            loggedUserId,
+          );
+          if (externalId.isNotEmpty) {
+            print('OneSignal Login with External ID: $externalId');
+            OneSignal.login(externalId);
+          }
+        }
+      }
+    } catch (e) {
+      print('OneSignal dynamic init error: $e');
+    }
+
+    try {
+      await IncomingCallService.instance.initialize();
+      await MessageNotificationService.instance.initialize();
+    } catch (e) {
+      print('Incoming call init error: $e');
+    }
+
+    if (!mounted) return;
+    final homeRoute = MaterialPageRoute(builder: (_) => const HomeScreen());
+    if (widget.replaceStackOnAuth) {
+      Navigator.of(context).pushAndRemoveUntil(homeRoute, (route) => false);
+    } else {
+      Navigator.of(context).pushReplacement(homeRoute);
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      IncomingCallService.instance.flushPendingAndroidIncomingIntent();
+    });
+  }
+
+  Future<void> _switchToSavedAccount(SavedAccount account) async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final previousAccount =
+        await AccountSwitcherService.activeSessionSnapshot();
+
+    try {
+      await AccountSwitcherService.activateAccount(account);
+      final api = await ApiService.getInstance();
+      final profile = await api.getProfile();
+
+      final prefs = await SharedPreferences.getInstance();
+      final userId = _extractUserId(profile) ?? account.userId;
+      if (userId != null) {
+        await prefs.setInt('user_id', userId);
+      }
+
+      await AccountSwitcherService.saveAccount(
+        baseUrl: account.baseUrl,
+        token: account.token,
+        username:
+            _extractString(profile, ['username', 'name']) ?? account.username,
+        userId: userId,
+        avatarUrl: _extractString(profile, ['avatar_url', 'avatar']),
+      );
+
+      await _openHomeAfterAuth(api, userId);
+    } catch (e) {
+      if (previousAccount != null) {
+        await AccountSwitcherService.activateAccount(previousAccount);
+      } else {
+        final api = await ApiService.getInstance();
+        await api.clearToken();
+      }
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = LanguageService.instance.translate(
+          'saved_session_expired',
+        );
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _restoreFallbackAccount(SavedAccount? previousAccount) async {
+    if (previousAccount != null) {
+      await AccountSwitcherService.activateAccount(previousAccount);
+    }
+  }
+
   Future<void> _login() async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
+
+    final previousAccount =
+        widget.fallbackAccount ??
+        await AccountSwitcherService.activeSessionSnapshot();
+    if (previousAccount != null) {
+      await AccountSwitcherService.upsertAccount(previousAccount);
+    }
 
     try {
       final api = await ApiService.getInstance();
@@ -89,6 +215,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (result['two_factor_required'] == true) {
+        await _restoreFallbackAccount(previousAccount);
         setState(() {
           _requires2FA = true;
           _isLoading = false;
@@ -108,41 +235,29 @@ class _LoginScreenState extends State<LoginScreen> {
           await prefs.setInt('user_id', loggedUserId);
         }
 
-        // Dynamic initialization of OneSignal
-        try {
-          // Initialize with server's App ID
-          await api.initializeOneSignal();
-
-          // Login to OneSignal for notifications only on supported platforms
-          if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-            if (loggedUserId != null) {
-              final externalId = ApiService.oneSignalExternalIdFromUserId(
-                loggedUserId,
-              );
-              if (externalId.isNotEmpty) {
-                print('OneSignal Login with External ID: $externalId');
-                OneSignal.login(externalId);
-              }
-            }
-          }
-        } catch (e) {
-          print('OneSignal dynamic init error: $e');
+        if (previousAccount != null) {
+          await AccountSwitcherService.upsertAccount(previousAccount);
         }
 
-        try {
-          await IncomingCallService.instance.initialize();
-          await MessageNotificationService.instance.initialize();
-        } catch (e) {
-          print('Incoming call init error: $e');
+        final token = result['token']?.toString() ?? api.token;
+        if (token != null && token.isNotEmpty) {
+          final user = result['user'];
+          final userData = user is Map<String, dynamic> ? user : result;
+          await AccountSwitcherService.saveAccount(
+            baseUrl: serverUrl,
+            token: token,
+            username:
+                _extractString(userData, ['username', 'name']) ??
+                _usernameController.text.trim(),
+            userId: loggedUserId,
+            avatarUrl: _extractString(userData, ['avatar_url', 'avatar']),
+          );
+          await _loadSavedAccounts();
         }
 
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          IncomingCallService.instance.flushPendingAndroidIncomingIntent();
-        });
+        await _openHomeAfterAuth(api, loggedUserId);
       } else {
+        await _restoreFallbackAccount(previousAccount);
         setState(() {
           _errorMessage =
               result['message'] ??
@@ -150,6 +265,7 @@ class _LoginScreenState extends State<LoginScreen> {
         });
       }
     } catch (e) {
+      await _restoreFallbackAccount(previousAccount);
       setState(() {
         _errorMessage = 'Erreur: ${e.toString()}';
       });
@@ -157,6 +273,175 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _showForgotPasswordDialog() async {
+    final lang = LanguageService.instance;
+    final emailController = TextEditingController(
+      text: _usernameController.text.contains('@')
+          ? _usernameController.text.trim()
+          : '',
+    );
+
+    try {
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) {
+          final theme = Theme.of(dialogContext);
+          final isDark = theme.brightness == Brightness.dark;
+          String? dialogError;
+          bool isSubmitting = false;
+
+          return StatefulBuilder(
+            builder: (context, dialogSetState) {
+              Future<void> submit() async {
+                final email = emailController.text.trim();
+                if (email.isEmpty) {
+                  dialogSetState(() {
+                    dialogError = lang.translate('email_required_msg');
+                  });
+                  return;
+                }
+
+                dialogSetState(() {
+                  isSubmitting = true;
+                  dialogError = null;
+                });
+
+                try {
+                  final api = await ApiService.getInstance();
+                  final serverUrl = ApiService.normalizeBaseUrl(
+                    _serverController.text.trim(),
+                  );
+                  api.baseUrl = serverUrl;
+
+                  final result = await api.requestPasswordReset(email);
+                  final message = result['message']?.toString();
+                  if (result['success'] == false) {
+                    throw Exception(
+                      message != null && message.isNotEmpty
+                          ? message
+                          : lang.translate('login_error'),
+                    );
+                  }
+
+                  if (!mounted || !dialogContext.mounted) return;
+                  Navigator.of(dialogContext).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        message != null && message.isNotEmpty
+                            ? message
+                            : lang.translate('forgot_password_success'),
+                      ),
+                    ),
+                  );
+                } catch (e) {
+                  if (!dialogContext.mounted) return;
+                  dialogSetState(() {
+                    dialogError = e.toString().replaceFirst('Exception: ', '');
+                    isSubmitting = false;
+                  });
+                }
+              }
+
+              return AlertDialog(
+                backgroundColor: theme.scaffoldBackgroundColor,
+                title: Text(
+                  lang.translate('forgot_password_title'),
+                  style: TextStyle(color: theme.colorScheme.onSurface),
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      lang.translate('forgot_password_hint'),
+                      style: TextStyle(
+                        color: isDark
+                            ? const Color(0xFFAAAAAA)
+                            : Colors.grey[700],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.done,
+                      enabled: !isSubmitting,
+                      onSubmitted: (_) => submit(),
+                      style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+                      decoration: InputDecoration(
+                        labelText: lang.translate('email_label'),
+                        labelStyle: TextStyle(
+                          color: isDark
+                              ? const Color(0xFF888888)
+                              : Colors.grey[600],
+                        ),
+                        prefixIcon: Icon(
+                          Icons.email_outlined,
+                          color: isDark
+                              ? const Color(0xFF888888)
+                              : Colors.grey[600],
+                        ),
+                        filled: true,
+                        fillColor: isDark
+                            ? const Color(0xFF2A2A2A)
+                            : Colors.grey[200],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFBE1E1E),
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (dialogError != null) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        dialogError!,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ],
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: isSubmitting
+                        ? null
+                        : () => Navigator.of(dialogContext).pop(),
+                    child: Text(lang.translate('cancel')),
+                  ),
+                  ElevatedButton(
+                    onPressed: isSubmitting ? null : submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFBE1E1E),
+                      foregroundColor: Colors.white,
+                    ),
+                    child: isSubmitting
+                        ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Text(lang.translate('forgot_password_send')),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+    } finally {
+      emailController.dispose();
     }
   }
 
@@ -201,6 +486,81 @@ class _LoginScreenState extends State<LoginScreen> {
         LanguageService.instance.setLanguage(code);
         setState(() {});
       },
+    );
+  }
+
+  Widget _buildSavedAccountsSection(bool isDark) {
+    final lang = LanguageService.instance;
+    final visibleAccounts = _savedAccounts.take(4).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            lang.translate('quick_accounts'),
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        ...visibleAccounts.map((account) {
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[200],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 2,
+              ),
+              leading: CircleAvatar(
+                backgroundColor: const Color(0xFFBE1E1E),
+                foregroundColor: Colors.white,
+                backgroundImage:
+                    account.avatarUrl != null && account.avatarUrl!.isNotEmpty
+                    ? NetworkImage(account.avatarUrl!)
+                    : null,
+                child: account.avatarUrl == null || account.avatarUrl!.isEmpty
+                    ? Text(account.initial)
+                    : null,
+              ),
+              title: Text(
+                account.displayName,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: isDark ? Colors.white : Colors.black,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              subtitle: Text(
+                account.baseUrl,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: isDark ? const Color(0xFFAAAAAA) : Colors.grey[700],
+                ),
+              ),
+              trailing: IconButton(
+                tooltip: lang.translate('remove_saved_account'),
+                icon: const Icon(Icons.close, size: 18),
+                onPressed: _isLoading
+                    ? null
+                    : () async {
+                        await AccountSwitcherService.removeAccount(account.id);
+                        await _loadSavedAccounts();
+                      },
+              ),
+              onTap: _isLoading ? null : () => _switchToSavedAccount(account),
+            ),
+          );
+        }),
+      ],
     );
   }
 
@@ -255,7 +615,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   fontSize: 16,
                 ),
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: 32),
+
+              if (_savedAccounts.isNotEmpty && !_requires2FA) ...[
+                _buildSavedAccountsSection(isDark),
+                const SizedBox(height: 24),
+              ] else
+                const SizedBox(height: 16),
 
               // Message d'erreur
               if (_errorMessage != null)
@@ -311,6 +677,25 @@ class _LoginScreenState extends State<LoginScreen> {
                   label: lang.translate('password_label'),
                   icon: Icons.lock,
                   isPassword: true,
+                ),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: _isLoading ? null : _showForgotPasswordDialog,
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(0, 0),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      lang.translate('forgot_password'),
+                      style: const TextStyle(
+                        color: Color(0xFFBE1E1E),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                 ),
               ] else ...[
                 Text(
@@ -490,6 +875,7 @@ class _LoginScreenState extends State<LoginScreen> {
     _usernameController.dispose();
     _passwordController.dispose();
     _serverController.dispose();
+    _totpController.dispose();
     super.dispose();
   }
 }

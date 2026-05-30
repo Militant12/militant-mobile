@@ -31,7 +31,27 @@
 
 Militant est un réseau social décentralisé conçu pour les mouvements militants et les organisations politiques. Cette application mobile permet de se connecter à n'importe quelle instance Militant auto-hébergée.
 
+Version actuelle : **1.0.8+120**
+
+
+## Nouveautés 1.0.8
+
+- Réinitialisation du mot de passe depuis l’écran de connexion.
+- Changement rapide de compte avec comptes enregistrés localement.
+- Ajout d’un autre compte sans déconnexion préalable.
+- Protection de la session active pendant l’ajout ou la bascule de compte.
+- Correction des cas où un compte local pouvait disparaître après l’ajout d’un autre compte.
+- Version affichée dans **À propos** synchronisée avec `1.0.8`.
+- Build Android release généré en APK et App Bundle Play Store.
+
 ## Fonctionnalités
+
+
+### Authentification & Comptes
+- **Mot de passe oublié** : demande de lien de réinitialisation directement depuis l’écran de connexion.
+- **Comptes rapides** : sauvegarde locale des comptes connectés pour basculer rapidement entre plusieurs profils.
+- **Ajouter un compte** : connexion à un autre compte sans devoir se déconnecter manuellement du compte courant.
+- **Protection de session** : si une session enregistrée est expirée, l’app restaure la session précédente et demande une reconnexion.
 
 ### Réseau Social Complet
 - **Posts** : Création, modification, suppression de publications avec support multimédia (images, vidéos, audio)
@@ -203,6 +223,7 @@ militant_flutter/
 │   │   ├── linkable_text.dart
 │   │   └── ...
 │   └── services/                    # Services (API, langue)
+│       ├── account_switcher_service.dart
 │       ├── api_service.dart
 │       └── language_service.dart
 ├── android/                         # Configuration Android
@@ -255,6 +276,10 @@ flutter build apk --release
 
 # Générer un App Bundle (recommandé pour Play Store)
 flutter build appbundle --release
+
+# Sorties 1.0.8 générées localement
+build/app/outputs/flutter-apk/militant-1.0.8-latest.apk
+build/app/outputs/bundle/release/militant-1.0.8-playstore.aab
 ```
 
 ## Performance & Scalabilité

@@ -46,6 +46,21 @@ class LanguageService extends ValueNotifier<Locale> {
       'email_label': 'Email',
       'password_label': 'Mot de passe',
       'login_button': 'Se connecter',
+      'forgot_password': 'Mot de passe oublié ?',
+      'forgot_password_title': 'Mot de passe oublié',
+      'forgot_password_hint':
+          'Entrez l’adresse email liée à votre compte. Si elle existe, vous recevrez un lien de réinitialisation.',
+      'forgot_password_send': 'Envoyer le lien',
+      'forgot_password_success':
+          'Si ce compte existe, un email de réinitialisation a été envoyé.',
+      'quick_accounts': 'Comptes rapides',
+      'switch_account': 'Changer de compte',
+      'add_account': 'Ajouter un compte',
+      'current_account': 'Compte actuel',
+      'remove_saved_account': 'Retirer ce compte',
+      'no_other_accounts': 'Aucun autre compte enregistré',
+      'saved_session_expired':
+          'Cette session a expiré. Reconnectez-vous à ce compte.',
       'register_link': 'Pas encore de compte ? S\'inscrire',
       'register_title': 'Inscription',
       'create_account': 'Créer un compte',
@@ -350,7 +365,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'subtitle_notifications': 'Gérer les notifications',
       'subtitle_security': 'Changer de mot de passe',
       'subtitle_privacy': 'Paramètres de confidentialité',
-      'version': 'Version 1.0.7',
+      'version': 'Version 1.0.8',
 
       // Notifications Settings
       'notifications_push': 'Notifications push',
@@ -982,6 +997,21 @@ class LanguageService extends ValueNotifier<Locale> {
       'email_label': 'Email',
       'password_label': 'Password',
       'login_button': 'Login',
+      'forgot_password': 'Forgot password?',
+      'forgot_password_title': 'Forgot password',
+      'forgot_password_hint':
+          'Enter the email address linked to your account. If it exists, you will receive a reset link.',
+      'forgot_password_send': 'Send link',
+      'forgot_password_success':
+          'If this account exists, a password reset email has been sent.',
+      'quick_accounts': 'Quick accounts',
+      'switch_account': 'Switch account',
+      'add_account': 'Add account',
+      'current_account': 'Current account',
+      'remove_saved_account': 'Remove this account',
+      'no_other_accounts': 'No other saved account',
+      'saved_session_expired':
+          'This session has expired. Sign in to this account again.',
       'register_link': 'No account? Register',
       'register_title': 'Register',
       'create_account': 'Create an account',
@@ -1280,7 +1310,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'subtitle_notifications': 'Manage notifications',
       'subtitle_security': 'Change password',
       'subtitle_privacy': 'Privacy settings',
-      'version': 'Version 1.0.7',
+      'version': 'Version 1.0.8',
 
       // Notifications Settings
       'notifications_push': 'Push notifications',
@@ -1899,6 +1929,21 @@ class LanguageService extends ValueNotifier<Locale> {
       'email_label': 'Correo electrónico',
       'password_label': 'Contraseña',
       'login_button': 'Iniciar sesión',
+      'forgot_password': '¿Olvidaste tu contraseña?',
+      'forgot_password_title': 'Contraseña olvidada',
+      'forgot_password_hint':
+          'Ingresa el correo vinculado a tu cuenta. Si existe, recibirás un enlace de restablecimiento.',
+      'forgot_password_send': 'Enviar enlace',
+      'forgot_password_success':
+          'Si esta cuenta existe, se ha enviado un correo de restablecimiento.',
+      'quick_accounts': 'Cuentas rápidas',
+      'switch_account': 'Cambiar de cuenta',
+      'add_account': 'Añadir cuenta',
+      'current_account': 'Cuenta actual',
+      'remove_saved_account': 'Quitar esta cuenta',
+      'no_other_accounts': 'No hay otra cuenta guardada',
+      'saved_session_expired':
+          'Esta sesión ha caducado. Vuelve a iniciar sesión en esta cuenta.',
       'register_link': '¿No tienes cuenta? Regístrate',
       'register_title': 'Registro',
       'create_account': 'Crear una cuenta',
@@ -2203,7 +2248,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'subtitle_notifications': 'Gestionar notificaciones',
       'subtitle_security': 'Cambiar contraseña',
       'subtitle_privacy': 'Configuración de privacidad',
-      'version': 'Versión 1.0.7',
+      'version': 'Versión 1.0.8',
 
       // Notifications Settings
       'notifications_push': 'Notificaciones push',
@@ -2829,6 +2874,21 @@ class LanguageService extends ValueNotifier<Locale> {
       'email_label': 'Retpoŝto',
       'password_label': 'Pasvorto',
       'login_button': 'Ensaluti',
+      'forgot_password': 'Ĉu pasvorto forgesita?',
+      'forgot_password_title': 'Pasvorto forgesita',
+      'forgot_password_hint':
+          'Enigu la retpoŝtadreson ligitan al via konto. Se ĝi ekzistas, vi ricevos restarigan ligilon.',
+      'forgot_password_send': 'Sendi ligilon',
+      'forgot_password_success':
+          'Se ĉi tiu konto ekzistas, retpoŝto por restarigi pasvorton estis sendita.',
+      'quick_accounts': 'Rapidaj kontoj',
+      'switch_account': 'Ŝanĝi konton',
+      'add_account': 'Aldoni konton',
+      'current_account': 'Nuna konto',
+      'remove_saved_account': 'Forigi ĉi tiun konton',
+      'no_other_accounts': 'Neniu alia konservita konto',
+      'saved_session_expired':
+          'Ĉi tiu seanco eksvalidiĝis. Ensalutu denove al ĉi tiu konto.',
       'register_title': 'Registriĝi',
       'username_label': 'Salutnomo',
       'confirm_password_label': 'Konfirmi pasvorton',

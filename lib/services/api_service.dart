@@ -54,6 +54,25 @@ class ApiService {
     return _instance!;
   }
 
+  static Future<void> setActiveSession({
+    required String baseUrl,
+    required String token,
+    int? userId,
+  }) async {
+    final normalizedBaseUrl = normalizeBaseUrl(baseUrl);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('base_url', normalizedBaseUrl);
+    await prefs.setString('api_token', token);
+    if (userId != null) {
+      await prefs.setInt('user_id', userId);
+    } else {
+      await prefs.remove('user_id');
+    }
+
+    _instance = ApiService(baseUrl: normalizedBaseUrl, token: token);
+    _instance!._currentUserId = userId;
+  }
+
   /// Use a prefixed external ID to avoid blocked raw numeric aliases in OneSignal.
   static String oneSignalExternalIdFromUserId(dynamic userId) {
     final raw = userId?.toString().trim() ?? '';
@@ -528,6 +547,57 @@ class ApiService {
       return jsonDecode(response.body);
     } else {
       throw Exception('Erreur d\'inscription: ${response.statusCode}');
+    }
+  }
+
+  Future<Map<String, dynamic>> requestPasswordReset(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$apiUrl/v1/auth.php?action=forgot_password'),
+        headers: _headers,
+        body: jsonEncode({'email': email}),
+      );
+
+      Map<String, dynamic> decodeBody() {
+        try {
+          return jsonDecode(response.body) as Map<String, dynamic>;
+        } catch (e) {
+          throw Exception(
+            'Réponse invalide du serveur. Première ligne: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}',
+          );
+        }
+      }
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return decodeBody();
+      }
+
+      final data = decodeBody();
+      throw Exception(
+        data['message'] ??
+            data['error'] ??
+            'Erreur de réinitialisation: ${response.statusCode}',
+      );
+    } catch (e) {
+      if (e is HandshakeException ||
+          e.toString().contains('HandshakeException') ||
+          e.toString().contains('CERTIFICATE_VERIFY_FAILED')) {
+        throw Exception(
+          'Connexion HTTPS refusée. Vérifiez le certificat SSL du serveur (certificat auto-signé/non valide).',
+        );
+      }
+      if (e.toString().contains('Operation not permitted')) {
+        throw Exception(
+          'Connexion réseau bloquée par macOS. Rebuild l’app avec le script macOS mis à jour puis relancez.',
+        );
+      }
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('Failed host lookup')) {
+        throw Exception(
+          'Impossible de se connecter au serveur. Vérifiez votre connexion internet et l\'URL du serveur.',
+        );
+      }
+      rethrow;
     }
   }
 
@@ -1067,7 +1137,9 @@ class ApiService {
     );
   }
 
-  Future<Map<String, dynamic>> getFeatureSuggestionDetail(int suggestionId) async {
+  Future<Map<String, dynamic>> getFeatureSuggestionDetail(
+    int suggestionId,
+  ) async {
     final response = await http.get(
       Uri.parse('$apiUrl/v1/feature_suggestions.php?id=$suggestionId'),
       headers: _headers,
@@ -1113,10 +1185,8 @@ class ApiService {
       final rawStats = data['stats'];
       if (rawStats is Map) {
         return rawStats.map(
-          (key, value) => MapEntry(
-            key.toString(),
-            int.tryParse(value.toString()) ?? 0,
-          ),
+          (key, value) =>
+              MapEntry(key.toString(), int.tryParse(value.toString()) ?? 0),
         );
       }
       return {};
@@ -2057,12 +2127,15 @@ class ApiService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return Map<String, dynamic>.from(data['conversation'] ?? {'user_id': userId});
+      return Map<String, dynamic>.from(
+        data['conversation'] ?? {'user_id': userId},
+      );
     } else {
       throw Exception(
         _extractApiError(
           response,
-          fallbackError: 'Erreur de chargement des paramètres de la conversation',
+          fallbackError:
+              'Erreur de chargement des paramètres de la conversation',
         ),
       );
     }
@@ -2421,7 +2494,9 @@ class ApiService {
     String reactionType,
   ) async {
     final response = await http.post(
-      Uri.parse('$apiUrl/v1/message_groups.php?path=messages/$messageId/reactions'),
+      Uri.parse(
+        '$apiUrl/v1/message_groups.php?path=messages/$messageId/reactions',
+      ),
       headers: _headers,
       body: jsonEncode({'reaction_type': reactionType}),
     );
@@ -2440,7 +2515,9 @@ class ApiService {
 
   Future<void> removeGroupMessageReaction(int messageId) async {
     final response = await http.delete(
-      Uri.parse('$apiUrl/v1/message_groups.php?path=messages/$messageId/reactions'),
+      Uri.parse(
+        '$apiUrl/v1/message_groups.php?path=messages/$messageId/reactions',
+      ),
       headers: _headers,
     );
 
