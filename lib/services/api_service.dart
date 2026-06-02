@@ -2310,6 +2310,7 @@ class ApiService {
   Future<void> updateGroupSettings(
     int groupId, {
     String? name,
+    String? avatar,
     int? autoDeleteTime,
     bool? makeEveryoneAdmin,
   }) async {
@@ -2318,6 +2319,7 @@ class ApiService {
       headers: _headers,
       body: jsonEncode({
         if (name != null) 'name': name,
+        if (avatar != null) 'avatar': avatar,
         if (autoDeleteTime != null) 'auto_delete_time': autoDeleteTime,
         if (makeEveryoneAdmin != null) 'make_everyone_admin': makeEveryoneAdmin,
       }),

@@ -123,9 +123,3 @@ Pour tester ICE Restart :
 2. Vérifier que le serveur STUN/TURN est accessible
 3. Augmenter le timeout de polling si nécessaire
 
-## Améliorations futures
-
-- [ ] Ajouter un indicateur visuel de qualité réseau
-- [ ] Implémenter un buffer audio pour lisser les transitions
-- [ ] Ajouter des statistiques de reconnexion dans l'historique
-- [ ] Support des serveurs TURN pour les réseaux restrictifs

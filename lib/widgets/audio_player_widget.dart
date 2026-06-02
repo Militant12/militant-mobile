@@ -20,101 +20,128 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget>
     with SingleTickerProviderStateMixin {
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _isPlaying = false;
+  bool _isLoading = false;
   Duration _duration = Duration.zero;
   Duration _position = Duration.zero;
-  late AnimationController _animationController;
+  late AnimationController _waveController;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
+    _waveController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1000),
-    )..repeat();
+      duration: const Duration(milliseconds: 1200),
+    );
     _initPlayer();
   }
 
   void _initPlayer() {
-    _audioPlayer.onDurationChanged.listen((duration) {
-      setState(() => _duration = duration);
+    _audioPlayer.onDurationChanged.listen((d) {
+      if (mounted) setState(() => _duration = d);
     });
-
-    _audioPlayer.onPositionChanged.listen((position) {
-      setState(() => _position = position);
+    _audioPlayer.onPositionChanged.listen((p) {
+      if (mounted) setState(() => _position = p);
     });
-
     _audioPlayer.onPlayerComplete.listen((_) {
-      setState(() {
-        _isPlaying = false;
-        _position = Duration.zero;
-      });
-      _animationController.stop();
+      if (mounted) {
+        setState(() {
+          _isPlaying = false;
+          _position = Duration.zero;
+        });
+        _waveController.stop();
+        _waveController.reset();
+      }
     });
   }
 
   @override
   void dispose() {
     _audioPlayer.dispose();
-    _animationController.dispose();
+    _waveController.dispose();
     super.dispose();
   }
 
   Future<void> _togglePlayPause() async {
+    if (_isLoading) return;
     if (_isPlaying) {
       await _audioPlayer.pause();
-      setState(() => _isPlaying = false);
-      _animationController.stop();
+      if (mounted) setState(() => _isPlaying = false);
+      _waveController.stop();
     } else {
-      await _audioPlayer.play(UrlSource(widget.audioUrl));
-      setState(() => _isPlaying = true);
-      _animationController.repeat();
+      if (mounted) setState(() => _isLoading = true);
+      try {
+        await _audioPlayer.play(UrlSource(widget.audioUrl));
+        if (mounted) setState(() => _isPlaying = true);
+        _waveController.repeat();
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
     }
   }
 
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final minutes = twoDigits(duration.inMinutes.remainder(60));
-    final seconds = twoDigits(duration.inSeconds.remainder(60));
-    return '$minutes:$seconds';
+  Future<void> _seekTo(double value) async {
+    final target = Duration(
+      milliseconds: (value * _duration.inMilliseconds).round(),
+    );
+    await _audioPlayer.seek(target);
+  }
+
+  String _formatDuration(Duration d) {
+    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$m:$s';
   }
 
   @override
   Widget build(BuildContext context) {
-    final progress = _duration.inSeconds > 0
-        ? _position.inSeconds / _duration.inSeconds
+    final progress = _duration.inMilliseconds > 0
+        ? (_position.inMilliseconds / _duration.inMilliseconds).clamp(0.0, 1.0)
         : 0.0;
 
-    final buttonColor = widget.isMine ? Colors.white : const Color(0xFFBE1E1E);
-    final waveColor =
-        widget.isMine ? Colors.white.withOpacity(0.8) : const Color(0xFFBE1E1E);
-    final textColor =
-        widget.isMine ? Colors.white.withOpacity(0.9) : Colors.black87;
+    final accentColor = widget.isMine ? Colors.white : const Color(0xFFBE1E1E);
+    final dimColor = widget.isMine
+        ? Colors.white.withValues(alpha: 0.45)
+        : Colors.grey.shade400;
+    final timeColor = widget.isMine
+        ? Colors.white.withValues(alpha: 0.75)
+        : Colors.grey.shade600;
 
-    return Container(
-      constraints: const BoxConstraints(minWidth: 200, maxWidth: 280),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    return SizedBox(
+      width: 240,
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Bouton Play/Pause circulaire style Facebook
+          // ── Bouton Play / Pause ──────────────────────────────
           GestureDetector(
             onTap: _togglePlayPause,
-            child: Container(
-              width: 36,
-              height: 36,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
-                color: buttonColor.withOpacity(0.15),
+                color: accentColor.withValues(alpha: 0.18),
                 shape: BoxShape.circle,
+                border: Border.all(color: accentColor, width: 1.5),
               ),
-              child: Icon(
-                _isPlaying ? Icons.pause : Icons.play_arrow,
-                color: buttonColor,
-                size: 20,
-              ),
+              child: _isLoading
+                  ? Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: accentColor,
+                      ),
+                    )
+                  : Icon(
+                      _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                      color: accentColor,
+                      size: 22,
+                    ),
             ),
           ),
-          const SizedBox(width: 12),
-          // Forme d'onde et durée
+
+          const SizedBox(width: 10),
+
+          // ── Forme d'onde + slider + durée ───────────────────
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,36 +149,65 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget>
               children: [
                 // Forme d'onde animée
                 SizedBox(
-                  height: 24,
+                  height: 28,
                   child: AnimatedBuilder(
-                    animation: _animationController,
-                    builder: (context, child) {
-                      return CustomPaint(
-                        painter: WaveformPainter(
-                          progress: progress,
-                          isPlaying: _isPlaying,
-                          animationValue: _animationController.value,
-                          color: waveColor,
-                        ),
-                        size: const Size(double.infinity, 24),
-                      );
-                    },
+                    animation: _waveController,
+                    builder: (context, _) => CustomPaint(
+                      painter: _VoiceWavePainter(
+                        progress: progress,
+                        isPlaying: _isPlaying,
+                        animValue: _waveController.value,
+                        activeColor: accentColor,
+                        inactiveColor: dimColor,
+                      ),
+                      size: const Size(double.infinity, 28),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 4),
+
+                // Slider de progression
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 2,
+                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
+                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+                    activeTrackColor: accentColor,
+                    inactiveTrackColor: dimColor,
+                    thumbColor: accentColor,
+                    overlayColor: accentColor.withValues(alpha: 0.15),
+                  ),
+                  child: SizedBox(
+                    height: 18,
+                    child: Slider(
+                      value: progress,
+                      onChanged: _seekTo,
+                    ),
+                  ),
+                ),
+
                 // Durée
                 Text(
-                  _isPlaying || _position.inSeconds > 0
+                  _isPlaying || _position > Duration.zero
                       ? _formatDuration(_position)
                       : _formatDuration(_duration),
                   style: TextStyle(
-                    color: textColor,
-                    fontSize: 11,
+                    color: timeColor,
+                    fontSize: 10,
                     fontWeight: FontWeight.w500,
+                    letterSpacing: 0.3,
                   ),
                 ),
               ],
             ),
+          ),
+
+          const SizedBox(width: 6),
+
+          // ── Icône micro (badge vocal) ────────────────────────
+          Icon(
+            Icons.mic_rounded,
+            size: 16,
+            color: dimColor,
           ),
         ],
       ),
@@ -159,78 +215,68 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget>
   }
 }
 
-// Painter pour la forme d'onde style Facebook Messenger
-class WaveformPainter extends CustomPainter {
+// ── Painter forme d'onde style Signal ──────────────────────────────────────
+class _VoiceWavePainter extends CustomPainter {
   final double progress;
   final bool isPlaying;
-  final double animationValue;
-  final Color color;
+  final double animValue;
+  final Color activeColor;
+  final Color inactiveColor;
 
-  WaveformPainter({
+  _VoiceWavePainter({
     required this.progress,
     required this.isPlaying,
-    required this.animationValue,
-    required this.color,
+    required this.animValue,
+    required this.activeColor,
+    required this.inactiveColor,
   });
+
+  // Forme d'onde fixe réaliste (simulée)
+  static const List<double> _wave = [
+    0.30, 0.45, 0.55, 0.70, 0.60, 0.80, 0.95, 0.85, 0.70, 0.60,
+    0.50, 0.65, 0.80, 0.90, 1.00, 0.88, 0.72, 0.58, 0.45, 0.60,
+    0.75, 0.85, 0.70, 0.55, 0.40, 0.50, 0.65, 0.48, 0.35, 0.28,
+    0.40, 0.55, 0.60, 0.45, 0.30, 0.40, 0.55, 0.42, 0.28, 0.20,
+  ];
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color.withOpacity(0.3)
-      ..strokeWidth = 2.5
-      ..strokeCap = StrokeCap.round;
-
-    final activePaint = Paint()
-      ..color = color
-      ..strokeWidth = 2.5
-      ..strokeCap = StrokeCap.round;
-
-    const barCount = 30;
-    final barWidth = 2.5;
-    final spacing = (size.width - (barCount * barWidth)) / (barCount - 1);
+    const barCount = 40;
+    const barW = 2.5;
+    const gap = 1.5;
+    final totalW = barCount * barW + (barCount - 1) * gap;
+    final startX = (size.width - totalW) / 2;
+    final midY = size.height / 2;
 
     for (int i = 0; i < barCount; i++) {
-      final x = i * (barWidth + spacing);
-      final normalizedPosition = i / barCount;
+      final norm = i / barCount;
+      final isActive = norm <= progress;
 
-      // Hauteur variable pour simuler une forme d'onde
-      final baseHeight = _getBarHeight(i, barCount);
-      final animatedHeight = isPlaying
-          ? baseHeight *
-              (1.0 +
-                  0.2 *
-                      math.sin(
-                        (animationValue * 2 * math.pi) + (i * 0.5),
-                      ))
-          : baseHeight;
+      double h = _wave[i % _wave.length] * (size.height * 0.85);
 
-      final barHeight = (size.height * animatedHeight).clamp(4.0, size.height);
-      final y = (size.height - barHeight) / 2;
+      // Animation légère sur les barres actives lors de la lecture
+      if (isPlaying && isActive) {
+        h *= 1.0 + 0.15 * math.sin(animValue * 2 * math.pi + i * 0.6);
+      }
+      h = h.clamp(3.0, size.height);
 
-      // Utiliser la couleur active pour les barres déjà lues
-      final barPaint = normalizedPosition <= progress ? activePaint : paint;
+      final paint = Paint()
+        ..color = isActive ? activeColor : inactiveColor
+        ..strokeWidth = barW
+        ..strokeCap = StrokeCap.round;
 
+      final x = startX + i * (barW + gap) + barW / 2;
       canvas.drawLine(
-        Offset(x, y),
-        Offset(x, y + barHeight),
-        barPaint,
+        Offset(x, midY - h / 2),
+        Offset(x, midY + h / 2),
+        paint,
       );
     }
   }
 
-  double _getBarHeight(int index, int total) {
-    // Créer une forme d'onde variée et naturelle
-    final normalized = index / total;
-    final wave1 = math.sin(normalized * math.pi * 2) * 0.3;
-    final wave2 = math.sin(normalized * math.pi * 4) * 0.2;
-    final wave3 = math.sin(normalized * math.pi * 8) * 0.15;
-    return (0.4 + wave1 + wave2 + wave3).clamp(0.2, 1.0);
-  }
-
   @override
-  bool shouldRepaint(WaveformPainter oldDelegate) {
-    return oldDelegate.progress != progress ||
-        oldDelegate.isPlaying != isPlaying ||
-        oldDelegate.animationValue != animationValue;
-  }
+  bool shouldRepaint(_VoiceWavePainter old) =>
+      old.progress != progress ||
+      old.isPlaying != isPlaying ||
+      old.animValue != animValue;
 }

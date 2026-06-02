@@ -8,6 +8,7 @@ import '../widgets/video_player_widget.dart';
 import '../widgets/file_video_player.dart';
 import '../widgets/audio_player_widget.dart';
 import '../widgets/audio_recorder_widget.dart';
+import '../widgets/full_screen_image_page.dart';
 import '../utils/date_formatter.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
@@ -950,7 +951,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                 ),
               if (media != null && media.toString().isNotEmpty)
-                _buildMedia(media, isMine),
+                _buildMedia(media, message['media_type']?.toString(), isMine),
               if (content.isNotEmpty)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1130,28 +1131,31 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Widget _buildMedia(String mediaPath, bool isMine) {
+  Widget _buildMedia(String mediaPath, String? mediaType, bool isMine) {
     final lang = LanguageService.instance;
     if (_api == null) return const SizedBox.shrink();
     final url = _api!.getImageUrl(mediaPath);
     if (url == null || url.isEmpty) return const SizedBox.shrink();
 
     final lower = url.toLowerCase();
+    
+    final isAudio =
+        mediaType == 'audio' ||
+        lower.endsWith('.mp3') ||
+        lower.endsWith('.wav') ||
+        lower.endsWith('.ogg') ||
+        lower.endsWith('.m4a') ||
+        lower.endsWith('.aac');
+
     final isVideo =
+        !isAudio && (
         lower.endsWith('.mp4') ||
         lower.endsWith('.mov') ||
         lower.endsWith('.avi') ||
         lower.endsWith('.mkv') ||
         lower.endsWith('.webm') ||
         lower.endsWith('.ogg') ||
-        lower.contains('video');
-
-    final isAudio =
-        lower.endsWith('.mp3') ||
-        lower.endsWith('.wav') ||
-        lower.endsWith('.ogg') ||
-        lower.endsWith('.m4a') ||
-        lower.endsWith('.aac');
+        lower.contains('video'));
 
     if (isAudio) {
       return Padding(
@@ -1166,41 +1170,54 @@ class _ChatScreenState extends State<ChatScreen> {
         borderRadius: BorderRadius.circular(8),
         child: isVideo
             ? SizedBox(height: 200, child: VideoPlayerWidget(videoUrl: url))
-            : Image.network(
-                url,
-                fit: BoxFit.cover,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return SizedBox(
-                    height: 200,
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        value: loadingProgress.expectedTotalBytes != null
-                            ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
-                            : null,
-                      ),
+            : GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => FullScreenImagePage(imageUrl: url),
                     ),
                   );
                 },
-                errorBuilder: (context, error, stackTrace) => Container(
-                  height: 100,
-                  color: Colors.grey[800],
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.broken_image,
-                          color: Colors.white54,
-                          size: 40,
+                child: Hero(
+                  tag: url,
+                  child: Image.network(
+                    url,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return SizedBox(
+                        height: 200,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          lang.translate('loading_error'),
-                          style: const TextStyle(color: Colors.white54),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      height: 100,
+                      color: Colors.grey[800],
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.broken_image,
+                              color: Colors.white54,
+                              size: 40,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              lang.translate('loading_error'),
+                              style: const TextStyle(color: Colors.white54),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),

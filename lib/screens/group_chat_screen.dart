@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -8,6 +10,7 @@ import '../config/feature_flags.dart';
 import '../widgets/video_player_widget.dart';
 import '../widgets/audio_player_widget.dart';
 import '../widgets/audio_recorder_widget.dart';
+import '../widgets/full_screen_image_page.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import 'group_call_screen.dart';
@@ -45,6 +48,8 @@ class GroupChatScreen extends StatefulWidget {
 }
 
 class _GroupChatScreenState extends State<GroupChatScreen> {
+  String? _localGroupImagePath;
+  String? _backgroundImagePath;
   final List<dynamic> _messages = [];
   final TextEditingController _messageController = TextEditingController();
   bool _isLoading = false;
@@ -70,6 +75,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     _messageController.addListener(_handleMessageChanged);
     _loadMessages(showLoader: true);
     _startPolling();
+    _loadGroupPreferences();
   }
 
   void _startPolling() {
@@ -83,6 +89,15 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       _refreshTypingUsers();
     });
   }
+
+  Future<void> _loadGroupPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _localGroupImagePath = prefs.getString('group_${widget.groupId}_image');
+      _backgroundImagePath = prefs.getString('group_${widget.groupId}_background');
+    });
+  }
+
 
   void _handleMessageChanged() {
     if (mounted) {
@@ -448,6 +463,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
               tooltip: LanguageService.instance.translate('call_group_video'),
             ),
           ],
+
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () async {
@@ -467,7 +483,16 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           ),
         ],
       ),
-      body: Stack(
+      body: Container(
+        decoration: _backgroundImagePath != null && _backgroundImagePath!.isNotEmpty
+            ? BoxDecoration(
+                image: DecorationImage(
+                  image: FileImage(File(_backgroundImagePath!)),
+                  fit: BoxFit.cover,
+                ),
+              )
+            : null,
+        child: Stack(
         children: [
           Column(
             children: [
@@ -505,11 +530,26 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             IncomingCallBanner(groupId: widget.groupId),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildAvatar() {
-    final url = _api?.getImageUrl(widget.groupAvatar);
+    // Priorité à l'image locale sélectionnée par l'utilisateur.
+    if (_localGroupImagePath != null && _localGroupImagePath!.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Image.file(
+          File(_localGroupImagePath!),
+          width: 32,
+          height: 32,
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+
+    final avatarPath = _groupDetails?['avatar'] ?? widget.groupAvatar;
+    final url = _api?.getImageUrl(avatarPath);
     if (url != null && url.endsWith('.svg')) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(16),
@@ -917,7 +957,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                       ),
                     ),
                   if (media != null && media.toString().isNotEmpty)
-                    _buildMedia(media, isMine),
+                    _buildMedia(media, message['media_type']?.toString(), isMine),
                   if (groupCallMessage != null)
                     _buildGroupCallMessageCard(groupCallMessage)
                   else if (content.isNotEmpty)
@@ -1226,9 +1266,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     }
   }
 
-  Widget _buildMedia(String mediaPath, bool isMine) {
+  Widget _buildMedia(String mediaPath, String? mediaType, bool isMine) {
     final lang = LanguageService.instance;
-    print('DEBUG _buildMedia called with: $mediaPath');
+    print('DEBUG _buildMedia called with: $mediaPath, type: $mediaType');
     if (_api == null) {
       print('DEBUG _buildMedia: _api is null');
       return const SizedBox.shrink();
@@ -1241,20 +1281,23 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     }
 
     final lower = url.toLowerCase();
-    final isVideo =
-        lower.endsWith('.mp4') ||
-        lower.endsWith('.mov') ||
-        lower.endsWith('.webm') ||
-        lower.endsWith('.avi') ||
-        lower.endsWith('.mkv') ||
-        lower.contains('video');
-
+    
     final isAudio =
+        mediaType == 'audio' ||
         lower.endsWith('.mp3') ||
         lower.endsWith('.wav') ||
         lower.endsWith('.ogg') ||
         lower.endsWith('.m4a') ||
         lower.endsWith('.aac');
+
+    final isVideo =
+        !isAudio && (
+        lower.endsWith('.mp4') ||
+        lower.endsWith('.mov') ||
+        lower.endsWith('.webm') ||
+        lower.endsWith('.avi') ||
+        lower.endsWith('.mkv') ||
+        lower.contains('video'));
 
     if (isAudio) {
       return Padding(
@@ -1269,52 +1312,65 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         borderRadius: BorderRadius.circular(8),
         child: isVideo
             ? SizedBox(height: 200, child: VideoPlayerWidget(videoUrl: url))
-            : ConstrainedBox(
-                constraints: const BoxConstraints(
-                  minHeight: 100,
-                  maxHeight: 300,
-                ),
-                child: Image.network(
-                  url,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return SizedBox(
-                      height: 200,
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                              : null,
-                        ),
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    print('Erreur chargement image: $url - $error');
-                    return Container(
-                      height: 100,
-                      color: Colors.grey[800],
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.broken_image,
-                              color: Colors.white54,
-                              size: 40,
+            : GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => FullScreenImagePage(imageUrl: url),
+                    ),
+                  );
+                },
+                child: Hero(
+                  tag: url,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      minHeight: 100,
+                      maxHeight: 300,
+                    ),
+                    child: Image.network(
+                      url,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return SizedBox(
+                          height: 200,
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                  : null,
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              lang.translate('loading_error'),
-                              style: const TextStyle(color: Colors.white54),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        print('Erreur chargement image: $url - $error');
+                        return Container(
+                          height: 100,
+                          color: Colors.grey[800],
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.broken_image,
+                                  color: Colors.white54,
+                                  size: 40,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  lang.translate('loading_error'),
+                                  style: const TextStyle(color: Colors.white54),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ),
       ),

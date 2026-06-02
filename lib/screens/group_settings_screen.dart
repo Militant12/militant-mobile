@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:image_picker/image_picker.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 
@@ -25,6 +27,10 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
   List<dynamic> _requests = [];
   bool _isLoading = true;
   ApiService? _api;
+
+  File? _newGroupImageFile;
+  String? _groupAvatar;
+  bool _isSaving = false;
 
   String _errorText(Object error) => '${LanguageService.instance.translate('error')}: $error';
 
@@ -65,6 +71,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
       final details = await _api!.getGroupDetails(widget.groupId);
       setState(() {
         _nameController.text = details['name'] ?? widget.groupName;
+        _groupAvatar = details['avatar'];
         _autoDeleteTime = details['auto_delete_time'] ?? 0;
         _members = details['members'] ?? [];
         _requests = details['requests'] ?? [];
@@ -80,10 +87,17 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
   }
 
   Future<void> _saveSettings() async {
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
     try {
+      String? uploadedPath;
+      if (_newGroupImageFile != null) {
+        uploadedPath = await _api!.uploadFile(_newGroupImageFile!.path, type: 'group');
+      }
       await _api!.updateGroupSettings(
         widget.groupId,
         name: _nameController.text,
+        avatar: uploadedPath,
         autoDeleteTime: _autoDeleteTime,
       );
       if (mounted) {
@@ -95,7 +109,44 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
           context,
         ).showSnackBar(SnackBar(content: Text(_errorText(e))));
       }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        _newGroupImageFile = File(image.path);
+      });
+    }
+  }
+
+  Widget _buildAvatarPreview() {
+    final avatarUrl = _api?.getImageUrl(_groupAvatar);
+    if (avatarUrl != null) {
+      return Image.network(
+        avatarUrl,
+        width: 100,
+        height: 100,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildDefaultAvatar(),
+      );
+    }
+    return _buildDefaultAvatar();
+  }
+
+  Widget _buildDefaultAvatar() {
+    return SvgPicture.asset(
+      'assets/logo.svg',
+      width: 100,
+      height: 100,
+      fit: BoxFit.cover,
+    );
   }
 
   @override
@@ -119,12 +170,74 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
       appBar: AppBar(
         title: Text(lang.translate('group_settings')),
         actions: [
-          IconButton(icon: const Icon(Icons.check), onPressed: _saveSettings),
+          _isSaving
+              ? const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Color(0xFFBE1E1E),
+                      ),
+                    ),
+                  ),
+                )
+              : IconButton(icon: const Icon(Icons.check), onPressed: _saveSettings),
         ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          Center(
+            child: Stack(
+              children: [
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
+                      border: Border.all(color: const Color(0xFFBE1E1E), width: 2),
+                    ),
+                    child: ClipOval(
+                      child: _newGroupImageFile != null
+                          ? Image.file(
+                              _newGroupImageFile!,
+                              width: 100,
+                              height: 100,
+                              fit: BoxFit.cover,
+                            )
+                          : _buildAvatarPreview(),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: GestureDetector(
+                    onTap: _pickImage,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFFBE1E1E),
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
           Card(
             color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
             child: Padding(
