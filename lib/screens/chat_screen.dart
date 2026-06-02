@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
@@ -39,6 +40,7 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final List<dynamic> _messages = [];
+  String? _backgroundImagePath;
   final TextEditingController _messageController = TextEditingController();
   bool _isLoading = false;
   bool _isSending = false;
@@ -63,6 +65,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _loadConversationDetails();
     _loadMessages(showLoader: true);
     _startPolling();
+    _loadPreferences();
     // Rafraîchir le chat quand un appel se termine (pour afficher le message système)
     _callEndSub = IncomingCallController.instance.stream.listen((event) {
       if (event == null && mounted) {
@@ -85,6 +88,208 @@ class _ChatScreenState extends State<ChatScreen> {
       });
     } catch (_) {
       // Non bloquant: l'option reste masquée si l'API ne répond pas.
+    }
+  }
+
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        final path = prefs.getString('chat_${widget.userId}_background');
+        _backgroundImagePath = (path == 'none') ? null : path;
+      });
+    }
+  }
+
+  Future<void> _removeWallpaper() async {
+    setState(() => _isSending = true);
+    try {
+      _api ??= await ApiService.getInstance();
+      
+      // Send a hidden message with 'none' to reset the wallpaper for both peers
+      await _api!.sendMessage(
+        widget.userId,
+        '__militant_wallpaper__:none',
+      );
+      
+      // Update local settings
+      setState(() {
+        _backgroundImagePath = null;
+      });
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('chat_${widget.userId}_background');
+      
+      _loadMessages();
+    } catch (e) {
+      if (mounted) {
+        final lang = LanguageService.instance;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${lang.translate('error')}: ${e.toString()}'),
+          ),
+        );
+      }
+    } finally {
+      setState(() => _isSending = false);
+    }
+  }
+
+  void _showWallpaperBottomSheet() {
+    final lang = LanguageService.instance;
+    final theme = Theme.of(context);
+    
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: theme.brightness == Brightness.dark
+          ? const Color(0xFF1E1E1E)
+          : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final hasWallpaper = _backgroundImagePath != null &&
+                _backgroundImagePath!.isNotEmpty &&
+                _backgroundImagePath != 'none';
+            
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[600],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  Text(
+                    lang.translate('wallpaper_title'),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: theme.textTheme.titleLarge?.color,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Preview box
+                  Container(
+                    height: 160,
+                    decoration: BoxDecoration(
+                      color: theme.brightness == Brightness.dark
+                          ? const Color(0xFF121212)
+                          : Colors.grey[200],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                      image: hasWallpaper
+                          ? DecorationImage(
+                              image: (_backgroundImagePath!.startsWith('/') ||
+                                      _backgroundImagePath!.startsWith('file://'))
+                                  ? FileImage(File(_backgroundImagePath!))
+                                  : NetworkImage(_api?.getImageUrl(_backgroundImagePath!) ?? '')
+                                      as ImageProvider,
+                              fit: BoxFit.cover,
+                            )
+                          : null,
+                    ),
+                    child: !hasWallpaper
+                        ? Center(
+                            child: Text(
+                              lang.translate('wallpaper_none'),
+                              style: TextStyle(color: Colors.grey[600]),
+                            ),
+                          )
+                        : null,
+                  ),
+                  const SizedBox(height: 20),
+                  
+                  // Select button
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFBE1E1E),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    icon: const Icon(Icons.photo_library),
+                    label: Text(lang.translate('wallpaper_choose')),
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      await _pickAndSendWallpaper();
+                    },
+                  ),
+                  
+                  if (hasWallpaper) ...[
+                    const SizedBox(height: 8),
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        foregroundColor: const Color(0xFFBE1E1E),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      icon: const Icon(Icons.delete),
+                      label: Text(lang.translate('wallpaper_remove')),
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        await _removeWallpaper();
+                      },
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _pickAndSendWallpaper() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() => _isSending = true);
+      try {
+        _api ??= await ApiService.getInstance();
+        final remotePath = await _api!.uploadFile(picked.path, type: 'messages');
+        
+        // Send a hidden message with the wallpaper path
+        await _api!.sendMessage(
+          widget.userId,
+          '__militant_wallpaper__:$remotePath',
+        );
+        
+        // Update local setting
+        setState(() {
+          _backgroundImagePath = remotePath;
+        });
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('chat_${widget.userId}_background', remotePath);
+        
+        _loadMessages();
+      } catch (e) {
+        if (mounted) {
+          final lang = LanguageService.instance;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${lang.translate('error_upload')}: ${e.toString()}'),
+            ),
+          );
+        }
+      } finally {
+        setState(() => _isSending = false);
+      }
     }
   }
 
@@ -120,11 +325,34 @@ class _ChatScreenState extends State<ChatScreen> {
       _currentUser ??= await _api!.getProfile();
       final messages = await _api!.getMessages(userId: widget.userId);
       final typingUsers = await _api!.getPrivateTypingUsers(widget.userId);
+
+      // Scan for wallpaper sync message
+      String? remoteWallpaperPath;
+      for (final msg in messages) {
+        final content = (msg['content'] ?? '').toString();
+        if (content.startsWith('__militant_wallpaper__:')) {
+          remoteWallpaperPath = content.substring('__militant_wallpaper__:'.length);
+          break; // Since list is newest first, the first one found is the latest
+        }
+      }
+
+      if (remoteWallpaperPath != null && remoteWallpaperPath != _backgroundImagePath) {
+        _backgroundImagePath = remoteWallpaperPath;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('chat_${widget.userId}_background', remoteWallpaperPath);
+      }
+
+      // Filter out wallpaper sync messages from the rendered messages list
+      final filteredMessages = messages.where((msg) {
+        final content = (msg['content'] ?? '').toString();
+        return !content.startsWith('__militant_wallpaper__:');
+      }).toList();
+
       if (!mounted) return;
       setState(() {
         _messages.clear();
         _messages.addAll(
-          messages,
+          filteredMessages,
         ); // API returns newest first, correct for ListView(reverse:true)
         _typingUsers = typingUsers;
       });
@@ -487,6 +715,8 @@ class _ChatScreenState extends State<ChatScreen> {
             onSelected: (value) {
               if (value == 'ephemeral') {
                 _showConversationSettings();
+              } else if (value == 'wallpaper') {
+                _showWallpaperBottomSheet();
               }
             },
             itemBuilder: (context) => [
@@ -500,12 +730,37 @@ class _ChatScreenState extends State<ChatScreen> {
                   ],
                 ),
               ),
+              PopupMenuItem<String>(
+                value: 'wallpaper',
+                child: Row(
+                  children: [
+                    const Icon(Icons.wallpaper),
+                    const SizedBox(width: 12),
+                    Text(LanguageService.instance.translate('wallpaper_label') ?? 'Fond d\'écran'),
+                  ],
+                ),
+              ),
             ],
           ),
         ],
       ),
-      body: Stack(
-        children: [
+      body: Container(
+        decoration: _backgroundImagePath != null &&
+                _backgroundImagePath!.isNotEmpty &&
+                _backgroundImagePath != 'none'
+            ? BoxDecoration(
+                image: DecorationImage(
+                  image: (_backgroundImagePath!.startsWith('/') ||
+                          _backgroundImagePath!.startsWith('file://'))
+                      ? FileImage(File(_backgroundImagePath!))
+                      : NetworkImage(_api?.getImageUrl(_backgroundImagePath!) ?? '')
+                          as ImageProvider,
+                  fit: BoxFit.cover,
+                ),
+              )
+            : null,
+        child: Stack(
+          children: [
           Column(
             children: [
               _buildAutoDeleteBanner(),
@@ -542,7 +797,8 @@ class _ChatScreenState extends State<ChatScreen> {
           IncomingCallBanner(peerId: widget.userId),
         ],
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildAvatar() {
@@ -1036,6 +1292,22 @@ class _ChatScreenState extends State<ChatScreen> {
                       fontSize: 11,
                     ),
                   ),
+                  if (isMine) ...[
+                    const SizedBox(width: 4),
+                    Icon(
+                      (message['is_read'] == 1 ||
+                              message['is_read'] == '1' ||
+                              message['is_read'] == true)
+                          ? Icons.done_all
+                          : Icons.done,
+                      size: 14,
+                      color: (message['is_read'] == 1 ||
+                              message['is_read'] == '1' ||
+                              message['is_read'] == true)
+                          ? Colors.white
+                          : textColor.withValues(alpha: 0.5),
+                    ),
+                  ],
                 ],
               ),
               if (reactionCounts.isNotEmpty)

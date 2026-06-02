@@ -94,10 +94,10 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _localGroupImagePath = prefs.getString('group_${widget.groupId}_image');
-      _backgroundImagePath = prefs.getString('group_${widget.groupId}_background');
+      final path = prefs.getString('group_${widget.groupId}_background');
+      _backgroundImagePath = (path == 'none') ? null : path;
     });
   }
-
 
   void _handleMessageChanged() {
     if (mounted) {
@@ -122,8 +122,37 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           ? await _api!.getGroupDetails(widget.groupId)
           : _groupDetails;
       final activeGroupCall = await _resolveActiveGroupCall(messages);
+
+      // Scan for wallpaper sync message (chronological order, scan backward for newest)
+      String? remoteWallpaperPath;
+      for (int i = messages.length - 1; i >= 0; i--) {
+        final content = (messages[i]['content'] ?? '').toString();
+        if (content.startsWith('__militant_wallpaper__:')) {
+          remoteWallpaperPath = content.substring(
+            '__militant_wallpaper__:'.length,
+          );
+          break;
+        }
+      }
+
+      if (remoteWallpaperPath != null &&
+          remoteWallpaperPath != _backgroundImagePath) {
+        _backgroundImagePath = remoteWallpaperPath;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(
+          'group_${widget.groupId}_background',
+          remoteWallpaperPath,
+        );
+      }
+
       final visibleMessages = messages.where((message) {
         if (message is! Map) return true;
+
+        final content = (message['content'] ?? '').toString();
+        if (content.startsWith('__militant_wallpaper__:')) {
+          return false;
+        }
+
         final messageId = _messageId(message);
         return messageId == null ||
             !_expiredGroupCallMessageIds.contains(messageId);
@@ -208,6 +237,212 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       }
     } finally {
       setState(() => _isSending = false);
+    }
+  }
+
+  Future<void> _removeWallpaper() async {
+    setState(() => _isSending = true);
+    try {
+      _api ??= await ApiService.getInstance();
+
+      // Send a hidden message with 'none' to reset the wallpaper for all members
+      await _api!.sendGroupMessage(
+        widget.groupId,
+        '__militant_wallpaper__:none',
+      );
+
+      // Update local settings
+      setState(() {
+        _backgroundImagePath = null;
+      });
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('group_${widget.groupId}_background');
+
+      _loadMessages();
+    } catch (e) {
+      if (mounted) {
+        final lang = LanguageService.instance;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${lang.translate('error')}: ${e.toString()}'),
+          ),
+        );
+      }
+    } finally {
+      setState(() => _isSending = false);
+    }
+  }
+
+  void _showWallpaperBottomSheet() {
+    final lang = LanguageService.instance;
+    final theme = Theme.of(context);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: theme.brightness == Brightness.dark
+          ? const Color(0xFF1E1E1E)
+          : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final hasWallpaper =
+                _backgroundImagePath != null &&
+                _backgroundImagePath!.isNotEmpty &&
+                _backgroundImagePath != 'none';
+
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[600],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  Text(
+                    lang.translate('wallpaper_title'),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: theme.textTheme.titleLarge?.color,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Preview box
+                  Container(
+                    height: 160,
+                    decoration: BoxDecoration(
+                      color: theme.brightness == Brightness.dark
+                          ? const Color(0xFF121212)
+                          : Colors.grey[200],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                      image: hasWallpaper
+                          ? DecorationImage(
+                              image:
+                                  (_backgroundImagePath!.startsWith('/') ||
+                                      _backgroundImagePath!.startsWith(
+                                        'file://',
+                                      ))
+                                  ? FileImage(File(_backgroundImagePath!))
+                                  : NetworkImage(
+                                          _api?.getImageUrl(
+                                                _backgroundImagePath!,
+                                              ) ??
+                                              '',
+                                        )
+                                        as ImageProvider,
+                              fit: BoxFit.cover,
+                            )
+                          : null,
+                    ),
+                    child: !hasWallpaper
+                        ? Center(
+                            child: Text(
+                              lang.translate('wallpaper_none'),
+                              style: TextStyle(color: Colors.grey[600]),
+                            ),
+                          )
+                        : null,
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Select button
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFBE1E1E),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    icon: const Icon(Icons.photo_library),
+                    label: Text(lang.translate('wallpaper_choose')),
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      await _pickAndSendWallpaper();
+                    },
+                  ),
+
+                  if (hasWallpaper) ...[
+                    const SizedBox(height: 8),
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        foregroundColor: const Color(0xFFBE1E1E),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      icon: const Icon(Icons.delete),
+                      label: Text(lang.translate('wallpaper_remove')),
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        await _removeWallpaper();
+                      },
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _pickAndSendWallpaper() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() => _isSending = true);
+      try {
+        _api ??= await ApiService.getInstance();
+        final remotePath = await _api!.uploadFile(
+          picked.path,
+          type: 'messages',
+        );
+
+        // Send a hidden message with the wallpaper path
+        await _api!.sendGroupMessage(
+          widget.groupId,
+          '__militant_wallpaper__:$remotePath',
+        );
+
+        // Update local setting
+        setState(() {
+          _backgroundImagePath = remotePath;
+        });
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('group_${widget.groupId}_background', remotePath);
+
+        _loadMessages();
+      } catch (e) {
+        if (mounted) {
+          final lang = LanguageService.instance;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '${lang.translate('error_upload')}: ${e.toString()}',
+              ),
+            ),
+          );
+        }
+      } finally {
+        setState(() => _isSending = false);
+      }
     }
   }
 
@@ -464,75 +699,111 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             ),
           ],
 
-          IconButton(
+          PopupMenuButton<String>(
             icon: const Icon(Icons.settings),
-            onPressed: () async {
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => GroupSettingsScreen(
-                    groupId: widget.groupId,
-                    groupName: widget.groupName,
+            onSelected: (value) async {
+              if (value == 'settings') {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => GroupSettingsScreen(
+                      groupId: widget.groupId,
+                      groupName: widget.groupName,
+                    ),
                   ),
-                ),
-              );
-              if (result == true) {
-                _loadMessages();
+                );
+                if (result == true) {
+                  _loadMessages();
+                }
+              } else if (value == 'wallpaper') {
+                _showWallpaperBottomSheet();
               }
             },
+            itemBuilder: (context) => [
+              PopupMenuItem<String>(
+                value: 'settings',
+                child: Row(
+                  children: [
+                    const Icon(Icons.info_outline),
+                    const SizedBox(width: 12),
+                    Text(lang.translate('group_settings') ?? 'Infos du groupe'),
+                  ],
+                ),
+              ),
+              PopupMenuItem<String>(
+                value: 'wallpaper',
+                child: Row(
+                  children: [
+                    const Icon(Icons.wallpaper),
+                    const SizedBox(width: 12),
+                    Text(lang.translate('wallpaper_label') ?? 'Fond d\'écran'),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
       body: Container(
-        decoration: _backgroundImagePath != null && _backgroundImagePath!.isNotEmpty
+        decoration:
+            _backgroundImagePath != null &&
+                _backgroundImagePath!.isNotEmpty &&
+                _backgroundImagePath != 'none'
             ? BoxDecoration(
                 image: DecorationImage(
-                  image: FileImage(File(_backgroundImagePath!)),
+                  image:
+                      (_backgroundImagePath!.startsWith('/') ||
+                          _backgroundImagePath!.startsWith('file://'))
+                      ? FileImage(File(_backgroundImagePath!))
+                      : NetworkImage(
+                              _api?.getImageUrl(_backgroundImagePath!) ?? '',
+                            )
+                            as ImageProvider,
                   fit: BoxFit.cover,
                 ),
               )
             : null,
         child: Stack(
-        children: [
-          Column(
-            children: [
-              Expanded(
-                child: _isLoading && _messages.isEmpty
-                    ? const Center(
-                        child: CircularProgressIndicator(
-                          color: Color(0xFFBE1E1E),
-                        ),
-                      )
-                    : _messages.isEmpty
-                    ? Center(
-                        child: Text(
-                          lang.translate('no_group_messages'),
-                          style: TextStyle(
-                            color: theme.textTheme.bodyMedium?.color,
+          children: [
+            Column(
+              children: [
+                Expanded(
+                  child: _isLoading && _messages.isEmpty
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            color: Color(0xFFBE1E1E),
                           ),
+                        )
+                      : _messages.isEmpty
+                      ? Center(
+                          child: Text(
+                            lang.translate('no_group_messages'),
+                            style: TextStyle(
+                              color: theme.textTheme.bodyMedium?.color,
+                            ),
+                          ),
+                        )
+                      : ListView.builder(
+                          reverse: true,
+                          itemCount: _messages.length,
+                          itemBuilder: (context, index) {
+                            final message = _messages[index];
+                            return _buildMessageBubble(message);
+                          },
                         ),
-                      )
-                    : ListView.builder(
-                        reverse: true,
-                        itemCount: _messages.length,
-                        itemBuilder: (context, index) {
-                          final message = _messages[index];
-                          return _buildMessageBubble(message);
-                        },
-                      ),
-              ),
-              _buildTypingIndicator(),
-              _buildMessageInput(),
-            ],
-          ),
-          // Évite le doublon avec la bannière d'appel de groupe active du chat.
-          if (_activeGroupCall == null)
-            IncomingCallBanner(groupId: widget.groupId),
-        ],
+                ),
+                _buildTypingIndicator(),
+                _buildMessageInput(),
+              ],
+            ),
+            // Évite le doublon avec la bannière d'appel de groupe active du chat.
+            if (_activeGroupCall == null)
+              IncomingCallBanner(groupId: widget.groupId),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildAvatar() {
     // Priorité à l'image locale sélectionnée par l'utilisateur.
@@ -866,6 +1137,22 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     final reactionCounts = _reactionCounts(message['reactions_summary']);
     final userReaction = (message['user_reaction'] ?? '').toString();
 
+    // Heuristic: Message is read if another user posted in the group after it.
+    bool isRead = false;
+    if (isMine) {
+      final index = _messages.indexOf(message);
+      if (index != -1) {
+        for (int j = 0; j < index; j++) {
+          final msg = _messages[j];
+          final msgIsMine = msg['is_mine'] == true || msg['is_mine'] == 1;
+          if (!msgIsMine) {
+            isRead = true;
+            break;
+          }
+        }
+      }
+    }
+
     // État de traduction pour ce message
     final isTranslated = message['_isTranslated'] == true;
     final translatedText = message['_translatedText'];
@@ -957,7 +1244,11 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                       ),
                     ),
                   if (media != null && media.toString().isNotEmpty)
-                    _buildMedia(media, message['media_type']?.toString(), isMine),
+                    _buildMedia(
+                      media,
+                      message['media_type']?.toString(),
+                      isMine,
+                    ),
                   if (groupCallMessage != null)
                     _buildGroupCallMessageCard(groupCallMessage)
                   else if (content.isNotEmpty)
@@ -1046,6 +1337,16 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                           fontSize: 11,
                         ),
                       ),
+                      if (isMine) ...[
+                        const SizedBox(width: 4),
+                        Icon(
+                          isRead ? Icons.done_all : Icons.done,
+                          size: 14,
+                          color: isRead
+                              ? Colors.white
+                              : textColor.withOpacity(0.5),
+                        ),
+                      ],
                     ],
                   ),
                   if (reactionCounts.isNotEmpty)
@@ -1281,7 +1582,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     }
 
     final lower = url.toLowerCase();
-    
+
     final isAudio =
         mediaType == 'audio' ||
         lower.endsWith('.mp3') ||
@@ -1291,13 +1592,13 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         lower.endsWith('.aac');
 
     final isVideo =
-        !isAudio && (
-        lower.endsWith('.mp4') ||
-        lower.endsWith('.mov') ||
-        lower.endsWith('.webm') ||
-        lower.endsWith('.avi') ||
-        lower.endsWith('.mkv') ||
-        lower.contains('video'));
+        !isAudio &&
+        (lower.endsWith('.mp4') ||
+            lower.endsWith('.mov') ||
+            lower.endsWith('.webm') ||
+            lower.endsWith('.avi') ||
+            lower.endsWith('.mkv') ||
+            lower.contains('video'));
 
     if (isAudio) {
       return Padding(
