@@ -31,11 +31,14 @@
 
 Militant est un réseau social décentralisé conçu pour les mouvements militants et les organisations politiques. Cette application mobile permet de se connecter à n'importe quelle instance Militant auto-hébergée.
 
-Version actuelle : **1.0.8+120**
+Version actuelle : **1.0.8+123**
 
 
 ## Nouveautés 1.0.8
 
+- Optimisation et internationalisation complète de la barre de recherche des groupes (style Facebook) et des messages (Français, Anglais, Espagnol)
+- Navigation vers le profil d'un utilisateur en cliquant sur son nom/avatar depuis les messages, invitations et listes de membres.
+- Correction du bug d'affichage du changement de compte et de la déconnexion sur les profils tiers (visible uniquement sur son propre profil).
 - Réinitialisation du mot de passe depuis l’écran de connexion.
 - Changement rapide de compte avec comptes enregistrés localement.
 - Ajout d’un autre compte sans déconnexion préalable.
@@ -278,7 +281,7 @@ flutter build apk --release
 flutter build appbundle --release
 
 # Sorties 1.0.8 générées localement
-build/app/outputs/flutter-apk/militant-1.0.8-latest.apk
+build/app/outputs/flutter-apk/app-release.apk
 build/app/outputs/bundle/release/militant-1.0.8-playstore.aab
 ```
 
