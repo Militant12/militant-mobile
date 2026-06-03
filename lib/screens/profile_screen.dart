@@ -652,15 +652,17 @@ class ProfileScreenState extends State<ProfileScreen>
           style: TextStyle(color: theme.textTheme.titleLarge?.color),
         ),
         actions: [
-          IconButton(
-            tooltip: lang.translate('switch_account'),
-            icon: Icon(Icons.switch_account, color: theme.iconTheme.color),
-            onPressed: _showAccountSwitcher,
-          ),
-          IconButton(
-            icon: Icon(Icons.logout, color: theme.iconTheme.color),
-            onPressed: _logout,
-          ),
+          if (_isMe) ...[
+            IconButton(
+              tooltip: lang.translate('switch_account'),
+              icon: Icon(Icons.switch_account, color: theme.iconTheme.color),
+              onPressed: _showAccountSwitcher,
+            ),
+            IconButton(
+              icon: Icon(Icons.logout, color: theme.iconTheme.color),
+              onPressed: _logout,
+            ),
+          ],
         ],
       ),
       body: ListView(

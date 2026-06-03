@@ -15,6 +15,7 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import 'group_call_screen.dart';
 import 'group_settings_screen.dart';
+import 'profile_screen.dart';
 import '../widgets/linkable_text.dart';
 import '../widgets/incoming_call_banner.dart';
 import '../widgets/signal_typing_indicator.dart';
@@ -1180,9 +1181,24 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             if (!isMine)
               Padding(
                 padding: const EdgeInsets.only(left: 20, bottom: 2),
-                child: Text(
-                  username,
-                  style: TextStyle(color: theme.hintColor, fontSize: 12),
+                child: GestureDetector(
+                  onTap: () {
+                    final senderId = message['sender_id'] is int
+                        ? message['sender_id']
+                        : int.tryParse(message['sender_id']?.toString() ?? '');
+                    if (senderId != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProfileScreen(userId: senderId),
+                        ),
+                      );
+                    }
+                  },
+                  child: Text(
+                    username,
+                    style: TextStyle(color: theme.hintColor, fontSize: 12),
+                  ),
                 ),
               ),
             Container(

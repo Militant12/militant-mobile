@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
+import 'profile_screen.dart';
 
 class GroupInviteScreen extends StatefulWidget {
   final int groupId;
@@ -71,17 +72,15 @@ class _GroupInviteScreenState extends State<GroupInviteScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              '${lang.translate('invitation_sent_to')} $username',
-            ),
+            content: Text('${lang.translate('invitation_sent_to')} $username'),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.toString())));
       }
     }
   }
@@ -124,45 +123,58 @@ class _GroupInviteScreenState extends State<GroupInviteScreen> {
                     child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
                   )
                 : _users.isEmpty && _query.isNotEmpty
-                    ? Center(child: Text(lang.translate('no_users_found')))
-                    : ListView.builder(
-                        itemCount: _users.length,
-                        itemBuilder: (context, index) {
-                          final user = _users[index];
-                          final avatar = user['avatar'];
-                          final username = user['username'] ?? '';
+                ? Center(child: Text(lang.translate('no_users_found')))
+                : ListView.builder(
+                    itemCount: _users.length,
+                    itemBuilder: (context, index) {
+                      final user = _users[index];
+                      final avatar = user['avatar'];
+                      final username = user['username'] ?? '';
 
-                          return ListTile(
-                            leading: _buildUserAvatar(user),
-                            title: Text(
-                              username,
-                              style: TextStyle(
-                                color: theme.textTheme.bodyLarge?.color,
-                                fontWeight: FontWeight.bold,
+                      return ListTile(
+                        onTap: () {
+                          final userId = user['id'] is int
+                              ? user['id']
+                              : int.tryParse(user['id']?.toString() ?? '');
+                          if (userId != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ProfileScreen(userId: userId),
                               ),
-                            ),
-                            subtitle: Text(
-                              user['bio'] ?? '',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: theme.textTheme.bodyMedium?.color,
-                              ),
-                            ),
-                            trailing: ElevatedButton(
-                              onPressed: () => _inviteUser(user['id'], username),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFBE1E1E),
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                              ),
-                              child: Text(lang.translate('invite')),
-                            ),
-                          );
+                            );
+                          }
                         },
-                      ),
+                        leading: _buildUserAvatar(user),
+                        title: Text(
+                          username,
+                          style: TextStyle(
+                            color: theme.textTheme.bodyLarge?.color,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        subtitle: Text(
+                          user['bio'] ?? '',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: theme.textTheme.bodyMedium?.color,
+                          ),
+                        ),
+                        trailing: ElevatedButton(
+                          onPressed: () => _inviteUser(user['id'], username),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFBE1E1E),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          child: Text(lang.translate('invite')),
+                        ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),

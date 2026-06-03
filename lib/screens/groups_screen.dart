@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
@@ -19,17 +20,25 @@ class _GroupsScreenState extends State<GroupsScreen>
   final Set<int> _joiningGroupIds = <int>{};
   bool _isLoading = false;
   ApiService? _api;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  Timer? _debounce;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
     _loadGroups();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _searchController.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
@@ -38,9 +47,9 @@ class _GroupsScreenState extends State<GroupsScreen>
     try {
       _api = await ApiService.getInstance();
       debugPrint('[GroupsScreen] loading groups baseUrl=${_api!.apiUrl}');
-      final myGroups = await _api!.getGroups();
+      final myGroups = await _api!.getGroups(query: _searchQuery);
       debugPrint('[GroupsScreen] myGroups loaded count=${myGroups.length}');
-      final discoverGroups = await _api!.discoverGroups();
+      final discoverGroups = await _api!.discoverGroups(query: _searchQuery);
       debugPrint(
         '[GroupsScreen] discoverGroups loaded count=${discoverGroups.length}',
       );
@@ -404,9 +413,16 @@ class _GroupsScreenState extends State<GroupsScreen>
           ? const Center(
               child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
             )
-          : TabBarView(
-              controller: _tabController,
-              children: [_buildMyGroupsTab(), _buildDiscoverTab()],
+          : Column(
+              children: [
+                _buildSearchBar(),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [_buildMyGroupsTab(), _buildDiscoverTab()],
+                  ),
+                ),
+              ],
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showCreateGroupDialog,
@@ -416,9 +432,103 @@ class _GroupsScreenState extends State<GroupsScreen>
     );
   }
 
+  void _onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      setState(() {
+        _searchQuery = query;
+      });
+      _performSearch();
+    });
+  }
+
+  Future<void> _performSearch() async {
+    try {
+      final api = _api ?? await ApiService.getInstance();
+      final myGroups = await api.getGroups(query: _searchQuery);
+      final discoverGroups = await api.discoverGroups(query: _searchQuery);
+      final discoverGroupsWithStatus = await _enrichDiscoverGroups(discoverGroups);
+      if (mounted) {
+        setState(() {
+          _myGroups.clear();
+          _myGroups.addAll(myGroups);
+          _discoverGroups.clear();
+          _discoverGroups.addAll(discoverGroupsWithStatus);
+        });
+      }
+    } catch (e) {
+      debugPrint('[GroupsScreen] search error=$e');
+    }
+  }
+
+  Widget _buildSearchBar() {
+    final lang = LanguageService.instance;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          color: const Color(0xFF2A2A2A),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: Colors.white10,
+            width: 1,
+          ),
+        ),
+        child: TextField(
+          controller: _searchController,
+          onChanged: _onSearchChanged,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 15,
+          ),
+          decoration: InputDecoration(
+            hintText: _tabController.index == 0
+                ? lang.translate('search_my_groups')
+                : lang.translate('discover_groups_hint'),
+            hintStyle: const TextStyle(
+              color: Colors.white54,
+              fontSize: 14,
+            ),
+            prefixIcon: const Icon(
+              Icons.search,
+              color: Color(0xFFBE1E1E),
+              size: 20,
+            ),
+            suffixIcon: _searchQuery.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(
+                      Icons.clear,
+                      color: Colors.white54,
+                      size: 18,
+                    ),
+                    onPressed: () {
+                      _searchController.clear();
+                      if (_debounce?.isActive ?? false) _debounce?.cancel();
+                      setState(() {
+                        _searchQuery = '';
+                      });
+                      _performSearch();
+                    },
+                  )
+                : null,
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(vertical: 8),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildMyGroupsTab() {
     final lang = LanguageService.instance;
-    if (_myGroups.isEmpty) {
+    final filteredGroups = _myGroups.where((g) {
+      if (_searchQuery.isEmpty) return true;
+      final name = (g['name'] ?? '').toString().toLowerCase();
+      return name.contains(_searchQuery.toLowerCase());
+    }).toList();
+
+    if (filteredGroups.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -430,24 +540,28 @@ class _GroupsScreenState extends State<GroupsScreen>
             ),
             const SizedBox(height: 16),
             Text(
-              lang.translate('no_groups_message'),
+              _searchQuery.isNotEmpty
+                  ? lang.translate('no_results')
+                  : lang.translate('no_groups_message'),
               style: const TextStyle(color: Color(0xFF888888), fontSize: 16),
             ),
-            const SizedBox(height: 8),
-            Text(
-              lang.translate('no_groups_subtitle'),
-              style: const TextStyle(color: Color(0xFF666666), fontSize: 14),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () => _tabController.animateTo(1),
-              icon: const Icon(Icons.explore),
-              label: Text(lang.translate('discover_groups')),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFBE1E1E),
-                foregroundColor: Colors.white,
+            if (_searchQuery.isEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                lang.translate('no_groups_subtitle'),
+                style: const TextStyle(color: Color(0xFF666666), fontSize: 14),
               ),
-            ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: () => _tabController.animateTo(1),
+                icon: const Icon(Icons.explore),
+                label: Text(lang.translate('discover_groups')),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFBE1E1E),
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
           ],
         ),
       );
@@ -458,9 +572,9 @@ class _GroupsScreenState extends State<GroupsScreen>
       color: const Color(0xFFBE1E1E),
       child: ListView.builder(
         padding: const EdgeInsets.only(top: 8),
-        itemCount: _myGroups.length,
+        itemCount: filteredGroups.length,
         itemBuilder: (context, index) {
-          final group = _myGroups[index];
+          final group = filteredGroups[index];
           return _buildGroupItem(group, isMember: true);
         },
       ),
@@ -469,7 +583,13 @@ class _GroupsScreenState extends State<GroupsScreen>
 
   Widget _buildDiscoverTab() {
     final lang = LanguageService.instance;
-    if (_discoverGroups.isEmpty) {
+    final filteredGroups = _discoverGroups.where((g) {
+      if (_searchQuery.isEmpty) return true;
+      final name = (g['name'] ?? '').toString().toLowerCase();
+      return name.contains(_searchQuery.toLowerCase());
+    }).toList();
+
+    if (filteredGroups.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -477,14 +597,18 @@ class _GroupsScreenState extends State<GroupsScreen>
             const Icon(Icons.search_off, size: 64, color: Color(0xFF888888)),
             const SizedBox(height: 16),
             Text(
-              lang.translate('no_discover_groups'),
+              _searchQuery.isNotEmpty
+                  ? lang.translate('no_results')
+                  : lang.translate('no_discover_groups'),
               style: const TextStyle(color: Color(0xFF888888), fontSize: 16),
             ),
-            const SizedBox(height: 8),
-            Text(
-              lang.translate('all_groups_joined'),
-              style: const TextStyle(color: Color(0xFF666666), fontSize: 14),
-            ),
+            if (_searchQuery.isEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                lang.translate('all_groups_joined'),
+                style: const TextStyle(color: Color(0xFF666666), fontSize: 14),
+              ),
+            ],
           ],
         ),
       );
@@ -495,9 +619,9 @@ class _GroupsScreenState extends State<GroupsScreen>
       color: const Color(0xFFBE1E1E),
       child: ListView.builder(
         padding: const EdgeInsets.only(top: 8),
-        itemCount: _discoverGroups.length,
+        itemCount: filteredGroups.length,
         itemBuilder: (context, index) {
-          final group = _discoverGroups[index];
+          final group = filteredGroups[index];
           return _buildGroupItem(group, isMember: false);
         },
       ),

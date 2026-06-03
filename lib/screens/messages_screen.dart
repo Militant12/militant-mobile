@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
@@ -19,6 +20,9 @@ class _MessagesScreenState extends State<MessagesScreen>
   bool _isLoading = false;
   late TabController _tabController;
   ApiService? _api;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -33,6 +37,8 @@ class _MessagesScreenState extends State<MessagesScreen>
   @override
   void dispose() {
     _tabController.dispose();
+    _searchController.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
@@ -43,8 +49,8 @@ class _MessagesScreenState extends State<MessagesScreen>
     try {
       _api = await ApiService.getInstance();
       final results = await Future.wait([
-        _api!.getMessages(),
-        _api!.getMessageGroups(),
+        _api!.getMessages(query: _searchQuery),
+        _api!.getMessageGroups(query: _searchQuery),
       ]);
 
       setState(() {
@@ -178,11 +184,18 @@ class _MessagesScreenState extends State<MessagesScreen>
               ],
             ),
           ),
-          body: TabBarView(
-            controller: _tabController,
+          body: Column(
             children: [
-              _buildConversationsList(_conversations, isPrivate: true),
-              _buildConversationsList(_groupConversations, isPrivate: false),
+              _buildSearchBar(isDark, lang),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildConversationsList(_conversations, isPrivate: true),
+                    _buildConversationsList(_groupConversations, isPrivate: false),
+                  ],
+                ),
+              ),
             ],
           ),
           floatingActionButton: _tabController.index == 1
@@ -207,6 +220,95 @@ class _MessagesScreenState extends State<MessagesScreen>
     );
   }
 
+  void _onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      setState(() {
+        _searchQuery = query;
+      });
+      _performSearch();
+    });
+  }
+
+  Future<void> _performSearch() async {
+    try {
+      final api = _api ?? await ApiService.getInstance();
+      final results = await Future.wait([
+        api.getMessages(query: _searchQuery),
+        api.getMessageGroups(query: _searchQuery),
+      ]);
+      if (mounted) {
+        setState(() {
+          _conversations.clear();
+          _conversations.addAll(results[0]);
+          _groupConversations.clear();
+          _groupConversations.addAll(results[1]);
+        });
+      }
+    } catch (e) {
+      debugPrint('[MessagesScreen] search error=$e');
+    }
+  }
+
+  Widget _buildSearchBar(bool isDark, LanguageService lang) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[200],
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: isDark ? Colors.white10 : Colors.black12,
+            width: 1,
+          ),
+        ),
+        child: TextField(
+          controller: _searchController,
+          onChanged: _onSearchChanged,
+          style: TextStyle(
+            color: theme.textTheme.bodyLarge?.color,
+            fontSize: 15,
+          ),
+          decoration: InputDecoration(
+            hintText: _tabController.index == 0
+                ? lang.translate('search_users')
+                : lang.translate('search_group'),
+            hintStyle: TextStyle(
+              color: isDark ? Colors.white54 : Colors.grey[600],
+              fontSize: 14,
+            ),
+            prefixIcon: const Icon(
+              Icons.search,
+              color: Color(0xFFBE1E1E),
+              size: 20,
+            ),
+            suffixIcon: _searchQuery.isNotEmpty
+                ? IconButton(
+                    icon: Icon(
+                      Icons.clear,
+                      color: isDark ? Colors.white54 : Colors.grey[600],
+                      size: 18,
+                    ),
+                    onPressed: () {
+                      _searchController.clear();
+                      if (_debounce?.isActive ?? false) _debounce?.cancel();
+                      setState(() {
+                        _searchQuery = '';
+                      });
+                      _performSearch();
+                    },
+                  )
+                : null,
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(vertical: 8),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildConversationsList(
     List<dynamic> list, {
     required bool isPrivate,
@@ -221,7 +323,15 @@ class _MessagesScreenState extends State<MessagesScreen>
       );
     }
 
-    if (list.isEmpty) {
+    final filteredList = list.where((item) {
+      if (_searchQuery.isEmpty) return true;
+      final name = isPrivate
+          ? (item['username'] ?? '').toString().toLowerCase()
+          : (item['name'] ?? '').toString().toLowerCase();
+      return name.contains(_searchQuery.toLowerCase());
+    }).toList();
+
+    if (filteredList.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -233,9 +343,11 @@ class _MessagesScreenState extends State<MessagesScreen>
             ),
             const SizedBox(height: 16),
             Text(
-              isPrivate
-                  ? lang.translate('no_conversations')
-                  : lang.translate('no_group_discussions'),
+              _searchQuery.isNotEmpty
+                  ? lang.translate('no_results')
+                  : (isPrivate
+                      ? lang.translate('no_conversations')
+                      : lang.translate('no_group_discussions')),
               style: TextStyle(
                 color: isDark ? const Color(0xFF888888) : Colors.grey,
                 fontSize: 16,
@@ -250,9 +362,9 @@ class _MessagesScreenState extends State<MessagesScreen>
       onRefresh: _loadConversations,
       color: const Color(0xFFBE1E1E),
       child: ListView.builder(
-        itemCount: list.length,
+        itemCount: filteredList.length,
         itemBuilder: (context, index) {
-          final conv = list[index];
+          final conv = filteredList[index];
           return isPrivate
               ? _buildConversationItem(conv)
               : _buildGroupConversationItem(conv);

@@ -2089,10 +2089,11 @@ class ApiService {
 
   // === MESSAGES ===
 
-  Future<List<dynamic>> getMessages({int? userId, int page = 1}) async {
+  Future<List<dynamic>> getMessages({int? userId, int page = 1, String? query}) async {
+    final qParam = query != null && query.isNotEmpty ? '&q=${Uri.encodeComponent(query)}' : '';
     final url = userId != null
-        ? '$apiUrl/v1/messages.php?user_id=$userId&page=$page'
-        : '$apiUrl/v1/messages.php?page=$page';
+        ? '$apiUrl/v1/messages.php?user_id=$userId&page=$page$qParam'
+        : '$apiUrl/v1/messages.php?page=$page$qParam';
 
     final response = await http.get(Uri.parse(url), headers: _headers);
 
@@ -2628,9 +2629,10 @@ class ApiService {
 
   // === GROUPES ===
 
-  Future<List<dynamic>> getGroups({int page = 1}) async {
+  Future<List<dynamic>> getGroups({int page = 1, String? query}) async {
+    final qParam = query != null && query.isNotEmpty ? '&q=${Uri.encodeComponent(query)}' : '';
     final response = await http.get(
-      Uri.parse('$apiUrl/v1/groups.php?page=$page'),
+      Uri.parse('$apiUrl/v1/groups.php?page=$page$qParam'),
       headers: _headers,
     );
 
@@ -2650,9 +2652,10 @@ class ApiService {
     }
   }
 
-  Future<List<dynamic>> discoverGroups({int page = 1}) async {
+  Future<List<dynamic>> discoverGroups({int page = 1, String? query}) async {
+    final qParam = query != null && query.isNotEmpty ? '&q=${Uri.encodeComponent(query)}' : '';
     final response = await http.get(
-      Uri.parse('$apiUrl/v1/groups.php?discover=1&page=$page'),
+      Uri.parse('$apiUrl/v1/groups.php?discover=1&page=$page$qParam'),
       headers: _headers,
     );
 
@@ -3023,9 +3026,10 @@ class ApiService {
     }
   }
 
-  Future<List<dynamic>> getMessageGroups({int page = 1}) async {
+  Future<List<dynamic>> getMessageGroups({int page = 1, String? query}) async {
+    final qParam = query != null && query.isNotEmpty ? '&q=${Uri.encodeComponent(query)}' : '';
     final response = await http.get(
-      Uri.parse('$apiUrl/v1/message_groups.php?page=$page'),
+      Uri.parse('$apiUrl/v1/message_groups.php?page=$page$qParam'),
       headers: _headers,
     );
 

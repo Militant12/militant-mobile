@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
+import 'profile_screen.dart';
 
 class GroupSettingsScreen extends StatefulWidget {
   final int groupId;
@@ -464,6 +465,19 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                   final avatarUrl = _api?.getImageUrl(m['avatar']);
                   final isAdmin = m['role'] == 'admin';
                   return ListTile(
+                    onTap: () {
+                      final memberId = m['user_id'] is int
+                          ? m['user_id']
+                          : int.tryParse(m['user_id']?.toString() ?? '');
+                      if (memberId != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProfileScreen(userId: memberId),
+                          ),
+                        );
+                      }
+                    },
                     leading: CircleAvatar(
                       backgroundColor: const Color(0xFFBE1E1E),
                       backgroundImage: avatarUrl != null
@@ -541,6 +555,19 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                   ..._requests.map((r) {
                     final avatarUrl = _api?.getImageUrl(r['avatar']);
                     return ListTile(
+                      onTap: () {
+                        final reqUserId = r['user_id'] is int
+                            ? r['user_id']
+                            : int.tryParse(r['user_id']?.toString() ?? '');
+                        if (reqUserId != null) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProfileScreen(userId: reqUserId),
+                            ),
+                          );
+                        }
+                      },
                       leading: CircleAvatar(
                         backgroundColor: const Color(0xFFBE1E1E),
                         backgroundImage: avatarUrl != null
