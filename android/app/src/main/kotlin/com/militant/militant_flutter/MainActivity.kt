@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -28,8 +29,22 @@ class MainActivity : FlutterActivity() {
     private var pendingIncomingCallPayload: HashMap<String, Any?>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Configurer l'affichage bord à bord manuellement (compatible Android 15)
+        // Configurer l'affichage bord à bord manuellement (compatible Android 15+)
+        // Cette approche remplace les APIs obsolètes setStatusBarColor, setNavigationBarColor, etc.
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        
+        // Configuration optionnelle des barres système pour Android 15+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            // Android 15+ : Les couleurs de barres système sont gérées automatiquement
+            // avec l'affichage bord à bord. Pas besoin de setStatusBarColor ou setNavigationBarColor.
+            val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
+            windowInsetsController?.apply {
+                // Ajuster l'apparence des icônes selon le thème
+                isAppearanceLightStatusBars = false
+                isAppearanceLightNavigationBars = false
+            }
+        }
+        
         super.onCreate(savedInstanceState)
         pendingIncomingCallPayload = extractIncomingCallPayload(intent)
         cancelIncomingCallNotification(intent)
@@ -139,20 +154,40 @@ class MainActivity : FlutterActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-            // Canal messages (priorité haute, avec réponse rapide)
+            // IMPORTANT : Les canaux ont été renommés pour forcer la recréation avec le son activé
+            // Ancien canal "messages" -> nouveau "messages_v2"
+            // Ancien canal "calls" -> nouveau "calls_v2"
+            
+            // Supprimer les anciens canaux sans son (si existants)
+            try {
+                notificationManager.deleteNotificationChannel("messages")
+                notificationManager.deleteNotificationChannel("calls")
+            } catch (_: Exception) {
+                // Ignorer si les canaux n'existent pas
+            }
+
+            // Canal messages (priorité haute, avec réponse rapide) - VERSION 2 avec son
             val messagesChannel = NotificationChannel(
-                "messages",
+                "messages_v2",
                 "Messages",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Messages privés et de groupe"
                 enableVibration(true)
                 setShowBadge(true)
+                // Activer le son par défaut
+                setSound(
+                    android.provider.Settings.System.DEFAULT_NOTIFICATION_URI,
+                    android.media.AudioAttributes.Builder()
+                        .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION)
+                        .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build()
+                )
             }
 
-            // Canal appels (priorité maximale)
+            // Canal appels (priorité maximale) - VERSION 2 avec son
             val callsChannel = NotificationChannel(
-                "calls",
+                "calls_v2",
                 "Appels",
                 NotificationManager.IMPORTANCE_MAX
             ).apply {
@@ -160,6 +195,14 @@ class MainActivity : FlutterActivity() {
                 enableVibration(true)
                 setShowBadge(false)
                 lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
+                // Activer le son d'appel (sonnerie)
+                setSound(
+                    android.provider.Settings.System.DEFAULT_RINGTONE_URI,
+                    android.media.AudioAttributes.Builder()
+                        .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
+                        .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build()
+                )
             }
 
             notificationManager.createNotificationChannel(messagesChannel)
@@ -225,7 +268,7 @@ class MainActivity : FlutterActivity() {
         ).addRemoteInput(remoteInput).build()
 
         // Construire la notification
-        val notification = NotificationCompat.Builder(this, "messages")
+        val notification = NotificationCompat.Builder(this, "messages_v2")
             .setSmallIcon(R.drawable.ic_stat_militant)
             .setContentTitle(title)
             .setContentText(body)

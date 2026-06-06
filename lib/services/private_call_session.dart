@@ -29,6 +29,7 @@ class PrivateCallSession extends ChangeNotifier {
 
   bool isMuted = false;
   bool isCameraOff = false;
+  bool isSpeakerOn = true; // Haut-parleur activé par défaut
   bool isConnected = false;
   bool isRinging = true;
   String callStatus = LanguageService.instance.translate('call_connecting');
@@ -236,6 +237,9 @@ class PrivateCallSession extends ChangeNotifier {
           remoteSdp,
           isVideo ? 'video' : 'audio',
         );
+        
+        // Activer le haut-parleur par défaut pour les appels entrants
+        await _enableSpeakerByDefault();
       } else {
         callStatus = LanguageService.instance.translate('call_ringing');
         _log('starting outgoing call recipientId=$recipientId video=$isVideo');
@@ -244,6 +248,9 @@ class PrivateCallSession extends ChangeNotifier {
             : await service.initiateAudioCall(recipientId!);
         callId = startedCallId;
         _log('outgoing call started callId=$callId');
+        
+        // Activer le haut-parleur par défaut pour les appels sortants
+        await _enableSpeakerByDefault();
       }
 
       _syncStateFromService();
@@ -313,6 +320,35 @@ class PrivateCallSession extends ChangeNotifier {
 
   Future<void> switchCamera() async {
     await _callService?.switchCamera();
+  }
+
+  Future<void> toggleSpeaker() async {
+    try {
+      isSpeakerOn = !isSpeakerOn;
+      if (isSpeakerOn) {
+        // Mode haut-parleur/Bluetooth/écouteurs (sortie principale)
+        await Helper.setSpeakerphoneOnButPreferBluetooth();
+        _log('speaker enabled (with Bluetooth preference)');
+      } else {
+        // Mode écouteur interne uniquement
+        await Helper.setSpeakerphoneOn(false);
+        _log('speaker disabled (earpiece mode)');
+      }
+      notifyListeners();
+    } catch (e) {
+      _log('failed to toggle speaker: $e');
+    }
+  }
+
+  Future<void> _enableSpeakerByDefault() async {
+    try {
+      // Activer le haut-parleur par défaut, mais préférer Bluetooth/écouteurs si connectés
+      await Helper.setSpeakerphoneOnButPreferBluetooth();
+      isSpeakerOn = true;
+      _log('speaker enabled by default (with Bluetooth preference)');
+    } catch (e) {
+      _log('failed to enable speaker by default: $e');
+    }
   }
 
   void _bindService(CallService service) {

@@ -15,7 +15,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 object IncomingCallNotificationHelper {
-    private const val CALLS_CHANNEL_ID = "calls"
+    private const val CALLS_CHANNEL_ID = "calls_v2"
     private const val PREFS_NAME = "FlutterSharedPreferences"
     private const val PREF_TOKEN = "flutter.api_token"
     private const val PREF_BASE_URL = "flutter.base_url"
@@ -187,6 +187,13 @@ object IncomingCallNotificationHelper {
         val existing = manager.getNotificationChannel(CALLS_CHANNEL_ID)
         if (existing != null) return
 
+        // Supprimer l'ancien canal sans son (si existant)
+        try {
+            manager.deleteNotificationChannel("calls")
+        } catch (_: Exception) {
+            // Ignorer si le canal n'existe pas
+        }
+
         val channel = NotificationChannel(
             CALLS_CHANNEL_ID,
             "Appels",
@@ -196,6 +203,14 @@ object IncomingCallNotificationHelper {
             enableVibration(true)
             setShowBadge(false)
             lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+            // Activer le son d'appel (sonnerie)
+            setSound(
+                android.provider.Settings.System.DEFAULT_RINGTONE_URI,
+                android.media.AudioAttributes.Builder()
+                    .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
+                    .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build()
+            )
         }
 
         manager.createNotificationChannel(channel)

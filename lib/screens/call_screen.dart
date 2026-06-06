@@ -38,6 +38,7 @@ class _CallScreenState extends State<CallScreen> {
 
   bool _isMuted = false;
   bool _isCameraOff = false;
+  bool _isSpeakerOn = true;
   bool _isConnected = false;
   bool _isRinging = true;
   String _callStatus = '';
@@ -113,6 +114,7 @@ class _CallScreenState extends State<CallScreen> {
       }
       _isMuted = _callSession.isMuted;
       _isCameraOff = _callSession.isCameraOff;
+      _isSpeakerOn = _callSession.isSpeakerOn;
       _isConnected = _callSession.isConnected;
       _isRinging = _callSession.isRinging;
       _callStatus = _callSession.callStatus;
@@ -236,6 +238,15 @@ class _CallScreenState extends State<CallScreen> {
                       _callSession.toggleMicrophone();
                     },
                     color: _isMuted ? Colors.red : Colors.white,
+                  ),
+
+                  // Bouton haut-parleur
+                  _buildControlButton(
+                    icon: _isSpeakerOn ? Icons.volume_up : Icons.hearing,
+                    onPressed: () {
+                      _callSession.toggleSpeaker();
+                    },
+                    color: _isSpeakerOn ? Colors.white : Colors.orange,
                   ),
 
                   // Bouton caméra (si vidéo)
