@@ -48,6 +48,9 @@ app.*.map.json
 *.apk
 *.aab
 
+# Java/Android profiling dumps
+*.hprof
+
 # Signing keys - NEVER COMMIT THESE!
 android/key.properties
 *.jks
