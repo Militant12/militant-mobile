@@ -14,8 +14,10 @@ import 'package:share_plus/share_plus.dart';
 class PostCard extends StatefulWidget {
   final Post post;
   final VoidCallback? onDeleted;
+  /// Si true, l'utilisateur courant est admin du groupe → peut supprimer n'importe quel post du groupe
+  final bool isGroupAdmin;
 
-  const PostCard({super.key, required this.post, this.onDeleted});
+  const PostCard({super.key, required this.post, this.onDeleted, this.isGroupAdmin = false});
 
   @override
   State<PostCard> createState() => _PostCardState();
@@ -601,7 +603,7 @@ class _PostCardState extends State<PostCard> {
                 _reportPost(context);
               },
             ),
-            if (_currentUserId == widget.post.userId)
+            if (_currentUserId == widget.post.userId || widget.isGroupAdmin)
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
                 title: Text(

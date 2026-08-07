@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'profile_screen.dart';
 import 'chat_screen.dart';
@@ -10,8 +11,9 @@ class UsersListScreen extends StatefulWidget {
   final int? userId;
   final int? groupId;
   final String title;
-  final String type; // 'followers' or 'following'
+  final String type; // 'followers', 'following', 'members', 'friends'
   final bool showAppBar;
+  final bool isCurrentUserAdmin;
 
   const UsersListScreen({
     super.key,
@@ -20,6 +22,7 @@ class UsersListScreen extends StatefulWidget {
     required this.title,
     required this.type,
     this.showAppBar = true,
+    this.isCurrentUserAdmin = false,
   });
 
   @override
@@ -32,6 +35,7 @@ class _UsersListScreenState extends State<UsersListScreen> {
   int _page = 1;
   bool _hasMore = true;
   final ScrollController _scrollController = ScrollController();
+  ApiService? _api;
 
   @override
   void initState() {
@@ -54,16 +58,16 @@ class _UsersListScreenState extends State<UsersListScreen> {
 
     setState(() => _isLoading = true);
     try {
-      final api = await ApiService.getInstance();
+      _api ??= await ApiService.getInstance();
       List<dynamic> users;
 
       if (widget.type == 'friends') {
-        final result = await api.getFriends(type: 'friends', page: _page);
+        final result = await _api!.getFriends(type: 'friends', page: _page);
         users = result['friends'] ?? result['data'] ?? [];
       } else if (widget.type == 'members' && widget.groupId != null) {
-        users = await api.getGroupMembers(widget.groupId!, page: _page);
+        users = await _api!.getGroupMembers(widget.groupId!, page: _page);
       } else {
-        users = await api.getFollows(
+        users = await _api!.getFollows(
           userId: widget.userId,
           type: widget.type,
           page: _page,
@@ -93,6 +97,7 @@ class _UsersListScreenState extends State<UsersListScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final lang = LanguageService.instance;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -140,9 +145,8 @@ class _UsersListScreenState extends State<UsersListScreen> {
                 }
 
                 final user = _users[index];
-                final api = ApiService(
-                  baseUrl: '',
-                ); // Used only for getImageUrl
+                final bool isMembersView = widget.type == 'members';
+                final bool isAdmin = user['role'] == 'admin';
 
                 return ListTile(
                   leading: GestureDetector(
@@ -155,9 +159,9 @@ class _UsersListScreenState extends State<UsersListScreen> {
                             height: 40,
                             child:
                                 (user['avatar'] != null &&
-                                    api.getImageUrl(user['avatar']) != null)
+                                    _api?.getImageUrl(user['avatar']) != null)
                                 ? Image.network(
-                                    api.getImageUrl(user['avatar'])!,
+                                    _api!.getImageUrl(user['avatar'])!,
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) {
                                       return Padding(
@@ -215,9 +219,37 @@ class _UsersListScreenState extends State<UsersListScreen> {
                         const SizedBox(width: 4),
                         MilitantBadge(badgeId: user['militant_badge'], size: 16),
                       ],
-                      if (user['is_militant_technician'] == true || user['is_militant_technician'] == 1 || user['is_militant_technician'] == '1') ...[
+                      if (user['is_militant_technician'] == true ||
+                          user['is_militant_technician'] == 1 ||
+                          user['is_militant_technician'] == '1') ...[
                         const SizedBox(width: 4),
                         const TechnicianBadge(size: 16),
+                      ],
+                      // Role badge (only in members view)
+                      if (isMembersView) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isAdmin
+                                ? const Color(0xFFBE1E1E)
+                                : Colors.grey[600],
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            isAdmin
+                                ? lang.translate('admin_badge')
+                                : lang.translate('member_badge'),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       ],
                     ],
                   ),
@@ -228,36 +260,320 @@ class _UsersListScreenState extends State<UsersListScreen> {
                     style: TextStyle(color: theme.textTheme.bodyMedium?.color),
                   ),
                   onTap: () => _navigateToProfile(user['id']),
-                  trailing: widget.type == 'friends'
-                      ? IconButton(
-                          icon: const Icon(
-                            Icons.message,
-                            color: Color(0xFFBE1E1E),
-                          ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ChatScreen(
-                                  userId: user['id'],
-                                  username: user['username'],
-                                  avatar: user['avatar'],
-                                ),
-                              ),
-                            );
-                          },
-                        )
-                      : null,
+                  trailing: _buildTrailing(context, user, isMembersView, isAdmin, lang),
                 );
               },
             ),
     );
   }
 
-  void _navigateToProfile(int userId) {
+  Widget? _buildTrailing(
+    BuildContext context,
+    dynamic user,
+    bool isMembersView,
+    bool isAdmin,
+    LanguageService lang,
+  ) {
+    // Friends view → chat button
+    if (widget.type == 'friends') {
+      return IconButton(
+        icon: const Icon(Icons.message, color: Color(0xFFBE1E1E)),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ChatScreen(
+                userId: user['id'],
+                username: user['username'],
+                avatar: user['avatar'],
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    // Members view + current user is admin → contextual menu
+    if (isMembersView && widget.isCurrentUserAdmin && widget.groupId != null) {
+      final username = user['username'] ?? '';
+      final memberId = user['id'] is int
+          ? user['id']
+          : int.tryParse(user['id']?.toString() ?? '');
+
+      if (memberId == null) return null;
+
+      return PopupMenuButton<String>(
+        icon: const Icon(Icons.more_vert, color: Colors.grey),
+        onSelected: (value) {
+          switch (value) {
+            case 'promote':
+              _promoteMember(widget.groupId!, memberId, username);
+              break;
+            case 'demote':
+              _demoteMember(widget.groupId!, memberId, username);
+              break;
+            case 'kick':
+              _kickMember(widget.groupId!, memberId, username);
+              break;
+          }
+        },
+        itemBuilder: (context) => [
+          if (!isAdmin)
+            PopupMenuItem(
+              value: 'promote',
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.admin_panel_settings,
+                    color: Color(0xFFBE1E1E),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(lang.translate('promote_to_admin')),
+                ],
+              ),
+            ),
+          if (isAdmin)
+            PopupMenuItem(
+              value: 'demote',
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.arrow_downward,
+                    color: Colors.orange,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(lang.translate('demote_to_editor')),
+                ],
+              ),
+            ),
+          PopupMenuItem(
+            value: 'kick',
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.person_remove,
+                  color: Color(0xFFBE1E1E),
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  lang.translate('remove_member'),
+                  style: const TextStyle(color: Color(0xFFBE1E1E)),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    return null;
+  }
+
+  Future<void> _promoteMember(
+    int groupId,
+    int memberId,
+    String username,
+  ) async {
+    final lang = LanguageService.instance;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Theme.of(ctx).brightness == Brightness.dark
+            ? const Color(0xFF1E1E1E)
+            : Colors.white,
+        title: Text(lang.translate('promote_to_admin')),
+        content: Text(
+          lang
+              .translate('promote_to_admin_question')
+              .replaceAll('{username}', username),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(lang.translate('cancel')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              lang.translate('promote_to_admin'),
+              style: const TextStyle(color: Color(0xFFBE1E1E)),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true || !mounted) return;
+    try {
+      _api ??= await ApiService.getInstance();
+      await _api!.promoteSocialGroupMember(groupId, memberId);
+      // Update local state
+      setState(() {
+        final idx = _users.indexWhere(
+          (u) => (u['id'] is int ? u['id'] : int.tryParse(u['id']?.toString() ?? '')) == memberId,
+        );
+        if (idx != -1) _users[idx] = {..._users[idx], 'role': 'admin'};
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              lang
+                  .translate('group_promote_success')
+                  .replaceAll('{username}', username),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    }
+  }
+
+  Future<void> _demoteMember(
+    int groupId,
+    int memberId,
+    String username,
+  ) async {
+    final lang = LanguageService.instance;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Theme.of(ctx).brightness == Brightness.dark
+            ? const Color(0xFF1E1E1E)
+            : Colors.white,
+        title: Text(
+          lang
+              .translate('group_demote_question')
+              .replaceAll('{username}', username),
+        ),
+        content: Text(
+          lang
+              .translate('group_demote_confirm')
+              .replaceAll('{username}', username),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(lang.translate('cancel')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              lang.translate('demote_to_editor'),
+              style: const TextStyle(color: Colors.orange),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true || !mounted) return;
+    try {
+      _api ??= await ApiService.getInstance();
+      await _api!.demoteSocialGroupMember(groupId, memberId);
+      // Update local state
+      setState(() {
+        final idx = _users.indexWhere(
+          (u) => (u['id'] is int ? u['id'] : int.tryParse(u['id']?.toString() ?? '')) == memberId,
+        );
+        if (idx != -1) _users[idx] = {..._users[idx], 'role': 'member'};
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              lang
+                  .translate('group_demote_success')
+                  .replaceAll('{username}', username),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    }
+  }
+
+  Future<void> _kickMember(
+    int groupId,
+    int memberId,
+    String username,
+  ) async {
+    final lang = LanguageService.instance;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Theme.of(ctx).brightness == Brightness.dark
+            ? const Color(0xFF1E1E1E)
+            : Colors.white,
+        title: Text(
+          lang
+              .translate('group_kick_question')
+              .replaceAll('{username}', username),
+        ),
+        content: Text(
+          lang
+              .translate('group_kick_confirm')
+              .replaceAll('{username}', username),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(lang.translate('cancel')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              lang.translate('remove_member'),
+              style: const TextStyle(color: Color(0xFFBE1E1E)),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true || !mounted) return;
+    try {
+      _api ??= await ApiService.getInstance();
+      await _api!.kickSocialGroupMember(groupId, memberId);
+      // Remove from local list
+      setState(() {
+        _users.removeWhere(
+          (u) => (u['id'] is int ? u['id'] : int.tryParse(u['id']?.toString() ?? '')) == memberId,
+        );
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              lang
+                  .translate('group_kick_success')
+                  .replaceAll('{username}', username),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    }
+  }
+
+  void _navigateToProfile(dynamic userId) {
+    final id = userId is int ? userId : int.tryParse(userId?.toString() ?? '');
+    if (id == null) return;
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => ProfileScreen(userId: userId)),
+      MaterialPageRoute(builder: (_) => ProfileScreen(userId: id)),
     );
   }
 

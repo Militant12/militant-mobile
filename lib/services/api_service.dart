@@ -2887,6 +2887,73 @@ class ApiService {
     }
   }
 
+  /// Promeut un membre au rôle d'administrateur du groupe.
+  Future<void> promoteSocialGroupMember(int groupId, int userId) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/groups.php'),
+      headers: _headers,
+      body: jsonEncode({
+        'action': 'promote_member',
+        'group_id': groupId,
+        'user_id': userId,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      final data = _decodeJsonMap(
+        response,
+        fallbackError: 'Erreur lors de la promotion du membre',
+      );
+      throw Exception(data['error'] ?? 'Erreur lors de la promotion du membre');
+    }
+  }
+
+  /// Rétrograde un administrateur au rôle de membre simple.
+  Future<void> demoteSocialGroupMember(int groupId, int userId) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/groups.php'),
+      headers: _headers,
+      body: jsonEncode({
+        'action': 'demote_member',
+        'group_id': groupId,
+        'user_id': userId,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      final data = _decodeJsonMap(
+        response,
+        fallbackError: 'Erreur lors de la rétrogradation du membre',
+      );
+      throw Exception(
+        data['error'] ?? 'Erreur lors de la rétrogradation du membre',
+      );
+    }
+  }
+
+  /// Exclut un membre ou un administrateur du groupe.
+  Future<void> kickSocialGroupMember(int groupId, int userId) async {
+    final response = await http.post(
+      Uri.parse('$apiUrl/v1/groups.php'),
+      headers: _headers,
+      body: jsonEncode({
+        'action': 'kick_member',
+        'group_id': groupId,
+        'user_id': userId,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      final data = _decodeJsonMap(
+        response,
+        fallbackError: 'Erreur lors de l\'exclusion du membre',
+      );
+      throw Exception(data['error'] ?? 'Erreur lors de l\'exclusion du membre');
+    }
+  }
+
+
+
   Future<List<dynamic>> getGroupMembers(int groupId, {int page = 1}) async {
     final response = await http.get(
       Uri.parse('$apiUrl/v1/groups.php?id=$groupId&members=1&page=$page'),

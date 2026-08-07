@@ -29,27 +29,16 @@ class MainActivity : FlutterActivity() {
     private var pendingIncomingCallPayload: HashMap<String, Any?>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Configurer l'affichage bord à bord manuellement (compatible Android 15+)
-        // Cette approche remplace les APIs obsolètes setStatusBarColor, setNavigationBarColor, etc.
+        // Enforce edge-to-edge for Android 15+ (API 35+)
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        
-        // Configuration optionnelle des barres système pour Android 15+
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-            // Android 15+ : Les couleurs de barres système sont gérées automatiquement
-            // avec l'affichage bord à bord. Pas besoin de setStatusBarColor ou setNavigationBarColor.
-            val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
-            windowInsetsController?.apply {
-                // Ajuster l'apparence des icônes selon le thème
-                isAppearanceLightStatusBars = false
-                isAppearanceLightNavigationBars = false
-            }
-        }
         
         super.onCreate(savedInstanceState)
         pendingIncomingCallPayload = extractIncomingCallPayload(intent)
         cancelIncomingCallNotification(intent)
         applyIncomingCallWindowFlags(pendingIncomingCallPayload)
     }
+
+
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)

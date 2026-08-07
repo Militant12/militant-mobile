@@ -19,7 +19,7 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace = "com.militant.militant_flutter"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "28.0.13004108"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -60,6 +60,16 @@ android {
     }
 }
 
+configurations.all {
+    resolutionStrategy {
+        force("androidx.datastore:datastore-core:1.1.3")
+        force("androidx.datastore:datastore-core-android:1.1.3")
+        force("androidx.datastore:datastore-preferences:1.1.3")
+        force("androidx.datastore:datastore-preferences-core:1.1.3")
+        force("androidx.datastore:datastore-preferences-android:1.1.3")
+    }
+}
+
 flutter {
     source = "../.."
 }
@@ -74,5 +84,23 @@ dependencies {
     implementation("com.onesignal:core:5.6.1")
     
     // Core activity components for Edge-to-Edge (Android 15+)
-    implementation("androidx.activity:activity-ktx:1.9.0")
+    implementation("androidx.activity:activity-ktx:1.10.0")
+
+
+    // Force Datastore 1.1.3 with 16 KB page size alignment fix for libdatastore_shared_counter.so
+    constraints {
+        implementation("androidx.datastore:datastore-core:1.1.3") {
+            because("16 KB page size alignment fix for libdatastore_shared_counter.so")
+        }
+        implementation("androidx.datastore:datastore-core-android:1.1.3") {
+            because("16 KB page size alignment fix for libdatastore_shared_counter.so")
+        }
+        implementation("androidx.datastore:datastore-preferences:1.1.3") {
+            because("16 KB page size alignment fix for libdatastore_shared_counter.so")
+        }
+        implementation("androidx.datastore:datastore-preferences-android:1.1.3") {
+            because("16 KB page size alignment fix for libdatastore_shared_counter.so")
+        }
+    }
 }
+

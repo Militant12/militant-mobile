@@ -10,6 +10,7 @@ import 'users_list_screen.dart';
 import 'group_join_requests_screen.dart';
 import 'group_invite_screen.dart';
 
+
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
@@ -776,84 +777,8 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Members Link / Preview
-                    InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => UsersListScreen(
-                              groupId: int.parse(_groupData!['id'].toString()),
-                              type: 'members',
-                              title: lang.translate('members_title'),
-                            ),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(
-                              color: theme.dividerColor,
-                              width: 0.5,
-                            ),
-                            top: BorderSide(
-                              color: theme.dividerColor,
-                              width: 0.5,
-                            ),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: 80,
-                              height: 30,
-                              child: Stack(
-                                children: [
-                                  for (
-                                    int i = 0;
-                                    i <
-                                        (_previewMembers.length > 3
-                                            ? 3
-                                            : _previewMembers.length);
-                                    i++
-                                  )
-                                    Positioned(
-                                      left: i * 20.0,
-                                      child: Container(
-                                        width: 30,
-                                        height: 30,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color:
-                                                theme.scaffoldBackgroundColor,
-                                            width: 2,
-                                          ),
-                                          color: Colors.grey[300],
-                                        ),
-                                        child: ClipOval(
-                                          child: _buildMemberAvatar(
-                                            _previewMembers[i],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                            Text(lang.translate('view_members')),
-                            const Spacer(),
-                            const Icon(
-                              Icons.arrow_forward_ios,
-                              size: 16,
-                              color: Colors.grey,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    // Members section with inline list
+                    _buildMembersSection(lang, theme, isMember),
 
                     if (description.isNotEmpty) ...[
                       const SizedBox(height: 16),
@@ -905,7 +830,15 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                           }
                           return const SizedBox(height: 80);
                         }
-                        return PostCard(post: _posts[index]);
+                        return PostCard(
+                          post: _posts[index],
+                          isGroupAdmin: _groupData?['role'] == 'admin',
+                          onDeleted: () {
+                            setState(() {
+                              _posts.removeAt(index);
+                            });
+                          },
+                        );
                       }, childCount: _posts.length + 1),
                     ),
           ],
@@ -932,7 +865,125 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     );
   }
 
+  Widget _buildMembersSection(
+    LanguageService lang,
+    ThemeData theme,
+    bool isMember,
+  ) {
+    final isCurrentUserAdmin = _groupData?['role'] == 'admin';
+    final groupId = int.parse(_groupData!['id'].toString());
+    final membersCount = _groupData?['members_count'] ?? _previewMembers.length;
+    final displayMembers = _previewMembers.take(4).toList();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: theme.cardColor.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.dividerColor.withOpacity(0.4),
+          width: 1,
+        ),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => UsersListScreen(
+                groupId: groupId,
+                type: 'members',
+                title: lang.translate('members_title'),
+                isCurrentUserAdmin: isCurrentUserAdmin,
+              ),
+            ),
+          ).then((_) => _loadMembersPreview());
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              // Overlapped avatars stack (Facebook style)
+              SizedBox(
+                width: displayMembers.isEmpty
+                    ? 32
+                    : (32 + (displayMembers.length - 1) * 20).toDouble(),
+                height: 32,
+                child: Stack(
+                  children: [
+                    for (int i = 0; i < displayMembers.length; i++)
+                      Positioned(
+                        left: i * 20.0,
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: theme.scaffoldBackgroundColor,
+                              width: 2,
+                            ),
+                            color: Colors.grey[400],
+                          ),
+                          child: ClipOval(
+                            child: _buildMemberAvatar(displayMembers[i]),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Member count and summary label
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '$membersCount ${membersCount > 1 ? lang.translate('members') : lang.translate('member')}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: theme.textTheme.bodyLarge?.color,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Admins et membres du groupe',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7) ?? Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Action / Arrow indicator
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFBE1E1E).withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 14,
+                  color: Color(0xFFBE1E1E),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+
+
   Widget _buildMemberAvatar(dynamic member) {
+
     if (member['avatar'] != null) {
       final url = _api?.getImageUrl(member['avatar']);
       if (url != null) {
