@@ -725,6 +725,27 @@ class ProfileScreenState extends State<ProfileScreen>
                       const SizedBox(width: 6),
                       const TechnicianBadge(size: 26),
                     ],
+                    // Badge modérateur élu
+                    if (_profile?['is_moderator'] == true ||
+                        _profile?['is_moderator'] == 1 ||
+                        _profile?['is_moderator'] == '1') ...[
+                      const SizedBox(width: 6),
+                      Tooltip(
+                        message: 'Modérateur·ice élu·e',
+                        child: Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFBE1E1E).withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Icon(
+                            Icons.shield,
+                            size: 20,
+                            color: Color(0xFFBE1E1E),
+                          ),
+                        ),
+                      ),
+                    ],
                     if (_profile?['is_private'] == 1 ||
                         _profile?['is_private'] == true) ...[
                       const SizedBox(width: 8),
