@@ -235,6 +235,24 @@ class _SearchScreenState extends State<SearchScreen> {
                             const SizedBox(width: 4),
                             const TechnicianBadge(size: 16),
                           ],
+                          if (item['is_moderator'] == true || item['is_moderator'] == 1 || item['is_moderator'] == '1') ...[
+                            const SizedBox(width: 4),
+                            Tooltip(
+                              message: 'Modérateur·ice élu·e',
+                              child: Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFBE1E1E).withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Icon(
+                                  Icons.shield,
+                                  size: 14,
+                                  color: Color(0xFFBE1E1E),
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                       Text(
@@ -410,6 +428,24 @@ class _SearchScreenState extends State<SearchScreen> {
           if (item['is_militant_technician'] == true || item['is_militant_technician'] == 1 || item['is_militant_technician'] == '1') ...[
             const SizedBox(width: 4),
             const TechnicianBadge(size: 16),
+          ],
+          if (item['is_moderator'] == true || item['is_moderator'] == 1 || item['is_moderator'] == '1') ...[
+            const SizedBox(width: 4),
+            Tooltip(
+              message: 'Modérateur·ice élu·e',
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFBE1E1E).withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Icon(
+                  Icons.shield,
+                  size: 14,
+                  color: Color(0xFFBE1E1E),
+                ),
+              ),
+            ),
           ],
         ],
       ),

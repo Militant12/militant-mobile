@@ -225,6 +225,26 @@ class _UsersListScreenState extends State<UsersListScreen> {
                         const SizedBox(width: 4),
                         const TechnicianBadge(size: 16),
                       ],
+                      if (user['is_moderator'] == true ||
+                          user['is_moderator'] == 1 ||
+                          user['is_moderator'] == '1') ...[
+                        const SizedBox(width: 4),
+                        Tooltip(
+                          message: 'Modérateur·ice élu·e',
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFBE1E1E).withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Icon(
+                              Icons.shield,
+                              size: 14,
+                              color: Color(0xFFBE1E1E),
+                            ),
+                          ),
+                        ),
+                      ],
                       // Role badge (only in members view)
                       if (isMembersView) ...[
                         const SizedBox(width: 6),
