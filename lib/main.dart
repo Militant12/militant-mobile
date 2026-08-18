@@ -16,11 +16,21 @@ import 'services/notification_reply_service.dart';
 import 'services/user_status_service.dart';
 import 'widgets/incoming_call_banner.dart';
 
-// Import OneSignal
-import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:flutter/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Edge-to-Edge System UI Mode for Android 15+ (API 35+)
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      navigationBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      navigationBarIconBrightness: Brightness.light,
+    ),
+  );
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
   // Initialize OneSignal Debugging only on supported platforms
   if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
