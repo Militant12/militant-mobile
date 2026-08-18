@@ -3524,6 +3524,23 @@ class ApiService {
     }
   }
 
+  // Vérifie si l'utilisateur courant est banni
+  Future<Map<String, dynamic>?> getMyBanStatus() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$apiUrl/v1/sanctions.php?type=mine'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['is_banned'] == true) {
+          return data['ban'] as Map<String, dynamic>?;
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
   // === BOOKMARKS ===
 
   Future<List<dynamic>> getBookmarks({int page = 1}) async {

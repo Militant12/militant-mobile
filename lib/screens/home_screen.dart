@@ -7,6 +7,8 @@ import 'community_screen.dart';
 import '../services/language_service.dart';
 import '../services/deep_link_service.dart';
 import '../widgets/incoming_call_banner.dart';
+import '../services/api_service.dart';
+import 'banned_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,10 +29,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initScreens();
+    _checkBanStatus();
     // Initialize deep link handling after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       DeepLinkService().initialize();
     });
+  }
+
+  Future<void> _checkBanStatus() async {
+    try {
+      final api = await ApiService.getInstance();
+      final ban = await api.getMyBanStatus();
+      if (ban != null && mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => BannedScreen(ban: ban)),
+          (route) => false,
+        );
+      }
+    } catch (_) {}
   }
 
   @override
