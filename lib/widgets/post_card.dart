@@ -291,12 +291,16 @@ class _PostCardState extends State<PostCard> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                widget.post.username,
-                                style: TextStyle(
-                                  color: textColor,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 17,
+                              Flexible(
+                                child: Text(
+                                  widget.post.username,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: textColor,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 17,
+                                  ),
                                 ),
                               ),
                               if (widget.post.militantBadge != null) ...[
