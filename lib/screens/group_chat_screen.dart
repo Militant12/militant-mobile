@@ -19,6 +19,7 @@ import 'profile_screen.dart';
 import '../widgets/linkable_text.dart';
 import '../widgets/incoming_call_banner.dart';
 import '../widgets/signal_typing_indicator.dart';
+import '../utils/error_helper.dart';
 
 const String _groupCallMessagePrefix = '__militant_group_call__:';
 const Duration _groupChatPollInterval = Duration(seconds: 10);
@@ -171,7 +172,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${lang.translate('error')}: ${e.toString()}'),
+            content: Text(getFriendlyErrorMessage(e, lang)),
           ),
         );
       }
@@ -232,7 +233,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${lang.translate('error')}: ${e.toString()}'),
+            content: Text(getFriendlyErrorMessage(e, lang)),
           ),
         );
       }
@@ -265,7 +266,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${lang.translate('error')}: ${e.toString()}'),
+            content: Text(getFriendlyErrorMessage(e, lang)),
           ),
         );
       }
@@ -436,7 +437,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                '${lang.translate('error_upload')}: ${e.toString()}',
+                getFriendlyErrorMessage(e, lang),
               ),
             ),
           );
@@ -955,7 +956,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   } catch (e) {
                     ScaffoldMessenger.of(
                       context,
-                    ).showSnackBar(SnackBar(content: Text(e.toString())));
+                    ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
                   }
                 }
               },
@@ -1008,7 +1009,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       } catch (e) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(e.toString())));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
       }
     }
   }
@@ -1538,7 +1539,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Impossible de rejoindre l appel: $e')),
+        SnackBar(content: Text(getFriendlyErrorMessage(e))),
       );
     }
   }
@@ -1998,7 +1999,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${lang.translate('error_upload')}: ${e.toString()}'),
+            content: Text(getFriendlyErrorMessage(e, lang)),
           ),
         );
       }

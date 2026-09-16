@@ -6,6 +6,7 @@ import '../services/language_service.dart';
 import 'chat_screen.dart';
 import 'group_chat_screen.dart';
 import 'create_message_group_screen.dart';
+import '../utils/error_helper.dart';
 
 class MessagesScreen extends StatefulWidget {
   const MessagesScreen({super.key});
@@ -65,7 +66,7 @@ class _MessagesScreenState extends State<MessagesScreen>
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(
-          SnackBar(content: Text('${lang.translate('error')}: ${e.toString()}')),
+          SnackBar(content: Text(getFriendlyErrorMessage(e, lang))),
         );
       }
     } finally {

@@ -14,6 +14,7 @@ import 'group_invite_screen.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import '../utils/error_helper.dart';
 
 class GroupDetailScreen extends StatefulWidget {
   final dynamic group;
@@ -192,7 +193,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(e.toString())));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
       }
     }
   }
@@ -241,7 +242,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text(e.toString())));
+          ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
         }
       }
     }
@@ -495,7 +496,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                 } catch (e) {
                   ScaffoldMessenger.of(
                     context,
-                  ).showSnackBar(SnackBar(content: Text(e.toString())));
+                  ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
                 }
               },
               style: ElevatedButton.styleFrom(

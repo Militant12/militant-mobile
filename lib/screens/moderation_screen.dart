@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../models/report.dart';
 import '../services/language_service.dart';
 import 'post_detail_screen.dart';
+import '../utils/error_helper.dart';
 
 class ModerationScreen extends StatefulWidget {
   const ModerationScreen({super.key});
@@ -108,7 +109,7 @@ class _ModerationScreenState extends State<ModerationScreen>
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
       }
     } finally {
       setState(() => _isLoading = false);
@@ -132,7 +133,7 @@ class _ModerationScreenState extends State<ModerationScreen>
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: ${e.toString()}')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e, lang))));
       }
     }
   }
@@ -161,7 +162,7 @@ class _ModerationScreenState extends State<ModerationScreen>
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: ${e.toString()}')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e, lang))));
       }
     }
   }
@@ -574,7 +575,7 @@ class _ModerationScreenState extends State<ModerationScreen>
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('${lang.translate('error_loading')}: ${e.toString()}')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e, lang))));
       }
     }
   }
@@ -629,7 +630,7 @@ class _ModerationScreenState extends State<ModerationScreen>
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
       }
     }
   }
@@ -850,7 +851,7 @@ class _ModerationScreenState extends State<ModerationScreen>
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('${lang.translate('error_loading')}: $e')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e, lang))));
       }
     }
   }

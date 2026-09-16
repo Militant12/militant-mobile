@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../models/fediverse_post.dart';
@@ -9,6 +10,7 @@ import '../services/language_service.dart';
 import '../utils/fediverse_text.dart';
 import '../widgets/fediverse_post_card.dart';
 import 'fediverse_profile_screen.dart';
+import '../utils/error_helper.dart';
 
 class FediverseScreen extends StatefulWidget {
   const FediverseScreen({super.key});
@@ -197,7 +199,7 @@ class _FediverseFeedTabState extends State<_FediverseFeedTab> {
 
       if (!mounted) return;
       setState(() {
-        _error = e.toString().replaceFirst('Exception: ', '');
+        _error = getFriendlyErrorMessage(e);
         _isLoading = false;
         _isLoadingMore = false;
       });
@@ -336,7 +338,7 @@ class _FediverseProfilesTabState extends State<_FediverseProfilesTab> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = e.toString().replaceFirst('Exception: ', '');
+        _error = getFriendlyErrorMessage(e);
         _isLoading = false;
       });
     }
@@ -381,7 +383,7 @@ class _FediverseProfilesTabState extends State<_FediverseProfilesTab> {
       if (!mounted) return;
       setState(() => _isSearching = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+        SnackBar(content: Text(getFriendlyErrorMessage(e))),
       );
     }
   }
@@ -430,7 +432,7 @@ class _FediverseProfilesTabState extends State<_FediverseProfilesTab> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+        SnackBar(content: Text(getFriendlyErrorMessage(e))),
       );
     }
   }
@@ -610,9 +612,27 @@ class _FediverseProfilesTabState extends State<_FediverseProfilesTab> {
 
   Widget _buildLocalIdentityCard() {
     final profile = _localProfile ?? const <String, dynamic>{};
-    final handle =
-        (profile['fediverse_handle'] ?? '@${profile['username'] ?? ''}')
-            .toString();
+    final rawHandle = profile['fediverse_handle']?.toString().trim();
+    final username = (profile['username'] ?? '').toString().trim();
+    String handle;
+    if (rawHandle != null && rawHandle.isNotEmpty && rawHandle.contains('@')) {
+      handle = rawHandle;
+    } else if (username.isNotEmpty) {
+      handle = '@$username@militant.revlibertaire.com';
+    } else {
+      handle = '';
+    }
+
+    // Nettoyage des anomalies de domaine (supprimer le sous-domaine technique api.)
+    handle = handle
+        .replaceAll('@api.militant.revlibertaire.com', '@militant.revlibertaire.com')
+        .replaceAll('@api@militant.revlibertaire.com', '@militant.revlibertaire.com')
+        .replaceAll('@api.', '@')
+        .replaceAll('@api@', '@');
+    if (handle.isNotEmpty && !handle.startsWith('@')) {
+      handle = '@$handle';
+    }
+
     final followersCount =
         int.tryParse('${profile['followers_count'] ?? 0}') ?? 0;
     final followingCount =
@@ -629,9 +649,41 @@ class _FediverseProfilesTabState extends State<_FediverseProfilesTab> {
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            Text(
-              handle,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            InkWell(
+              onTap: handle.isEmpty
+                  ? null
+                  : () {
+                      Clipboard.setData(ClipboardData(text: handle));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            LanguageService.instance.translate('fediverse_copied'),
+                          ),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        handle,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.copy, size: 16),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: 10),
             Wrap(
@@ -782,7 +834,7 @@ class _FediverseAccountsTabState extends State<_FediverseAccountsTab> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = e.toString().replaceFirst('Exception: ', '');
+        _error = getFriendlyErrorMessage(e);
         _isLoading = false;
         _isLoadingMore = false;
       });
@@ -841,7 +893,7 @@ class _FediverseAccountsTabState extends State<_FediverseAccountsTab> {
       if (!mounted) return;
       setState(() => _processingActorUrl = null);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+        SnackBar(content: Text(getFriendlyErrorMessage(e))),
       );
     }
   }
@@ -1022,8 +1074,13 @@ class _FediverseAccountCard extends StatelessWidget {
     final avatarUrl = (account['avatar'] ?? '').toString();
     final displayName = (account['display_name'] ?? account['username'] ?? '')
         .toString();
-    final handle = (account['handle'] ?? '@${account['username'] ?? ''}')
+    var handle = (account['handle'] ?? '@${account['username'] ?? ''}')
         .toString();
+    handle = handle
+        .replaceAll('@api.militant.revlibertaire.com', '@militant.revlibertaire.com')
+        .replaceAll('@api@militant.revlibertaire.com', '@militant.revlibertaire.com')
+        .replaceAll('@api.', '@')
+        .replaceAll('@api@', '@');
     final summary = fediverseHtmlToText(account['summary']?.toString());
 
     return Card(

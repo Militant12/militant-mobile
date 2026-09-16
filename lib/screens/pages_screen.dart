@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import 'page_detail_screen.dart';
 import 'create_page_screen.dart';
+import '../utils/error_helper.dart';
 
 class PagesScreen extends StatefulWidget {
   const PagesScreen({super.key});
@@ -60,7 +61,7 @@ class _PagesScreenState extends State<PagesScreen>
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('${lang.translate('error_loading')}: ${e.toString()}')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e, lang))));
       }
     } finally {
       setState(() => _isLoading = false);
@@ -82,7 +83,7 @@ class _PagesScreenState extends State<PagesScreen>
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(e.toString())));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
       }
     }
   }

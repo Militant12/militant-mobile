@@ -8,9 +8,12 @@ import '../services/api_service.dart';
 import '../services/incoming_call_service.dart';
 import '../services/language_service.dart';
 import '../services/message_notification_service.dart';
+import '../services/notification_reply_service.dart';
+import '../services/message_navigation_service.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
+import '../utils/error_helper.dart';
 
 class LoginScreen extends StatefulWidget {
   final SavedAccount? fallbackAccount;
@@ -118,6 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await IncomingCallService.instance.initialize();
       await MessageNotificationService.instance.initialize();
+      await NotificationReplyService.instance.initialize();
     } catch (e) {
       print('Incoming call init error: $e');
     }
@@ -131,6 +135,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       IncomingCallService.instance.flushPendingAndroidIncomingIntent();
+      MessageNavigationService.instance.flushPendingNotification();
     });
   }
 
@@ -267,7 +272,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       await _restoreFallbackAccount(previousAccount);
       setState(() {
-        _errorMessage = 'Erreur: ${e.toString()}';
+        _errorMessage = getFriendlyErrorMessage(e);
       });
     } finally {
       setState(() {
@@ -340,7 +345,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 } catch (e) {
                   if (!dialogContext.mounted) return;
                   dialogSetState(() {
-                    dialogError = e.toString().replaceFirst('Exception: ', '');
+                    dialogError = getFriendlyErrorMessage(e);
                     isSubmitting = false;
                   });
                 }

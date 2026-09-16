@@ -4,6 +4,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import '../services/api_service.dart';
 import '../services/group_call_service.dart';
 import '../services/language_service.dart';
+import '../utils/error_helper.dart';
 
 class GroupCallScreen extends StatefulWidget {
   final String? callId;
@@ -242,7 +243,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
     } catch (e) {
       await service.cleanup();
       if (!mounted) return;
-      setState(() => _callStatus = 'Erreur: $e');
+      setState(() => _callStatus = getFriendlyErrorMessage(e));
     }
   }
 

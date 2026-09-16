@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import 'home_screen.dart';
+import '../utils/error_helper.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -151,7 +152,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Erreur: ${e.toString()}';
+        _errorMessage = getFriendlyErrorMessage(e);
       });
     } finally {
       setState(() {

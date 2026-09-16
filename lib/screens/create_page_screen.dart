@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
+import '../utils/error_helper.dart';
 
 class CreatePageScreen extends StatefulWidget {
   const CreatePageScreen({super.key});
@@ -58,7 +59,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(e.toString())));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

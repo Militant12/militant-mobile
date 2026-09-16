@@ -9,6 +9,7 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../widgets/file_video_player.dart';
 import '../utils/post_tags.dart';
+import '../utils/error_helper.dart';
 
 class CreatePostScreen extends StatefulWidget {
   final int? groupId;
@@ -270,7 +271,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+          ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
         }
       }
     }
@@ -346,9 +347,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              '${lang.translate('error_generic')}: ${e.toString()}',
-            ),
+            content: Text(getFriendlyErrorMessage(e, lang)),
           ),
         );
       }

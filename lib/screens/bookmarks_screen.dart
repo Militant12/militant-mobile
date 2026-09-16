@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../models/post.dart';
 import '../widgets/post_card.dart';
+import '../utils/error_helper.dart';
 
 class BookmarksScreen extends StatefulWidget {
   const BookmarksScreen({super.key});
@@ -36,9 +37,10 @@ class _BookmarksScreenState extends State<BookmarksScreen> {
         _currentPage++;
       });
     } catch (e) {
-      if (mounted) {
+      debugPrint('Error loading bookmarks: $e');
+      if (mounted && _bookmarks.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: ${e.toString()}')),
+          SnackBar(content: Text(getFriendlyErrorMessage(e))),
         );
       }
     } finally {

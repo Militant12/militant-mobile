@@ -26,7 +26,9 @@ class MainActivity : FlutterActivity() {
     private val NOTIF_CHANNEL = "com.militant.militant_flutter/notifications"
     private val CALLS_CHANNEL = "com.militant.militant_flutter/calls"
     private var callsChannel: MethodChannel? = null
+    private var notifChannel: MethodChannel? = null
     private var pendingIncomingCallPayload: HashMap<String, Any?>? = null
+    private var pendingMessageNotificationPayload: HashMap<String, Any?>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Enforce edge-to-edge for Android 15+ (API 35+)
@@ -34,6 +36,7 @@ class MainActivity : FlutterActivity() {
         
         super.onCreate(savedInstanceState)
         pendingIncomingCallPayload = extractIncomingCallPayload(intent)
+        pendingMessageNotificationPayload = extractMessageNotificationPayload(intent)
         cancelIncomingCallNotification(intent)
         applyIncomingCallWindowFlags(pendingIncomingCallPayload)
     }
@@ -62,35 +65,42 @@ class MainActivity : FlutterActivity() {
                 }
             }
 
-        // Canal Notifications (réponse rapide)
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, NOTIF_CHANNEL)
-            .setMethodCallHandler { call, result ->
-                when (call.method) {
-                    "showReplyNotification" -> {
-                        val title = call.argument<String>("title") ?: "Nouveau message"
-                        val body = call.argument<String>("body") ?: ""
-                        val senderId = call.argument<Int>("senderId") ?: -1
-                        val groupId = call.argument<Int>("groupId") ?: -1
-                        val isGroup = call.argument<Boolean>("isGroup") ?: false
-                        val conversationName = call.argument<String>("conversationName") ?: title
-                        val token = call.argument<String>("token") ?: ""
-                        val baseUrl = call.argument<String>("baseUrl") ?: ""
-
-                        showReplyableNotification(
-                            title = title,
-                            body = body,
-                            senderId = senderId,
-                            groupId = groupId,
-                            isGroup = isGroup,
-                            conversationName = conversationName,
-                            token = token,
-                            baseUrl = baseUrl
-                        )
-                        result.success(null)
-                    }
-                    else -> result.notImplemented()
+        // Canal Notifications (réponse rapide & clics sur notification)
+        notifChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, NOTIF_CHANNEL)
+        notifChannel?.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "getInitialMessageNotification" -> {
+                    val payload = pendingMessageNotificationPayload ?: extractMessageNotificationPayload(intent)
+                    pendingMessageNotificationPayload = null
+                    result.success(payload)
                 }
+                "showReplyNotification" -> {
+                    val title = call.argument<String>("title") ?: "Nouveau message"
+                    val body = call.argument<String>("body") ?: ""
+                    val senderId = call.argument<Int>("senderId") ?: -1
+                    val groupId = call.argument<Int>("groupId") ?: -1
+                    val isGroup = call.argument<Boolean>("isGroup") ?: false
+                    val conversationName = call.argument<String>("conversationName") ?: title
+                    val avatar = call.argument<String>("avatar")
+                    val token = call.argument<String>("token") ?: ""
+                    val baseUrl = call.argument<String>("baseUrl") ?: ""
+
+                    showReplyableNotification(
+                        title = title,
+                        body = body,
+                        senderId = senderId,
+                        groupId = groupId,
+                        isGroup = isGroup,
+                        conversationName = conversationName,
+                        avatar = avatar,
+                        token = token,
+                        baseUrl = baseUrl
+                    )
+                    result.success(null)
+                }
+                else -> result.notImplemented()
             }
+        }
 
         callsChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CALLS_CHANNEL)
         callsChannel?.setMethodCallHandler { call, result ->
@@ -131,6 +141,13 @@ class MainActivity : FlutterActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+
+        val messagePayload = extractMessageNotificationPayload(intent)
+        if (messagePayload != null) {
+            pendingMessageNotificationPayload = messagePayload
+            notifChannel?.invokeMethod("messageNotificationClicked", messagePayload)
+            return
+        }
 
         val payload = extractIncomingCallPayload(intent) ?: return
         cancelIncomingCallNotification(intent)
@@ -206,6 +223,7 @@ class MainActivity : FlutterActivity() {
         groupId: Int,
         isGroup: Boolean,
         conversationName: String,
+        avatar: String? = null,
         token: String,
         baseUrl: String
     ) {
@@ -223,6 +241,10 @@ class MainActivity : FlutterActivity() {
             putExtra("senderId", senderId)
             putExtra("groupId", groupId)
             putExtra("isGroup", isGroup)
+            putExtra("conversationName", conversationName)
+            if (!avatar.isNullOrBlank()) {
+                putExtra("avatar", avatar)
+            }
         }
         val openPendingIntent = PendingIntent.getActivity(
             this,
@@ -377,5 +399,34 @@ class MainActivity : FlutterActivity() {
         val notificationId = intent?.getIntExtra("notification_id", -1) ?: -1
         if (notificationId == -1) return
         NotificationManagerCompat.from(this).cancel(notificationId)
+    }
+
+    private fun extractMessageNotificationPayload(intent: Intent?): HashMap<String, Any?>? {
+        val extras = intent?.extras ?: return null
+        val senderId = extras.getInt("senderId", -1)
+        val groupId = extras.getInt("groupId", -1)
+        val isGroup = extras.getBoolean("isGroup", false)
+        val conversationName = extras.getString("conversationName")
+
+        if (senderId == -1 && groupId == -1) {
+            return null
+        }
+
+        val payload = hashMapOf<String, Any?>()
+        payload["type"] = if (isGroup) "group_message" else "message"
+        if (senderId != -1) {
+            payload["sender_id"] = senderId.toString()
+        }
+        if (groupId != -1) {
+            payload["group_id"] = groupId.toString()
+        }
+        if (!conversationName.isNullOrBlank()) {
+            payload["conversationName"] = conversationName
+        }
+        val avatar = extras.getString("avatar")
+        if (!avatar.isNullOrBlank()) {
+            payload["avatar"] = avatar
+        }
+        return payload
     }
 }

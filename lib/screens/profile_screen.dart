@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../services/account_switcher_service.dart';
 import '../services/api_service.dart';
 import '../services/incoming_call_service.dart';
@@ -26,6 +27,7 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../widgets/linkable_text.dart';
 import 'chat_screen.dart';
+import '../utils/error_helper.dart';
 
 class ProfileScreen extends StatefulWidget {
   final int? userId;
@@ -41,6 +43,11 @@ class ProfileScreenState extends State<ProfileScreen>
   final List<Post> _posts = [];
   bool _isLoading = true;
   bool _isLoadingPosts = false;
+  bool _isLoadingMorePosts = false;
+  bool _hasMorePosts = true;
+  bool _hasPostsError = false;
+  int _postsPage = 1;
+  final ScrollController _scrollController = ScrollController();
   late TabController _tabController;
   int _selectedTab = 0;
   bool _isFollowing = false;
@@ -56,7 +63,20 @@ class ProfileScreenState extends State<ProfileScreen>
     _tabController.addListener(() {
       _safeSetState(() => _selectedTab = _tabController.index);
     });
+    _scrollController.addListener(_onScroll);
     _loadProfile();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.position.pixels;
+    if (maxScroll - currentScroll <= 350) {
+      final targetUserId = widget.userId ?? _profile?['id'] ?? _profile?['user_id'];
+      if (targetUserId != null) {
+        _loadMoreUserPosts(targetUserId);
+      }
+    }
   }
 
   String? _avatarUrl;
@@ -81,7 +101,6 @@ class ProfileScreenState extends State<ProfileScreen>
   }
 
   Future<void> _loadProfile() async {
-    final lang = LanguageService.instance;
     _safeSetState(() => _isLoading = true);
     try {
       final api = await ApiService.getInstance();
@@ -111,56 +130,73 @@ class ProfileScreenState extends State<ProfileScreen>
         _loadUserPosts(profile['id'] ?? profile['user_id']);
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${lang.translate('error_generic')}: ${e.toString()}',
-            ),
-          ),
-        );
-      }
+      debugPrint('Error loading profile: $e');
+      // Ne pas afficher de SnackBar intempestif en arrière-plan
     } finally {
       _safeSetState(() => _isLoading = false);
     }
   }
 
   Future<void> _loadUserPosts(int userId) async {
-    final lang = LanguageService.instance;
-    _safeSetState(() => _isLoadingPosts = true);
+    _safeSetState(() {
+      _isLoadingPosts = true;
+      _hasPostsError = false;
+      _postsPage = 1;
+      _hasMorePosts = true;
+    });
     try {
       final api = await ApiService.getInstance();
+      final postsData = await api.getUserPosts(userId, page: 1);
 
-      // Load ALL pages of posts
-      List<dynamic> allPosts = [];
-      int page = 1;
-
-      do {
-        final postsData = await api.getUserPosts(userId, page: page);
-        allPosts.addAll(postsData);
-
-        if (postsData.length < 20) {
-          break; // No more pages
-        }
-        page++;
-      } while (page <= 50); // Safety limit
-
+      if (!mounted) return;
       _safeSetState(() {
         _posts.clear();
-        _posts.addAll(allPosts.map((p) => Post.fromJson(p)).toList());
+        _posts.addAll(postsData.map((p) => Post.fromJson(p)).toList());
+        if (postsData.length < 20) {
+          _hasMorePosts = false;
+        }
+        _isLoadingPosts = false;
       });
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${lang.translate('error_generic')}: ${e.toString()}',
-            ),
-          ),
-        );
-      }
-    } finally {
-      _safeSetState(() => _isLoadingPosts = false);
+      debugPrint('Error loading user posts: $e');
+      if (!mounted) return;
+      _safeSetState(() {
+        _isLoadingPosts = false;
+        if (_posts.isEmpty) {
+          _hasPostsError = true;
+        }
+      });
+    }
+  }
+
+  Future<void> _loadMoreUserPosts(int userId) async {
+    if (_isLoadingPosts || _isLoadingMorePosts || !_hasMorePosts) return;
+
+    _safeSetState(() => _isLoadingMorePosts = true);
+
+    try {
+      final api = await ApiService.getInstance();
+      final nextPage = _postsPage + 1;
+      final postsData = await api.getUserPosts(userId, page: nextPage);
+
+      if (!mounted) return;
+      _safeSetState(() {
+        final newPosts = postsData.map((p) => Post.fromJson(p)).toList();
+        final existingIds = _posts.map((p) => p.id).toSet();
+        final uniquePosts =
+            newPosts.where((p) => !existingIds.contains(p.id)).toList();
+
+        _posts.addAll(uniquePosts);
+        _postsPage = nextPage;
+        if (postsData.length < 20 || uniquePosts.isEmpty) {
+          _hasMorePosts = false;
+        }
+        _isLoadingMorePosts = false;
+      });
+    } catch (e) {
+      debugPrint('Error loading more user posts: $e');
+      if (!mounted) return;
+      _safeSetState(() => _isLoadingMorePosts = false);
     }
   }
 
@@ -182,9 +218,7 @@ class ProfileScreenState extends State<ProfileScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              '${lang.translate('error_generic')}: ${e.toString()}',
-            ),
+            content: Text(getFriendlyErrorMessage(e, lang)),
           ),
         );
       }
@@ -207,9 +241,7 @@ class ProfileScreenState extends State<ProfileScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              '${lang.translate('error_generic')}: ${e.toString()}',
-            ),
+            content: Text(getFriendlyErrorMessage(e, lang)),
           ),
         );
       }
@@ -259,9 +291,7 @@ class ProfileScreenState extends State<ProfileScreen>
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                '${lang.translate('error_generic')}: ${e.toString()}',
-              ),
+              content: Text(getFriendlyErrorMessage(e, lang)),
             ),
           );
         }
@@ -283,9 +313,7 @@ class ProfileScreenState extends State<ProfileScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              '${lang.translate('error_generic')}: ${e.toString()}',
-            ),
+            content: Text(getFriendlyErrorMessage(e, lang)),
           ),
         );
       }
@@ -317,9 +345,7 @@ class ProfileScreenState extends State<ProfileScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              '${lang.translate('error_generic')}: ${e.toString()}',
-            ),
+            content: Text(getFriendlyErrorMessage(e, lang)),
           ),
         );
       }
@@ -634,6 +660,45 @@ class ProfileScreenState extends State<ProfileScreen>
       );
     }
 
+    if (_profile == null) {
+      final theme = Theme.of(context);
+      final lang = LanguageService.instance;
+      final subtitleColor = theme.textTheme.bodyMedium?.color;
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(
+          title: Text(
+            lang.translate('profile_title'),
+            style: TextStyle(color: theme.textTheme.titleLarge?.color),
+          ),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.wifi_off_outlined,
+                  size: 64, color: subtitleColor ?? Colors.grey),
+              const SizedBox(height: 16),
+              Text(
+                'Impossible de charger le profil',
+                style: TextStyle(color: subtitleColor, fontSize: 16),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _loadProfile,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Réessayer'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFBE1E1E),
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final theme = Theme.of(context);
     final lang = LanguageService.instance;
     final isDark = theme.brightness == Brightness.dark;
@@ -666,6 +731,7 @@ class ProfileScreenState extends State<ProfileScreen>
         ],
       ),
       body: ListView(
+        controller: _scrollController,
         children: [
           // En-tête (unchanged until stats)
           Container(
@@ -810,14 +876,84 @@ class ProfileScreenState extends State<ProfileScreen>
                   ),
                 const SizedBox(height: 12),
                 _buildSocialRow(),
-                if (_profile?['email'] != null &&
-                    _profile!['email'].isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    _profile!['email'],
-                    style: TextStyle(color: subtitleColor, fontSize: 14),
-                  ),
-                ],
+                () {
+                  final rawHandle = _profile?['fediverse_handle']?.toString();
+                  var fediverseHandle = (rawHandle != null && rawHandle.isNotEmpty)
+                      ? rawHandle
+                      : (_profile?['username'] != null
+                          ? '@${_profile!['username']}@militant.revlibertaire.com'
+                          : null);
+                  if (fediverseHandle == null || fediverseHandle.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  fediverseHandle = fediverseHandle
+                      .replaceAll('@api.militant.revlibertaire.com', '@militant.revlibertaire.com')
+                      .replaceAll('@api@militant.revlibertaire.com', '@militant.revlibertaire.com')
+                      .replaceAll('@api.', '@')
+                      .replaceAll('@api@', '@');
+                  if (!fediverseHandle.startsWith('@')) {
+                    fediverseHandle = '@$fediverseHandle';
+                  }
+                  final cleanHandle = fediverseHandle;
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: InkWell(
+                      onTap: () {
+                        Clipboard.setData(ClipboardData(text: cleanHandle));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(lang.translate('fediverse_copied')),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.brightness == Brightness.dark
+                              ? Colors.white.withValues(alpha: 0.06)
+                              : Colors.black.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: theme.dividerColor.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.alternate_email,
+                              size: 14,
+                              color: Color(0xFFBE1E1E),
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                cleanHandle,
+                                style: TextStyle(
+                                  color: subtitleColor,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Icon(
+                              Icons.copy,
+                              size: 12,
+                              color: subtitleColor?.withValues(alpha: 0.7),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }(),
                 if (_profile?['bio'] != null &&
                     _profile!['bio'].isNotEmpty) ...[
                   const SizedBox(height: 16),
@@ -1154,6 +1290,41 @@ class ProfileScreenState extends State<ProfileScreen>
                     child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
                   ),
                 )
+              else if (_hasPostsError && _posts.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.wifi_off_outlined,
+                            color: subtitleColor, size: 36),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Impossible de charger les publications',
+                          style: TextStyle(color: subtitleColor),
+                        ),
+                        const SizedBox(height: 12),
+                        TextButton.icon(
+                          onPressed: () {
+                            final uid = widget.userId ??
+                                _profile?['id'] ??
+                                _profile?['user_id'];
+                            if (uid != null) {
+                              _loadUserPosts(uid);
+                            }
+                          },
+                          icon: const Icon(Icons.refresh,
+                              size: 18, color: Color(0xFFBE1E1E)),
+                          label: const Text(
+                            'Réessayer',
+                            style: TextStyle(color: Color(0xFFBE1E1E)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
               else if (_posts.isEmpty)
                 Padding(
                   padding: const EdgeInsets.all(32),
@@ -1164,7 +1335,7 @@ class ProfileScreenState extends State<ProfileScreen>
                     ),
                   ),
                 )
-              else
+              else ...[
                 ...List.generate(_posts.length, (index) {
                   return PostCard(
                     post: _posts[index],
@@ -1173,6 +1344,21 @@ class ProfileScreenState extends State<ProfileScreen>
                     },
                   );
                 }),
+                if (_isLoadingMorePosts)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    child: Center(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Color(0xFFBE1E1E),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ] else ...[
               // Médias content
               if (_isLoadingPosts)
@@ -1194,6 +1380,7 @@ class ProfileScreenState extends State<ProfileScreen>
   @override
   void dispose() {
     _tabController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -1370,9 +1557,7 @@ class ProfileScreenState extends State<ProfileScreen>
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(
-                        '${lang.translate('error_generic')}: ${e.toString()}',
-                      ),
+                      content: Text(getFriendlyErrorMessage(e, lang)),
                     ),
                   );
                 }

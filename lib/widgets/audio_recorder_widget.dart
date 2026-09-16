@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
+import '../utils/error_helper.dart';
 
 class AudioRecorderWidget extends StatefulWidget {
   final Function(File audioFile) onRecordingComplete;
@@ -61,7 +62,7 @@ class _AudioRecorderWidgetState extends State<AudioRecorderWidget> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
         widget.onCancel();
       }
     }
@@ -92,7 +93,7 @@ class _AudioRecorderWidgetState extends State<AudioRecorderWidget> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
       }
     }
   }

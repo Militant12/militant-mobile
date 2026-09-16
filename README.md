@@ -31,8 +31,27 @@
 
 Militant est un réseau social décentralisé conçu pour les mouvements militants et les organisations politiques. Cette application mobile permet de se connecter à n'importe quelle instance Militant auto-hébergée.
 
-Version actuelle : **1.0.8+123**
+Version actuelle : **1.0.9+133**
 
+
+## Nouveautés 1.0.9
+
+- **Fediverse & Profil** :
+  - Remplacement de l'adresse email sur le profil par l'identifiant Fediverse complet (ex: `@pseudo@militant.revlibertaire.com`).
+  - Clic rapide sur le handle Fediverse pour le copier directement dans le presse-papier avec confirmation.
+  - Corrections et améliorations sur l'écran Fediverse et la navigation des profils décentralisés.
+  - Ajout du défilement infini fluide (pagination automatique) pour les publications sur les profils.
+- **Notifications & Messagerie** :
+  - Redirection et ouverture automatique de la conversation (`ChatScreen` et `GroupChatScreen`) lors du clic sur une notification push de message privé ou groupe.
+  - Résolution dynamique de l'avatar et du pseudo de l'interlocuteur dans la barre de titre du chat.
+  - Décodage JSON sécurisé et résilient dans le client API pour éviter les erreurs de réception serveur.
+- **Appels vocaux & vidéo (WebRTC)** :
+  - Support complet des appels longue durée : prolongation du relais TURN à 24h sans coupure.
+  - Optimisation du chargement et du redimensionnement des avatars d'appel entrant avec Coil 2.7.0 (économie de mémoire RAM).
+- **Conformité & Performances Android 15** :
+  - Prise en charge native du bord-à-bord Android 15 (`Edge-to-Edge`) et nettoyage des API système dépréciées.
+  - Optimisations R8 (fullMode) et réduction de taille des ressources (`resource shrinking`).
+  - Version applicative synchronisée sur `1.0.9` (code de version 133).
 
 ## Nouveautés 1.0.8
 
@@ -280,9 +299,9 @@ flutter build apk --release
 # Générer un App Bundle (recommandé pour Play Store)
 flutter build appbundle --release
 
-# Sorties 1.0.8 générées localement
+# Sorties 1.0.9 générées localement
 build/app/outputs/flutter-apk/app-release.apk
-build/app/outputs/bundle/release/militant-1.0.8-playstore.aab
+build/app/outputs/bundle/release/militant-1.0.9-playstore.aab
 ```
 
 ## Performance & Scalabilité

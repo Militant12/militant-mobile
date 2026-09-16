@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../widgets/militant_badge.dart';
+import '../utils/error_helper.dart';
 
 class BadgeSelectionScreen extends StatefulWidget {
   const BadgeSelectionScreen({super.key});
@@ -89,7 +90,7 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${lang.translate('error_generic')}: ${e.toString()}',
+              getFriendlyErrorMessage(e, lang),
             ),
           ),
         );
@@ -122,7 +123,7 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${lang.translate('error_generic')}: ${e.toString()}',
+              getFriendlyErrorMessage(e, lang),
             ),
           ),
         );

@@ -13,6 +13,7 @@ import 'services/api_service.dart';
 import 'services/incoming_call_service.dart';
 import 'services/message_notification_service.dart';
 import 'services/notification_reply_service.dart';
+import 'services/message_navigation_service.dart';
 import 'services/user_status_service.dart';
 import 'widgets/incoming_call_banner.dart';
 
@@ -23,15 +24,13 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Edge-to-Edge System UI Mode for Android 15+ (API 35+)
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      systemNavigationBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
       systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
   // Initialize OneSignal Debugging only on supported platforms
   if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
@@ -228,6 +227,7 @@ class _SplashScreenState extends State<SplashScreen>
         );
         WidgetsBinding.instance.addPostFrameCallback((_) {
           IncomingCallService.instance.flushPendingAndroidIncomingIntent();
+          MessageNavigationService.instance.flushPendingNotification();
         });
       } else {
         print(

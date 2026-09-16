@@ -7,6 +7,7 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../utils/fediverse_text.dart';
 import '../widgets/fediverse_post_card.dart';
+import '../utils/error_helper.dart';
 
 class FediverseProfileScreen extends StatefulWidget {
   final String initialQuery;
@@ -129,7 +130,7 @@ class _FediverseProfileScreenState extends State<FediverseProfileScreen> {
       if (!mounted) return;
       setState(() => _isTogglingFollow = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+        SnackBar(content: Text(getFriendlyErrorMessage(e))),
       );
     }
   }
@@ -267,8 +268,13 @@ class _FediverseProfileScreenState extends State<FediverseProfileScreen> {
     final avatarUrl = (profile['avatar'] ?? '').toString();
     final displayName = (profile['display_name'] ?? profile['username'] ?? '')
         .toString();
-    final handle = (profile['handle'] ?? '@${profile['username'] ?? ''}')
+    var handle = (profile['handle'] ?? '@${profile['username'] ?? ''}')
         .toString();
+    handle = handle
+        .replaceAll('@api.militant.revlibertaire.com', '@militant.revlibertaire.com')
+        .replaceAll('@api@militant.revlibertaire.com', '@militant.revlibertaire.com')
+        .replaceAll('@api.', '@')
+        .replaceAll('@api@', '@');
     final summary = fediverseHtmlToText(profile['summary']?.toString());
     final isFollowing = _isFollowing(profile);
 

@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import 'profile_screen.dart';
+import '../utils/error_helper.dart';
 
 class GroupInviteScreen extends StatefulWidget {
   final int groupId;
@@ -80,7 +81,7 @@ class _GroupInviteScreenState extends State<GroupInviteScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(e.toString())));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
       }
     }
   }

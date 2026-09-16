@@ -10,6 +10,7 @@ import 'linkable_text.dart';
 import 'militant_badge.dart';
 import 'technician_badge.dart';
 import 'package:share_plus/share_plus.dart';
+import '../utils/error_helper.dart';
 
 class PostCard extends StatefulWidget {
   final Post post;
@@ -936,7 +937,7 @@ class _PostCardState extends State<PostCard> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
       }
     }
   }
@@ -957,7 +958,7 @@ class _PostCardState extends State<PostCard> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
       }
     }
   }
@@ -978,7 +979,7 @@ class _PostCardState extends State<PostCard> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
       }
     }
   }
@@ -1049,7 +1050,7 @@ class _PostCardState extends State<PostCard> {
       } catch (e) {
         if (mounted) {
           messenger.showSnackBar(
-            SnackBar(content: Text('Erreur: ${e.toString()}')),
+            SnackBar(content: Text(getFriendlyErrorMessage(e, lang))),
           );
         }
       }
@@ -1279,7 +1280,7 @@ class _PostCardState extends State<PostCard> {
       } catch (e) {
         if (mounted) {
           messenger.showSnackBar(
-            SnackBar(content: Text('Erreur: ${e.toString()}')),
+            SnackBar(content: Text(getFriendlyErrorMessage(e, lang))),
           );
         }
       }
@@ -1336,7 +1337,7 @@ class _PostCardState extends State<PostCard> {
       setState(() => _isTranslating = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur de traduction: ${e.toString()}')),
+          SnackBar(content: Text(getFriendlyErrorMessage(e))),
         );
       }
     }

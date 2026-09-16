@@ -4,6 +4,7 @@ import '../services/language_service.dart';
 import '../services/api_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'profile_screen.dart';
+import '../utils/error_helper.dart';
 
 class FriendsScreen extends StatefulWidget {
   final int? userId;
@@ -89,7 +90,7 @@ class _FriendsScreenState extends State<FriendsScreen>
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
       }
     }
   }

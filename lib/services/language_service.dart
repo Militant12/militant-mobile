@@ -124,6 +124,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'fediverse_unfollow': 'Ne plus suivre',
       'fediverse_error_load':
           'Impossible de charger les fonctionnalités Fediverse.',
+      'fediverse_copied': 'Adresse Fediverse copiée !',
       'open': 'Ouvrir',
       'profile': 'Profil',
       'groups_desc': 'Rejoignez la lutte locale et organisez-vous.',
@@ -368,7 +369,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'subtitle_notifications': 'Gérer les notifications',
       'subtitle_security': 'Changer de mot de passe',
       'subtitle_privacy': 'Paramètres de confidentialité',
-      'version': 'Version 1.0.8',
+      'version': 'Version 1.0.9',
 
       // Notifications Settings
       'notifications_push': 'Notifications push',
@@ -1091,6 +1092,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'fediverse_local_identity': 'Your Fediverse identity',
       'fediverse_unfollow': 'Unfollow',
       'fediverse_error_load': 'Unable to load Fediverse features.',
+      'fediverse_copied': 'Fediverse address copied!',
       'open': 'Open',
       'profile': 'Profile',
       'groups_desc': 'Join the local struggle and organize.',
@@ -1332,7 +1334,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'subtitle_notifications': 'Manage notifications',
       'subtitle_security': 'Change password',
       'subtitle_privacy': 'Privacy settings',
-      'version': 'Version 1.0.8',
+      'version': 'Version 1.0.9',
 
       // Notifications Settings
       'notifications_push': 'Push notifications',
@@ -2045,6 +2047,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'fediverse_unfollow': 'Dejar de seguir',
       'fediverse_error_load':
           'No se pudieron cargar las funciones del Fediverse.',
+      'fediverse_copied': '¡Dirección de Fediverse copiada!',
       'open': 'Abrir',
       'profile': 'Perfil',
       'groups_desc': 'Únete a la lucha local y organízate.',
@@ -2289,7 +2292,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'subtitle_notifications': 'Gestionar notificaciones',
       'subtitle_security': 'Cambiar contraseña',
       'subtitle_privacy': 'Configuración de privacidad',
-      'version': 'Versión 1.0.8',
+      'version': 'Versión 1.0.9',
 
       // Notifications Settings
       'notifications_push': 'Notificaciones push',

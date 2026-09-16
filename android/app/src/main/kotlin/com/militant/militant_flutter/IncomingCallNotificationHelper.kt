@@ -7,11 +7,14 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import java.net.HttpURLConnection
+import androidx.core.graphics.drawable.toBitmap
+import coil.ImageLoader
+import coil.request.ImageRequest
+import coil.request.SuccessResult
+import kotlinx.coroutines.runBlocking
 import java.net.URL
 
 object IncomingCallNotificationHelper {
@@ -129,7 +132,7 @@ object IncomingCallNotificationHelper {
         )
 
         Thread {
-            val avatarBitmap = loadBitmapFromUrl(resolveAvatarUrl(context, callerAvatar))
+            val avatarBitmap = loadAvatarBitmap(context, resolveAvatarUrl(context, callerAvatar))
             val notification = NotificationCompat.Builder(context, CALLS_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_stat_militant)
                 .setContentTitle(if (isGroupCall && !groupName.isNullOrBlank()) groupName else callerName)
@@ -216,18 +219,25 @@ object IncomingCallNotificationHelper {
         manager.createNotificationChannel(channel)
     }
 
-    private fun loadBitmapFromUrl(rawUrl: String?): Bitmap? {
+    private fun loadAvatarBitmap(context: Context, rawUrl: String?): Bitmap? {
         val url = rawUrl?.trim()
         if (url.isNullOrEmpty() || !url.startsWith("http")) return null
 
         return try {
-            val connection = URL(url).openConnection() as HttpURLConnection
-            connection.connectTimeout = 5000
-            connection.readTimeout = 5000
-            connection.instanceFollowRedirects = true
-            connection.doInput = true
-            connection.connect()
-            connection.inputStream.use { BitmapFactory.decodeStream(it) }
+            val imageLoader = ImageLoader.Builder(context)
+                .respectCacheHeaders(false)
+                .build()
+            val request = ImageRequest.Builder(context)
+                .data(url)
+                .size(192, 192)
+                .allowHardware(false)
+                .build()
+            val result = runBlocking { imageLoader.execute(request) }
+            if (result is SuccessResult) {
+                result.drawable.toBitmap(192, 192)
+            } else {
+                null
+            }
         } catch (_: Exception) {
             null
         }

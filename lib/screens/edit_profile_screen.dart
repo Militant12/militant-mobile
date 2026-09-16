@@ -3,6 +3,7 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import '../utils/error_helper.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -73,7 +74,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
+          SnackBar(content: Text(getFriendlyErrorMessage(e, lang))),
         );
       }
     }
@@ -132,7 +133,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${lang.translate('error_generic')}: ${e.toString()}')),
+          SnackBar(content: Text(getFriendlyErrorMessage(e, lang))),
         );
       }
     } finally {

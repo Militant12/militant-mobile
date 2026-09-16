@@ -6,6 +6,7 @@ import 'profile_screen.dart';
 import 'chat_screen.dart';
 import '../widgets/militant_badge.dart';
 import '../widgets/technician_badge.dart';
+import '../utils/error_helper.dart';
 
 class UsersListScreen extends StatefulWidget {
   final int? userId;
@@ -84,10 +85,11 @@ class _UsersListScreenState extends State<UsersListScreen> {
         }
       });
     } catch (e) {
-      if (mounted) {
+      debugPrint('Error loading users: $e');
+      if (mounted && _users.isEmpty) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
       }
     } finally {
       setState(() => _isLoading = false);
@@ -450,7 +452,7 @@ class _UsersListScreenState extends State<UsersListScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(e.toString())));
+            .showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e, lang))));
       }
     }
   }
@@ -517,7 +519,7 @@ class _UsersListScreenState extends State<UsersListScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(e.toString())));
+            .showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e, lang))));
       }
     }
   }
@@ -552,8 +554,8 @@ class _UsersListScreenState extends State<UsersListScreen> {
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(
-              lang.translate('remove_member'),
-              style: const TextStyle(color: Color(0xFFBE1E1E)),
+              lang.translate('delete'),
+              style: const TextStyle(color: Colors.red),
             ),
           ),
         ],
@@ -563,7 +565,7 @@ class _UsersListScreenState extends State<UsersListScreen> {
     try {
       _api ??= await ApiService.getInstance();
       await _api!.kickSocialGroupMember(groupId, memberId);
-      // Remove from local list
+      // Update local state
       setState(() {
         _users.removeWhere(
           (u) => (u['id'] is int ? u['id'] : int.tryParse(u['id']?.toString() ?? '')) == memberId,
@@ -583,7 +585,7 @@ class _UsersListScreenState extends State<UsersListScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(e.toString())));
+            .showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e, lang))));
       }
     }
   }

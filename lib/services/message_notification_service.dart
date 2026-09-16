@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'message_navigation_service.dart';
 
 const String _groupCallMessagePrefix = '__militant_group_call__:';
 
@@ -62,6 +63,35 @@ class MessageNotificationService {
       event.notification.display();
     });
 
+    // Écouter les événements depuis le canal natif Android
+    if (Platform.isAndroid) {
+      _channel.setMethodCallHandler((call) async {
+        if (call.method == 'messageNotificationClicked') {
+          final rawPayload = call.arguments;
+          if (rawPayload is Map) {
+            MessageNavigationService.instance.handlePayload(
+              Map<String, dynamic>.from(rawPayload),
+            );
+          }
+        }
+      });
+
+      // Vérifier si l'app a été démarrée à froid depuis un clic sur une notification native
+      try {
+        final initial =
+            await _channel.invokeMethod<Map>('getInitialMessageNotification');
+        if (initial != null) {
+          MessageNavigationService.instance.handlePayload(
+            Map<String, dynamic>.from(initial),
+          );
+        }
+      } catch (e) {
+        debugPrint(
+          'MessageNotificationService: Erreur getInitialMessageNotification: $e',
+        );
+      }
+    }
+
     _isInitialized = true;
   }
 
@@ -81,13 +111,21 @@ class MessageNotificationService {
       final senderId = int.tryParse(data['sender_id']?.toString() ?? '') ?? -1;
       final groupId = int.tryParse(data['group_id']?.toString() ?? '') ?? -1;
 
+      final convName = data['username']?.toString() ??
+          data['sender_name']?.toString() ??
+          data['group_name']?.toString() ??
+          (title.isNotEmpty && !title.contains('Nouveau message') ? title : null) ??
+          (isGroup ? 'Groupe' : 'Message');
+      final avatar = data['avatar']?.toString() ?? data['sender_avatar']?.toString();
+
       await _channel.invokeMethod('showReplyNotification', {
         'title': title,
         'body': body,
         'senderId': senderId,
         'groupId': groupId,
         'isGroup': isGroup,
-        'conversationName': title,
+        'conversationName': convName,
+        'avatar': avatar,
         'token': token,
         'baseUrl': baseUrl,
       });

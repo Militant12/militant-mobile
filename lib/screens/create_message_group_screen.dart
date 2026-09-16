@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../services/api_service.dart';
+import '../utils/error_helper.dart';
 
 class CreateMessageGroupScreen extends StatefulWidget {
   const CreateMessageGroupScreen({super.key});
@@ -66,7 +67,7 @@ class _CreateMessageGroupScreenState extends State<CreateMessageGroupScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
+          SnackBar(content: Text(getFriendlyErrorMessage(e))),
         );
       }
     } finally {

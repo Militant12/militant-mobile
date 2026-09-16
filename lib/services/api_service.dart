@@ -87,6 +87,26 @@ class ApiService {
     if (token != null) 'Authorization': 'Bearer $token',
   };
 
+  /// Décode proprement le JSON même si le serveur a émis des avertissements PHP ou du HTML
+  static dynamic safeJsonDecode(String body) {
+    try {
+      return jsonDecode(body);
+    } catch (_) {
+      final trimmed = body.trim();
+      final startObj = trimmed.indexOf('{');
+      final endObj = trimmed.lastIndexOf('}');
+      if (startObj != -1 && endObj != -1 && endObj > startObj) {
+        return jsonDecode(trimmed.substring(startObj, endObj + 1));
+      }
+      final startArr = trimmed.indexOf('[');
+      final endArr = trimmed.lastIndexOf(']');
+      if (startArr != -1 && endArr != -1 && endArr > startArr) {
+        return jsonDecode(trimmed.substring(startArr, endArr + 1));
+      }
+      rethrow;
+    }
+  }
+
   // Generic POST helper
   Future<Map<String, dynamic>> post(
     String endpoint,
@@ -99,10 +119,14 @@ class ApiService {
     );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      return jsonDecode(response.body);
+      final decoded = safeJsonDecode(response.body);
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
+      }
+      return {'data': decoded};
     } else {
       try {
-        final error = jsonDecode(response.body);
+        final error = safeJsonDecode(response.body);
         throw Exception(
           error['message'] ??
               error['error'] ??

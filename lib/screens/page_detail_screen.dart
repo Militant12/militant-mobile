@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../widgets/linkable_text.dart';
 import '../widgets/video_player_widget.dart';
 import '../widgets/file_video_player.dart';
+import '../utils/error_helper.dart';
 
 class PageDetailScreen extends StatefulWidget {
   final dynamic page;
@@ -1714,7 +1715,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                         if (mounted) {
                           ScaffoldMessenger.of(
                             context,
-                          ).showSnackBar(SnackBar(content: Text(e.toString())));
+                          ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
                         }
                       }
                     }
@@ -1875,7 +1876,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                           } catch (e) {
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(e.toString())),
+                                SnackBar(content: Text(getFriendlyErrorMessage(e))),
                               );
                             }
                           }
@@ -1954,7 +1955,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text(e.toString())));
+          ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
         }
       }
     }

@@ -6,6 +6,7 @@ import 'profile_screen.dart';
 import 'community_screen.dart';
 import '../services/language_service.dart';
 import '../services/deep_link_service.dart';
+import '../services/message_navigation_service.dart';
 import '../widgets/incoming_call_banner.dart';
 import '../services/api_service.dart';
 import 'banned_screen.dart';
@@ -30,9 +31,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _initScreens();
     _checkBanStatus();
-    // Initialize deep link handling after first frame
+    // Initialize deep link handling and flush pending message notifications after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       DeepLinkService().initialize();
+      MessageNavigationService.instance.flushPendingNotification();
     });
   }
 

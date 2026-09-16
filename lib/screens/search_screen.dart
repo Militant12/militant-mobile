@@ -8,6 +8,7 @@ import '../widgets/linkable_text.dart';
 import '../widgets/militant_badge.dart';
 import '../widgets/technician_badge.dart';
 import 'chat_screen.dart';
+import '../utils/error_helper.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -46,7 +47,7 @@ class _SearchScreenState extends State<SearchScreen> {
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: ${e.toString()}')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e, lang))));
       }
     } finally {
       setState(() => _isLoading = false);

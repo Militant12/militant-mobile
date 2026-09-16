@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'api_service.dart';
+import 'message_navigation_service.dart';
 
 const String _groupCallMessagePrefix = '__militant_group_call__:';
 
@@ -39,9 +40,11 @@ class NotificationReplyService {
       return;
     }
 
-    // On laisse la navigation normale faire son travail
-    // La réponse rapide est gérée via l'action Android inline reply
-    // (voir _handleInlineReply)
+    MessageNavigationService.instance.handlePayload(
+      data,
+      notificationTitle: event.notification.title,
+      notificationBody: event.notification.body,
+    );
   }
 
   /// Gérer une réponse rapide inline depuis la notification

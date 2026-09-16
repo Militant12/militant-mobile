@@ -17,6 +17,7 @@ import 'call_screen.dart';
 import '../widgets/linkable_text.dart';
 import '../widgets/incoming_call_banner.dart';
 import '../widgets/signal_typing_indicator.dart';
+import '../utils/error_helper.dart';
 
 const Duration _privateChatPollInterval = Duration(seconds: 10);
 const Duration _privateTypingPollInterval = Duration(seconds: 6);
@@ -57,12 +58,17 @@ class _ChatScreenState extends State<ChatScreen> {
   List<Map<String, dynamic>> _typingUsers = [];
   int _autoDeleteTime = 0;
   Map<String, dynamic>? _replyingTo;
+  late String _contactUsername;
+  String? _contactAvatar;
 
   @override
   void initState() {
     super.initState();
+    _contactUsername = widget.username;
+    _contactAvatar = widget.avatar;
     _messageController.addListener(_handleMessageChanged);
     _loadConversationDetails();
+    _loadContactProfile();
     _loadMessages(showLoader: true);
     _startPolling();
     _loadPreferences();
@@ -77,14 +83,52 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  Future<void> _loadContactProfile() async {
+    try {
+      _api ??= await ApiService.getInstance();
+      final profile = await _api!.getProfile(userId: widget.userId);
+      if (!mounted) return;
+      final serverUsername = (profile['username'] ?? '').toString().trim();
+      final serverAvatar = profile['avatar']?.toString().trim();
+
+      setState(() {
+        if (serverUsername.isNotEmpty &&
+            (_contactUsername.isEmpty ||
+             _contactUsername.startsWith('Utilisateur #') ||
+             _contactUsername == 'TestUserColdStart' ||
+             _contactUsername != serverUsername)) {
+          _contactUsername = serverUsername;
+        }
+        if (serverAvatar != null && serverAvatar.isNotEmpty) {
+          _contactAvatar = serverAvatar;
+        }
+      });
+    } catch (_) {
+      // Non bloquant: conservation des valeurs initiales si profil inaccessible
+    }
+  }
+
   Future<void> _loadConversationDetails() async {
     try {
       _api ??= await ApiService.getInstance();
       final details = await _api!.getPrivateConversationDetails(widget.userId);
       if (!mounted) return;
+      final serverUsername = (details['username'] ?? '').toString().trim();
+      final serverAvatar = details['avatar']?.toString().trim();
+
       setState(() {
         _autoDeleteTime =
             int.tryParse('${details['auto_delete_time'] ?? 0}') ?? 0;
+        if (serverUsername.isNotEmpty &&
+            (_contactUsername.isEmpty ||
+             _contactUsername.startsWith('Utilisateur #') ||
+             _contactUsername == 'TestUserColdStart' ||
+             _contactUsername != serverUsername)) {
+          _contactUsername = serverUsername;
+        }
+        if (serverAvatar != null && serverAvatar.isNotEmpty) {
+          _contactAvatar = serverAvatar;
+        }
       });
     } catch (_) {
       // Non bloquant: l'option reste masquée si l'API ne répond pas.
@@ -125,7 +169,7 @@ class _ChatScreenState extends State<ChatScreen> {
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${lang.translate('error')}: ${e.toString()}'),
+            content: Text(getFriendlyErrorMessage(e, lang)),
           ),
         );
       }
@@ -283,7 +327,7 @@ class _ChatScreenState extends State<ChatScreen> {
           final lang = LanguageService.instance;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('${lang.translate('error_upload')}: ${e.toString()}'),
+              content: Text(getFriendlyErrorMessage(e, lang)),
             ),
           );
         }
@@ -348,6 +392,20 @@ class _ChatScreenState extends State<ChatScreen> {
         return !content.startsWith('__militant_wallpaper__:');
       }).toList();
 
+      // Extraire nom et avatar de l'interlocuteur depuis les messages reçus si non résolus
+      String? foundUsername;
+      String? foundAvatar;
+      for (final msg in messages) {
+        final senderId = int.tryParse(msg['sender_id']?.toString() ?? '');
+        if (senderId == widget.userId) {
+          final u = msg['sender_username']?.toString().trim();
+          final a = msg['sender_avatar']?.toString().trim();
+          if (u != null && u.isNotEmpty) foundUsername ??= u;
+          if (a != null && a.isNotEmpty) foundAvatar ??= a;
+          if (foundUsername != null && foundAvatar != null) break;
+        }
+      }
+
       if (!mounted) return;
       setState(() {
         _messages.clear();
@@ -355,13 +413,22 @@ class _ChatScreenState extends State<ChatScreen> {
           filteredMessages,
         ); // API returns newest first, correct for ListView(reverse:true)
         _typingUsers = typingUsers;
+        if (foundUsername != null &&
+            (_contactUsername.isEmpty ||
+             _contactUsername.startsWith('Utilisateur #') ||
+             _contactUsername == 'TestUserColdStart')) {
+          _contactUsername = foundUsername;
+        }
+        if (foundAvatar != null && (_contactAvatar == null || _contactAvatar!.isEmpty)) {
+          _contactAvatar = foundAvatar;
+        }
       });
     } catch (e) {
       if (mounted && showLoader) {
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${lang.translate('error')}: ${e.toString()}'),
+            content: Text(getFriendlyErrorMessage(e, lang)),
           ),
         );
       }
@@ -388,7 +455,7 @@ class _ChatScreenState extends State<ChatScreen> {
       'created_at': DateTime.now().toIso8601String(),
       if (_replyingTo != null) 'parent_id': _replyingTo!['id'],
       if (_replyingTo != null)
-        'parent_sender_username': _replyingTo!['sender_username'] ?? widget.username,
+        'parent_sender_username': _replyingTo!['sender_username'] ?? _contactUsername,
       if (_replyingTo != null) 'parent_content': _replyingTo!['content'] ?? '',
     };
 
@@ -423,7 +490,7 @@ class _ChatScreenState extends State<ChatScreen> {
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${lang.translate('error')}: ${e.toString()}'),
+            content: Text(getFriendlyErrorMessage(e, lang)),
           ),
         );
       }
@@ -488,7 +555,7 @@ class _ChatScreenState extends State<ChatScreen> {
   String? _buildTypingText() {
     if (_typingUsers.isEmpty) return null;
     final lang = LanguageService.instance;
-    final username = (_typingUsers.first['username'] ?? widget.username)
+    final username = (_typingUsers.first['username'] ?? _contactUsername)
         .toString()
         .trim();
     if (username.isEmpty) {
@@ -597,7 +664,7 @@ class _ChatScreenState extends State<ChatScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+      ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
     }
   }
 
@@ -659,7 +726,7 @@ class _ChatScreenState extends State<ChatScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                widget.username,
+                _contactUsername,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(color: theme.textTheme.titleLarge?.color),
@@ -677,8 +744,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 MaterialPageRoute(
                   builder: (_) => CallScreen(
                     recipientId: widget.userId,
-                    recipientName: widget.username,
-                    recipientAvatar: _api?.getImageUrl(widget.avatar),
+                    recipientName: _contactUsername,
+                    recipientAvatar: _api?.getImageUrl(_contactAvatar),
                     isVideo: false,
                     isIncoming: false,
                   ),
@@ -699,8 +766,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 MaterialPageRoute(
                   builder: (_) => CallScreen(
                     recipientId: widget.userId,
-                    recipientName: widget.username,
-                    recipientAvatar: _api?.getImageUrl(widget.avatar),
+                    recipientName: _contactUsername,
+                    recipientAvatar: _api?.getImageUrl(_contactAvatar),
                     isVideo: true,
                     isIncoming: false,
                   ),
@@ -807,7 +874,7 @@ class _ChatScreenState extends State<ChatScreen> {
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const CircleAvatar(radius: 16);
         final api = snapshot.data!;
-        final url = api.getImageUrl(widget.avatar);
+        final url = api.getImageUrl(_contactAvatar);
 
         if (url != null && url.endsWith('.svg')) {
           return ClipRRect(
@@ -828,8 +895,8 @@ class _ChatScreenState extends State<ChatScreen> {
             radius: 16,
             backgroundColor: const Color(0xFFBE1E1E),
             child: Text(
-              widget.username.isNotEmpty
-                  ? widget.username[0].toUpperCase()
+              _contactUsername.isNotEmpty
+                  ? _contactUsername[0].toUpperCase()
                   : '?',
               style: const TextStyle(color: Colors.white, fontSize: 14),
             ),
@@ -948,7 +1015,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       if (mounted) {
                         ScaffoldMessenger.of(
                           context,
-                        ).showSnackBar(SnackBar(content: Text(e.toString())));
+                        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
                       }
                     }
                   }
@@ -1004,7 +1071,7 @@ class _ChatScreenState extends State<ChatScreen> {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text(e.toString())));
+          ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
         }
       }
     }
@@ -1186,7 +1253,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        replyAuthor.isNotEmpty ? replyAuthor : widget.username,
+                        replyAuthor.isNotEmpty ? replyAuthor : _contactUsername,
                         style: TextStyle(
                           color: textColor.withValues(alpha: 0.85),
                           fontSize: 12,
@@ -1555,7 +1622,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         Text(
                           lang.translate('replying_to_message').replaceAll(
                             '{username}',
-                            (_replyingTo!['sender_username'] ?? widget.username).toString(),
+                            (_replyingTo!['sender_username'] ?? _contactUsername).toString(),
                           ),
                           style: TextStyle(
                             color: theme.textTheme.bodyMedium?.color,
@@ -1841,7 +1908,7 @@ class _ChatScreenState extends State<ChatScreen> {
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${lang.translate('error_upload')}: ${e.toString()}'),
+            content: Text(getFriendlyErrorMessage(e, lang)),
           ),
         );
       }

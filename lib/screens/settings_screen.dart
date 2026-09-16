@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import './badge_selection_screen.dart';
 import './two_factor_settings_screen.dart';
 import './edit_profile_screen.dart';
+import '../utils/error_helper.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -212,7 +213,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${lang.translate('error_generic')}: $e')),
+          SnackBar(content: Text(getFriendlyErrorMessage(e, lang))),
         );
       }
     }
@@ -379,7 +380,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showAboutDialog(
       context: context,
       applicationName: 'Militant',
-      applicationVersion: '1.0.8',
+      applicationVersion: '1.0.9',
       applicationIcon: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
@@ -521,7 +522,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           setState(() => isLoading = false);
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Erreur: ${e.toString()}'),
+                              content: Text(getFriendlyErrorMessage(e)),
                               backgroundColor: Colors.red,
                             ),
                           );
@@ -593,9 +594,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Erreur: ${e.toString().replaceAll("Exception: ", "")}',
-            ),
+            content: Text(getFriendlyErrorMessage(e)),
           ),
         );
       }
@@ -946,7 +945,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(getFriendlyErrorMessage(e)), backgroundColor: Colors.red),
         );
       }
     }

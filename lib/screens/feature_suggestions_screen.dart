@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/feature_suggestion.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
+import '../utils/error_helper.dart';
 
 class FeatureSuggestionsScreen extends StatefulWidget {
   const FeatureSuggestionsScreen({super.key});
@@ -51,7 +52,7 @@ class _FeatureSuggestionsScreenState extends State<FeatureSuggestionsScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
+      ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -124,7 +125,7 @@ class _FeatureSuggestionsScreenState extends State<FeatureSuggestionsScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
+      ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
     }
   }
 
@@ -413,7 +414,7 @@ class _FeatureSuggestionDetailScreenState
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
+      ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -434,7 +435,7 @@ class _FeatureSuggestionDetailScreenState
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
+      ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
     }
   }
 
@@ -458,7 +459,7 @@ class _FeatureSuggestionDetailScreenState
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
+      ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
     } finally {
       if (mounted) {
         setState(() => _isSubmittingComment = false);
@@ -1168,7 +1169,7 @@ class _CreateFeatureSuggestionDialogState
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
+      ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
     } finally {
       if (mounted) {
         setState(() => _isSaving = false);
@@ -1277,7 +1278,7 @@ class _SuggestionModerationDialogState
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
+      ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
     } finally {
       if (mounted) {
         setState(() => _isSaving = false);
@@ -1296,7 +1297,7 @@ class _SuggestionModerationDialogState
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
+      ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
     } finally {
       if (mounted) {
         setState(() => _isDeleting = false);

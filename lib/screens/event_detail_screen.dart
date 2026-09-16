@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
+import '../utils/error_helper.dart';
 
 class EventDetailScreen extends StatefulWidget {
   final int eventId;
@@ -38,7 +39,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('${lang.translate('error_loading')}: $e')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e, lang))));
       }
     }
   }
@@ -63,7 +64,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('${lang.translate('error_loading')}: $e')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e, lang))));
       }
     } finally {
       if (mounted) setState(() => _isJoining = false);

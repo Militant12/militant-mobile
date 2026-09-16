@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
+import '../utils/error_helper.dart';
 
 class GroupJoinRequestsScreen extends StatefulWidget {
   final int groupId;
@@ -55,7 +56,7 @@ class _GroupJoinRequestsScreenState extends State<GroupJoinRequestsScreen> {
         setState(() => _isLoading = false);
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${lang.translate('error_generic')}: $e')),
+          SnackBar(content: Text(getFriendlyErrorMessage(e, lang))),
         );
       }
     }
@@ -76,7 +77,7 @@ class _GroupJoinRequestsScreenState extends State<GroupJoinRequestsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${lang.translate('error_generic')}: $e')),
+          SnackBar(content: Text(getFriendlyErrorMessage(e, lang))),
         );
       }
     }
@@ -97,7 +98,7 @@ class _GroupJoinRequestsScreenState extends State<GroupJoinRequestsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${lang.translate('error_generic')}: $e')),
+          SnackBar(content: Text(getFriendlyErrorMessage(e, lang))),
         );
       }
     }

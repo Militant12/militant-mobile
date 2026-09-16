@@ -9,6 +9,7 @@ import '../widgets/post_card.dart';
 import '../widgets/militant_badge.dart';
 import '../widgets/technician_badge.dart';
 import '../widgets/linkable_text.dart';
+import '../utils/error_helper.dart';
 
 class PostDetailScreen extends StatefulWidget {
   final Post? post;
@@ -209,7 +210,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
       }
     } finally {
       if (mounted) {
@@ -633,7 +634,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('${lang.translate('error')}: ${e.toString()}'),
+              content: Text(getFriendlyErrorMessage(e, lang)),
             ),
           );
         }
@@ -680,7 +681,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('${lang.translate('error')}: ${e.toString()}'),
+              content: Text(getFriendlyErrorMessage(e, lang)),
             ),
           );
         }

@@ -3,6 +3,7 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import 'create_event_screen.dart';
 import 'event_detail_screen.dart';
+import '../utils/error_helper.dart';
 
 class EventsScreen extends StatefulWidget {
   const EventsScreen({super.key});
@@ -31,10 +32,11 @@ class _EventsScreenState extends State<EventsScreen> {
         _events.addAll(events);
       });
     } catch (e) {
-      if (mounted) {
+      debugPrint('Error loading events: $e');
+      if (mounted && _events.isEmpty) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e, LanguageService.instance))));
       }
     } finally {
       setState(() => _isLoading = false);
@@ -291,7 +293,7 @@ class _EventsScreenState extends State<EventsScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('${lang.translate('error')}: ${e.toString()}'),
+              content: Text(getFriendlyErrorMessage(e, lang)),
             ),
           );
         }

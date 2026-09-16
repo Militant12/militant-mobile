@@ -8,6 +8,7 @@ import 'post_detail_screen.dart';
 import 'group_detail_screen.dart';
 import '../models/post.dart';
 import '../utils/date_formatter.dart';
+import '../utils/error_helper.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -40,7 +41,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: ${e.toString()}')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e, lang))));
       }
     } finally {
       setState(() => _isLoading = false);
@@ -175,7 +176,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         context,
         MaterialPageRoute(
           builder: (_) =>
-              ChatScreen(userId: notif['from_user_id'], username: username),
+              ChatScreen(
+                userId: notif['from_user_id'],
+                username: username,
+                avatar: notif['from_avatar'] ?? notif['avatar'],
+              ),
         ),
       );
       return;
