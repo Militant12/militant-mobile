@@ -1,0 +1,76 @@
+stages:
+  - mirror
+  - release
+
+variables:
+  GITHUB_REPO: "Militant12/militant-mobile"
+  GITHUB_APK_NAME: "militant-${CI_COMMIT_TAG}.apk"
+
+# ─────────────────────────────────────────────
+# 1. Mirror code vers GitHub (à chaque push)
+# ─────────────────────────────────────────────
+mirror-to-github:
+  stage: mirror
+  image: alpine/git
+  script:
+    - git config --global user.email "ci@militant.app"
+    - git config --global user.name "Militant CI"
+    - git remote add github "https://${GITHUB_TOKEN}@github.com/${GITHUB_REPO}.git" || true
+    - git push github HEAD:main --force
+    - git push github --tags --force
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_TAG
+
+# ─────────────────────────────────────────────
+# 2. Créer Release GitHub + Upload APK (sur tag uniquement)
+# ─────────────────────────────────────────────
+github-release:
+  stage: release
+  image: alpine:latest
+  needs: [mirror-to-github]
+  before_script:
+    - apk add --no-cache curl jq
+  script:
+    # Récupérer les notes de release depuis GitLab
+    - RELEASE_NOTES=$(git log -1 --format="%B" | tail -n +3 | head -20)
+
+    # Créer la release sur GitHub
+    - |
+      RESPONSE=$(curl -s -X POST \
+        -H "Authorization: token ${GITHUB_TOKEN}" \
+        -H "Content-Type: application/json" \
+        "https://api.github.com/repos/${GITHUB_REPO}/releases" \
+        -d "{
+          \"tag_name\": \"${CI_COMMIT_TAG}\",
+          \"name\": \"Release ${CI_COMMIT_TAG}\",
+          \"body\": \"Voir [GitLab Release](https://gitlab.com/militant1/militant-flutter/-/releases/${CI_COMMIT_TAG}) pour les notes complètes.\",
+          \"draft\": false,
+          \"prerelease\": false
+        }")
+      echo "$RESPONSE"
+      RELEASE_ID=$(echo "$RESPONSE" | jq -r '.id')
+      echo "GitHub Release ID: $RELEASE_ID"
+
+    # Télécharger l'APK depuis GitLab Generic Packages
+    - |
+      VERSION="${CI_COMMIT_TAG#v}"
+      APK_URL="https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/generic/militant/${VERSION}/militant-${VERSION}.apk"
+      echo "Downloading APK from: ${APK_URL}"
+      curl -L -o "militant-${VERSION}.apk" \
+        -H "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+        "${APK_URL}"
+      ls -lh "militant-${VERSION}.apk"
+
+    # Uploader l'APK sur la release GitHub
+    - |
+      VERSION="${CI_COMMIT_TAG#v}"
+      curl -s -X POST \
+        -H "Authorization: token ${GITHUB_TOKEN}" \
+        -H "Content-Type: application/vnd.android.package-archive" \
+        --data-binary @"militant-${VERSION}.apk" \
+        "https://uploads.github.com/repos/${GITHUB_REPO}/releases/${RELEASE_ID}/assets?name=militant-${VERSION}.apk"
+      echo "✅ APK uploaded to GitHub Release!"
+
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/
