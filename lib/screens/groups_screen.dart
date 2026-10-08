@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../theme/theme_context.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import 'group_detail_screen.dart';
+import '../utils/error_helper.dart';
+import '../widgets/common/common.dart';
 
 class GroupsScreen extends StatefulWidget {
   const GroupsScreen({super.key});
@@ -19,6 +22,7 @@ class _GroupsScreenState extends State<GroupsScreen>
   final List<dynamic> _discoverGroups = [];
   final Set<int> _joiningGroupIds = <int>{};
   bool _isLoading = false;
+  Object? _error;
   ApiService? _api;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
@@ -56,7 +60,9 @@ class _GroupsScreenState extends State<GroupsScreen>
       final discoverGroupsWithStatus = await _enrichDiscoverGroups(
         discoverGroups,
       );
+      if (!mounted) return;
       setState(() {
+        _error = null;
         _myGroups.clear();
         _myGroups.addAll(myGroups);
         _discoverGroups.clear();
@@ -64,18 +70,17 @@ class _GroupsScreenState extends State<GroupsScreen>
       });
     } catch (e) {
       debugPrint('[GroupsScreen] loadGroups error=$e');
-      if (mounted) {
+      if (!mounted) return;
+      if (_myGroups.isEmpty && _discoverGroups.isEmpty) {
+        setState(() => _error = e);
+      } else {
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${lang.translate('error_loading')}: ${e.toString()}',
-            ),
-          ),
+          SnackBar(content: Text(getFriendlyErrorMessage(e, lang))),
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -120,14 +125,13 @@ class _GroupsScreenState extends State<GroupsScreen>
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
         title: Text(
           lang.translate('join_private_group_title'),
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: context.colors.onSurface),
         ),
         content: Text(
           lang.translate('join_private_group_message'),
-          style: const TextStyle(color: Colors.white70),
+          style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7)),
         ),
         actions: [
           TextButton(
@@ -138,7 +142,7 @@ class _GroupsScreenState extends State<GroupsScreen>
             onPressed: () => Navigator.pop(context, true),
             child: Text(
               lang.translate('send_request'),
-              style: const TextStyle(color: Color(0xFFBE1E1E)),
+              style: TextStyle(color: context.colors.primary),
             ),
           ),
         ],
@@ -158,14 +162,13 @@ class _GroupsScreenState extends State<GroupsScreen>
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: const Color(0xFF1E1E1E),
           title: Row(
             children: [
-              const Icon(Icons.group_add, color: Color(0xFFBE1E1E)),
+              Icon(Icons.group_add, color: context.colors.primary),
               const SizedBox(width: 8),
               Text(
                 lang.translate('create_group_title'),
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: context.colors.onSurface),
               ),
             ],
           ),
@@ -175,12 +178,12 @@ class _GroupsScreenState extends State<GroupsScreen>
               children: [
                 TextField(
                   controller: nameController,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: context.colors.onSurface),
                   decoration: InputDecoration(
                     labelText: lang.translate('group_name_label'),
-                    labelStyle: const TextStyle(color: Colors.white54),
+                    labelStyle: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.54)),
                     filled: true,
-                    fillColor: const Color(0xFF2A2A2A),
+                    fillColor: context.colors.surfaceContainerHigh,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: BorderSide.none,
@@ -190,13 +193,13 @@ class _GroupsScreenState extends State<GroupsScreen>
                 const SizedBox(height: 12),
                 TextField(
                   controller: descController,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: context.colors.onSurface),
                   maxLines: 3,
                   decoration: InputDecoration(
                     labelText: lang.translate('group_description_label'),
-                    labelStyle: const TextStyle(color: Colors.white54),
+                    labelStyle: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.54)),
                     filled: true,
-                    fillColor: const Color(0xFF2A2A2A),
+                    fillColor: context.colors.surfaceContainerHigh,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: BorderSide.none,
@@ -207,14 +210,14 @@ class _GroupsScreenState extends State<GroupsScreen>
                 SwitchListTile(
                   title: Text(
                     lang.translate('group_private_label'),
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(color: context.colors.onSurface),
                   ),
                   subtitle: Text(
                     lang.translate('group_private_subtitle'),
-                    style: const TextStyle(color: Colors.white38, fontSize: 12),
+                    style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.38), fontSize: 12),
                   ),
                   value: isPrivate,
-                  activeThumbColor: const Color(0xFFBE1E1E),
+                  activeThumbColor: context.colors.primary,
                   onChanged: (val) => setDialogState(() => isPrivate = val),
                   contentPadding: EdgeInsets.zero,
                 ),
@@ -226,7 +229,7 @@ class _GroupsScreenState extends State<GroupsScreen>
               onPressed: () => Navigator.pop(context),
               child: Text(
                 lang.translate('cancel'),
-                style: const TextStyle(color: Colors.white54),
+                style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.54)),
               ),
             ),
             ElevatedButton(
@@ -269,17 +272,15 @@ class _GroupsScreenState extends State<GroupsScreen>
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(
-                          '${lang.translate('error')}: ${e.toString()}',
-                        ),
+                        content: Text(getFriendlyErrorMessage(e, lang)),
                       ),
                     );
                   }
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFBE1E1E),
-                foregroundColor: Colors.white,
+                backgroundColor: context.colors.primary,
+                foregroundColor: context.colors.onPrimary,
               ),
               child: Text(LanguageService.instance.translate('create')),
             ),
@@ -371,18 +372,16 @@ class _GroupsScreenState extends State<GroupsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
         title: Text(
           LanguageService.instance.translate('groups_title'),
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: context.colors.onSurface),
         ),
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: const Color(0xFFBE1E1E),
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white54,
+          indicatorColor: context.colors.primary,
+          labelColor: context.colors.onSurface,
+          unselectedLabelColor: context.colors.onSurface.withValues(alpha: 0.54),
           tabs: [
             Tab(
               child: Row(
@@ -409,10 +408,10 @@ class _GroupsScreenState extends State<GroupsScreen>
           ],
         ),
       ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-            )
+      body: _isLoading && _myGroups.isEmpty && _discoverGroups.isEmpty
+          ? const SkeletonList()
+          : _error != null && _myGroups.isEmpty && _discoverGroups.isEmpty
+          ? ErrorState(error: _error, onRetry: _loadGroups)
           : Column(
               children: [
                 _buildSearchBar(),
@@ -426,8 +425,10 @@ class _GroupsScreenState extends State<GroupsScreen>
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showCreateGroupDialog,
-        backgroundColor: const Color(0xFFBE1E1E),
-        child: const Icon(Icons.add, color: Colors.white),
+        backgroundColor: context.colors.primary,
+        foregroundColor: context.colors.onPrimary,
+        tooltip: LanguageService.instance.translate('create_group_title'),
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -468,38 +469,39 @@ class _GroupsScreenState extends State<GroupsScreen>
       child: Container(
         height: 48,
         decoration: BoxDecoration(
-          color: const Color(0xFF2A2A2A),
+          color: context.colors.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: Colors.white10,
+            color: context.colors.outlineVariant,
             width: 1,
           ),
         ),
         child: TextField(
           controller: _searchController,
           onChanged: _onSearchChanged,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: context.colors.onSurface,
             fontSize: 15,
           ),
           decoration: InputDecoration(
             hintText: _tabController.index == 0
                 ? lang.translate('search_my_groups')
                 : lang.translate('discover_groups_hint'),
-            hintStyle: const TextStyle(
-              color: Colors.white54,
+            hintStyle: TextStyle(
+              color: context.colors.onSurface.withValues(alpha: 0.54),
               fontSize: 14,
             ),
-            prefixIcon: const Icon(
+            prefixIcon: Icon(
               Icons.search,
-              color: Color(0xFFBE1E1E),
+              color: context.colors.primary,
               size: 20,
             ),
             suffixIcon: _searchQuery.isNotEmpty
                 ? IconButton(
-                    icon: const Icon(
+                    tooltip: lang.translate('clear'),
+                    icon: Icon(
                       Icons.clear,
-                      color: Colors.white54,
+                      color: context.colors.onSurface.withValues(alpha: 0.54),
                       size: 18,
                     ),
                     onPressed: () {
@@ -529,47 +531,31 @@ class _GroupsScreenState extends State<GroupsScreen>
     }).toList();
 
     if (filteredGroups.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.group_outlined,
-              size: 64,
-              color: Color(0xFF888888),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _searchQuery.isNotEmpty
-                  ? lang.translate('no_results')
-                  : lang.translate('no_groups_message'),
-              style: const TextStyle(color: Color(0xFF888888), fontSize: 16),
-            ),
-            if (_searchQuery.isEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                lang.translate('no_groups_subtitle'),
-                style: const TextStyle(color: Color(0xFF666666), fontSize: 14),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
+      return EmptyState(
+        icon: Icons.group_outlined,
+        title: _searchQuery.isNotEmpty
+            ? lang.translate('no_results')
+            : lang.translate('no_groups_message'),
+        message: _searchQuery.isEmpty
+            ? lang.translate('no_groups_subtitle')
+            : null,
+        action: _searchQuery.isEmpty
+            ? ElevatedButton.icon(
                 onPressed: () => _tabController.animateTo(1),
                 icon: const Icon(Icons.explore),
                 label: Text(lang.translate('discover_groups')),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFBE1E1E),
-                  foregroundColor: Colors.white,
+                  backgroundColor: context.colors.primary,
+                  foregroundColor: context.colors.onPrimary,
                 ),
-              ),
-            ],
-          ],
-        ),
+              )
+            : null,
       );
     }
 
     return RefreshIndicator(
       onRefresh: _loadGroups,
-      color: const Color(0xFFBE1E1E),
+      color: context.colors.primary,
       child: ListView.builder(
         padding: const EdgeInsets.only(top: 8),
         itemCount: filteredGroups.length,
@@ -590,33 +576,20 @@ class _GroupsScreenState extends State<GroupsScreen>
     }).toList();
 
     if (filteredGroups.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.search_off, size: 64, color: Color(0xFF888888)),
-            const SizedBox(height: 16),
-            Text(
-              _searchQuery.isNotEmpty
-                  ? lang.translate('no_results')
-                  : lang.translate('no_discover_groups'),
-              style: const TextStyle(color: Color(0xFF888888), fontSize: 16),
-            ),
-            if (_searchQuery.isEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                lang.translate('all_groups_joined'),
-                style: const TextStyle(color: Color(0xFF666666), fontSize: 14),
-              ),
-            ],
-          ],
-        ),
+      return EmptyState(
+        icon: Icons.search_off,
+        title: _searchQuery.isNotEmpty
+            ? lang.translate('no_results')
+            : lang.translate('no_discover_groups'),
+        message: _searchQuery.isEmpty
+            ? lang.translate('all_groups_joined')
+            : null,
       );
     }
 
     return RefreshIndicator(
       onRefresh: _loadGroups,
-      color: const Color(0xFFBE1E1E),
+      color: context.colors.primary,
       child: ListView.builder(
         padding: const EdgeInsets.only(top: 8),
         itemCount: filteredGroups.length,
@@ -651,8 +624,8 @@ class _GroupsScreenState extends State<GroupsScreen>
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: Colors.white10)),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: context.colors.outlineVariant)),
         ),
         child: Row(
           children: [
@@ -667,8 +640,8 @@ class _GroupsScreenState extends State<GroupsScreen>
                       Expanded(
                         child: Text(
                           name,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: context.colors.onSurface,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -683,22 +656,22 @@ class _GroupsScreenState extends State<GroupsScreen>
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white10,
+                            color: context.colors.outlineVariant,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.lock,
-                                color: Colors.white54,
+                                color: context.colors.onSurface.withValues(alpha: 0.54),
                                 size: 12,
                               ),
                               const SizedBox(width: 2),
                               Text(
                                 lang.translate('private'),
-                                style: const TextStyle(
-                                  color: Colors.white54,
+                                style: TextStyle(
+                                  color: context.colors.onSurface.withValues(alpha: 0.54),
                                   fontSize: 11,
                                 ),
                               ),
@@ -714,8 +687,8 @@ class _GroupsScreenState extends State<GroupsScreen>
                       maxLines: 2,
                       overflow: TextOverflow.clip,
                       softWrap: true,
-                      style: const TextStyle(
-                        color: Color(0xFF888888),
+                      style: TextStyle(
+                        color: context.tokens.textMuted,
                         fontSize: 14,
                       ),
                     ),
@@ -723,30 +696,30 @@ class _GroupsScreenState extends State<GroupsScreen>
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.people,
-                        color: Color(0xFF888888),
+                        color: context.tokens.textMuted,
                         size: 14,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         '$membersCount ${membersCount > 1 ? lang.translate('members') : lang.translate('member')}',
-                        style: const TextStyle(
-                          color: Color(0xFF888888),
+                        style: TextStyle(
+                          color: context.tokens.textMuted,
                           fontSize: 12,
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Icon(
+                      Icon(
                         Icons.article,
-                        color: Color(0xFF888888),
+                        color: context.tokens.textMuted,
                         size: 14,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         '$postsCount ${postsCount > 1 ? lang.translate('posts_count_plural') : lang.translate('posts_count')}',
-                        style: const TextStyle(
-                          color: Color(0xFF888888),
+                        style: TextStyle(
+                          color: context.tokens.textMuted,
                           fontSize: 12,
                         ),
                       ),
@@ -764,11 +737,11 @@ class _GroupsScreenState extends State<GroupsScreen>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: hasPendingRequest
                       ? Colors.orange
-                      : const Color(0xFFBE1E1E),
+                      : context.colors.primary,
                   disabledBackgroundColor: hasPendingRequest
                       ? Colors.orange
-                      : Colors.white24,
-                  foregroundColor: Colors.white,
+                      : context.colors.onSurface.withValues(alpha: 0.24),
+                  foregroundColor: context.colors.onPrimary,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 8,
@@ -794,44 +767,37 @@ class _GroupsScreenState extends State<GroupsScreen>
   }
 
   Widget _buildGroupAvatar(String? avatar) {
+    // Avatar de groupe carré arrondi (les personnes ont un avatar rond).
+    const size = 56.0;
     final url = _api?.getImageUrl(avatar);
+    final Widget logo = Container(
+      width: size,
+      height: size,
+      color: Colors.white,
+      padding: const EdgeInsets.all(8),
+      child: SvgPicture.asset('assets/logo.svg', fit: BoxFit.contain),
+    );
+    final Widget image;
     if (url != null && url.endsWith('.svg')) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: SvgPicture.network(
-          url,
-          width: 56,
-          height: 56,
-          fit: BoxFit.cover,
-          placeholderBuilder: (_) => Container(
-            width: 56,
-            height: 56,
-            padding: const EdgeInsets.all(16),
-            child: const CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
+      image = SvgPicture.network(
+        url,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        placeholderBuilder: (_) => const SkeletonBox(height: size, width: size),
       );
     } else if (url != null) {
-      return Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          image: DecorationImage(image: NetworkImage(url), fit: BoxFit.cover),
-        ),
+      image = Image.network(
+        url,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => logo,
       );
     } else {
       // Logo Militant par défaut pour les groupes sans image
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          width: 56,
-          height: 56,
-          color: Colors.white,
-          padding: const EdgeInsets.all(8),
-          child: SvgPicture.asset('assets/logo.svg', fit: BoxFit.contain),
-        ),
-      );
+      image = logo;
     }
+    return ClipRRect(borderRadius: BorderRadius.circular(8), child: image);
   }
 }

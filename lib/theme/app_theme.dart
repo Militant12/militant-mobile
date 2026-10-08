@@ -79,6 +79,14 @@ abstract final class AppTheme {
         iconTheme: IconThemeData(color: appBarForeground),
       ),
       progressIndicatorTheme: ProgressIndicatorThemeData(color: scheme.primary),
+      // Les écrans forçaient #1E1E1E pour les dialogues et feuilles du bas :
+      // on garde cette surface en sombre (blanc en clair) plutôt que les
+      // teintes Material 3 par défaut.
+      dialogTheme: DialogThemeData(backgroundColor: scheme.surface),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: scheme.surface,
+        modalBackgroundColor: scheme.surface,
+      ),
       extensions: [tokens],
     );
   }
