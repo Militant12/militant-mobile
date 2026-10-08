@@ -9,6 +9,7 @@ import 'screens/home_screen.dart';
 import 'screens/profile_screen.dart';
 
 import 'services/theme_manager.dart';
+import 'theme/app_theme.dart';
 import 'services/language_service.dart';
 import 'services/api_service.dart';
 import 'services/incoming_call_service.dart';
@@ -75,40 +76,8 @@ class MilitantApp extends StatelessWidget {
               title: 'Militant',
               locale: locale,
               themeMode: mode,
-              theme: ThemeData(
-                brightness: Brightness.light,
-                primaryColor: const Color(0xFFBE1E1E),
-                scaffoldBackgroundColor: Colors.white,
-                colorScheme: const ColorScheme.light(
-                  primary: Color(0xFFBE1E1E),
-                  secondary: Color(0xFFBE1E1E),
-                  surface: Colors.white,
-                ),
-                appBarTheme: const AppBarTheme(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.black,
-                  elevation: 0,
-                  iconTheme: IconThemeData(color: Colors.black),
-                ),
-                useMaterial3: true,
-              ),
-              darkTheme: ThemeData(
-                brightness: Brightness.dark,
-                primaryColor: const Color(0xFFBE1E1E),
-                scaffoldBackgroundColor: const Color(0xFF121212),
-                colorScheme: const ColorScheme.dark(
-                  primary: Color(0xFFBE1E1E),
-                  secondary: Color(0xFFBE1E1E),
-                  surface: Color(0xFF1E1E1E),
-                ),
-                appBarTheme: const AppBarTheme(
-                  backgroundColor: Color(0xFF1E1E1E),
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  iconTheme: IconThemeData(color: Colors.white),
-                ),
-                useMaterial3: true,
-              ),
+              theme: AppTheme.light(),
+              darkTheme: AppTheme.dark(),
               home: const SplashScreen(),
               onGenerateRoute: (settings) {
                 if (settings.name == '/profile') {
