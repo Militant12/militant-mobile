@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../widgets/common/common.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
@@ -160,9 +161,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
       return Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(title: Text(lang.translate('settings'))),
-        body: const Center(
-          child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-        ),
+        body: const AppLoader(),
       );
     }
 
@@ -478,20 +477,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                         );
                       }
                     },
-                    leading: CircleAvatar(
-                      backgroundColor: const Color(0xFFBE1E1E),
-                      backgroundImage: avatarUrl != null
-                          ? NetworkImage(avatarUrl)
-                          : null,
-                      child: avatarUrl == null
-                          ? ClipOval(
-                              child: SvgPicture.asset(
-                                'assets/logo.svg',
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                          : null,
-                    ),
+                    leading: AppAvatar(url: avatarUrl),
                     title: Text(
                       m['username'],
                       style: TextStyle(color: theme.textTheme.bodyLarge?.color),
@@ -568,20 +554,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                           );
                         }
                       },
-                      leading: CircleAvatar(
-                        backgroundColor: const Color(0xFFBE1E1E),
-                        backgroundImage: avatarUrl != null
-                            ? NetworkImage(avatarUrl)
-                            : null,
-                        child: avatarUrl == null
-                            ? ClipOval(
-                                child: SvgPicture.asset(
-                                  'assets/logo.svg',
-                                  fit: BoxFit.cover,
-                                ),
-                              )
-                            : null,
-                      ),
+                      leading: AppAvatar(url: avatarUrl),
                       title: Text(
                         r['username'],
                         style: TextStyle(
@@ -666,9 +639,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-      ),
+      builder: (context) => const AppLoader(),
     );
 
     try {
@@ -746,11 +717,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                       const SizedBox(height: 16),
                       Expanded(
                         child: isSearching
-                            ? const Center(
-                                child: CircularProgressIndicator(
-                                  color: Color(0xFFBE1E1E),
-                                ),
-                              )
+                            ? const AppLoader()
                             : displayUsers.isEmpty
                             ? Center(
                                 child: Text(
@@ -774,20 +741,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                                       );
 
                                   return ListTile(
-                                    leading: CircleAvatar(
-                                      backgroundColor: const Color(0xFFBE1E1E),
-                                      backgroundImage: avatarUrl != null
-                                          ? NetworkImage(avatarUrl)
-                                          : null,
-                                      child: avatarUrl == null
-                                          ? ClipOval(
-                                              child: SvgPicture.asset(
-                                                'assets/logo.svg',
-                                                fit: BoxFit.cover,
-                                              ),
-                                            )
-                                          : null,
-                                    ),
+                                    leading: AppAvatar(url: avatarUrl),
                                     title: Text(
                                       username,
                                       style: TextStyle(

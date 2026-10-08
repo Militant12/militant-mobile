@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import '../widgets/common/common.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:io';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
@@ -938,9 +938,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             ),
         ],
         body: _isLoading
-            ? const Center(
-                child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-              )
+            ? const AppLoader()
             : _tabController == null
             ? const SizedBox()
             : TabBarView(
@@ -1627,30 +1625,10 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             ),
             child: Row(
               children: [
-                CircleAvatar(
-                  backgroundImage:
-                      follower['avatar'] != null &&
-                          follower['avatar'] != 'default.svg' &&
-                          follower['avatar'].toString().isNotEmpty
-                      ? NetworkImage(
-                          _api?.getImageUrl(follower['avatar']) ?? '',
-                        )
-                      : null,
+                AppAvatar(
+                  url: _api?.getImageUrl(follower['avatar']),
+                  semanticLabel: follower['username']?.toString(),
                   radius: 22,
-                  backgroundColor: const Color(0xFF1E1E1E),
-                  child:
-                      (follower['avatar'] == null ||
-                          follower['avatar'] == 'default.svg' ||
-                          follower['avatar'].toString().isEmpty)
-                      ? ClipOval(
-                          child: SvgPicture.asset(
-                            'assets/logo.svg',
-                            width: 44,
-                            height: 44,
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                      : null,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -1770,16 +1748,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               ),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    backgroundImage: member['avatar'] != null
-                        ? NetworkImage(
-                            _api?.getImageUrl(member['avatar']) ?? '',
-                          )
-                        : null,
-                    radius: 20,
-                    child: member['avatar'] == null
-                        ? const Icon(Icons.person)
-                        : null,
+                  AppAvatar(
+                    url: _api?.getImageUrl(member['avatar']),
+                    name: member['username']?.toString(),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -2757,11 +2728,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
             // Comments list
             Expanded(
               child: _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        color: Color(0xFFBE1E1E),
-                      ),
-                    )
+                  ? const AppLoader()
                   : _comments.isEmpty
                   ? Center(
                       child: Text(
@@ -2809,24 +2776,12 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              CircleAvatar(
+                              AppAvatar(
+                                url: hasAvatar
+                                    ? widget.api.getImageUrl(avatarUrl)
+                                    : null,
+                                semanticLabel: comment['username']?.toString(),
                                 radius: 16,
-                                backgroundColor: const Color(0xFF1E1E1E),
-                                backgroundImage: hasAvatar
-                                    ? NetworkImage(
-                                        widget.api.getImageUrl(avatarUrl) ?? '',
-                                      )
-                                    : null,
-                                child: !hasAvatar
-                                    ? ClipOval(
-                                        child: SvgPicture.asset(
-                                          'assets/logo.svg',
-                                          width: 32,
-                                          height: 32,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      )
-                                    : null,
                               ),
                               const SizedBox(width: 8),
                               Expanded(

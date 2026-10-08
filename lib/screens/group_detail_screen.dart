@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../widgets/common/common.dart';
+import '../theme/theme_context.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
@@ -304,10 +306,9 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: const Color(0xFF1E1E1E),
           title: Text(
             lang.translate('group_settings_title'),
-            style: const TextStyle(color: Colors.white),
+            style: TextStyle(color: context.colors.onSurface),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -326,7 +327,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                   },
                   child: CircleAvatar(
                     radius: 40,
-                    backgroundColor: const Color(0xFF2A2A2A),
+                    backgroundColor: context.colors.surfaceContainerHigh,
                     backgroundImage: newAvatar != null
                         ? FileImage(newAvatar!) as ImageProvider
                         : null,
@@ -385,7 +386,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                     height: 100,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2A2A2A),
+                      color: context.colors.surfaceContainerHigh,
                       borderRadius: BorderRadius.circular(8),
                       image: newCover != null
                           ? DecorationImage(
@@ -408,11 +409,11 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.camera_alt, color: Colors.white70),
+                          Icon(Icons.camera_alt, color: context.colors.onSurface.withValues(alpha: 0.7)),
                           const SizedBox(height: 4),
                           Text(
                             lang.translate('change_cover'),
-                            style: const TextStyle(color: Colors.white70),
+                            style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7)),
                           ),
                         ],
                       ),
@@ -422,21 +423,21 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                 const SizedBox(height: 16),
                 TextField(
                   controller: nameController,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: context.colors.onSurface),
                   decoration: InputDecoration(
                     labelText: lang.translate('group_name'),
                     filled: true,
-                    fillColor: const Color(0xFF2A2A2A),
+                    fillColor: context.colors.surfaceContainerHigh,
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: descController,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: context.colors.onSurface),
                   decoration: InputDecoration(
                     labelText: lang.translate('description'),
                     filled: true,
-                    fillColor: const Color(0xFF2A2A2A),
+                    fillColor: context.colors.surfaceContainerHigh,
                   ),
                   maxLines: 3,
                 ),
@@ -444,11 +445,11 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                 SwitchListTile(
                   title: Text(
                     lang.translate('group_privacy'),
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(color: context.colors.onSurface),
                   ),
                   value: isPrivate,
                   onChanged: (val) => setDialogState(() => isPrivate = val),
-                  activeThumbColor: const Color(0xFFBE1E1E),
+                  activeThumbColor: context.colors.primary,
                 ),
               ],
             ),
@@ -458,7 +459,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
               onPressed: () => Navigator.pop(context),
               child: Text(
                 lang.translate('cancel'),
-                style: const TextStyle(color: Colors.white54),
+                style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.54)),
               ),
             ),
             ElevatedButton(
@@ -532,7 +533,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       backgroundColor: theme.scaffoldBackgroundColor,
       body: RefreshIndicator(
         onRefresh: () => _loadPosts(refresh: true),
-        color: const Color(0xFFBE1E1E),
+        color: context.colors.primary,
         child: CustomScrollView(
           slivers: [
             SliverAppBar(
@@ -808,13 +809,12 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
             if (canViewPosts)
               _posts.isEmpty
                   ? SliverFillRemaining(
-                      child: Center(
-                        child: _isLoading
-                            ? const CircularProgressIndicator(
-                                color: Color(0xFFBE1E1E),
-                              )
-                            : Text(lang.translate('no_posts_yet')),
-                      ),
+                      child: _isLoading
+                          ? const AppLoader()
+                          : EmptyState(
+                              icon: Icons.dynamic_feed_outlined,
+                              title: lang.translate('no_posts_yet'),
+                            ),
                     )
                   : SliverList(
                       delegate: SliverChildBuilderDelegate((context, index) {
@@ -822,11 +822,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                           if (_isLoading) {
                             return const Padding(
                               padding: EdgeInsets.all(16.0),
-                              child: Center(
-                                child: CircularProgressIndicator(
-                                  color: Color(0xFFBE1E1E),
-                                ),
-                              ),
+                              child: AppLoader(size: 28),
                             );
                           }
                           return const SizedBox(height: 80);
@@ -859,8 +855,10 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                   _loadPosts(refresh: true);
                 }
               },
-              backgroundColor: const Color(0xFFBE1E1E),
-              child: const Icon(Icons.add, color: Colors.white),
+              backgroundColor: context.colors.primary,
+              foregroundColor: context.colors.onPrimary,
+              tooltip: lang.translate('create_post_title'),
+              child: const Icon(Icons.add),
             )
           : null,
     );
@@ -984,17 +982,12 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
 
 
   Widget _buildMemberAvatar(dynamic member) {
-
-    if (member['avatar'] != null) {
-      final url = _api?.getImageUrl(member['avatar']);
-      if (url != null) {
-        if (url.endsWith('.svg')) {
-          return SvgPicture.network(url, fit: BoxFit.cover);
-        }
-        return Image.network(url, fit: BoxFit.cover);
-      }
-    }
-    return SvgPicture.asset('assets/logo.svg', fit: BoxFit.cover);
+    // 32 px moins le liseré de 2 px de chaque côté.
+    return AppAvatar(
+      url: _api?.getImageUrl(member['avatar']),
+      semanticLabel: member['username']?.toString(),
+      radius: 14,
+    );
   }
 
   Widget _buildHeaderBackground(String? avatar) {
