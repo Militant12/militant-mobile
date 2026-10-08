@@ -570,6 +570,9 @@ class LanguageService extends ValueNotifier<Locale> {
       'suggested_groups': 'Groupes suggérés',
       'suggested_pages': 'Pages suggérées',
       'retry': 'Réessayer',
+      'error_network': 'Connexion au serveur impossible. Vérifiez votre connexion internet.',
+      'error_data_format': 'Erreur de réception des données du serveur.',
+      'error_server_communication': 'Erreur de communication avec le serveur.',
       'subscription_success': 'Abonnement réussi',
 
       // Additional translations
@@ -1535,6 +1538,10 @@ class LanguageService extends ValueNotifier<Locale> {
       'suggested_groups': 'Suggested groups',
       'suggested_pages': 'Suggested pages',
       'retry': 'Retry',
+      'error_generic': 'Error',
+      'error_network': 'Unable to reach the server. Check your internet connection.',
+      'error_data_format': 'Invalid data received from the server.',
+      'error_server_communication': 'Error communicating with the server.',
       'subscription_success': 'Subscription successful',
 
       // Additional translations
@@ -2911,6 +2918,10 @@ class LanguageService extends ValueNotifier<Locale> {
       'suggested_groups': 'Grupos sugeridos',
       'suggested_pages': 'Páginas sugeridas',
       'retry': 'Reintentar',
+      'error_generic': 'Error',
+      'error_network': 'No se puede conectar con el servidor. Comprueba tu conexión a internet.',
+      'error_data_format': 'Error al recibir los datos del servidor.',
+      'error_server_communication': 'Error de comunicación con el servidor.',
       'subscription_success': 'Suscripción exitosa',
 
       // User Status

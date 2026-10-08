@@ -3,9 +3,9 @@ import '../services/language_service.dart';
 /// Nettoie et formate les erreurs pour ne jamais afficher de messages techniques
 /// (comme ClientException, SocketException, URLs internes, ports, codes d'erreur OS) aux utilisateurs.
 String getFriendlyErrorMessage(dynamic error, [LanguageService? lang]) {
-  if (error == null) return 'Une erreur est survenue';
-  final errorStr = error.toString();
   final l = lang ?? LanguageService.instance;
+  if (error == null) return l.translate('error_generic');
+  final errorStr = error.toString();
 
   // Détection des erreurs réseau / socket / connexion
   final isNetworkError = errorStr.contains('SocketException') ||
@@ -24,11 +24,11 @@ String getFriendlyErrorMessage(dynamic error, [LanguageService? lang]) {
       errorStr.contains('Software caused connection');
 
   if (isNetworkError) {
-    return 'Connexion au serveur impossible. Vérifiez votre connexion internet.';
+    return l.translate('error_network');
   }
 
   if (errorStr.contains('FormatException') || errorStr.contains('Unexpected character')) {
-    return 'Erreur de réception des données du serveur.';
+    return l.translate('error_data_format');
   }
 
   // Nettoyage des préfixes techniques Dart
@@ -42,7 +42,7 @@ String getFriendlyErrorMessage(dynamic error, [LanguageService? lang]) {
       clean.contains('address =') ||
       clean.contains('port =') ||
       clean.contains('api.militant.revlibertaire.com')) {
-    return 'Erreur de communication avec le serveur.';
+    return l.translate('error_server_communication');
   }
 
   return clean.trim().isNotEmpty ? clean : l.translate('error_generic');
