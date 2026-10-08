@@ -8,8 +8,10 @@ import 'post_detail_screen.dart';
 import 'group_detail_screen.dart';
 import '../models/post.dart';
 import '../services/notification_badge_service.dart';
+import '../theme/theme_context.dart';
 import '../utils/date_formatter.dart';
 import '../utils/error_helper.dart';
+import '../widgets/common/common.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -21,6 +23,7 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   final List<dynamic> _notifications = [];
   bool _isLoading = false;
+  Object? _error;
 
   @override
   void initState() {
@@ -33,19 +36,24 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     try {
       final api = await ApiService.getInstance();
       final notifications = await api.getNotifications();
+      if (!mounted) return;
       setState(() {
+        _error = null;
         _notifications.clear();
         _notifications.addAll(notifications);
       });
     } catch (e) {
-      if (mounted) {
+      if (!mounted) return;
+      if (_notifications.isEmpty) {
+        setState(() => _error = e);
+      } else {
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e, lang))));
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -101,11 +109,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final action = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: Text(
-          translate('notification_group_invite_title'),
-          style: const TextStyle(color: Colors.white),
-        ),
+        title: Text(translate('notification_group_invite_title')),
         content: Text(
           translate(
             'notification_group_invite_message',
@@ -113,7 +117,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             '{group}',
             groupName,
           ),
-          style: const TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
@@ -123,7 +126,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop('accept'),
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFBE1E1E),
+              backgroundColor: context.colors.primary,
+              foregroundColor: context.colors.onPrimary,
             ),
             child: Text(translate('accept')),
           ),
@@ -150,9 +154,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       await _openGroupDetails(groupId);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('${translate('error')}: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(getFriendlyErrorMessage(e, LanguageService.instance)),
+        ),
+      );
     }
   }
 
@@ -223,7 +229,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: $e')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e, lang))));
       }
       return;
     }
@@ -250,7 +256,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: $e')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e, lang))));
       }
     }
   }
@@ -288,46 +294,28 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       valueListenable: lang,
       builder: (context, locale, child) {
         return Scaffold(
-          backgroundColor: const Color(0xFF121212),
           appBar: AppBar(
-            backgroundColor: const Color(0xFF1E1E1E),
-            title: Text(
-              lang.translate('notifications_title'),
-              style: const TextStyle(color: Colors.white),
-            ),
+            title: Text(lang.translate('notifications_title')),
             actions: [
               IconButton(
-                icon: const Icon(Icons.done_all, color: Colors.white70),
+                icon: const Icon(Icons.done_all),
                 tooltip: lang.translate('mark_all_read'),
                 onPressed: _markAllAsRead,
               ),
             ],
           ),
-          body: _isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-                )
+          body: _isLoading && _notifications.isEmpty
+              ? const SkeletonList()
+              : _error != null && _notifications.isEmpty
+              ? ErrorState(error: _error, onRetry: _loadNotifications)
               : _notifications.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.notifications_none,
-                        size: 64,
-                        color: Color(0xFF888888),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        lang.translate('no_notifications'),
-                        style: const TextStyle(color: Color(0xFF888888), fontSize: 16),
-                      ),
-                    ],
-                  ),
+              ? EmptyState(
+                  icon: Icons.notifications_none,
+                  title: lang.translate('no_notifications'),
                 )
               : RefreshIndicator(
                   onRefresh: _loadNotifications,
-                  color: const Color(0xFFBE1E1E),
+                  color: context.colors.primary,
                   child: ListView.builder(
                     itemCount: _notifications.length,
                     itemBuilder: (context, index) {
@@ -407,6 +395,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final isUnread = notif['is_read'] == 0 ||
         notif['is_read'] == '0' ||
         notif['is_read'] == false;
+    final colors = context.colors;
+    final muted = context.tokens.textMuted;
 
     return InkWell(
       onTap: () => _handleNotificationTap(notif),
@@ -414,9 +404,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isUnread
-              ? const Color(0xFFBE1E1E).withValues(alpha: 0.08)
+              ? colors.primary.withValues(alpha: 0.08)
               : Colors.transparent,
-          border: const Border(bottom: BorderSide(color: Colors.white10)),
+          border: Border(bottom: BorderSide(color: colors.outlineVariant)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -424,7 +414,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFFBE1E1E).withValues(alpha: 0.2),
+                color: colors.primary.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: _buildNotificationIcon(type, reactionType),
@@ -436,7 +426,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 children: [
                   RichText(
                     text: TextSpan(
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      style: TextStyle(color: colors.onSurface, fontSize: 14),
                       children: [
                         TextSpan(
                           text: username,
@@ -452,7 +442,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   Text(
                     _formatDate(createdAt),
                     style: TextStyle(
-                      color: isUnread ? const Color(0xFFBE1E1E) : const Color(0xFF888888),
+                      color: isUnread ? colors.primary : muted,
                       fontSize: 12,
                       fontWeight: isUnread ? FontWeight.w600 : FontWeight.normal,
                     ),
@@ -466,8 +456,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 margin: const EdgeInsets.only(top: 6),
                 width: 8,
                 height: 8,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFBE1E1E),
+                decoration: BoxDecoration(
+                  color: colors.primary,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -486,8 +476,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           'assets/thumbs-up-red-black.svg',
           width: 20,
           height: 20,
-          colorFilter: const ColorFilter.mode(
-            Color(0xFFBE1E1E),
+          colorFilter: ColorFilter.mode(
+            context.colors.primary,
             BlendMode.srcIn,
           ),
         );
@@ -519,7 +509,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     return Icon(
       icon,
-      color: const Color(0xFFBE1E1E),
+      color: context.colors.primary,
       size: 20,
     );
   }

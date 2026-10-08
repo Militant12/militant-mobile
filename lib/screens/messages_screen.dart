@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
+import '../theme/theme_context.dart';
+import '../widgets/common/common.dart';
 import 'chat_screen.dart';
 import 'group_chat_screen.dart';
 import 'create_message_group_screen.dart';
@@ -19,6 +20,7 @@ class _MessagesScreenState extends State<MessagesScreen>
     with SingleTickerProviderStateMixin {
   final List<dynamic> _conversations = [];
   bool _isLoading = false;
+  Object? _error;
   late TabController _tabController;
   ApiService? _api;
   final TextEditingController _searchController = TextEditingController();
@@ -54,14 +56,20 @@ class _MessagesScreenState extends State<MessagesScreen>
         _api!.getMessageGroups(query: _searchQuery),
       ]);
 
+      if (!mounted) return;
       setState(() {
+        _error = null;
         _conversations.clear();
         _conversations.addAll(results[0]);
         _groupConversations.clear();
         _groupConversations.addAll(results[1]);
       });
     } catch (e) {
-      if (mounted) {
+      if (!mounted) return;
+      if (_conversations.isEmpty && _groupConversations.isEmpty) {
+        // Rien à montrer : état d'erreur plein écran avec « Réessayer ».
+        setState(() => _error = e);
+      } else {
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(
           context,
@@ -70,7 +78,7 @@ class _MessagesScreenState extends State<MessagesScreen>
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -78,13 +86,12 @@ class _MessagesScreenState extends State<MessagesScreen>
     final lang = LanguageService.instance;
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E1E1E),
       builder: (context) => SafeArea(
         child: ListTile(
-          leading: const Icon(Icons.delete, color: Color(0xFFBE1E1E)),
+          leading: Icon(Icons.delete, color: context.colors.error),
           title: Text(
             lang.translate('delete'),
-            style: const TextStyle(color: Color(0xFFBE1E1E)),
+            style: TextStyle(color: context.colors.error),
           ),
           onTap: () {
             Navigator.pop(context);
@@ -100,15 +107,8 @@ class _MessagesScreenState extends State<MessagesScreen>
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: Text(
-          lang.translate('delete_question'),
-          style: const TextStyle(color: Colors.white),
-        ),
-        content: Text(
-          lang.translate('delete_conversation_confirm'),
-          style: const TextStyle(color: Colors.white70),
-        ),
+        title: Text(lang.translate('delete_question')),
+        content: Text(lang.translate('delete_conversation_confirm')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -116,10 +116,10 @@ class _MessagesScreenState extends State<MessagesScreen>
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(
-              lang.translate('delete'),
-              style: const TextStyle(color: Color(0xFFBE1E1E)),
+            style: TextButton.styleFrom(
+              foregroundColor: context.colors.error,
             ),
+            child: Text(lang.translate('delete')),
           ),
         ],
       ),
@@ -155,9 +155,9 @@ class _MessagesScreenState extends State<MessagesScreen>
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(getFriendlyErrorMessage(e, lang))),
+      );
     }
   }
 
@@ -166,19 +166,16 @@ class _MessagesScreenState extends State<MessagesScreen>
     return ValueListenableBuilder<Locale>(
       valueListenable: LanguageService.instance,
       builder: (context, locale, child) {
-        final theme = Theme.of(context);
-        final isDark = theme.brightness == Brightness.dark;
         final lang = LanguageService.instance;
 
         return Scaffold(
-          backgroundColor: theme.scaffoldBackgroundColor,
           appBar: AppBar(
             title: Text(lang.translate('messages_title')),
             bottom: TabBar(
               controller: _tabController,
-              indicatorColor: const Color(0xFFBE1E1E),
-              labelColor: const Color(0xFFBE1E1E),
-              unselectedLabelColor: isDark ? Colors.white70 : Colors.black54,
+              indicatorColor: context.colors.primary,
+              labelColor: context.colors.primary,
+              unselectedLabelColor: context.colors.onSurfaceVariant,
               tabs: [
                 Tab(text: lang.translate('discussions')),
                 Tab(text: lang.translate('groups_title')),
@@ -187,7 +184,7 @@ class _MessagesScreenState extends State<MessagesScreen>
           ),
           body: Column(
             children: [
-              _buildSearchBar(isDark, lang),
+              _buildSearchBar(lang),
               Expanded(
                 child: TabBarView(
                   controller: _tabController,
@@ -212,8 +209,10 @@ class _MessagesScreenState extends State<MessagesScreen>
                   _loadConversations();
                 }
               },
-              backgroundColor: const Color(0xFFBE1E1E),
-              child: const Icon(Icons.add, color: Colors.white),
+              backgroundColor: context.colors.primary,
+              foregroundColor: context.colors.onPrimary,
+              tooltip: lang.translate('create_group'),
+              child: const Icon(Icons.add),
             )
           : null,
         );
@@ -251,47 +250,32 @@ class _MessagesScreenState extends State<MessagesScreen>
     }
   }
 
-  Widget _buildSearchBar(bool isDark, LanguageService lang) {
-    final theme = Theme.of(context);
+  Widget _buildSearchBar(LanguageService lang) {
+    final colors = context.colors;
+    final muted = context.tokens.textMuted;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Container(
         height: 48,
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[200],
+          color: colors.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: isDark ? Colors.white10 : Colors.black12,
-            width: 1,
-          ),
+          border: Border.all(color: colors.outlineVariant, width: 1),
         ),
         child: TextField(
           controller: _searchController,
           onChanged: _onSearchChanged,
-          style: TextStyle(
-            color: theme.textTheme.bodyLarge?.color,
-            fontSize: 15,
-          ),
+          style: TextStyle(color: colors.onSurface, fontSize: 15),
           decoration: InputDecoration(
             hintText: _tabController.index == 0
                 ? lang.translate('search_users')
                 : lang.translate('search_group'),
-            hintStyle: TextStyle(
-              color: isDark ? Colors.white54 : Colors.grey[600],
-              fontSize: 14,
-            ),
-            prefixIcon: const Icon(
-              Icons.search,
-              color: Color(0xFFBE1E1E),
-              size: 20,
-            ),
+            hintStyle: TextStyle(color: muted, fontSize: 14),
+            prefixIcon: Icon(Icons.search, color: colors.primary, size: 20),
             suffixIcon: _searchQuery.isNotEmpty
                 ? IconButton(
-                    icon: Icon(
-                      Icons.clear,
-                      color: isDark ? Colors.white54 : Colors.grey[600],
-                      size: 18,
-                    ),
+                    tooltip: lang.translate('clear'),
+                    icon: Icon(Icons.clear, color: muted, size: 18),
                     onPressed: () {
                       _searchController.clear();
                       if (_debounce?.isActive ?? false) _debounce?.cancel();
@@ -315,13 +299,13 @@ class _MessagesScreenState extends State<MessagesScreen>
     required bool isPrivate,
   }) {
     final lang = LanguageService.instance;
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     if (_isLoading && list.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-      );
+      return const SkeletonList();
+    }
+
+    if (_error != null && list.isEmpty) {
+      return ErrorState(error: _error, onRetry: _loadConversations);
     }
 
     final filteredList = list.where((item) {
@@ -333,35 +317,19 @@ class _MessagesScreenState extends State<MessagesScreen>
     }).toList();
 
     if (filteredList.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              isPrivate ? Icons.message_outlined : Icons.groups_outlined,
-              size: 64,
-              color: isDark ? const Color(0xFF888888) : Colors.grey,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _searchQuery.isNotEmpty
-                  ? lang.translate('no_results')
-                  : (isPrivate
-                      ? lang.translate('no_conversations')
-                      : lang.translate('no_group_discussions')),
-              style: TextStyle(
-                color: isDark ? const Color(0xFF888888) : Colors.grey,
-                fontSize: 16,
-              ),
-            ),
-          ],
-        ),
+      return EmptyState(
+        icon: isPrivate ? Icons.message_outlined : Icons.groups_outlined,
+        title: _searchQuery.isNotEmpty
+            ? lang.translate('no_results')
+            : (isPrivate
+                  ? lang.translate('no_conversations')
+                  : lang.translate('no_group_discussions')),
       );
     }
 
     return RefreshIndicator(
       onRefresh: _loadConversations,
-      color: const Color(0xFFBE1E1E),
+      color: context.colors.primary,
       child: ListView.builder(
         itemCount: filteredList.length,
         itemBuilder: (context, index) {
@@ -376,7 +344,6 @@ class _MessagesScreenState extends State<MessagesScreen>
 
   Widget _buildGroupConversationItem(dynamic conv) {
     final lang = LanguageService.instance;
-    final theme = Theme.of(context);
     final name = conv['name'] ?? lang.translate('group');
     final lastMessage = conv['last_message'] ?? '';
     final avatar = conv['avatar'];
@@ -397,7 +364,9 @@ class _MessagesScreenState extends State<MessagesScreen>
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: theme.dividerColor)),
+          border: Border(
+            bottom: BorderSide(color: context.colors.outlineVariant),
+          ),
         ),
         child: Row(
           children: [
@@ -410,7 +379,7 @@ class _MessagesScreenState extends State<MessagesScreen>
                   Text(
                     name,
                     style: TextStyle(
-                      color: theme.textTheme.bodyLarge?.color,
+                      color: context.colors.onSurface,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -421,7 +390,7 @@ class _MessagesScreenState extends State<MessagesScreen>
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: theme.textTheme.bodyMedium?.color,
+                      color: context.tokens.textMuted,
                       fontSize: 14,
                     ),
                   ),
@@ -436,7 +405,6 @@ class _MessagesScreenState extends State<MessagesScreen>
 
   Widget _buildConversationItem(dynamic conv) {
     final lang = LanguageService.instance;
-    final theme = Theme.of(context);
     final username = conv['username'] ?? lang.translate('user');
     final lastMessage = conv['last_message'] ?? '';
     final unreadCount = conv['unread_count'] ?? 0;
@@ -458,7 +426,9 @@ class _MessagesScreenState extends State<MessagesScreen>
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: theme.dividerColor)),
+          border: Border(
+            bottom: BorderSide(color: context.colors.outlineVariant),
+          ),
         ),
         child: Row(
           children: [
@@ -471,7 +441,7 @@ class _MessagesScreenState extends State<MessagesScreen>
                   Text(
                     username,
                     style: TextStyle(
-                      color: theme.textTheme.bodyLarge?.color,
+                      color: context.colors.onSurface,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -482,7 +452,7 @@ class _MessagesScreenState extends State<MessagesScreen>
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: theme.textTheme.bodyMedium?.color,
+                      color: context.tokens.textMuted,
                       fontSize: 14,
                     ),
                   ),
@@ -493,13 +463,16 @@ class _MessagesScreenState extends State<MessagesScreen>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFBE1E1E),
+                  color: context.colors.primary,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   unreadCount.toString(),
-                  style: const TextStyle(
-                    color: Colors.white,
+                  semanticsLabel: lang
+                      .translate('unread_messages_count')
+                      .replaceAll('{count}', unreadCount.toString()),
+                  style: TextStyle(
+                    color: context.colors.onPrimary,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
@@ -516,50 +489,12 @@ class _MessagesScreenState extends State<MessagesScreen>
     required bool isGroup,
     required String name,
   }) {
-    final url = _api?.getImageUrl(avatar);
-
-    if (url != null && url.endsWith('.svg')) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: SvgPicture.network(
-          url,
-          width: 48,
-          height: 48,
-          fit: BoxFit.cover,
-          placeholderBuilder: (_) => Container(
-            width: 48,
-            height: 48,
-            padding: const EdgeInsets.all(12),
-            child: const CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
-      );
-    } else {
-      if (isGroup && url == null) {
-        return ClipOval(
-          child: SizedBox(
-            width: 48,
-            height: 48,
-            child: SvgPicture.asset('assets/logo.svg', fit: BoxFit.cover),
-          ),
-        );
-      }
-
-      return CircleAvatar(
-        radius: 24,
-        backgroundColor: const Color(0xFFBE1E1E),
-        backgroundImage: url != null ? NetworkImage(url) : null,
-        child: url == null
-            ? Text(
-                name.isNotEmpty ? name[0].toUpperCase() : '?',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              )
-            : null,
-      );
-    }
+    // Groupe sans image : logo Militant ; personne : son initiale.
+    return AppAvatar(
+      url: _api?.getImageUrl(avatar),
+      name: isGroup ? null : name,
+      semanticLabel: name,
+      radius: 24,
+    );
   }
 }
