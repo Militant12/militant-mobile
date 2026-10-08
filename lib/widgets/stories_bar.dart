@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../theme/theme_context.dart';
+import 'common/common.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
@@ -80,19 +82,18 @@ class _StoriesBarState extends State<StoriesBar> {
     // Demander Image ou Vidéo
     final selection = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
-      backgroundColor: const Color(0xFF1E1E1E),
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.photo, color: Colors.white),
-              title: Text(lang.translate('image'), style: const TextStyle(color: Colors.white)),
+              leading: Icon(Icons.photo, color: context.colors.onSurface),
+              title: Text(lang.translate('image'), style: TextStyle(color: context.colors.onSurface)),
               onTap: () => Navigator.pop(context, {'type': 'image'}),
             ),
             ListTile(
-              leading: const Icon(Icons.videocam, color: Colors.white),
-              title: Text(lang.translate('video'), style: const TextStyle(color: Colors.white)),
+              leading: Icon(Icons.videocam, color: context.colors.onSurface),
+              title: Text(lang.translate('video'), style: TextStyle(color: context.colors.onSurface)),
               onTap: () => Navigator.pop(context, {'type': 'video'}),
             ),
           ],
@@ -118,8 +119,7 @@ class _StoriesBarState extends State<StoriesBar> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: Text(lang.translate('stories_preview'), style: const TextStyle(color: Colors.white)),
+        title: Text(lang.translate('stories_preview'), style: TextStyle(color: context.colors.onSurface)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -141,9 +141,9 @@ class _StoriesBarState extends State<StoriesBar> {
             child: Text(lang.translate('cancel')),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFBE1E1E)),
+            style: ElevatedButton.styleFrom(backgroundColor: context.colors.primary),
             onPressed: () => Navigator.pop(context, true),
-            child: Text(lang.translate('publish_button'), style: const TextStyle(color: Colors.white)),
+            child: Text(lang.translate('publish_button'), style: TextStyle(color: context.colors.onPrimary)),
           ),
         ],
       ),
@@ -191,9 +191,7 @@ class _StoriesBarState extends State<StoriesBar> {
       return Container(
         height: 100,
         padding: const EdgeInsets.symmetric(vertical: 8),
-        child: const Center(
-          child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-        ),
+        child: const AppLoader(),
       );
     }
 
@@ -233,18 +231,18 @@ class _StoriesBarState extends State<StoriesBar> {
                 height: 60,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFFBE1E1E), width: 2),
+                  border: Border.all(color: context.colors.primary, width: 2),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.add,
-                  color: Color(0xFFBE1E1E),
+                  color: context.colors.primary,
                   size: 30,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 lang.translate('stories_add'),
-                style: const TextStyle(fontSize: 12, color: Color(0xFF888888)),
+                style: TextStyle(fontSize: 12, color: context.tokens.textMuted),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -287,8 +285,8 @@ class _StoriesBarState extends State<StoriesBar> {
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: hasUnseen
-                        ? const Color(0xFFBE1E1E) // Rouge si non vu
-                        : const Color(0xFF888888), // Gris si tout vu
+                        ? context.colors.primary // Rouge si non vu
+                        : context.tokens.textMuted, // Gris si tout vu
                     width: 2,
                   ),
                 ),
@@ -299,10 +297,10 @@ class _StoriesBarState extends State<StoriesBar> {
                           builder: (context, snapshot) {
                             if (!snapshot.hasData) {
                               return Container(
-                                color: const Color(0xFF1E1E1E),
-                                child: const Icon(
+                                color: context.colors.surface,
+                                child: Icon(
                                   Icons.person,
-                                  color: Color(0xFF888888),
+                                  color: context.tokens.textMuted,
                                 ),
                               );
                             }
@@ -310,24 +308,24 @@ class _StoriesBarState extends State<StoriesBar> {
                               snapshot.data!,
                               fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => Container(
-                                color: const Color(0xFF1E1E1E),
-                                child: const Icon(
+                                color: context.colors.surface,
+                                child: Icon(
                                   Icons.person,
-                                  color: Color(0xFF888888),
+                                  color: context.tokens.textMuted,
                                 ),
                               ),
                             );
                           },
                         )
                       : Container(
-                          color: const Color(0xFF1E1E1E),
+                          color: context.colors.surface,
                           child: Center(
                             child: Text(
                               (username.isNotEmpty
                                   ? username[0].toUpperCase()
                                   : '?'),
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: context.colors.onSurface,
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -339,7 +337,7 @@ class _StoriesBarState extends State<StoriesBar> {
               const SizedBox(height: 4),
               Text(
                 username,
-                style: const TextStyle(fontSize: 12, color: Color(0xFF888888)),
+                style: TextStyle(fontSize: 12, color: context.tokens.textMuted),
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

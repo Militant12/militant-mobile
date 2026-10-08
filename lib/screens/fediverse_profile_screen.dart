@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import '../widgets/common/common.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/fediverse_post.dart';
@@ -284,18 +284,10 @@ class _FediverseProfileScreenState extends State<FediverseProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            CircleAvatar(
+            AppAvatar(
+              url: avatarUrl.isNotEmpty ? avatarUrl : null,
+              semanticLabel: displayName,
               radius: 42,
-              backgroundColor: theme.colorScheme.surfaceContainerHighest,
-              backgroundImage: avatarUrl.isNotEmpty
-                  ? NetworkImage(avatarUrl)
-                  : null,
-              child: avatarUrl.isEmpty
-                  ? Padding(
-                      padding: const EdgeInsets.all(6),
-                      child: SvgPicture.asset('assets/logo.svg'),
-                    )
-                  : null,
             ),
             const SizedBox(height: 12),
             Text(

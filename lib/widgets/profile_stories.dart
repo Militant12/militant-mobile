@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/theme_context.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../screens/stories_screen.dart';
@@ -263,7 +264,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
                       decoration: BoxDecoration(
                         color: const Color(0xFFBE1E1E),
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.black, width: 2),
+                        border: Border.all(color: context.colors.surface, width: 2),
                       ),
                       child: Text(
                         '$count',

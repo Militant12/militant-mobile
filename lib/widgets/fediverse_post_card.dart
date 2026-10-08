@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'common/app_avatar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/fediverse_post.dart';
@@ -43,20 +43,7 @@ class FediversePostCard extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CircleAvatar(
-                      radius: 23,
-                      backgroundColor:
-                          theme.colorScheme.surfaceContainerHighest,
-                      backgroundImage: avatarUrl != null
-                          ? NetworkImage(avatarUrl)
-                          : null,
-                      child: avatarUrl == null
-                          ? Padding(
-                              padding: const EdgeInsets.all(4),
-                              child: SvgPicture.asset('assets/logo.svg'),
-                            )
-                          : null,
-                    ),
+                    AppAvatar(url: avatarUrl, radius: 23),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(

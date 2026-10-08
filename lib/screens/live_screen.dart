@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import '../widgets/common/common.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:livekit_client/livekit_client.dart';
@@ -1541,9 +1542,7 @@ class _LiveScreenState extends State<LiveScreen> {
     return RefreshIndicator(
       onRefresh: _loadDiscoveryLives,
       child: _loadingDiscovery && _discoveryLives.isEmpty
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-            )
+          ? const AppLoader()
           : _discoveryLives.isEmpty
           ? _buildEmptyDiscovery(translate, theme)
           : GridView.builder(
@@ -1576,9 +1575,7 @@ class _LiveScreenState extends State<LiveScreen> {
     return RefreshIndicator(
       onRefresh: _loadModerationReports,
       child: _loadingModeration && _moderationReports.isEmpty
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-            )
+          ? const AppLoader()
           : _moderationReports.isEmpty
           ? Center(
               child: Column(

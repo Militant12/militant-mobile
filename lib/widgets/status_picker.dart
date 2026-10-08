@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/theme_context.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
@@ -21,9 +22,9 @@ class StatusChip extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: context.colors.onSurface.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withOpacity(0.3)),
+            border: Border.all(color: context.colors.onSurface.withValues(alpha: 0.3)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -31,14 +32,14 @@ class StatusChip extends StatelessWidget {
               FaIcon(
                 FontAwesomeIcons.circlePlus,
                 size: 11,
-                color: Colors.white.withOpacity(0.7),
+                color: context.colors.onSurface.withValues(alpha: 0.7),
               ),
               const SizedBox(width: 6),
               Text(
                 LanguageService.instance.translate('status_add'),
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.white.withOpacity(0.7),
+                  color: context.colors.onSurface.withValues(alpha: 0.7),
                 ),
               ),
             ],
@@ -55,32 +56,32 @@ class StatusChip extends StatelessWidget {
           gradient: preset?.gradient != null
               ? LinearGradient(
                   colors: (preset!.gradient as LinearGradient).colors
-                      .map((c) => c.withOpacity(0.3))
+                      .map((c) => c.withValues(alpha: 0.3))
                       .toList(),
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                 )
               : null,
           color: preset?.gradient == null
-              ? (preset?.color ?? Colors.white).withOpacity(0.15)
+              ? (preset?.color ?? context.colors.onSurface).withValues(alpha: 0.15)
               : null,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: (preset?.color ?? Colors.white).withOpacity(0.6),
+            color: (preset?.color ?? context.colors.onSurface).withValues(alpha: 0.6),
           ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (preset != null) ...[
-              FaIcon(preset.icon, size: 11, color: Colors.white),
+              FaIcon(preset.icon, size: 11, color: context.colors.onSurface),
               const SizedBox(width: 6),
             ],
             Text(
               status.label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: Colors.white,
+                color: context.colors.onSurface,
                 fontWeight: FontWeight.w600,
               ),
               maxLines: 1,

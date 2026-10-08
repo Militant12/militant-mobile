@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../widgets/common/common.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/feature_suggestion.dart';
@@ -147,7 +148,7 @@ class _FeatureSuggestionsScreenState extends State<FeatureSuggestionsScreen> {
         child: const Icon(Icons.add, color: Colors.white),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoader()
           : RefreshIndicator(
               onRefresh: _loadData,
               color: const Color(0xFFBE1E1E),
@@ -512,7 +513,7 @@ class _FeatureSuggestionDetailScreenState
           ],
         ),
         body: _isLoading || _suggestion == null
-            ? const Center(child: CircularProgressIndicator())
+            ? const AppLoader()
             : Column(
                 children: [
                   Expanded(
