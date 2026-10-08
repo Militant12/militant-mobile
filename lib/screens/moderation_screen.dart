@@ -263,6 +263,7 @@ class _ModerationScreenState extends State<ModerationScreen>
       margin: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: context.colors.surface,
+        boxShadow: context.tokens.cardShadow,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Padding(
@@ -644,6 +645,7 @@ class _ModerationScreenState extends State<ModerationScreen>
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: context.colors.surface,
+            boxShadow: context.tokens.cardShadow,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -1319,6 +1321,7 @@ class _ModerationScreenState extends State<ModerationScreen>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: context.colors.surface,
+        boxShadow: context.tokens.cardShadow,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
