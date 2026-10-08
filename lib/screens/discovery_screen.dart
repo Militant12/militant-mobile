@@ -5,6 +5,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'profile_screen.dart';
 import 'group_detail_screen.dart';
 import 'page_detail_screen.dart';
+import '../theme/theme_context.dart';
+import '../utils/error_helper.dart';
+import '../widgets/common/common.dart';
 
 class DiscoveryScreen extends StatefulWidget {
   const DiscoveryScreen({super.key});
@@ -16,7 +19,7 @@ class DiscoveryScreen extends StatefulWidget {
 class _DiscoveryScreenState extends State<DiscoveryScreen> {
   bool _isLoading = true;
   Map<String, dynamic> _discoveryData = {};
-  String? _error;
+  Object? _error;
   ApiService? _api;
 
   @override
@@ -43,7 +46,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = e.toString();
+          _error = e;
           _isLoading = false;
         });
       }
@@ -68,7 +71,9 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${LanguageService.instance.translate('error')}: $e'),
+            content: Text(
+              getFriendlyErrorMessage(e, LanguageService.instance),
+            ),
           ),
         );
       }
@@ -97,30 +102,18 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
+            tooltip: lang.translate('refresh'),
             onPressed: _loadDiscoveryData,
           ),
         ],
       ),
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-            )
+          ? const AppLoader()
           : _error != null
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('${lang.translate('error')}: $_error'),
-                  ElevatedButton(
-                    onPressed: _loadDiscoveryData,
-                    child: Text(lang.translate('retry')),
-                  ),
-                ],
-              ),
-            )
+          ? ErrorState(error: _error, onRetry: _loadDiscoveryData)
           : RefreshIndicator(
               onRefresh: _loadDiscoveryData,
-              color: const Color(0xFFBE1E1E),
+              color: context.colors.primary,
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
@@ -177,7 +170,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
         padding: const EdgeInsets.symmetric(vertical: 20),
         child: Text(
           LanguageService.instance.translate('no_results'),
-          style: const TextStyle(color: Colors.grey),
+          style: TextStyle(color: context.tokens.textMuted),
         ),
       );
     }
@@ -206,8 +199,6 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
   }
 
   Widget _buildUserCard(dynamic user) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Card(
       margin: EdgeInsets.zero,
@@ -223,39 +214,11 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Stack(
-                children: [
-                  CircleAvatar(
-                    radius: 25,
-                    backgroundColor: isDark
-                        ? Colors.grey[800]
-                        : Colors.grey[200],
-                    backgroundImage:
-                        user['avatar'] != null &&
-                            user['avatar'] != 'default.svg'
-                        ? NetworkImage(_api?.getImageUrl(user['avatar']) ?? '')
-                        : null,
-                    child:
-                        user['avatar'] == null ||
-                            user['avatar'] == 'default.svg'
-                        ? SvgPicture.asset('assets/logo.svg', width: 30)
-                        : null,
-                  ),
-                  if (user['is_online'] == 1 || user['is_online'] == true)
-                    Positioned(
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        width: 12,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: theme.cardColor, width: 2),
-                        ),
-                      ),
-                    ),
-                ],
+              AppAvatar(
+                url: _api?.getImageUrl(user['avatar']),
+                semanticLabel: user['username']?.toString(),
+                radius: 25,
+                online: user['is_online'] == 1 || user['is_online'] == true,
               ),
               const SizedBox(height: 8),
               Text(
@@ -277,7 +240,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                 softWrap: true,
                 style: TextStyle(
                   fontSize: 10,
-                  color: isDark ? Colors.white70 : Colors.black54,
+                  color: context.colors.onSurface.withValues(alpha: 0.7),
                 ),
               ),
               const SizedBox(height: 6),
@@ -287,8 +250,8 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                 child: ElevatedButton(
                   onPressed: () => _followUser(user['id']),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFBE1E1E),
-                    foregroundColor: Colors.white,
+                    backgroundColor: context.colors.primary,
+                    foregroundColor: context.colors.onPrimary,
                     padding: EdgeInsets.zero,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),
@@ -313,7 +276,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
         padding: const EdgeInsets.symmetric(vertical: 20),
         child: Text(
           LanguageService.instance.translate('no_results'),
-          style: const TextStyle(color: Colors.grey),
+          style: TextStyle(color: context.tokens.textMuted),
         ),
       );
     }
@@ -365,9 +328,6 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
     String? image,
     required VoidCallback onTap,
   }) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -379,7 +339,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: isDark ? Colors.grey[800] : Colors.grey[200],
+                color: context.colors.surfaceContainerHigh,
                 borderRadius: BorderRadius.circular(8),
                 image: image != null && image != 'default.svg'
                     ? DecorationImage(
@@ -418,13 +378,17 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                     softWrap: true,
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? Colors.white70 : Colors.black54,
+                      color: context.colors.onSurface.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
+            Icon(
+              Icons.chevron_right,
+              color: context.tokens.textMuted,
+              size: 20,
+            ),
           ],
         ),
       ),

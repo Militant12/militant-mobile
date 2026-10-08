@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import 'profile_screen.dart';
+import '../theme/theme_context.dart';
 import '../utils/error_helper.dart';
+import '../widgets/common/common.dart';
 
 class GroupInviteScreen extends StatefulWidget {
   final int groupId;
@@ -24,6 +25,7 @@ class _GroupInviteScreenState extends State<GroupInviteScreen> {
   final List<dynamic> _users = [];
   bool _isLoading = false;
   String _query = '';
+  Object? _error;
   ApiService? _api;
 
   @override
@@ -47,6 +49,7 @@ class _GroupInviteScreenState extends State<GroupInviteScreen> {
 
     setState(() {
       _isLoading = true;
+      _error = null;
       _query = query;
     });
 
@@ -54,14 +57,16 @@ class _GroupInviteScreenState extends State<GroupInviteScreen> {
       _api ??= await ApiService.getInstance();
       final result = await _api!.search(query, type: 'users');
       final users = result['data'] ?? result['users'] ?? result['items'] ?? [];
+      if (!mounted) return;
       setState(() {
         _users.clear();
         _users.addAll(users);
       });
     } catch (e) {
       debugPrint('Error searching users: $e');
+      if (mounted) setState(() => _error = e);
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -81,7 +86,9 @@ class _GroupInviteScreenState extends State<GroupInviteScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
+        ).showSnackBar(
+          SnackBar(content: Text(getFriendlyErrorMessage(e, lang))),
+        );
       }
     }
   }
@@ -90,7 +97,6 @@ class _GroupInviteScreenState extends State<GroupInviteScreen> {
   Widget build(BuildContext context) {
     final lang = LanguageService.instance;
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -108,9 +114,9 @@ class _GroupInviteScreenState extends State<GroupInviteScreen> {
               style: TextStyle(color: theme.textTheme.bodyLarge?.color),
               decoration: InputDecoration(
                 hintText: lang.translate('search_users'),
-                prefixIcon: const Icon(Icons.search, color: Color(0xFFBE1E1E)),
+                prefixIcon: Icon(Icons.search, color: context.colors.primary),
                 filled: true,
-                fillColor: isDark ? const Color(0xFF2A2A2A) : Colors.grey[200],
+                fillColor: context.colors.surfaceContainerHigh,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30),
                   borderSide: BorderSide.none,
@@ -120,16 +126,21 @@ class _GroupInviteScreenState extends State<GroupInviteScreen> {
           ),
           Expanded(
             child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
+                ? const SkeletonList()
+                : _error != null
+                ? ErrorState(
+                    error: _error,
+                    onRetry: () => _searchUsers(_query),
                   )
                 : _users.isEmpty && _query.isNotEmpty
-                ? Center(child: Text(lang.translate('no_users_found')))
+                ? EmptyState(
+                    icon: Icons.person_search_outlined,
+                    title: lang.translate('no_users_found'),
+                  )
                 : ListView.builder(
                     itemCount: _users.length,
                     itemBuilder: (context, index) {
                       final user = _users[index];
-                      final avatar = user['avatar'];
                       final username = user['username'] ?? '';
 
                       return ListTile(
@@ -159,14 +170,14 @@ class _GroupInviteScreenState extends State<GroupInviteScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: theme.textTheme.bodyMedium?.color,
+                            color: context.tokens.textMuted,
                           ),
                         ),
                         trailing: ElevatedButton(
                           onPressed: () => _inviteUser(user['id'], username),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFBE1E1E),
-                            foregroundColor: Colors.white,
+                            backgroundColor: context.colors.primary,
+                            foregroundColor: context.colors.onPrimary,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                             ),
@@ -184,35 +195,9 @@ class _GroupInviteScreenState extends State<GroupInviteScreen> {
 
   Widget _buildUserAvatar(dynamic user) {
     final avatar = user['avatar']?.toString();
-    final avatarUrl = avatar == null ? null : _api?.getImageUrl(avatar);
-
-    if (avatarUrl != null && avatarUrl.isNotEmpty) {
-      if (avatarUrl.endsWith('.svg')) {
-        return CircleAvatar(
-          backgroundColor: Colors.white,
-          child: ClipOval(
-            child: SvgPicture.network(
-              avatarUrl,
-              width: 40,
-              height: 40,
-              fit: BoxFit.cover,
-            ),
-          ),
-        );
-      }
-
-      return CircleAvatar(
-        backgroundImage: NetworkImage(avatarUrl),
-        backgroundColor: Colors.white,
-      );
-    }
-
-    return CircleAvatar(
-      backgroundColor: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: SvgPicture.asset('assets/logo.svg', fit: BoxFit.contain),
-      ),
+    return AppAvatar(
+      url: avatar == null ? null : _api?.getImageUrl(avatar),
+      semanticLabel: user['username']?.toString(),
     );
   }
 

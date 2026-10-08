@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import '../theme/theme_context.dart';
 import 'profile_screen.dart';
 import 'chat_screen.dart';
 import '../widgets/militant_badge.dart';
 import '../widgets/technician_badge.dart';
 import '../utils/error_helper.dart';
+import '../widgets/common/common.dart';
 
 class UsersListScreen extends StatefulWidget {
   final int? userId;
@@ -37,6 +38,7 @@ class _UsersListScreenState extends State<UsersListScreen> {
   bool _hasMore = true;
   final ScrollController _scrollController = ScrollController();
   ApiService? _api;
+  Object? _error;
 
   @override
   void initState() {
@@ -49,6 +51,7 @@ class _UsersListScreenState extends State<UsersListScreen> {
     if (_scrollController.position.pixels >=
             _scrollController.position.maxScrollExtent - 200 &&
         !_isLoading &&
+        _error == null &&
         _hasMore) {
       _loadUsers();
     }
@@ -57,7 +60,10 @@ class _UsersListScreenState extends State<UsersListScreen> {
   Future<void> _loadUsers() async {
     if (!_hasMore) return;
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
     try {
       _api ??= await ApiService.getInstance();
       List<dynamic> users;
@@ -75,6 +81,7 @@ class _UsersListScreenState extends State<UsersListScreen> {
         );
       }
 
+      if (!mounted) return;
       setState(() {
         if (users.isEmpty) {
           _hasMore = false;
@@ -86,13 +93,9 @@ class _UsersListScreenState extends State<UsersListScreen> {
       });
     } catch (e) {
       debugPrint('Error loading users: $e');
-      if (mounted && _users.isEmpty) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
-      }
+      if (mounted) setState(() => _error = e);
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -110,39 +113,31 @@ class _UsersListScreenState extends State<UsersListScreen> {
             )
           : null,
       body: _users.isEmpty && _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-            )
+          ? const SkeletonList()
+          : _users.isEmpty && _error != null
+          ? ErrorState(error: _error, onRetry: _loadUsers)
           : _users.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.people_outline,
-                    size: 64,
-                    color: theme.disabledColor,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Aucun utilisateur trouvé',
-                    style: TextStyle(color: theme.disabledColor),
-                  ),
-                ],
-              ),
+          ? EmptyState(
+              icon: Icons.people_outline,
+              title: lang.translate('users_list_empty'),
             )
           : ListView.builder(
               controller: _scrollController,
               itemCount: _users.length + (_hasMore ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index == _users.length) {
+                  if (_error != null) {
+                    return Center(
+                      child: TextButton.icon(
+                        onPressed: _loadUsers,
+                        icon: const Icon(Icons.refresh),
+                        label: Text(lang.translate('retry')),
+                      ),
+                    );
+                  }
                   return const Padding(
                     padding: EdgeInsets.all(16),
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        color: Color(0xFFBE1E1E),
-                      ),
-                    ),
+                    child: AppLoader(size: 28),
                   );
                 }
 
@@ -153,62 +148,17 @@ class _UsersListScreenState extends State<UsersListScreen> {
                 return ListTile(
                   leading: GestureDetector(
                     onTap: () => _navigateToProfile(user['id']),
-                    child: Stack(
-                      children: [
-                        ClipOval(
-                          child: SizedBox(
-                            width: 40,
-                            height: 40,
-                            child:
-                                (user['avatar'] != null &&
-                                    _api?.getImageUrl(user['avatar']) != null)
-                                ? Image.network(
-                                    _api!.getImageUrl(user['avatar'])!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Padding(
-                                        padding: const EdgeInsets.all(0.0),
-                                        child: SvgPicture.asset(
-                                          'assets/logo.svg',
-                                          fit: BoxFit.cover,
-                                        ),
-                                      );
-                                    },
-                                  )
-                                : Padding(
-                                    padding: const EdgeInsets.all(0.0),
-                                    child: SvgPicture.asset(
-                                      'assets/logo.svg',
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                        if (user['is_online'] == 1 || user['is_online'] == true)
-                          Positioned(
-                            right: 0,
-                            bottom: 0,
-                            child: Container(
-                              width: 12,
-                              height: 12,
-                              decoration: BoxDecoration(
-                                color: Colors.green,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: theme.scaffoldBackgroundColor,
-                                  width: 2,
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
+                    child: AppAvatar(
+                      url: _api?.getImageUrl(user['avatar']),
+                      semanticLabel: user['username']?.toString(),
+                      online: user['is_online'] == 1 || user['is_online'] == true,
                     ),
                   ),
                   title: Row(
                     children: [
                       Flexible(
                         child: Text(
-                          user['username'] ?? 'Utilisateur',
+                          user['username'] ?? lang.translate('user'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -232,17 +182,19 @@ class _UsersListScreenState extends State<UsersListScreen> {
                           user['is_moderator'] == '1') ...[
                         const SizedBox(width: 4),
                         Tooltip(
-                          message: 'Modérateur·ice élu·e',
+                          message: lang.translate('post_elected_moderator'),
                           child: Container(
                             padding: const EdgeInsets.all(2),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFBE1E1E).withValues(alpha: 0.15),
+                              color: context.colors.primary.withValues(
+                                alpha: 0.15,
+                              ),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.shield,
                               size: 14,
-                              color: Color(0xFFBE1E1E),
+                              color: context.colors.primary,
                             ),
                           ),
                         ),
@@ -257,7 +209,7 @@ class _UsersListScreenState extends State<UsersListScreen> {
                           ),
                           decoration: BoxDecoration(
                             color: isAdmin
-                                ? const Color(0xFFBE1E1E)
+                                ? context.colors.primary
                                 : Colors.grey[600],
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -279,7 +231,7 @@ class _UsersListScreenState extends State<UsersListScreen> {
                     user['bio'] ?? '',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: theme.textTheme.bodyMedium?.color),
+                    style: TextStyle(color: context.tokens.textMuted),
                   ),
                   onTap: () => _navigateToProfile(user['id']),
                   trailing: _buildTrailing(context, user, isMembersView, isAdmin, lang),
@@ -299,7 +251,8 @@ class _UsersListScreenState extends State<UsersListScreen> {
     // Friends view → chat button
     if (widget.type == 'friends') {
       return IconButton(
-        icon: const Icon(Icons.message, color: Color(0xFFBE1E1E)),
+        tooltip: lang.translate('action_messages'),
+        icon: Icon(Icons.message, color: context.colors.primary),
         onPressed: () {
           Navigator.push(
             context,
@@ -325,7 +278,8 @@ class _UsersListScreenState extends State<UsersListScreen> {
       if (memberId == null) return null;
 
       return PopupMenuButton<String>(
-        icon: const Icon(Icons.more_vert, color: Colors.grey),
+        icon: Icon(Icons.more_vert, color: context.tokens.textMuted),
+        tooltip: lang.translate('action_more_options'),
         onSelected: (value) {
           switch (value) {
             case 'promote':
@@ -345,9 +299,9 @@ class _UsersListScreenState extends State<UsersListScreen> {
               value: 'promote',
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.admin_panel_settings,
-                    color: Color(0xFFBE1E1E),
+                    color: context.colors.primary,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
@@ -374,15 +328,15 @@ class _UsersListScreenState extends State<UsersListScreen> {
             value: 'kick',
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.person_remove,
-                  color: Color(0xFFBE1E1E),
+                  color: context.colors.primary,
                   size: 20,
                 ),
                 const SizedBox(width: 8),
                 Text(
                   lang.translate('remove_member'),
-                  style: const TextStyle(color: Color(0xFFBE1E1E)),
+                  style: TextStyle(color: context.colors.primary),
                 ),
               ],
             ),
@@ -403,9 +357,6 @@ class _UsersListScreenState extends State<UsersListScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: Theme.of(ctx).brightness == Brightness.dark
-            ? const Color(0xFF1E1E1E)
-            : Colors.white,
         title: Text(lang.translate('promote_to_admin')),
         content: Text(
           lang
@@ -421,7 +372,7 @@ class _UsersListScreenState extends State<UsersListScreen> {
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(
               lang.translate('promote_to_admin'),
-              style: const TextStyle(color: Color(0xFFBE1E1E)),
+              style: TextStyle(color: context.colors.primary),
             ),
           ),
         ],
@@ -466,9 +417,6 @@ class _UsersListScreenState extends State<UsersListScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: Theme.of(ctx).brightness == Brightness.dark
-            ? const Color(0xFF1E1E1E)
-            : Colors.white,
         title: Text(
           lang
               .translate('group_demote_question')
@@ -533,9 +481,6 @@ class _UsersListScreenState extends State<UsersListScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: Theme.of(ctx).brightness == Brightness.dark
-            ? const Color(0xFF1E1E1E)
-            : Colors.white,
         title: Text(
           lang
               .translate('group_kick_question')
