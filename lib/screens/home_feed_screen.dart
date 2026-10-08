@@ -10,6 +10,9 @@ import 'search_screen.dart';
 import 'notifications_screen.dart';
 import 'messages_screen.dart';
 import '../services/notification_badge_service.dart';
+import '../theme/app_tokens.dart';
+import '../theme/theme_context.dart';
+import '../widgets/common/common.dart';
 
 const _feedInterestStorageKey = 'feed_interests';
 
@@ -62,6 +65,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen>
             actions: [
               IconButton(
                 icon: const Icon(Icons.search),
+                tooltip: LanguageService.instance.translate('action_search'),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -75,11 +79,14 @@ class _HomeFeedScreenState extends State<HomeFeedScreen>
                 valueListenable: NotificationBadgeService.instance.unreadCount,
                 builder: (context, count, _) {
                   return IconButton(
+                    tooltip: LanguageService.instance.translate(
+                      'action_notifications',
+                    ),
                     icon: Badge.count(
                       count: count,
                       isLabelVisible: count > 0,
-                      backgroundColor: const Color(0xFFBE1E1E),
-                      textColor: Colors.white,
+                      backgroundColor: context.colors.primary,
+                      textColor: context.colors.onPrimary,
                       child: const Icon(Icons.notifications),
                     ),
                     onPressed: () async {
@@ -96,6 +103,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen>
               ),
               IconButton(
                 icon: const Icon(Icons.message),
+                tooltip: LanguageService.instance.translate('action_messages'),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -162,6 +170,8 @@ class _FeedListState extends State<FeedList>
   final List<Post> _posts = [];
   bool _isLoading = false;
   bool _hasMore = true;
+  bool _hasLoadedOnce = false;
+  Object? _error;
   bool _isLoadingPreferences = false;
   int _currentPage = 1;
   final ScrollController _scrollController = ScrollController();
@@ -187,7 +197,8 @@ class _FeedListState extends State<FeedList>
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      if (!_isLoading && _hasMore) {
+      // Après une erreur, on attend que l'utilisateur relance.
+      if (!_isLoading && _hasMore && _error == null) {
         _loadPosts();
       }
     }
@@ -237,6 +248,7 @@ class _FeedListState extends State<FeedList>
     if (mounted) {
       setState(() {
         _isLoading = true;
+        _error = null;
         if (refresh) {
           _posts.clear();
           _currentPage = 1;
@@ -249,7 +261,7 @@ class _FeedListState extends State<FeedList>
       final api = await ApiService.getInstance();
       final postsData = await api
           .getPosts(page: _currentPage, feedType: widget.feedType)
-          .timeout(const Duration(seconds: 10), onTimeout: () => []);
+          .timeout(const Duration(seconds: 10));
 
       if (mounted) {
         setState(() {
@@ -270,13 +282,17 @@ class _FeedListState extends State<FeedList>
             _currentPage++;
           }
           _isLoading = false;
+          _hasLoadedOnce = true;
         });
       }
     } catch (e) {
+      debugPrint('Error loading posts: $e');
       if (mounted) {
-        setState(() => _isLoading = false);
-        // SnackBar might annoy user if network is flaky
-        debugPrint('Error loading posts: $e');
+        setState(() {
+          _isLoading = false;
+          _hasLoadedOnce = true;
+          _error = e;
+        });
       }
     }
   }
@@ -403,9 +419,9 @@ class _FeedListState extends State<FeedList>
   
   Widget _buildInterestHeader() {
     final lang = LanguageService.instance;
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final accent = const Color(0xFFBE1E1E);
+    final theme = context.theme;
+    final isDark = context.isDark;
+    final accent = context.colors.primary;
     final chips = <Widget>[];
 
     if (_mainCause != null && _mainCause!.isNotEmpty) {
@@ -432,7 +448,7 @@ class _FeedListState extends State<FeedList>
       margin: const EdgeInsets.fromLTRB(12, 6, 12, 10),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF181818) : Colors.white,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: accent.withValues(alpha: isDark ? 0.12 : 0.1),
@@ -484,7 +500,9 @@ class _FeedListState extends State<FeedList>
                         ? lang.translate('feed_interests_hint')
                         : _mainCause != null && _interests.isEmpty
                         ? _mainCause!
-                        : '${chips.length} tags actifs',
+                        : lang
+                              .translate('feed_interests_active_count')
+                              .replaceAll('{count}', '${chips.length}'),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodySmall?.copyWith(
@@ -498,6 +516,7 @@ class _FeedListState extends State<FeedList>
           ),
           IconButton(
             visualDensity: VisualDensity.compact,
+            tooltip: lang.translate('feed_interests_title'),
             onPressed: _openInterestsSheet,
             style: IconButton.styleFrom(
               backgroundColor: accent.withValues(alpha: 0.1),
@@ -516,11 +535,11 @@ class _FeedListState extends State<FeedList>
     required String label,
     bool highlighted = false,
   }) {
-    final theme = Theme.of(context);
-    final accent = const Color(0xFFBE1E1E);
+    final theme = context.theme;
+    final accent = context.colors.primary;
     final backgroundColor = highlighted
         ? accent.withValues(alpha: 0.14)
-        : theme.brightness == Brightness.dark
+        : context.isDark
         ? Colors.white.withValues(alpha: 0.06)
         : Colors.black.withValues(alpha: 0.04);
 
@@ -557,6 +576,71 @@ class _FeedListState extends State<FeedList>
     );
   }
 
+  /// Contenu affiché tant que le fil ne contient aucun post.
+  Widget _buildEmptyBody() {
+    final lang = LanguageService.instance;
+    if (_isLoading || !_hasLoadedOnce) {
+      return const SkeletonPulse(
+        child: Column(
+          children: [PostCardSkeleton(), PostCardSkeleton(), PostCardSkeleton()],
+        ),
+      );
+    }
+
+    final Widget content;
+    if (_error != null) {
+      content = ErrorState(
+        title: lang.translate('feed_error_load'),
+        error: _error,
+        onRetry: () => _loadPosts(refresh: true),
+      );
+    } else {
+      content = EmptyState(
+        icon: Icons.dynamic_feed_outlined,
+        title: widget.feedType == 'following'
+            ? lang.translate('empty_feed_following')
+            : lang.translate('empty_feed_global'),
+      );
+    }
+    return SizedBox(
+      height: MediaQuery.sizeOf(context).height * 0.52,
+      child: content,
+    );
+  }
+
+  /// Bas de liste : chargement de la page suivante ou erreur avec relance.
+  Widget _buildListFooter() {
+    if (_posts.isEmpty) return const SizedBox(height: AppTokens.space12);
+    if (_isLoading) {
+      return const Padding(
+        padding: EdgeInsets.all(AppTokens.space12),
+        child: AppLoader(size: 28),
+      );
+    }
+    if (_error != null) {
+      final lang = LanguageService.instance;
+      return Padding(
+        padding: const EdgeInsets.all(AppTokens.space12),
+        child: Column(
+          children: [
+            Text(
+              lang.translate('feed_load_more_error'),
+              style: context.text.bodyMedium?.copyWith(
+                color: context.tokens.textMuted,
+              ),
+            ),
+            TextButton.icon(
+              onPressed: _loadPosts,
+              icon: const Icon(Icons.refresh),
+              label: Text(lang.translate('retry')),
+            ),
+          ],
+        ),
+      );
+    }
+    return const SizedBox(height: AppTokens.space12);
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required for KeepAlive
@@ -584,34 +668,11 @@ class _FeedListState extends State<FeedList>
           final loaderIndex = postStartIndex + (_posts.isEmpty ? 1 : _posts.length);
 
           if (_posts.isEmpty && index == postStartIndex) {
-            return SizedBox(
-              height: MediaQuery.of(context).size.height * 0.52,
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Text(
-                    widget.feedType == 'following'
-                        ? LanguageService.instance.translate(
-                            'empty_feed_following',
-                          )
-                        : LanguageService.instance.translate('empty_feed_global'),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                ),
-              ),
-            );
+            return _buildEmptyBody();
           }
 
           if (index == loaderIndex) {
-            return _isLoading
-                ? const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(12.0),
-                      child: CircularProgressIndicator(),
-                    ),
-                  )
-                : const SizedBox(height: 12);
+            return _buildListFooter();
           }
 
           final postIndex = index - postStartIndex;
@@ -719,9 +780,9 @@ class _InterestEditorSheetState extends State<_InterestEditorSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    const selectedColor = Color(0xFFBE1E1E);
+    final theme = context.theme;
+    final isDark = context.isDark;
+    final selectedColor = context.colors.primary;
 
     return SafeArea(
       child: Align(
@@ -732,7 +793,7 @@ class _InterestEditorSheetState extends State<_InterestEditorSheet> {
           ),
           margin: const EdgeInsets.fromLTRB(10, 0, 10, 10),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF171717) : Colors.white,
+            color: context.colors.surface,
             borderRadius: BorderRadius.circular(22),
             border: Border.all(
               color: theme.dividerColor.withValues(alpha: 0.16),

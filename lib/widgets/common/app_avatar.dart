@@ -15,6 +15,7 @@ class AppAvatar extends StatelessWidget {
     this.name,
     this.radius = 20,
     this.semanticLabel,
+    this.online = false,
   });
 
   final String? url;
@@ -23,6 +24,9 @@ class AppAvatar extends StatelessWidget {
 
   /// Libellé lu par les lecteurs d'écran (par défaut : [name]).
   final String? semanticLabel;
+
+  /// Affiche la pastille verte « en ligne » en bas à droite.
+  final bool online;
 
   double get _size => radius * 2;
 
@@ -34,12 +38,11 @@ class AppAvatar extends StatelessWidget {
   Widget _fallback(BuildContext context) {
     final initial = _initial;
     if (initial == null) {
-      return Container(
+      return SvgPicture.asset(
+        'assets/logo.svg',
         width: _size,
         height: _size,
-        color: Colors.white,
-        padding: EdgeInsets.all(radius * 0.3),
-        child: SvgPicture.asset('assets/logo.svg', fit: BoxFit.contain),
+        fit: BoxFit.cover,
       );
     }
     return Container(
@@ -78,9 +81,33 @@ class AppAvatar extends StatelessWidget {
         width: _size,
         height: _size,
         fit: BoxFit.cover,
-        // Décode à la taille affichée plutôt qu'à la taille d'origine.
-        cacheWidth: (_size * MediaQuery.devicePixelRatioOf(context)).round(),
         errorBuilder: (context, _, __) => _fallback(context),
+      );
+    }
+
+    Widget avatar = ClipOval(
+      child: SizedBox.square(dimension: _size, child: image),
+    );
+    if (online) {
+      final dot = (radius * 0.6).clamp(8.0, 16.0);
+      avatar = Stack(
+        children: [
+          avatar,
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Container(
+              width: dot,
+              height: dot,
+              decoration: BoxDecoration(
+                color: context.tokens.success,
+                shape: BoxShape.circle,
+                // Liseré couleur de surface pour détacher la pastille.
+                border: Border.all(color: context.colors.surface, width: 2),
+              ),
+            ),
+          ),
+        ],
       );
     }
 
@@ -89,9 +116,7 @@ class AppAvatar extends StatelessWidget {
       label: label,
       image: label != null,
       excludeSemantics: true,
-      child: ClipOval(
-        child: SizedBox.square(dimension: _size, child: image),
-      ),
+      child: avatar,
     );
   }
 }

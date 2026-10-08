@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../models/post.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../screens/post_detail_screen.dart';
 import '../screens/profile_screen.dart';
 import 'video_player_widget.dart';
@@ -10,7 +9,11 @@ import 'linkable_text.dart';
 import 'militant_badge.dart';
 import 'technician_badge.dart';
 import 'package:share_plus/share_plus.dart';
+import '../theme/app_tokens.dart';
+import '../theme/theme_context.dart';
+import '../utils/date_formatter.dart';
 import '../utils/error_helper.dart';
+import 'common/common.dart';
 
 class PostCard extends StatefulWidget {
   final Post post;
@@ -147,30 +150,12 @@ class _PostCardState extends State<PostCard> {
     }
   }
 
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inMinutes < 1) {
-      return 'À l\'instant';
-    } else if (difference.inHours < 1) {
-      return '${difference.inMinutes}min';
-    } else if (difference.inDays < 1) {
-      return '${difference.inHours}h';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays}j';
-    } else {
-      return '${date.day}/${date.month}/${date.year}';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final textColor = theme.textTheme.bodyLarge?.color;
-    final subtitleColor = isDark ? const Color(0xFF888888) : Colors.grey[600];
-    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final lang = LanguageService.instance;
+    final colors = context.colors;
+    final textColor = colors.onSurface;
+    final subtitleColor = context.tokens.textMuted;
 
     return GestureDetector(
       onTap: () {
@@ -184,22 +169,14 @@ class _PostCardState extends State<PostCard> {
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 4),
         decoration: BoxDecoration(
-          color: cardColor,
+          color: colors.surface,
           border: Border(
-            bottom: BorderSide(color: theme.dividerColor, width: 1),
+            bottom: BorderSide(color: context.theme.dividerColor, width: 1),
           ),
-          boxShadow: isDark
-              ? null
-              : [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 2,
-                    offset: const Offset(0, 1),
-                  ),
-                ],
+          boxShadow: context.tokens.cardShadow,
         ),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(AppTokens.space16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -207,14 +184,23 @@ class _PostCardState extends State<PostCard> {
               if (widget.post.sharedByUsername != null) ...[
                 Row(
                   children: [
-                    const Icon(Icons.repeat, size: 16, color: Colors.white38),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${widget.post.sharedByUsername} a partagé',
-                      style: const TextStyle(
-                        color: Colors.white38,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
+                    Icon(Icons.repeat, size: 16, color: subtitleColor),
+                    const SizedBox(width: AppTokens.space8),
+                    Expanded(
+                      child: Text(
+                        lang
+                            .translate('post_shared_by')
+                            .replaceAll(
+                              '{username}',
+                              widget.post.sharedByUsername!,
+                            ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: subtitleColor,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ],
@@ -235,43 +221,11 @@ class _PostCardState extends State<PostCard> {
                         ),
                       );
                     },
-                    child: Stack(
-                      children: [
-                        CircleAvatar(
-                          radius: 20,
-                          backgroundColor: Colors.transparent,
-                          backgroundImage: _avatarUrl != null
-                              ? NetworkImage(_avatarUrl!)
-                              : null,
-                          child: _avatarUrl == null
-                              ? Padding(
-                                  padding: const EdgeInsets.all(0.0),
-                                  child: SvgPicture.asset(
-                                    'assets/logo.svg',
-                                    width: 40,
-                                    height: 40,
-                                  ),
-                                )
-                              : null,
-                        ),
-                        if (widget.post.isOnline)
-                          Positioned(
-                            right: 0,
-                            bottom: 0,
-                            child: Container(
-                              width: 12,
-                              height: 12,
-                              decoration: BoxDecoration(
-                                color: Colors.green,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: const Color(0xFF1E1E1E),
-                                  width: 2,
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
+                    child: AppAvatar(
+                      url: _avatarUrl,
+                      radius: 20,
+                      semanticLabel: widget.post.username,
+                      online: widget.post.isOnline,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -318,19 +272,21 @@ class _PostCardState extends State<PostCard> {
                               if (widget.post.isModerator) ...[
                                 const SizedBox(width: 4),
                                 Tooltip(
-                                  message: 'Modérateur·ice élu·e',
+                                  message: lang.translate(
+                                    'post_elected_moderator',
+                                  ),
                                   child: Container(
                                     padding: const EdgeInsets.all(2),
                                     decoration: BoxDecoration(
-                                      color: const Color(
-                                        0xFFBE1E1E,
-                                      ).withOpacity(0.15),
+                                      color: colors.primary.withValues(
+                                        alpha: 0.15,
+                                      ),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
-                                    child: const Icon(
+                                    child: Icon(
                                       Icons.shield,
                                       size: 16,
-                                      color: Color(0xFFBE1E1E),
+                                      color: colors.primary,
                                     ),
                                   ),
                                 ),
@@ -339,7 +295,7 @@ class _PostCardState extends State<PostCard> {
                           ),
                         ),
                         Text(
-                          _formatDate(widget.post.feedDate),
+                          DateFormatter.formatRelative(widget.post.feedDate),
                           style: TextStyle(color: subtitleColor, fontSize: 13),
                         ),
                       ],
@@ -347,6 +303,7 @@ class _PostCardState extends State<PostCard> {
                   ),
                   IconButton(
                     icon: Icon(Icons.more_vert, color: subtitleColor),
+                    tooltip: lang.translate('action_more_options'),
                     onPressed: () => _showPostMenu(context),
                   ),
                 ],
@@ -400,19 +357,19 @@ class _PostCardState extends State<PostCard> {
                         Icons.translate,
                         size: 16,
                         color: _showTranslation
-                            ? const Color(0xFFBE1E1E)
+                            ? colors.primary
                             : subtitleColor,
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: AppTokens.space4),
                       Text(
                         _isTranslating
-                            ? 'Traduction...'
+                            ? lang.translate('post_translating')
                             : _showTranslation
-                            ? 'Voir l\'original'
-                            : 'Traduire',
+                            ? lang.translate('post_show_original')
+                            : lang.translate('translate_action'),
                         style: TextStyle(
                           color: _showTranslation
-                              ? const Color(0xFFBE1E1E)
+                              ? colors.primary
                               : subtitleColor,
                           fontSize: 13,
                         ),
@@ -432,37 +389,24 @@ class _PostCardState extends State<PostCard> {
                   )
                 else
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppTokens.radius12),
                     child: Image.network(
                       _mediaUrl!,
                       width: double.infinity,
                       fit: BoxFit.contain,
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
-                        return Container(
+                        return const SkeletonBox(
+                          width: double.infinity,
                           height: 200,
-                          color: isDark
-                              ? const Color(0xFF2A2A2A)
-                              : Colors.grey[200],
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                        loadingProgress.expectedTotalBytes!
-                                  : null,
-                              color: const Color(0xFFBE1E1E),
-                            ),
-                          ),
+                          radius: 0,
                         );
                       },
                       errorBuilder: (context, error, stackTrace) {
-                        print('Erreur chargement image: $error');
-                        print('URL: $_mediaUrl');
+                        debugPrint('Image load failed ($_mediaUrl): $error');
                         return Container(
                           height: 200,
-                          color: isDark
-                              ? const Color(0xFF2A2A2A)
-                              : Colors.grey[200],
+                          color: colors.surfaceContainerHigh,
                           child: Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -472,9 +416,9 @@ class _PostCardState extends State<PostCard> {
                                   color: subtitleColor,
                                   size: 48,
                                 ),
-                                const SizedBox(height: 8),
+                                const SizedBox(height: AppTokens.space8),
                                 Text(
-                                  'Image non disponible',
+                                  lang.translate('post_image_unavailable'),
                                   style: TextStyle(
                                     color: subtitleColor,
                                     fontSize: 12,
@@ -496,17 +440,18 @@ class _PostCardState extends State<PostCard> {
                 children: [
                   _buildActionButton(
                     icon: _isLiked ? Icons.thumb_up : Icons.thumb_up_off_alt,
-                    label: _likesCount.toString(),
-                    color: _isLiked
-                        ? const Color(0xFFBE1E1E)
-                        : (subtitleColor ?? Colors.grey),
+                    count: _likesCount,
+                    semanticsKey: 'post_likes_count',
+                    selected: _isLiked,
+                    color: _isLiked ? colors.primary : subtitleColor,
                     onTap: _toggleLike,
                   ),
                   const SizedBox(width: 24),
                   _buildActionButton(
                     icon: Icons.comment_outlined,
-                    label: widget.post.commentsCount.toString(),
-                    color: subtitleColor ?? Colors.grey,
+                    count: widget.post.commentsCount,
+                    semanticsKey: 'post_comments_count',
+                    color: subtitleColor,
                     onTap: () {
                       Navigator.push(
                         context,
@@ -520,8 +465,9 @@ class _PostCardState extends State<PostCard> {
                   const SizedBox(width: 24),
                   _buildActionButton(
                     icon: Icons.share_outlined,
-                    label: widget.post.sharesCount.toString(),
-                    color: subtitleColor ?? Colors.grey,
+                    count: widget.post.sharesCount,
+                    semanticsKey: 'post_shares_count',
+                    color: subtitleColor,
                     onTap: () => _sharePost(context),
                   ),
                 ],
@@ -535,25 +481,35 @@ class _PostCardState extends State<PostCard> {
 
   Widget _buildActionButton({
     required IconData icon,
-    required String label,
+    required int count,
+    required String semanticsKey,
     required Color color,
     required VoidCallback onTap,
+    bool? selected,
   }) {
-    return InkWell(
-      onTap: onTap,
-      child: Row(
-        children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: LanguageService.instance
+          .translate(semanticsKey)
+          .replaceAll('{count}', '$count'),
+      excludeSemantics: true,
+      child: InkWell(
+        onTap: onTap,
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: AppTokens.space4),
+            Text(
+              '$count',
+              style: TextStyle(
+                color: color,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -610,10 +566,10 @@ class _PostCardState extends State<PostCard> {
             ),
             if (_currentUserId == widget.post.userId || widget.isGroupAdmin)
               ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
+                leading: Icon(Icons.delete, color: theme.colorScheme.error),
                 title: Text(
                   lang.translate('delete'),
-                  style: const TextStyle(color: Colors.red),
+                  style: TextStyle(color: theme.colorScheme.error),
                 ),
                 onTap: () {
                   Navigator.pop(sheetContext);
@@ -631,7 +587,6 @@ class _PostCardState extends State<PostCard> {
 
   Future<void> _sharePost(BuildContext context) async {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final lang = LanguageService.instance;
 
     showModalBottomSheet(
@@ -645,14 +600,8 @@ class _PostCardState extends State<PostCard> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: Icon(
-                Icons.share,
-                color: isDark ? Colors.white : Colors.black,
-              ),
-              title: Text(
-                lang.translate('share_via'),
-                style: TextStyle(color: isDark ? Colors.white : Colors.black),
-              ),
+              leading: const Icon(Icons.share),
+              title: Text(lang.translate('share_via')),
               onTap: () async {
                 Navigator.pop(sheetContext);
                 final api = await ApiService.getInstance();
@@ -671,18 +620,14 @@ class _PostCardState extends State<PostCard> {
                   url = '$baseUrl/post.php?id=${widget.post.id}';
                 }
 
-                await Share.share('Regarde ce post sur Militant !\n$url');
+                await Share.share(
+                  '${lang.translate('post_share_message')}\n$url',
+                );
               },
             ),
             ListTile(
-              leading: Icon(
-                Icons.groups_outlined,
-                color: isDark ? Colors.white : Colors.black,
-              ),
-              title: Text(
-                lang.translate('repost_to_group'),
-                style: TextStyle(color: isDark ? Colors.white : Colors.black),
-              ),
+              leading: const Icon(Icons.groups_outlined),
+              title: Text(lang.translate('repost_to_group')),
               onTap: () async {
                 Navigator.pop(sheetContext);
                 _showRepostToGroupSheet(context);
@@ -690,14 +635,8 @@ class _PostCardState extends State<PostCard> {
             ),
             if (widget.post.type != 'group')
               ListTile(
-                leading: Icon(
-                  Icons.repeat,
-                  color: isDark ? Colors.white : Colors.black,
-                ),
-                title: Text(
-                  lang.translate('repost_to_wall'),
-                  style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                ),
+                leading: const Icon(Icons.repeat),
+                title: Text(lang.translate('repost_to_wall')),
                 onTap: () async {
                   Navigator.pop(sheetContext);
                   _repostInternal();
@@ -730,29 +669,19 @@ class _PostCardState extends State<PostCard> {
             if (snapshot.connectionState != ConnectionState.done) {
               return const Padding(
                 padding: EdgeInsets.all(28),
-                child: Center(child: CircularProgressIndicator()),
+                child: AppLoader(),
               );
             }
 
             if (snapshot.hasError) {
-              return Padding(
-                padding: const EdgeInsets.all(20),
-                child: Text(
-                  '${lang.translate('error_loading')}: ${snapshot.error}',
-                  style: TextStyle(color: textColor),
-                ),
-              );
+              return ErrorState(error: snapshot.error);
             }
 
             final groups = snapshot.data ?? [];
             if (groups.isEmpty) {
-              return Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  lang.translate('no_groups_message'),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: subtitleColor),
-                ),
+              return EmptyState(
+                icon: Icons.groups_outlined,
+                title: lang.translate('no_groups_message'),
               );
             }
 
@@ -848,43 +777,9 @@ class _PostCardState extends State<PostCard> {
   }
 
   Widget _buildRepostGroupAvatar(dynamic group, String name) {
-    final avatarUrl = _stringFromGroup(group, '_resolved_avatar_url');
-
-    if (avatarUrl != null && avatarUrl.endsWith('.svg')) {
-      return ClipOval(
-        child: SvgPicture.network(
-          avatarUrl,
-          width: 40,
-          height: 40,
-          fit: BoxFit.cover,
-          placeholderBuilder: (_) => const CircleAvatar(
-            backgroundColor: Color(0xFFBE1E1E),
-            child: SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    if (avatarUrl != null) {
-      return CircleAvatar(
-        backgroundColor: const Color(0xFFBE1E1E),
-        backgroundImage: NetworkImage(avatarUrl),
-      );
-    }
-
-    return CircleAvatar(
-      backgroundColor: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(6),
-        child: SvgPicture.asset('assets/logo.svg', fit: BoxFit.contain),
-      ),
+    return AppAvatar(
+      url: _stringFromGroup(group, '_resolved_avatar_url'),
+      semanticLabel: name,
     );
   }
 
@@ -1020,7 +915,7 @@ class _PostCardState extends State<PostCard> {
             onPressed: () => Navigator.pop(context, controller.text),
             child: Text(
               lang.translate('save'),
-              style: const TextStyle(color: Color(0xFFBE1E1E)),
+              style: TextStyle(color: theme.colorScheme.primary),
             ),
           ),
         ],
@@ -1189,7 +1084,7 @@ class _PostCardState extends State<PostCard> {
               },
               child: Text(
                 lang.translate('report_submit'),
-                style: const TextStyle(color: Color(0xFFBE1E1E)),
+                style: TextStyle(color: theme.colorScheme.primary),
               ),
             ),
           ],
@@ -1233,28 +1128,21 @@ class _PostCardState extends State<PostCard> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: Text(
-          lang.translate('delete'),
-          style: const TextStyle(color: Colors.white),
-        ),
-        content: Text(
-          lang.translate('delete_confirm'),
-          style: const TextStyle(color: Colors.white70),
-        ),
+        title: Text(lang.translate('delete')),
+        content: Text(lang.translate('delete_confirm')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: Text(
               lang.translate('cancel'),
-              style: const TextStyle(color: Colors.white70),
+              style: TextStyle(color: context.tokens.textMuted),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text(
               lang.translate('delete'),
-              style: const TextStyle(color: Colors.red),
+              style: TextStyle(color: context.colors.error),
             ),
           ),
         ],
@@ -1331,7 +1219,10 @@ class _PostCardState extends State<PostCard> {
           _isTranslating = false;
         });
       } else {
-        throw Exception(result['error'] ?? 'Erreur de traduction');
+        throw Exception(
+          result['error'] ??
+              LanguageService.instance.translate('error_translation'),
+        );
       }
     } catch (e) {
       setState(() => _isTranslating = false);
@@ -1341,5 +1232,61 @@ class _PostCardState extends State<PostCard> {
         );
       }
     }
+  }
+}
+
+/// Squelette d'un [PostCard] affiché pendant le premier chargement du fil.
+///
+/// À placer sous un [SkeletonPulse] pour que plusieurs squelettes pulsent
+/// ensemble.
+class PostCardSkeleton extends StatelessWidget {
+  const PostCardSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: AppTokens.space4),
+      padding: const EdgeInsets.all(AppTokens.space16),
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        border: Border(
+          bottom: BorderSide(color: context.theme.dividerColor, width: 1),
+        ),
+      ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              SkeletonBox(height: 40, circle: true),
+              SizedBox(width: AppTokens.space12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SkeletonBox(width: 120, height: 14),
+                  SizedBox(height: AppTokens.space8),
+                  SkeletonBox(width: 40, height: 10),
+                ],
+              ),
+            ],
+          ),
+          SizedBox(height: AppTokens.space16),
+          SkeletonBox(width: double.infinity, height: 14),
+          SizedBox(height: AppTokens.space8),
+          FractionallySizedBox(
+            widthFactor: 0.7,
+            child: SkeletonBox(height: 14),
+          ),
+          SizedBox(height: AppTokens.space12),
+          SkeletonBox(
+            width: double.infinity,
+            height: 180,
+            radius: AppTokens.radius12,
+          ),
+          SizedBox(height: AppTokens.space16),
+          SkeletonBox(width: 160, height: 16),
+        ],
+      ),
+    );
   }
 }

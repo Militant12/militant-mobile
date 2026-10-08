@@ -27,6 +27,28 @@ void main() {
       expect(tester.getSize(find.byType(AppAvatar)), const Size(28, 28));
     });
 
+    testWidgets('sans nom ni image, affiche le logo', (tester) async {
+      await tester.pumpWidget(_app(const AppAvatar()));
+      expect(find.byType(Text), findsNothing);
+    });
+
+    testWidgets('pastille « en ligne » bordée de la couleur de surface', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _app(const AppAvatar(name: 'A', online: true), theme: AppTheme.light()),
+      );
+      final dot = tester.widget<Container>(
+        find.descendant(
+          of: find.byType(Positioned),
+          matching: find.byType(Container),
+        ),
+      );
+      final decoration = dot.decoration! as BoxDecoration;
+      expect(decoration.color, AppColors.success);
+      expect((decoration.border! as Border).top.color, Colors.white);
+    });
+
     testWidgets('est annoncé avec le nom aux lecteurs d’écran', (tester) async {
       final handle = tester.ensureSemantics();
       await tester.pumpWidget(_app(const AppAvatar(name: 'Louise')));

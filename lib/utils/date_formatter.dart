@@ -1,3 +1,5 @@
+import '../services/language_service.dart';
+
 class DateFormatter {
   static DateTime parseApiDate(dynamic dateValue) {
     if (dateValue == null) return DateTime.now();
@@ -19,14 +21,18 @@ class DateFormatter {
     final now = DateTime.now();
     final difference = now.difference(date);
 
+    final lang = LanguageService.instance;
+    String short(String key, int count) =>
+        lang.translate(key).replaceAll('{count}', '$count');
+
     if (difference.inMinutes < 1) {
-      return 'À l\'instant';
+      return lang.translate('just_now');
     } else if (difference.inHours < 1) {
-      return '${difference.inMinutes}min';
+      return short('time_minutes_short', difference.inMinutes);
     } else if (difference.inDays < 1) {
-      return '${difference.inHours}h';
+      return short('time_hours_short', difference.inHours);
     } else if (difference.inDays < 7) {
-      return '${difference.inDays}j';
+      return short('time_days_short', difference.inDays);
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }
