@@ -405,6 +405,24 @@ Les contributions sont les bienvenues ! Pour contribuer :
 4. Push vers la branche (`git push origin feature/amelioration`)
 5. Ouvrir une Merge Request
 
+## Contributeurs
+
+Merci aux personnes qui font vivre Militant.
+
+<p align="center">
+  <a href="https://gitlab.com/AnARCHIS12" title="Contributeur">
+    <img src="https://secure.gravatar.com/avatar/afe587487cc8d7001386da28375c1d7349eb2d19a1b1d831f0204ff6c7106694?s=80&d=identicon" width="80" height="80" alt="CALYPS" style="border-radius: 50%;" />
+  </a>
+  <a href="https://gitlab.com/Jibhey" title="Contributeur">
+    <img src="https://secure.gravatar.com/avatar/89a6712d07969727069a4673ae307f552d3e5d060e114708200e94f63f144437?s=80&d=identicon" width="80" height="80" alt="Jibhey" style="border-radius: 50%;" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://gitlab.com/AnARCHIS12">CALYPS</a> ·
+  <a href="https://gitlab.com/Jibhey">Jibhey</a>
+</p>
+
 ## Licence
 
 Ce projet est sous licence AGPL-3.0. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
