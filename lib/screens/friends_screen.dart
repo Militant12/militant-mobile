@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'users_list_screen.dart';
 import '../services/language_service.dart';
 import '../services/api_service.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import '../theme/theme_context.dart';
 import 'profile_screen.dart';
 import '../utils/error_helper.dart';
+import '../widgets/common/common.dart';
 
 class FriendsScreen extends StatefulWidget {
   final int? userId;
@@ -21,6 +22,7 @@ class _FriendsScreenState extends State<FriendsScreen>
   bool _isLoadingRequests = false;
   bool _isMe = false;
   bool _isInitializing = true;
+  ApiService? _api;
 
   @override
   void initState() {
@@ -31,6 +33,7 @@ class _FriendsScreenState extends State<FriendsScreen>
   Future<void> _initData() async {
     try {
       final api = await ApiService.getInstance();
+      _api = api;
       final profile = await api.getProfile();
 
       _isMe = widget.userId == null || widget.userId == profile['id'];
@@ -79,7 +82,11 @@ class _FriendsScreenState extends State<FriendsScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              action == 'accept' ? 'Demande acceptée' : 'Demande refusée',
+              LanguageService.instance.translate(
+                action == 'accept'
+                    ? 'friend_request_accepted'
+                    : 'friend_request_declined',
+              ),
             ),
           ),
         );
@@ -90,7 +97,13 @@ class _FriendsScreenState extends State<FriendsScreen>
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
+        ).showSnackBar(
+          SnackBar(
+            content: Text(
+              getFriendlyErrorMessage(e, LanguageService.instance),
+            ),
+          ),
+        );
       }
     }
   }
@@ -108,9 +121,7 @@ class _FriendsScreenState extends State<FriendsScreen>
         appBar: AppBar(
           title: Text(LanguageService.instance.translate('friends_title')),
         ),
-        body: const Center(
-          child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-        ),
+        body: const AppLoader(),
       );
     }
 
@@ -121,9 +132,9 @@ class _FriendsScreenState extends State<FriendsScreen>
         title: Text(lang.translate('friends_title')),
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: const Color(0xFFBE1E1E),
-          labelColor: const Color(0xFFBE1E1E),
-          unselectedLabelColor: Colors.grey,
+          indicatorColor: context.colors.primary,
+          labelColor: context.colors.primary,
+          unselectedLabelColor: context.tokens.textMuted,
           isScrollable: true,
           tabs: [
             Tab(text: lang.translate('friends_title')),
@@ -143,13 +154,13 @@ class _FriendsScreenState extends State<FriendsScreen>
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFBE1E1E),
+                          color: context.colors.primary,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
                           '${_pendingRequests.length}',
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: context.colors.onPrimary,
                             fontSize: 10,
                           ),
                         ),
@@ -194,31 +205,14 @@ class _FriendsScreenState extends State<FriendsScreen>
 
   Widget _buildRequestsList() {
     final lang = LanguageService.instance;
-    final theme = Theme.of(context);
-
     if (_isLoadingRequests) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-      );
+      return const SkeletonList();
     }
 
     if (_pendingRequests.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.person_add_outlined,
-              size: 64,
-              color: theme.disabledColor,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Aucune demande en attente',
-              style: TextStyle(color: theme.disabledColor),
-            ),
-          ],
-        ),
+      return EmptyState(
+        icon: Icons.person_add_outlined,
+        title: lang.translate('friend_requests_empty'),
       );
     }
 
@@ -234,22 +228,13 @@ class _FriendsScreenState extends State<FriendsScreen>
                 builder: (_) => ProfileScreen(userId: req['id']),
               ),
             ),
-            child: CircleAvatar(
-              backgroundColor: theme.cardColor,
-              child: req['avatar'] != null
-                  ? ClipOval(
-                      child: Image.network(
-                        ApiService(baseUrl: '').getImageUrl(req['avatar'])!,
-                        fit: BoxFit.cover,
-                        width: 40,
-                        height: 40,
-                      ),
-                    )
-                  : SvgPicture.asset('assets/logo.svg', width: 30),
+            child: AppAvatar(
+              url: _api?.getImageUrl(req['avatar']),
+              semanticLabel: req['username']?.toString(),
             ),
           ),
           title: Text(
-            req['username'] ?? 'Utilisateur',
+            req['username'] ?? lang.translate('user'),
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           subtitle: Text(
@@ -261,12 +246,12 @@ class _FriendsScreenState extends State<FriendsScreen>
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                icon: const Icon(Icons.check_circle, color: Colors.green),
+                icon: Icon(Icons.check_circle, color: context.tokens.success),
                 onPressed: () => _handleRequest(req['request_id'], 'accept'),
                 tooltip: lang.translate('accept'),
               ),
               IconButton(
-                icon: const Icon(Icons.cancel, color: Color(0xFFBE1E1E)),
+                icon: Icon(Icons.cancel, color: context.colors.primary),
                 onPressed: () => _handleRequest(req['request_id'], 'reject'),
                 tooltip: lang.translate('decline'),
               ),

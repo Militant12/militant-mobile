@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../widgets/common/common.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../models/fediverse_post.dart';
 import '../services/api_service.dart';
@@ -247,7 +247,7 @@ class _FediverseFeedTabState extends State<_FediverseFeedTab> {
                 if (index >= _posts.length) {
                   return const Padding(
                     padding: EdgeInsets.all(16),
-                    child: Center(child: CircularProgressIndicator()),
+                    child: AppLoader(),
                   );
                 }
 
@@ -1003,7 +1003,7 @@ class _FediverseAccountsTabState extends State<_FediverseAccountsTab> {
                 if (index >= _accounts.length) {
                   return const Padding(
                     padding: EdgeInsets.all(16),
-                    child: Center(child: CircularProgressIndicator()),
+                    child: AppLoader(),
                   );
                 }
 
@@ -1093,18 +1093,9 @@ class _FediverseAccountCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
+              AppAvatar(
+                url: avatarUrl.isNotEmpty ? avatarUrl : null,
                 radius: 24,
-                backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                backgroundImage: avatarUrl.isNotEmpty
-                    ? NetworkImage(avatarUrl)
-                    : null,
-                child: avatarUrl.isEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: SvgPicture.asset('assets/logo.svg'),
-                      )
-                    : null,
               ),
               const SizedBox(width: 12),
               Expanded(

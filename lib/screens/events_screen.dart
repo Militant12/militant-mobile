@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import '../theme/theme_context.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import 'create_event_screen.dart';
 import 'event_detail_screen.dart';
 import '../utils/error_helper.dart';
+import '../widgets/common/common.dart';
 
 class EventsScreen extends StatefulWidget {
   const EventsScreen({super.key});
@@ -15,6 +17,7 @@ class EventsScreen extends StatefulWidget {
 class _EventsScreenState extends State<EventsScreen> {
   final List<dynamic> _events = [];
   bool _isLoading = false;
+  Object? _error;
 
   @override
   void initState() {
@@ -27,61 +30,45 @@ class _EventsScreenState extends State<EventsScreen> {
     try {
       final api = await ApiService.getInstance();
       final events = await api.getEvents();
+      if (!mounted) return;
       setState(() {
+        _error = null;
         _events.clear();
         _events.addAll(events);
       });
     } catch (e) {
       debugPrint('Error loading events: $e');
-      if (mounted && _events.isEmpty) {
+      if (!mounted) return;
+      if (_events.isEmpty) {
+        setState(() => _error = e);
+      } else {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e, LanguageService.instance))));
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: Text(
-          LanguageService.instance.translate('events_title'),
-          style: const TextStyle(color: Colors.white),
-        ),
+        title: Text(LanguageService.instance.translate('events_title')),
       ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-            )
+      body: _isLoading && _events.isEmpty
+          ? const SkeletonList()
+          : _error != null && _events.isEmpty
+          ? ErrorState(error: _error, onRetry: _loadEvents)
           : _events.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.event_outlined,
-                    size: 64,
-                    color: Color(0xFF888888),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    LanguageService.instance.translate('no_events'),
-                    style: const TextStyle(
-                      color: Color(0xFF888888),
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
+          ? EmptyState(
+              icon: Icons.event_outlined,
+              title: LanguageService.instance.translate('no_events'),
             )
           : RefreshIndicator(
               onRefresh: _loadEvents,
-              color: const Color(0xFFBE1E1E),
+              color: context.colors.primary,
               child: ListView.builder(
                 itemCount: _events.length,
                 itemBuilder: (context, index) {
@@ -100,8 +87,10 @@ class _EventsScreenState extends State<EventsScreen> {
             _loadEvents();
           }
         },
-        backgroundColor: const Color(0xFFBE1E1E),
-        child: const Icon(Icons.add, color: Colors.white),
+        backgroundColor: context.colors.primary,
+        foregroundColor: context.colors.onPrimary,
+        tooltip: LanguageService.instance.translate('create_event'),
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -126,8 +115,8 @@ class _EventsScreenState extends State<EventsScreen> {
       onLongPress: () => _showEventOptions(event),
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: Colors.white10)),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: context.colors.outlineVariant)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,7 +125,7 @@ class _EventsScreenState extends State<EventsScreen> {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: const Color(0xFFBE1E1E),
+                color: context.colors.primary,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
@@ -144,8 +133,8 @@ class _EventsScreenState extends State<EventsScreen> {
                 children: [
                   Text(
                     _getDay(date),
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: context.colors.onPrimary,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       height: 1.0,
@@ -154,8 +143,8 @@ class _EventsScreenState extends State<EventsScreen> {
                   const SizedBox(height: 2),
                   Text(
                     _getMonth(date),
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: context.colors.onPrimary,
                       fontSize: 11,
                       height: 1.0,
                     ),
@@ -170,8 +159,8 @@ class _EventsScreenState extends State<EventsScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: context.colors.onSurface,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -180,17 +169,17 @@ class _EventsScreenState extends State<EventsScreen> {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.location_on,
                           size: 14,
-                          color: Color(0xFF888888),
+                          color: context.tokens.textMuted,
                         ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             location,
-                            style: const TextStyle(
-                              color: Color(0xFF888888),
+                            style: TextStyle(
+                              color: context.tokens.textMuted,
                               fontSize: 13,
                             ),
                           ),
@@ -204,8 +193,8 @@ class _EventsScreenState extends State<EventsScreen> {
                       description,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Color(0xFF888888),
+                      style: TextStyle(
+                        color: context.tokens.textMuted,
                         fontSize: 14,
                       ),
                     ),
@@ -222,17 +211,13 @@ class _EventsScreenState extends State<EventsScreen> {
   void _showEventOptions(dynamic event) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E1E1E),
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.delete, color: Color(0xFFBE1E1E)),
-              title: Text(
-                LanguageService.instance.translate('delete'),
-                style: const TextStyle(color: Colors.white),
-              ),
+              leading: Icon(Icons.delete, color: context.colors.primary),
+              title: Text(LanguageService.instance.translate('delete')),
               onTap: () {
                 Navigator.pop(context);
                 _confirmDelete(event);
@@ -249,28 +234,24 @@ class _EventsScreenState extends State<EventsScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: Text(
-          lang.translate('delete_event'),
-          style: const TextStyle(color: Colors.white),
-        ),
+        title: Text(lang.translate('delete_event')),
         content: Text(
           lang.translate('delete_event_confirm'),
-          style: const TextStyle(color: Color(0xFF888888)),
+          style: TextStyle(color: context.tokens.textMuted),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: Text(
               lang.translate('cancel'),
-              style: const TextStyle(color: Color(0xFF888888)),
+              style: TextStyle(color: context.tokens.textMuted),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text(
               lang.translate('delete'),
-              style: const TextStyle(color: Color(0xFFBE1E1E)),
+              style: TextStyle(color: context.colors.primary),
             ),
           ),
         ],
@@ -281,6 +262,7 @@ class _EventsScreenState extends State<EventsScreen> {
       try {
         final api = await ApiService.getInstance();
         await api.deleteEvent(event['id']);
+        if (!mounted) return;
         setState(() {
           _events.remove(event);
         });

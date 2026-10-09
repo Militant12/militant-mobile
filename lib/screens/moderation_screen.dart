@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import '../theme/theme_context.dart';
 import '../services/api_service.dart';
 import '../models/report.dart';
 import '../services/language_service.dart';
 import 'post_detail_screen.dart';
 import '../utils/error_helper.dart';
+import '../widgets/common/common.dart';
 
 class ModerationScreen extends StatefulWidget {
   const ModerationScreen({super.key});
@@ -20,6 +21,7 @@ class _ModerationScreenState extends State<ModerationScreen>
   final List<ModeratorCandidate> _candidates = [];
   final List<ModeratorCandidate> _moderators = [];
   bool _isLoading = false;
+  Object? _error;
   bool _isModerator = false;
   List<Map<String, dynamic>> _actions = [];
   List<Map<String, dynamic>> _sanctions = [];
@@ -37,7 +39,10 @@ class _ModerationScreenState extends State<ModerationScreen>
 
   Future<void> _loadData() async {
     if (!mounted) return;
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
 
     try {
       _apiService = await ApiService.getInstance();
@@ -106,13 +111,18 @@ class _ModerationScreenState extends State<ModerationScreen>
         });
       } catch (_) {}
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
+      if (!mounted) return;
+      if (_reports.isEmpty && _moderators.isEmpty) {
+        setState(() => _error = e);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(getFriendlyErrorMessage(e, LanguageService.instance)),
+          ),
+        );
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -185,8 +195,8 @@ class _ModerationScreenState extends State<ModerationScreen>
             ),
             bottom: TabBar(
               controller: _tabController,
-              indicatorColor: const Color(0xFFBE1E1E),
-              labelColor: const Color(0xFFBE1E1E),
+              indicatorColor: context.colors.primary,
+              labelColor: context.colors.primary,
               // En mode clair, gris, en mode sombre, gris clair
               unselectedLabelColor: theme.unselectedWidgetColor,
               tabs: [
@@ -197,10 +207,10 @@ class _ModerationScreenState extends State<ModerationScreen>
               ],
             ),
           ),
-          body: _isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-                )
+          body: _isLoading && _reports.isEmpty && _moderators.isEmpty
+              ? const SkeletonList()
+              : _error != null && _reports.isEmpty && _moderators.isEmpty
+              ? ErrorState(error: _error, onRetry: _loadData)
               : TabBarView(
                   controller: _tabController,
                   children: [
@@ -218,24 +228,15 @@ class _ModerationScreenState extends State<ModerationScreen>
   Widget _buildReportsTab() {
     final lang = LanguageService.instance;
     if (_reports.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.check_circle, size: 64, color: Colors.green),
-            const SizedBox(height: 16),
-            Text(
-              lang.translate('mod_no_reports'),
-              style: const TextStyle(color: Colors.white70),
-            ),
-          ],
-        ),
+      return EmptyState(
+        icon: Icons.check_circle_outline,
+        title: lang.translate('mod_no_reports'),
       );
     }
 
     return RefreshIndicator(
       onRefresh: _loadData,
-      color: const Color(0xFFBE1E1E),
+      color: context.colors.primary,
       child: ListView.builder(
         itemCount: _reports.length,
         itemBuilder: (context, index) {
@@ -261,7 +262,8 @@ class _ModerationScreenState extends State<ModerationScreen>
     return Container(
       margin: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
+        color: context.colors.surface,
+        boxShadow: context.tokens.cardShadow,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Padding(
@@ -294,12 +296,12 @@ class _ModerationScreenState extends State<ModerationScreen>
                 Expanded(
                   child: Text(
                     '${lang.translate('mod_sanction_by')} ${report.reporterUsername}',
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                    style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7), fontSize: 12),
                   ),
                 ),
                 Text(
                   '${report.voteCount} votes',
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7), fontSize: 12),
                 ),
               ],
             ),
@@ -310,7 +312,7 @@ class _ModerationScreenState extends State<ModerationScreen>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2A2A2A),
+                  color: context.colors.surfaceContainerHigh,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
@@ -318,15 +320,15 @@ class _ModerationScreenState extends State<ModerationScreen>
                   children: [
                     Text(
                       'Publication de ${report.reportedUsername ?? "[Supprimé]"}',
-                      style: const TextStyle(
-                        color: Colors.white70,
+                      style: TextStyle(
+                        color: context.colors.onSurface.withValues(alpha: 0.7),
                         fontSize: 12,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       report.postContent!,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(color: context.colors.onSurface),
                     ),
                   ],
                 ),
@@ -351,8 +353,8 @@ class _ModerationScreenState extends State<ModerationScreen>
                   icon: const Icon(Icons.open_in_new, size: 16),
                   label: const Text('Voir le post'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    side: const BorderSide(color: Colors.white24),
+                    foregroundColor: context.colors.onSurface,
+                    side: BorderSide(color: context.colors.onSurface.withValues(alpha: 0.24)),
                   ),
                 ),
               ),
@@ -362,8 +364,8 @@ class _ModerationScreenState extends State<ModerationScreen>
             if (report.description != null) ...[
               Text(
                 report.description!,
-                style: const TextStyle(
-                  color: Colors.white70,
+                style: TextStyle(
+                  color: context.colors.onSurface.withValues(alpha: 0.7),
                   fontSize: 13,
                   fontStyle: FontStyle.italic,
                 ),
@@ -376,27 +378,27 @@ class _ModerationScreenState extends State<ModerationScreen>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFBE1E1E).withOpacity(0.2),
+                  color: context.colors.primary.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.how_to_vote,
-                      color: Color(0xFFBE1E1E),
+                      color: context.colors.primary,
                       size: 16,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       'Tu as voté: ${_getVoteLabel(report.myVote!)}',
-                      style: const TextStyle(color: Color(0xFFBE1E1E)),
+                      style: TextStyle(color: context.colors.primary),
                     ),
                     const Spacer(),
                     TextButton(
                       onPressed: () => _voteOnReport(report.id, 'cancel'),
-                      child: const Text(
+                      child: Text(
                         'Annuler',
-                        style: TextStyle(color: Colors.white70),
+                        style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7)),
                       ),
                     ),
                   ],
@@ -413,7 +415,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                       label: Text(lang.translate('mod_vote_remove')),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
+                        foregroundColor: context.colors.onPrimary,
                       ),
                     ),
                   ),
@@ -425,7 +427,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                       label: Text(lang.translate('mod_vote_warn')),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.orange,
-                        foregroundColor: Colors.white,
+                        foregroundColor: context.colors.onPrimary,
                       ),
                     ),
                   ),
@@ -437,7 +439,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                       label: Text(lang.translate('mod_vote_keep')),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
+                        foregroundColor: context.colors.onPrimary,
                       ),
                     ),
                   ),
@@ -451,10 +453,10 @@ class _ModerationScreenState extends State<ModerationScreen>
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFDAA520).withOpacity(0.1),
+                  color: const Color(0xFFDAA520).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: const Color(0xFFDAA520).withOpacity(0.3),
+                    color: const Color(0xFFDAA520).withValues(alpha: 0.3),
                   ),
                 ),
                 child: Column(
@@ -490,8 +492,8 @@ class _ModerationScreenState extends State<ModerationScreen>
                                 lang.translate('mod_action_direct_delete'),
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFBE1E1E),
-                                foregroundColor: Colors.white,
+                                backgroundColor: context.colors.primary,
+                                foregroundColor: context.colors.onPrimary,
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 8,
                                 ),
@@ -506,7 +508,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                             label: Text(lang.translate('mod_action_warn')),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.orange.shade800,
-                              foregroundColor: Colors.white,
+                              foregroundColor: context.colors.onPrimary,
                               padding: const EdgeInsets.symmetric(vertical: 8),
                             ),
                           ),
@@ -528,28 +530,27 @@ class _ModerationScreenState extends State<ModerationScreen>
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
         title: Text(
           lang.translate('mod_confirm_delete_title'),
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: context.colors.onSurface),
         ),
         content: Text(
           lang.translate('mod_confirm_delete_text'),
-          style: const TextStyle(color: Colors.white70),
+          style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text(
               lang.translate('mod_apply_cancel'),
-              style: const TextStyle(color: Colors.white70),
+              style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7)),
             ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFBE1E1E),
-              foregroundColor: Colors.white,
+              backgroundColor: context.colors.primary,
+              foregroundColor: context.colors.onPrimary,
             ),
             child: Text(lang.translate('mod_vote_remove')),
           ),
@@ -585,28 +586,27 @@ class _ModerationScreenState extends State<ModerationScreen>
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
         title: Text(
           lang.translate('mod_confirm_warn_title'),
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: context.colors.onSurface),
         ),
         content: Text(
           lang.translate('mod_confirm_warn_text'),
-          style: const TextStyle(color: Colors.white70),
+          style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text(
               lang.translate('mod_apply_cancel'),
-              style: const TextStyle(color: Colors.white70),
+              style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7)),
             ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.orange.shade800,
-              foregroundColor: Colors.white,
+              foregroundColor: context.colors.onPrimary,
             ),
             child: Text(lang.translate('mod_action_warn')),
           ),
@@ -644,7 +644,8 @@ class _ModerationScreenState extends State<ModerationScreen>
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E1E1E),
+            color: context.colors.surface,
+            boxShadow: context.tokens.cardShadow,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -652,8 +653,8 @@ class _ModerationScreenState extends State<ModerationScreen>
             children: [
               Text(
                 lang.translate('mod_principles_title'),
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: context.colors.onSurface,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -661,7 +662,7 @@ class _ModerationScreenState extends State<ModerationScreen>
               const SizedBox(height: 8),
               Text(
                 lang.translate('mod_principles_text'),
-                style: const TextStyle(color: Colors.white70, height: 1.5),
+                style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7), height: 1.5),
               ),
             ],
           ),
@@ -676,8 +677,8 @@ class _ModerationScreenState extends State<ModerationScreen>
                 ? _confirmCancelCandidacy
                 : _showCandidacyDialog,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFBE1E1E),
-              foregroundColor: Colors.white,
+              backgroundColor: context.colors.primary,
+              foregroundColor: context.colors.onPrimary,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -701,7 +702,7 @@ class _ModerationScreenState extends State<ModerationScreen>
               padding: const EdgeInsets.all(32),
               child: Text(
                 lang.translate('mod_no_candidates'),
-                style: const TextStyle(color: Colors.white70),
+                style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7)),
               ),
             ),
           )
@@ -718,10 +719,9 @@ class _ModerationScreenState extends State<ModerationScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
         title: Text(
           lang.translate('mod_apply_dialog_title'),
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: context.colors.onSurface),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -729,18 +729,18 @@ class _ModerationScreenState extends State<ModerationScreen>
           children: [
             Text(
               lang.translate('mod_apply_dialog_desc'),
-              style: const TextStyle(color: Colors.white70, fontSize: 14),
+              style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7), fontSize: 14),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: controller,
               maxLines: 4,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: context.colors.onSurface),
               decoration: InputDecoration(
                 hintText: lang.translate('mod_apply_hint'),
-                hintStyle: const TextStyle(color: Colors.white38),
+                hintStyle: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.38)),
                 filled: true,
-                fillColor: const Color(0xFF2A2A2A),
+                fillColor: context.colors.surfaceContainerHigh,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide.none,
@@ -754,7 +754,7 @@ class _ModerationScreenState extends State<ModerationScreen>
             onPressed: () => Navigator.pop(context),
             child: Text(
               lang.translate('mod_apply_cancel'),
-              style: const TextStyle(color: Colors.white70),
+              style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7)),
             ),
           ),
           ElevatedButton(
@@ -763,8 +763,8 @@ class _ModerationScreenState extends State<ModerationScreen>
               await _submitCandidacy(controller.text);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFBE1E1E),
-              foregroundColor: Colors.white,
+              backgroundColor: context.colors.primary,
+              foregroundColor: context.colors.onPrimary,
             ),
             child: Text(lang.translate('mod_apply_send')),
           ),
@@ -805,19 +805,18 @@ class _ModerationScreenState extends State<ModerationScreen>
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
         title: Text(
           lang.translate('mod_cancel_candidacy_question'),
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: context.colors.onSurface),
         ),
         content: Text(
           lang.translate('mod_cancel_candidacy_warning'),
-          style: const TextStyle(color: Colors.white70),
+          style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(lang.translate('cancel'), style: const TextStyle(color: Colors.white54)),
+            child: Text(lang.translate('cancel'), style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.54))),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -868,7 +867,7 @@ class _ModerationScreenState extends State<ModerationScreen>
             child: Center(
               child: Text(
                 lang.translate('mod_no_moderators'),
-                style: const TextStyle(color: Colors.white70),
+                style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7)),
               ),
             ),
           )
@@ -881,9 +880,9 @@ class _ModerationScreenState extends State<ModerationScreen>
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E1E1E),
+            color: context.colors.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.red.withOpacity(0.3)),
+            border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -905,7 +904,7 @@ class _ModerationScreenState extends State<ModerationScreen>
               const SizedBox(height: 4),
               Text(
                 lang.translate('mod_transparency_desc'),
-                style: const TextStyle(color: Colors.white38, fontSize: 12),
+                style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.38), fontSize: 12),
               ),
               const SizedBox(height: 12),
 
@@ -915,7 +914,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                   child: Center(
                     child: Text(
                       lang.translate('mod_no_actions'),
-                      style: const TextStyle(color: Colors.white38),
+                      style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.38)),
                     ),
                   ),
                 )
@@ -954,9 +953,9 @@ class _ModerationScreenState extends State<ModerationScreen>
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E1E1E),
+            color: context.colors.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.orange.withOpacity(0.3)),
+            border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -978,7 +977,7 @@ class _ModerationScreenState extends State<ModerationScreen>
               const SizedBox(height: 4),
               Text(
                 lang.translate('mod_sanctions_desc'),
-                style: const TextStyle(color: Colors.white38, fontSize: 12),
+                style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.38), fontSize: 12),
               ),
             ],
           ),
@@ -992,7 +991,7 @@ class _ModerationScreenState extends State<ModerationScreen>
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
+                  color: Colors.orange.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
@@ -1007,8 +1006,8 @@ class _ModerationScreenState extends State<ModerationScreen>
                     ),
                     Text(
                       lang.translate('mod_sanction_warning'),
-                      style: const TextStyle(
-                        color: Colors.white54,
+                      style: TextStyle(
+                        color: context.colors.onSurface.withValues(alpha: 0.54),
                         fontSize: 12,
                       ),
                     ),
@@ -1021,23 +1020,23 @@ class _ModerationScreenState extends State<ModerationScreen>
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFBE1E1E).withOpacity(0.1),
+                  color: context.colors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
                   children: [
                     Text(
                       '${_bans.length}',
-                      style: const TextStyle(
-                        color: Color(0xFFBE1E1E),
+                      style: TextStyle(
+                        color: context.colors.primary,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
                       lang.translate('mod_sanction_ban'),
-                      style: const TextStyle(
-                        color: Colors.white54,
+                      style: TextStyle(
+                        color: context.colors.onSurface.withValues(alpha: 0.54),
                         fontSize: 12,
                       ),
                     ),
@@ -1060,7 +1059,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                   const SizedBox(height: 12),
                   Text(
                     lang.translate('mod_no_sanctions'),
-                    style: const TextStyle(color: Colors.white70),
+                    style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7)),
                   ),
                 ],
               ),
@@ -1075,7 +1074,7 @@ class _ModerationScreenState extends State<ModerationScreen>
   Widget _buildSanctionCard(Map<String, dynamic> sanction) {
     final lang = LanguageService.instance;
     final isBan = sanction['_type'] == 'ban';
-    final color = isBan ? const Color(0xFFBE1E1E) : Colors.orange;
+    final color = isBan ? context.colors.primary : Colors.orange;
     final label = isBan
         ? lang.translate('mod_sanction_ban')
         : lang.translate('mod_sanction_warning');
@@ -1117,38 +1116,17 @@ class _ModerationScreenState extends State<ModerationScreen>
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.06),
+        color: color.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(0.15)),
+        border: Border.all(color: color.withValues(alpha: 0.15)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Avatar de la personne sanctionnée
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: color.withOpacity(0.2),
-            backgroundImage:
-                _apiService != null &&
-                    targetAvatar != null &&
-                    targetAvatar != 'default.svg' &&
-                    _apiService!.getImageUrl(targetAvatar) != null
-                ? NetworkImage(_apiService!.getImageUrl(targetAvatar)!)
-                : null,
-            child:
-                _apiService == null ||
-                    targetAvatar == null ||
-                    targetAvatar == 'default.svg' ||
-                    _apiService!.getImageUrl(targetAvatar) == null
-                ? ClipOval(
-                    child: SvgPicture.asset(
-                      'assets/logo.svg',
-                      width: 40,
-                      height: 40,
-                      fit: BoxFit.cover,
-                    ),
-                  )
-                : null,
+          AppAvatar(
+            url: _apiService?.getImageUrl(targetAvatar),
+            semanticLabel: targetUsername,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -1171,13 +1149,13 @@ class _ModerationScreenState extends State<ModerationScreen>
                     const SizedBox(width: 6),
                     Text(
                       '→ ',
-                      style: TextStyle(color: Colors.white38, fontSize: 13),
+                      style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.38), fontSize: 13),
                     ),
                     Flexible(
                       child: Text(
                         targetUsername,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: context.colors.onSurface,
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                         ),
@@ -1192,8 +1170,8 @@ class _ModerationScreenState extends State<ModerationScreen>
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
                       reason,
-                      style: const TextStyle(
-                        color: Colors.white54,
+                      style: TextStyle(
+                        color: context.colors.onSurface.withValues(alpha: 0.54),
                         fontSize: 12,
                         fontStyle: FontStyle.italic,
                       ),
@@ -1211,7 +1189,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: color.withOpacity(0.15),
+                        color: color.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
@@ -1229,7 +1207,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
                     '${lang.translate('mod_sanction_by')} $issuedBy · $timeAgo',
-                    style: const TextStyle(color: Colors.white24, fontSize: 11),
+                    style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.24), fontSize: 11),
                   ),
                 ),
               ],
@@ -1242,7 +1220,7 @@ class _ModerationScreenState extends State<ModerationScreen>
 
   Widget _buildActionItem(Map<String, dynamic> action) {
     final isWarning = action['action_type'] == 'warning';
-    final color = isWarning ? Colors.orange : const Color(0xFFBE1E1E);
+    final color = isWarning ? Colors.orange : context.colors.primary;
     final label = isWarning ? 'Avertissement' : 'Post supprimé';
     final moderator =
         action['moderator_username'] ?? action['reporter_username'] ?? '?';
@@ -1267,32 +1245,17 @@ class _ModerationScreenState extends State<ModerationScreen>
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Avatar du modérateur
-          CircleAvatar(
+          AppAvatar(
+            url: _apiService?.getImageUrl(action['moderator_avatar']),
+            name: moderator,
             radius: 16,
-            backgroundImage:
-                _apiService != null && action['moderator_avatar'] != null
-                ? NetworkImage(
-                    _apiService!.getImageUrl(action['moderator_avatar'])!,
-                  )
-                : null,
-            backgroundColor: color.withOpacity(0.2),
-            child: _apiService == null || action['moderator_avatar'] == null
-                ? Text(
-                    moderator.isNotEmpty ? moderator[0].toUpperCase() : '?',
-                    style: TextStyle(
-                      color: color,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  )
-                : null,
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -1301,7 +1264,7 @@ class _ModerationScreenState extends State<ModerationScreen>
               children: [
                 RichText(
                   text: TextSpan(
-                    style: const TextStyle(fontSize: 13, color: Colors.white70),
+                    style: TextStyle(fontSize: 13, color: context.colors.onSurface.withValues(alpha: 0.7)),
                     children: [
                       TextSpan(
                         text: label,
@@ -1313,8 +1276,8 @@ class _ModerationScreenState extends State<ModerationScreen>
                       const TextSpan(text: ' — '),
                       TextSpan(
                         text: target,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: context.colors.onSurface,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -1326,8 +1289,8 @@ class _ModerationScreenState extends State<ModerationScreen>
                     padding: const EdgeInsets.only(top: 2),
                     child: Text(
                       reason,
-                      style: const TextStyle(
-                        color: Colors.white38,
+                      style: TextStyle(
+                        color: context.colors.onSurface.withValues(alpha: 0.38),
                         fontSize: 12,
                         fontStyle: FontStyle.italic,
                       ),
@@ -1337,7 +1300,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                   padding: const EdgeInsets.only(top: 2),
                   child: Text(
                     isWarning ? 'par $moderator · $timeAgo' : timeAgo,
-                    style: const TextStyle(color: Colors.white24, fontSize: 11),
+                    style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.24), fontSize: 11),
                   ),
                 ),
               ],
@@ -1357,7 +1320,8 @@ class _ModerationScreenState extends State<ModerationScreen>
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
+        color: context.colors.surface,
+        boxShadow: context.tokens.cardShadow,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -1365,30 +1329,10 @@ class _ModerationScreenState extends State<ModerationScreen>
         children: [
           Row(
             children: [
-              CircleAvatar(
+              AppAvatar(
+                url: _apiService?.getImageUrl(candidate.avatar),
+                semanticLabel: candidate.username,
                 radius: 24,
-                backgroundColor: const Color(0xFFBE1E1E),
-                backgroundImage:
-                    _apiService != null &&
-                        candidate.avatar != null &&
-                        candidate.avatar != 'default.svg' &&
-                        _apiService!.getImageUrl(candidate.avatar) != null
-                    ? NetworkImage(_apiService!.getImageUrl(candidate.avatar)!)
-                    : null,
-                child:
-                    _apiService == null ||
-                        candidate.avatar == null ||
-                        candidate.avatar == 'default.svg' ||
-                        _apiService!.getImageUrl(candidate.avatar) == null
-                    ? ClipOval(
-                        child: SvgPicture.asset(
-                          'assets/logo.svg',
-                          width: 48,
-                          height: 48,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    : null,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1397,16 +1341,16 @@ class _ModerationScreenState extends State<ModerationScreen>
                   children: [
                     Text(
                       candidate.username,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: context.colors.onSurface,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     if (isModerator)
-                      const Text(
+                      Text(
                         'Modérateur·ice',
                         style: TextStyle(
-                          color: Color(0xFFBE1E1E),
+                          color: context.colors.primary,
                           fontSize: 12,
                         ),
                       ),
@@ -1420,8 +1364,8 @@ class _ModerationScreenState extends State<ModerationScreen>
             const SizedBox(height: 12),
             Text(
               '"${candidate.motivation}"',
-              style: const TextStyle(
-                color: Colors.white70,
+              style: TextStyle(
+                color: context.colors.onSurface.withValues(alpha: 0.7),
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -1435,7 +1379,7 @@ class _ModerationScreenState extends State<ModerationScreen>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.2),
+                  color: Colors.green.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Row(
@@ -1453,7 +1397,7 @@ class _ModerationScreenState extends State<ModerationScreen>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.2),
+                  color: Colors.red.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Row(
@@ -1477,18 +1421,18 @@ class _ModerationScreenState extends State<ModerationScreen>
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFFBE1E1E).withOpacity(0.1),
+                color: context.colors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.person, color: Color(0xFFBE1E1E), size: 16),
+                  Icon(Icons.person, color: context.colors.primary, size: 16),
                   const SizedBox(width: 8),
                   Text(
                     lang.translate('mod_your_candidacy'),
-                    style: const TextStyle(
-                      color: Color(0xFFBE1E1E),
+                    style: TextStyle(
+                      color: context.colors.primary,
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
                     ),
@@ -1518,7 +1462,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                       side: BorderSide(
                         color: candidate.myVote == 'for'
                             ? Colors.green
-                            : Colors.green.withOpacity(0.5),
+                            : Colors.green.withValues(alpha: 0.5),
                       ),
                     ),
                   ),
@@ -1549,7 +1493,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                       side: BorderSide(
                         color: candidate.myVote == 'against'
                             ? Colors.red
-                            : Colors.red.withOpacity(0.5),
+                            : Colors.red.withValues(alpha: 0.5),
                       ),
                     ),
                   ),

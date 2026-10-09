@@ -10,6 +10,7 @@ import 'screens/profile_screen.dart';
 
 import 'services/theme_manager.dart';
 import 'theme/app_theme.dart';
+import 'theme/theme_context.dart';
 import 'services/language_service.dart';
 import 'services/api_service.dart';
 import 'services/incoming_call_service.dart';
@@ -232,7 +233,6 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnim,
@@ -250,7 +250,7 @@ class _SplashScreenState extends State<SplashScreen>
                     borderRadius: BorderRadius.circular(28),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFBE1E1E).withOpacity(0.4),
+                        color: context.colors.primary.withValues(alpha: 0.4),
                         blurRadius: 30,
                         spreadRadius: 2,
                       ),
@@ -267,10 +267,10 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
                 const SizedBox(height: 28),
-                const Text(
+                Text(
                   'MILITANT',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: context.colors.onSurface,
                     fontSize: 34,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 4,
@@ -278,9 +278,9 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Réseau social militant',
+                  LanguageService.instance.translate('splash_tagline'),
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
+                    color: context.colors.onSurface.withValues(alpha: 0.5),
                     fontSize: 14,
                     fontWeight: FontWeight.w300,
                     letterSpacing: 1.5,
@@ -291,7 +291,7 @@ class _SplashScreenState extends State<SplashScreen>
                   width: 32,
                   height: 32,
                   child: CircularProgressIndicator(
-                    color: const Color(0xFFBE1E1E),
+                    color: context.colors.primary,
                     strokeWidth: 2.5,
                   ),
                 ),

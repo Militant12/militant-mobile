@@ -85,8 +85,12 @@ class AppAvatar extends StatelessWidget {
       );
     }
 
+    // Fond gris visible pendant le chargement de l'image.
     Widget avatar = ClipOval(
-      child: SizedBox.square(dimension: _size, child: image),
+      child: ColoredBox(
+        color: context.colors.surfaceContainerHigh,
+        child: SizedBox.square(dimension: _size, child: image),
+      ),
     );
     if (online) {
       final dot = (radius * 0.6).clamp(8.0, 16.0);

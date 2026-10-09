@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/common/common.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../services/api_service.dart';
@@ -914,9 +915,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(title: Text(lang.translate('notifications_title'))),
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-            )
+          ? const AppLoader()
           : ListView(
               children: [
                 _buildSectionHeader(
@@ -1273,9 +1272,7 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(title: Text(lang.translate('privacy_title'))),
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-            )
+          ? const AppLoader()
           : ListView(
               children: [
                 _buildSwitch(

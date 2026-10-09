@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../theme/theme_context.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
@@ -18,6 +18,7 @@ import '../widgets/linkable_text.dart';
 import '../widgets/incoming_call_banner.dart';
 import '../widgets/signal_typing_indicator.dart';
 import '../utils/error_helper.dart';
+import '../widgets/common/common.dart';
 
 const Duration _privateChatPollInterval = Duration(seconds: 10);
 const Duration _privateTypingPollInterval = Duration(seconds: 6);
@@ -835,19 +836,11 @@ class _ChatScreenState extends State<ChatScreen> {
               _buildAutoDeleteBanner(),
               Expanded(
                 child: _isLoading
-                    ? const Center(
-                        child: CircularProgressIndicator(
-                          color: Color(0xFFBE1E1E),
-                        ),
-                      )
+                    ? const AppLoader()
                     : _messages.isEmpty
-                    ? Center(
-                        child: Text(
-                          lang.translate('no_messages'),
-                          style: TextStyle(
-                            color: theme.textTheme.bodyMedium?.color,
-                          ),
-                        ),
+                    ? EmptyState(
+                        icon: Icons.chat_bubble_outline,
+                        title: lang.translate('no_messages'),
                       )
                     : ListView.builder(
                         reverse: true,
@@ -873,38 +866,11 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildAvatar() {
     return FutureBuilder<ApiService>(
       future: ApiService.getInstance(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) return const CircleAvatar(radius: 16);
-        final api = snapshot.data!;
-        final url = api.getImageUrl(_contactAvatar);
-
-        if (url != null && url.endsWith('.svg')) {
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: SvgPicture.network(
-              url,
-              width: 32,
-              height: 32,
-              fit: BoxFit.cover,
-              placeholderBuilder: (_) =>
-                  const CircularProgressIndicator(strokeWidth: 2),
-            ),
-          );
-        } else if (url != null) {
-          return CircleAvatar(radius: 16, backgroundImage: NetworkImage(url));
-        } else {
-          return CircleAvatar(
-            radius: 16,
-            backgroundColor: const Color(0xFFBE1E1E),
-            child: Text(
-              _contactUsername.isNotEmpty
-                  ? _contactUsername[0].toUpperCase()
-                  : '?',
-              style: const TextStyle(color: Colors.white, fontSize: 14),
-            ),
-          );
-        }
-      },
+      builder: (context, snapshot) => AppAvatar(
+        url: snapshot.data?.getImageUrl(_contactAvatar),
+        name: _contactUsername,
+        radius: 16,
+      ),
     );
   }
 
@@ -922,7 +888,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E1E1E),
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -950,10 +915,10 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.reply, color: Colors.white),
+              leading: Icon(Icons.reply, color: context.colors.onSurface),
               title: Text(
                 lang.translate('reply'),
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: context.colors.onSurface),
               ),
               onTap: () {
                 Navigator.pop(context);
@@ -962,10 +927,10 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             if (isMine)
               ListTile(
-                leading: const Icon(Icons.edit, color: Colors.white),
+                leading: Icon(Icons.edit, color: context.colors.onSurface),
                 title: Text(
                   lang.translate('edit'),
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: context.colors.onSurface),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -974,24 +939,23 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             if (isMine)
               ListTile(
-                leading: const Icon(Icons.delete, color: Color(0xFFBE1E1E)),
+                leading: Icon(Icons.delete, color: context.colors.primary),
                 title: Text(
                   lang.translate('delete'),
-                  style: const TextStyle(color: Color(0xFFBE1E1E)),
+                  style: TextStyle(color: context.colors.primary),
                 ),
                 onTap: () async {
                   Navigator.pop(context);
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (context) => AlertDialog(
-                      backgroundColor: const Color(0xFF1E1E1E),
                       title: Text(
                         lang.translate('delete_question'),
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(color: context.colors.onSurface),
                       ),
                       content: Text(
                         lang.translate('delete_message_confirm'),
-                        style: const TextStyle(color: Colors.white70),
+                        style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7)),
                       ),
                       actions: [
                         TextButton(
@@ -1002,7 +966,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           onPressed: () => Navigator.pop(context, true),
                           child: Text(
                             lang.translate('delete'),
-                            style: const TextStyle(color: Color(0xFFBE1E1E)),
+                            style: TextStyle(color: context.colors.primary),
                           ),
                         ),
                       ],
@@ -1035,14 +999,13 @@ class _ChatScreenState extends State<ChatScreen> {
     final newContent = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
         title: Text(
           lang.translate('edit_message'),
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: context.colors.onSurface),
         ),
         content: TextField(
           controller: controller,
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: context.colors.onSurface),
           decoration: InputDecoration(border: OutlineInputBorder()),
           maxLines: null,
         ),
@@ -1055,7 +1018,7 @@ class _ChatScreenState extends State<ChatScreen> {
             onPressed: () => Navigator.pop(context, controller.text.trim()),
             child: Text(
               lang.translate('save'),
-              style: const TextStyle(color: Color(0xFFBE1E1E)),
+              style: TextStyle(color: context.colors.primary),
             ),
           ),
         ],
@@ -1541,20 +1504,20 @@ class _ChatScreenState extends State<ChatScreen> {
                     },
                     errorBuilder: (context, error, stackTrace) => Container(
                       height: 100,
-                      color: Colors.grey[800],
+                      color: context.colors.surfaceContainerHigh,
                       child: Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.broken_image,
-                              color: Colors.white54,
+                              color: context.tokens.textMuted,
                               size: 40,
                             ),
                             const SizedBox(height: 8),
                             Text(
                               lang.translate('loading_error'),
-                              style: const TextStyle(color: Colors.white54),
+                              style: TextStyle(color: context.tokens.textMuted),
                             ),
                           ],
                         ),
@@ -1689,23 +1652,25 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           if (_messageController.text.trim().isEmpty)
             IconButton(
-              icon: const Icon(Icons.mic, color: Color(0xFFBE1E1E)),
+              tooltip: lang.translate('record_audio'),
+              icon: Icon(Icons.mic, color: context.colors.primary),
               onPressed: () {
                 setState(() => _isRecording = true);
               },
             )
           else
             IconButton(
+              tooltip: lang.translate('send'),
               icon: _isSending
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Color(0xFFBE1E1E),
+                        color: context.colors.primary,
                       ),
                     )
-                  : const Icon(Icons.send, color: Color(0xFFBE1E1E)),
+                  : Icon(Icons.send, color: context.colors.primary),
               onPressed: () => _isSending ? null : _sendMessage(),
             ),
             ],
@@ -1720,32 +1685,31 @@ class _ChatScreenState extends State<ChatScreen> {
     final picker = ImagePicker();
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
-      backgroundColor: const Color(0xFF1E1E1E),
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_library, color: Colors.white),
+              leading: Icon(Icons.photo_library, color: context.colors.onSurface),
               title: Text(
                 lang.translate('gallery'),
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: context.colors.onSurface),
               ),
               onTap: () => Navigator.pop(context, ImageSource.gallery),
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt, color: Colors.white),
+              leading: Icon(Icons.camera_alt, color: context.colors.onSurface),
               title: Text(
                 lang.translate('camera'),
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: context.colors.onSurface),
               ),
               onTap: () => Navigator.pop(context, ImageSource.camera),
             ),
             ListTile(
-              leading: const Icon(Icons.audiotrack, color: Colors.white),
+              leading: Icon(Icons.audiotrack, color: context.colors.onSurface),
               title: Text(
                 lang.translate('audio'),
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: context.colors.onSurface),
               ),
               onTap: () async {
                 Navigator.pop(context);
@@ -1758,10 +1722,10 @@ class _ChatScreenState extends State<ChatScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.link, color: Colors.white),
+              leading: Icon(Icons.link, color: context.colors.onSurface),
               title: Text(
                 lang.translate('link'),
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: context.colors.onSurface),
               ),
               onTap: () async {
                 Navigator.pop(context);
@@ -1769,17 +1733,16 @@ class _ChatScreenState extends State<ChatScreen> {
                 final url = await showDialog<String>(
                   context: context,
                   builder: (context) => AlertDialog(
-                    backgroundColor: const Color(0xFF1E1E1E),
                     title: Text(
                       lang.translate('share_link'),
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(color: context.colors.onSurface),
                     ),
                     content: TextField(
                       controller: controller,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(color: context.colors.onSurface),
                       decoration: InputDecoration(
                         hintText: 'https://...',
-                        hintStyle: TextStyle(color: Colors.white38),
+                        hintStyle: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.38)),
                       ),
                       autofocus: true,
                     ),
@@ -1825,10 +1788,9 @@ class _ChatScreenState extends State<ChatScreen> {
           final confirm = await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(
-              backgroundColor: const Color(0xFF1E1E1E),
               title: Text(
                 lang.translate('preview_label'),
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: context.colors.onSurface),
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -1854,7 +1816,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   onPressed: () => Navigator.pop(context, true),
                   child: Text(
                     lang.translate('send'),
-                    style: const TextStyle(color: Color(0xFFBE1E1E)),
+                    style: TextStyle(color: context.colors.primary),
                   ),
                 ),
               ],

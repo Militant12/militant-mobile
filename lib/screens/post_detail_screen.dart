@@ -10,7 +10,9 @@ import '../widgets/militant_badge.dart';
 import '../widgets/technician_badge.dart';
 import '../widgets/linkable_text.dart';
 import '../widgets/mention_user_avatar.dart';
+import '../theme/theme_context.dart';
 import '../utils/error_helper.dart';
+import '../widgets/common/common.dart';
 
 class PostDetailScreen extends StatefulWidget {
   final Post? post;
@@ -25,6 +27,7 @@ class PostDetailScreen extends StatefulWidget {
 class _PostDetailScreenState extends State<PostDetailScreen> {
   final List<Comment> _comments = [];
   bool _isLoading = false;
+  Object? _loadError;
   int? _currentUserId;
   final TextEditingController _commentController = TextEditingController();
   Timer? _mentionDebounce;
@@ -146,7 +149,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
   Future<void> _loadPostIfNeeded() async {
     if (widget.postId != null) {
-      setState(() => _isLoading = true);
+      setState(() {
+        _isLoading = true;
+        _loadError = null;
+      });
       try {
         final api = await ApiService.getInstance();
         final postData = await api.getPost(widget.postId!);
@@ -158,6 +164,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         }
       } catch (e) {
         debugPrint('Error loading post: $e');
+        if (mounted) setState(() => _loadError = e);
       } finally {
         if (mounted) setState(() => _isLoading = false);
       }
@@ -213,7 +220,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
+        ).showSnackBar(
+          SnackBar(
+            content: Text(getFriendlyErrorMessage(e, LanguageService.instance)),
+          ),
+        );
       }
     } finally {
       if (mounted) {
@@ -265,7 +276,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Impossible d\'ajouter le commentaire')),
+          SnackBar(
+            content: Text(
+              LanguageService.instance.translate('comment_add_error'),
+            ),
+          ),
         );
       }
     }
@@ -280,9 +295,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       return Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(title: Text(lang.translate('post_detail_title'))),
-        body: const Center(
-          child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-        ),
+        body: const AppLoader(),
       );
     }
 
@@ -290,12 +303,16 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       return Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(title: Text(lang.translate('post_detail_title'))),
-        body: const Center(child: Text('Post introuvable')),
+        body: _loadError != null
+            ? ErrorState(error: _loadError, onRetry: _loadPostIfNeeded)
+            : EmptyState(
+                icon: Icons.article_outlined,
+                title: lang.translate('post_not_found'),
+              ),
       );
     }
 
     final textColor = theme.textTheme.bodyLarge?.color;
-    final subtitleColor = theme.textTheme.bodyMedium?.color;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -318,17 +335,23 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                     ),
                   ),
                 ),
-                if (_isLoading)
-                  const Center(
-                    child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
+                if (_isLoading && _comments.isEmpty)
+                  const SkeletonPulse(
+                    child: Column(
+                      children: [
+                        SkeletonListTile(),
+                        SkeletonListTile(),
+                        SkeletonListTile(),
+                      ],
+                    ),
                   )
                 else if (_comments.isEmpty)
                   Center(
                     child: Padding(
                       padding: const EdgeInsets.all(32.0),
                       child: Text(
-                        'Aucun commentaire',
-                        style: TextStyle(color: subtitleColor),
+                        lang.translate('comments_empty'),
+                        style: TextStyle(color: context.tokens.textMuted),
                       ),
                     ),
                   )
@@ -371,48 +394,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
             children: [
               FutureBuilder<ApiService>(
                 future: ApiService.getInstance(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return CircleAvatar(
-                      radius: 20,
-                      backgroundColor: const Color(0xFFBE1E1E),
-                      child: Text(
-                        comment.username.isNotEmpty
-                            ? comment.username[0].toUpperCase()
-                            : '?',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
-                      ),
-                    );
-                  }
-
-                  final avatarUrl = snapshot.data!.getImageUrl(
-                    comment.userAvatar,
-                  );
-
-                  if (avatarUrl != null && avatarUrl.isNotEmpty) {
-                    return CircleAvatar(
-                      radius: 20,
-                      backgroundImage: NetworkImage(avatarUrl),
-                      backgroundColor: const Color(0xFFBE1E1E),
-                      onBackgroundImageError: (_, __) {},
-                      child: null,
-                    );
-                  }
-
-                  return CircleAvatar(
-                    radius: 20,
-                    backgroundColor: const Color(0xFFBE1E1E),
-                    child: Text(
-                      comment.username.isNotEmpty
-                          ? comment.username[0].toUpperCase()
-                          : '?',
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
-                    ),
-                  );
-                },
+                builder: (context, snapshot) => AppAvatar(
+                  url: snapshot.data?.getImageUrl(comment.userAvatar),
+                  name: comment.username,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -447,19 +432,19 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                         if (comment.isModerator) ...[
                           const SizedBox(width: 4),
                           Tooltip(
-                            message: 'Modérateur·ice élu·e',
+                            message: lang.translate('post_elected_moderator'),
                             child: Container(
                               padding: const EdgeInsets.all(2),
                               decoration: BoxDecoration(
-                                color: const Color(
-                                  0xFFBE1E1E,
-                                ).withOpacity(0.15),
+                                color: context.colors.primary.withValues(
+                                  alpha: 0.15,
+                                ),
                                 borderRadius: BorderRadius.circular(4),
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.shield,
                                 size: 14,
-                                color: Color(0xFFBE1E1E),
+                                color: context.colors.primary,
                               ),
                             ),
                           ),
@@ -548,7 +533,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                             Icons.thumb_up,
                             size: 14,
                             color: comment.hasReacted
-                                ? const Color(0xFFBE1E1E)
+                                ? context.colors.primary
                                 : subtitleColor,
                           ),
                           label: Text(
@@ -557,7 +542,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                                 : '',
                             style: TextStyle(
                               color: comment.hasReacted
-                                  ? const Color(0xFFBE1E1E)
+                                  ? context.colors.primary
                                   : subtitleColor,
                               fontSize: 14,
                             ),
@@ -576,7 +561,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                             Icons.translate,
                             size: 14,
                             color: comment.isTranslated
-                                ? const Color(0xFFBE1E1E)
+                                ? context.colors.primary
                                 : subtitleColor,
                           ),
                           label: Text(
@@ -585,7 +570,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                                 : lang.translate('translate_action'),
                             style: TextStyle(
                               color: comment.isTranslated
-                                  ? const Color(0xFFBE1E1E)
+                                  ? context.colors.primary
                                   : subtitleColor,
                               fontSize: 14,
                             ),
@@ -630,10 +615,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(
-              lang.translate('delete'),
-              style: const TextStyle(color: Colors.red),
-            ),
+            style: TextButton.styleFrom(foregroundColor: context.colors.error),
+            child: Text(lang.translate('delete')),
           ),
         ],
       ),
@@ -728,7 +711,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       debugPrint('Error toggling comment reaction: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erreur lors de la réaction')),
+          SnackBar(
+            content: Text(
+              LanguageService.instance.translate('reaction_error'),
+            ),
+          ),
         );
       }
     }
@@ -763,7 +750,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       if (mounted) {
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${lang.translate('error_translation')}: $e')),
+          SnackBar(content: Text(lang.translate('error_translation'))),
         );
       }
     }
@@ -795,7 +782,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           if (_replyingTo != null)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              color: theme.dividerColor.withOpacity(0.3),
+              color: theme.dividerColor.withValues(alpha: 0.3),
               child: Row(
                 children: [
                   Icon(
@@ -901,7 +888,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.send, color: Color(0xFFBE1E1E)),
+                tooltip: lang.translate('send'),
+                icon: Icon(Icons.send, color: context.colors.primary),
                 onPressed: () => _submitComment(),
               ),
             ],

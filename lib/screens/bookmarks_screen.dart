@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 import '../models/post.dart';
+import '../theme/theme_context.dart';
+import '../widgets/common/common.dart';
 import '../widgets/post_card.dart';
-import '../utils/error_helper.dart';
 
 class BookmarksScreen extends StatefulWidget {
   const BookmarksScreen({super.key});
@@ -16,6 +18,7 @@ class _BookmarksScreenState extends State<BookmarksScreen> {
   bool _isLoading = true;
   int _currentPage = 1;
   bool _hasMore = true;
+  Object? _error;
 
   @override
   void initState() {
@@ -26,11 +29,14 @@ class _BookmarksScreenState extends State<BookmarksScreen> {
   Future<void> _loadBookmarks() async {
     if (!_hasMore) return;
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
     try {
       final api = await ApiService.getInstance();
       final data = await api.getBookmarks(page: _currentPage);
-      
+      if (!mounted) return;
       setState(() {
         _bookmarks.addAll(data.map((p) => Post.fromJson(p)).toList());
         _hasMore = data.length >= 20;
@@ -38,13 +44,9 @@ class _BookmarksScreenState extends State<BookmarksScreen> {
       });
     } catch (e) {
       debugPrint('Error loading bookmarks: $e');
-      if (mounted && _bookmarks.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(getFriendlyErrorMessage(e))),
-        );
-      }
+      if (mounted) setState(() => _error = e);
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -57,59 +59,69 @@ class _BookmarksScreenState extends State<BookmarksScreen> {
     await _loadBookmarks();
   }
 
+  Widget _buildBody(LanguageService lang) {
+    if (_bookmarks.isEmpty) {
+      if (_isLoading) {
+        return SkeletonPulse(
+          child: ListView(
+            physics: const NeverScrollableScrollPhysics(),
+            children: const [PostCardSkeleton(), PostCardSkeleton()],
+          ),
+        );
+      }
+      if (_error != null) {
+        return ErrorState(error: _error, onRetry: _refresh);
+      }
+      return EmptyState(
+        icon: Icons.bookmark_border,
+        title: lang.translate('bookmarks_empty'),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _refresh,
+      color: context.colors.primary,
+      child: ListView.builder(
+        itemCount: _bookmarks.length + (_hasMore ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index == _bookmarks.length) {
+            if (_error != null) {
+              // Pas de relance automatique en boucle : l'utilisateur relance.
+              return Center(
+                child: TextButton.icon(
+                  onPressed: _loadBookmarks,
+                  icon: const Icon(Icons.refresh),
+                  label: Text(lang.translate('retry')),
+                ),
+              );
+            }
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted && !_isLoading && _error == null) _loadBookmarks();
+            });
+            return const Padding(
+              padding: EdgeInsets.all(16),
+              child: AppLoader(size: 28),
+            );
+          }
+          return PostCard(
+            post: _bookmarks[index],
+            onDeleted: () {
+              setState(() {
+                _bookmarks.removeAt(index);
+              });
+            },
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final lang = LanguageService.instance;
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text('Posts sauvegardés', style: TextStyle(color: Colors.white)),
-      ),
-      body: _isLoading && _bookmarks.isEmpty
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-            )
-          : _bookmarks.isEmpty
-              ? const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.bookmark_border, size: 64, color: Color(0xFF888888)),
-                      SizedBox(height: 16),
-                      Text(
-                        'Aucun post sauvegardé',
-                        style: TextStyle(color: Color(0xFF888888)),
-                      ),
-                    ],
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _refresh,
-                  color: const Color(0xFFBE1E1E),
-                  backgroundColor: const Color(0xFF1E1E1E),
-                  child: ListView.builder(
-                    itemCount: _bookmarks.length + (_hasMore ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index == _bookmarks.length) {
-                        _loadBookmarks();
-                        return const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-                          ),
-                        );
-                      }
-                      return PostCard(
-                        post: _bookmarks[index],
-                        onDeleted: () {
-                          setState(() {
-                            _bookmarks.removeAt(index);
-                          });
-                        },
-                      );
-                    },
-                  ),
-                ),
+      appBar: AppBar(title: Text(lang.translate('saved_posts_title'))),
+      body: _buildBody(lang),
     );
   }
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
+import '../theme/theme_context.dart';
 import '../utils/error_helper.dart';
 
 class CreateMessageGroupScreen extends StatefulWidget {
@@ -61,13 +63,19 @@ class _CreateMessageGroupScreenState extends State<CreateMessageGroupScreen> {
       if (mounted) {
         Navigator.pop(context, result['group_id']);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Groupe créé avec succès')),
+          SnackBar(
+            content: Text(LanguageService.instance.translate('group_created')),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(getFriendlyErrorMessage(e))),
+          SnackBar(
+            content: Text(
+              getFriendlyErrorMessage(e, LanguageService.instance),
+            ),
+          ),
         );
       }
     } finally {
@@ -78,10 +86,12 @@ class _CreateMessageGroupScreenState extends State<CreateMessageGroupScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final lang = LanguageService.instance;
+    final colors = context.colors;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nouveau groupe'),
+        title: Text(lang.translate('new_group')),
       ),
       body: Form(
         key: _formKey,
@@ -95,10 +105,10 @@ class _CreateMessageGroupScreenState extends State<CreateMessageGroupScreen> {
                   children: [
                     CircleAvatar(
                       radius: 60,
-                      backgroundColor: const Color(0xFFBE1E1E),
+                      backgroundColor: colors.primary,
                       backgroundImage: _imageFile != null ? FileImage(_imageFile!) : null,
                       child: _imageFile == null
-                          ? const Icon(Icons.group, size: 60, color: Colors.white)
+                          ? Icon(Icons.group, size: 60, color: colors.onPrimary)
                           : null,
                     ),
                     Positioned(
@@ -107,11 +117,15 @@ class _CreateMessageGroupScreenState extends State<CreateMessageGroupScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFBE1E1E),
+                          color: colors.primary,
                           shape: BoxShape.circle,
                           border: Border.all(color: theme.scaffoldBackgroundColor, width: 2),
                         ),
-                        child: const Icon(Icons.camera_alt, size: 20, color: Colors.white),
+                        child: Icon(
+                          Icons.camera_alt,
+                          size: 20,
+                          color: colors.onPrimary,
+                        ),
                       ),
                     ),
                   ],
@@ -121,14 +135,14 @@ class _CreateMessageGroupScreenState extends State<CreateMessageGroupScreen> {
             const SizedBox(height: 24),
             TextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Nom du groupe',
-                hintText: 'Entrez le nom du groupe',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: lang.translate('group_name_label'),
+                hintText: lang.translate('group_name_hint'),
+                border: const OutlineInputBorder(),
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Le nom est requis';
+                  return lang.translate('name_required');
                 }
                 return null;
               },
@@ -143,7 +157,7 @@ class _CreateMessageGroupScreenState extends State<CreateMessageGroupScreen> {
                       width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Créer le groupe'),
+                  : Text(lang.translate('create_group')),
             ),
           ],
         ),

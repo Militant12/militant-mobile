@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import '../theme/theme_context.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../utils/error_helper.dart';
+import '../widgets/common/common.dart';
 
 class EventDetailScreen extends StatefulWidget {
   final int eventId;
@@ -16,6 +18,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   Map<String, dynamic>? _event;
   bool _isLoading = true;
   bool _isJoining = false;
+  Object? _error;
 
   @override
   void initState() {
@@ -30,18 +33,34 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       if (mounted) {
         setState(() {
           _event = event;
+          _error = null;
           _isLoading = false;
         });
       }
     } catch (e) {
-      if (mounted) {
-        final lang = LanguageService.instance;
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e, lang))));
+      if (!mounted) return;
+      if (_event == null) {
+        setState(() {
+          _error = e;
+          _isLoading = false;
+        });
+      } else {
+        // Échec d'un rechargement (après « Participer ») : on garde l'affichage.
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(getFriendlyErrorMessage(e, LanguageService.instance)),
+          ),
+        );
       }
     }
+  }
+
+  void _retry() {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    _loadEvent();
   }
 
   Future<void> _toggleParticipation() async {
@@ -81,37 +100,18 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   Widget build(BuildContext context) {
     final lang = LanguageService.instance;
     if (_isLoading) {
-      return Scaffold(
-        backgroundColor: const Color(0xFF121212),
-        appBar: AppBar(
-          backgroundColor: const Color(0xFF1E1E1E),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
-        body: const Center(
-          child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-        ),
-      );
+      return Scaffold(appBar: AppBar(), body: const AppLoader());
     }
 
     if (_event == null) {
       return Scaffold(
-        backgroundColor: const Color(0xFF121212),
-        appBar: AppBar(
-          backgroundColor: const Color(0xFF1E1E1E),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
-        body: Center(
-          child: Text(
-            lang.translate('event_not_found'),
-            style: const TextStyle(color: Colors.white),
-          ),
-        ),
+        appBar: AppBar(),
+        body: _error != null
+            ? ErrorState(error: _error, onRetry: _retry)
+            : EmptyState(
+                icon: Icons.event_busy_outlined,
+                title: lang.translate('event_not_found'),
+              ),
       );
     }
 
@@ -119,21 +119,24 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         _event!['is_participating'] == 1 || _event!['is_participating'] == true;
     final participantsCount = _event!['participants_count'] ?? 0;
     final coverImage = _event!['cover_image'] ?? _event!['image'];
+    final buttonForeground = isParticipating
+        ? context.colors.onSurface
+        : context.colors.onPrimary;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
       body: CustomScrollView(
         slivers: [
           // Image de couverture
           SliverAppBar(
             expandedHeight: 250,
             pinned: true,
-            backgroundColor: const Color(0xFF1E1E1E),
+            backgroundColor: context.colors.surface,
             leading: IconButton(
+              tooltip: MaterialLocalizations.of(context).backButtonTooltip,
               icon: Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
+                  color: Colors.black.withValues(alpha: 0.5),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -172,9 +175,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                 children: [
                   // Titre
                   Text(
-                    _event!['title'] ?? 'Sans titre',
-                    style: const TextStyle(
-                      color: Colors.white,
+                    _event!['title'] ?? lang.translate('event'),
+                    style: TextStyle(
+                      color: context.colors.onSurface,
                       fontSize: 26,
                       fontWeight: FontWeight.bold,
                     ),
@@ -189,37 +192,24 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         children: [
                           FutureBuilder<String?>(
                             future: _getImageUrl(_event!['avatar']),
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData && snapshot.data != null) {
-                                return CircleAvatar(
-                                  radius: 14,
-                                  backgroundImage: NetworkImage(snapshot.data!),
-                                  backgroundColor: const Color(0xFF2C2C2C),
-                                );
-                              }
-                              return const CircleAvatar(
-                                radius: 14,
-                                backgroundColor: Color(0xFF2C2C2C),
-                                child: Icon(
-                                  Icons.person,
-                                  size: 14,
-                                  color: Color(0xFF888888),
-                                ),
-                              );
-                            },
+                            builder: (context, snapshot) => AppAvatar(
+                              url: snapshot.data,
+                              name: _event!['username']?.toString(),
+                              radius: 14,
+                            ),
                           ),
                           const SizedBox(width: 8),
                           Text(
                             '${lang.translate('organized_by')} ',
                             style: TextStyle(
-                              color: Colors.grey[500],
+                              color: context.tokens.textMuted,
                               fontSize: 14,
                             ),
                           ),
                           Text(
                             _event!['username'],
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: context.colors.onSurface,
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                             ),
@@ -232,9 +222,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E1E1E),
+                      color: context.colors.surface,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white10),
+                      border: Border.all(color: context.colors.outlineVariant),
                     ),
                     child: Column(
                       children: [
@@ -244,14 +234,12 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                             Container(
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: const Color(
-                                  0xFFBE1E1E,
-                                ).withOpacity(0.15),
+                                color: context.colors.primary.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.calendar_today,
-                                color: Color(0xFFBE1E1E),
+                                color: context.colors.primary,
                                 size: 20,
                               ),
                             ),
@@ -263,15 +251,15 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                   Text(
                                     lang.translate('date_and_time'),
                                     style: TextStyle(
-                                      color: Colors.grey[500],
+                                      color: context.tokens.textMuted,
                                       fontSize: 12,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
                                     _formatDate(_event!['event_date']),
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                                      color: context.colors.onSurface,
                                       fontSize: 15,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -285,23 +273,21 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         // Lieu
                         if (_event!['location'] != null &&
                             _event!['location'].toString().isNotEmpty) ...[
-                          const Padding(
+                          Padding(
                             padding: EdgeInsets.symmetric(vertical: 12),
-                            child: Divider(color: Colors.white10, height: 1),
+                            child: Divider(color: context.colors.outlineVariant, height: 1),
                           ),
                           Row(
                             children: [
                               Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: const Color(
-                                    0xFFBE1E1E,
-                                  ).withOpacity(0.15),
+                                  color: context.colors.primary.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.location_on,
-                                  color: Color(0xFFBE1E1E),
+                                  color: context.colors.primary,
                                   size: 20,
                                 ),
                               ),
@@ -313,15 +299,15 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                     Text(
                                       lang.translate('location'),
                                       style: TextStyle(
-                                        color: Colors.grey[500],
+                                        color: context.tokens.textMuted,
                                         fontSize: 12,
                                       ),
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
                                       _event!['location'],
-                                      style: const TextStyle(
-                                        color: Colors.white,
+                                      style: TextStyle(
+                                        color: context.colors.onSurface,
                                         fontSize: 15,
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -334,23 +320,21 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         ],
 
                         // Participants
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.symmetric(vertical: 12),
-                          child: Divider(color: Colors.white10, height: 1),
+                          child: Divider(color: context.colors.outlineVariant, height: 1),
                         ),
                         Row(
                           children: [
                             Container(
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: const Color(
-                                  0xFFBE1E1E,
-                                ).withOpacity(0.15),
+                                color: context.colors.primary.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.people,
-                                color: Color(0xFFBE1E1E),
+                                color: context.colors.primary,
                                 size: 20,
                               ),
                             ),
@@ -362,15 +346,15 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                   Text(
                                     lang.translate('participants'),
                                     style: TextStyle(
-                                      color: Colors.grey[500],
+                                      color: context.tokens.textMuted,
                                       fontSize: 12,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
                                     '$participantsCount ${participantsCount > 1 ? lang.translate('participant_count_plural') : lang.translate('participant_count')}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                                      color: context.colors.onSurface,
                                       fontSize: 15,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -392,11 +376,11 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                     child: ElevatedButton.icon(
                       onPressed: _isJoining ? null : _toggleParticipation,
                       icon: _isJoining
-                          ? const SizedBox(
+                          ? SizedBox(
                               width: 18,
                               height: 18,
                               child: CircularProgressIndicator(
-                                color: Colors.white,
+                                color: buttonForeground,
                                 strokeWidth: 2,
                               ),
                             )
@@ -404,25 +388,25 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                               isParticipating
                                   ? Icons.check_circle
                                   : Icons.add_circle_outline,
-                              color: Colors.white,
+                              color: buttonForeground,
                             ),
                       label: Text(
                         isParticipating ? lang.translate('participating_status') : lang.translate('participate_button'),
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: buttonForeground,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isParticipating
-                            ? const Color(0xFF2C2C2C)
-                            : const Color(0xFFBE1E1E),
+                            ? context.colors.surfaceContainerHigh
+                            : context.colors.primary,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                           side: isParticipating
-                              ? const BorderSide(color: Color(0xFFBE1E1E))
+                              ? BorderSide(color: context.colors.primary)
                               : BorderSide.none,
                         ),
                       ),
@@ -436,8 +420,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                       _event!['description'].toString().isNotEmpty) ...[
                     Text(
                       lang.translate('about_event'),
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: context.colors.onSurface,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -447,14 +431,14 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E1E1E),
+                        color: context.colors.surface,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white10),
+                        border: Border.all(color: context.colors.outlineVariant),
                       ),
                       child: Text(
                         _event!['description'],
-                        style: const TextStyle(
-                          color: Color(0xFFCCCCCC),
+                        style: TextStyle(
+                          color: context.colors.onSurface.withValues(alpha: 0.8),
                           fontSize: 15,
                           height: 1.6,
                         ),
@@ -474,15 +458,15 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
 
   Widget _buildPlaceholderCover() {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF2C2C2C), Color(0xFF1E1E1E)],
+          colors: [context.colors.surfaceContainerHigh, context.colors.surface],
         ),
       ),
-      child: const Center(
-        child: Icon(Icons.event, size: 64, color: Color(0xFF555555)),
+      child: Center(
+        child: Icon(Icons.event, size: 64, color: context.colors.outline),
       ),
     );
   }
@@ -519,7 +503,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       final dayName = days[date.weekday - 1];
       final monthName = months[date.month - 1];
 
-      return '$dayName ${date.day} $monthName ${date.year} à ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+      return '$dayName ${date.day} $monthName ${date.year} ${lang.translate('date_at')} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
     } catch (e) {
       return dateStr;
     }

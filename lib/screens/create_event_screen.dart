@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../theme/theme_context.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
@@ -192,17 +193,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: Color(0xFFBE1E1E),
-              surface: Color(0xFF1E1E1E),
-            ),
-          ),
-          child: child!,
-        );
-      },
     );
     if (date != null) {
       setState(() => _selectedDate = date);
@@ -214,17 +204,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: Color(0xFFBE1E1E),
-              surface: Color(0xFF1E1E1E),
-            ),
-          ),
-          child: child!,
-        );
-      },
     );
     if (time != null) {
       setState(() => _selectedTime = time);
@@ -303,40 +282,36 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   Widget build(BuildContext context) {
     final lang = LanguageService.instance;
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: Text(
-          lang.translate('create_event_title'),
-          style: const TextStyle(color: Colors.white),
-        ),
+        title: Text(lang.translate('create_event_title')),
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
+          tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+          icon: const Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           TextButton(
             onPressed: _isSubmitting ? null : _submit,
             child: _isSubmitting
-                ? const SizedBox(
+                ? SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Color(0xFFBE1E1E),
+                      color: context.colors.primary,
                     ),
                   )
                 : Text(
                     lang.translate('create'),
-                    style: const TextStyle(
-                      color: Color(0xFFBE1E1E),
+                    style: TextStyle(
+                      color: context.colors.primary,
                       fontSize: 16,
                     ),
                   ),
           ),
           if (_hasDraft)
             IconButton(
-              icon: const Icon(Icons.delete_outline, color: Colors.white70),
+              icon: Icon(Icons.delete_outline, color: context.colors.onSurface.withValues(alpha: 0.7)),
               onPressed: _isSubmitting ? null : _clearDraft,
               tooltip: lang.translate('clear_draft'),
             ),
@@ -360,11 +335,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => Container(
                         height: 200,
-                        color: const Color(0xFF1E1E1E),
-                        child: const Icon(
+                        color: context.colors.surface,
+                        child: Icon(
                           Icons.image,
                           size: 64,
-                          color: Color(0xFF888888),
+                          color: context.tokens.textMuted,
                         ),
                       ),
                     ),
@@ -391,22 +366,22 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 child: Container(
                   height: 200,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E1E1E),
+                    color: context.colors.surface,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.white10),
+                    border: Border.all(color: context.colors.outlineVariant),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.add_photo_alternate,
                         size: 48,
-                        color: Color(0xFF888888),
+                        color: context.tokens.textMuted,
                       ),
                       const SizedBox(height: 8),
                       Text(
                         lang.translate('add_image'),
-                        style: const TextStyle(color: Color(0xFF888888)),
+                        style: TextStyle(color: context.tokens.textMuted),
                       ),
                     ],
                   ),
@@ -417,15 +392,15 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
             // Titre
             TextFormField(
               controller: _titleController,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: context.colors.onSurface),
               decoration: InputDecoration(
                 labelText: lang.translate('event_title_label'),
-                labelStyle: const TextStyle(color: Color(0xFF888888)),
-                enabledBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white10),
+                labelStyle: TextStyle(color: context.tokens.textMuted),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: context.colors.outlineVariant),
                 ),
-                focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFFBE1E1E)),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: context.colors.primary),
                 ),
               ),
               validator: (value) {
@@ -440,16 +415,16 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
             // Description
             TextFormField(
               controller: _descriptionController,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: context.colors.onSurface),
               maxLines: 4,
               decoration: InputDecoration(
                 labelText: lang.translate('event_description_label'),
-                labelStyle: const TextStyle(color: Color(0xFF888888)),
-                enabledBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white10),
+                labelStyle: TextStyle(color: context.tokens.textMuted),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: context.colors.outlineVariant),
                 ),
-                focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFFBE1E1E)),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: context.colors.primary),
                 ),
               ),
             ),
@@ -458,19 +433,19 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
             // Lieu
             TextFormField(
               controller: _locationController,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: context.colors.onSurface),
               decoration: InputDecoration(
                 labelText: lang.translate('event_location_label'),
-                labelStyle: const TextStyle(color: Color(0xFF888888)),
-                prefixIcon: const Icon(
+                labelStyle: TextStyle(color: context.tokens.textMuted),
+                prefixIcon: Icon(
                   Icons.location_on,
-                  color: Color(0xFF888888),
+                  color: context.tokens.textMuted,
                 ),
-                enabledBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white10),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: context.colors.outlineVariant),
                 ),
-                focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFFBE1E1E)),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: context.colors.primary),
                 ),
               ),
             ),
@@ -482,12 +457,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.white10),
+                  border: Border.all(color: context.colors.outlineVariant),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.calendar_today, color: Color(0xFF888888)),
+                    Icon(Icons.calendar_today, color: context.tokens.textMuted),
                     const SizedBox(width: 12),
                     Text(
                       _selectedDate == null
@@ -495,8 +470,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                           : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
                       style: TextStyle(
                         color: _selectedDate == null
-                            ? const Color(0xFF888888)
-                            : Colors.white,
+                            ? context.tokens.textMuted
+                            : context.colors.onSurface,
                       ),
                     ),
                   ],
@@ -511,12 +486,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.white10),
+                  border: Border.all(color: context.colors.outlineVariant),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.access_time, color: Color(0xFF888888)),
+                    Icon(Icons.access_time, color: context.tokens.textMuted),
                     const SizedBox(width: 12),
                     Text(
                       _selectedTime == null
@@ -524,8 +499,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                           : '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}',
                       style: TextStyle(
                         color: _selectedTime == null
-                            ? const Color(0xFF888888)
-                            : Colors.white,
+                            ? context.tokens.textMuted
+                            : context.colors.onSurface,
                       ),
                     ),
                   ],

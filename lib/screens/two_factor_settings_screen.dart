@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/common/common.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../services/api_service.dart';
@@ -182,9 +183,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(lang.translate('two_factor_auth'))),
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-            )
+          ? const AppLoader()
           : SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Column(

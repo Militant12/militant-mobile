@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
+import '../theme/theme_context.dart';
 import 'login_screen.dart';
 
 class BannedScreen extends StatelessWidget {
@@ -13,32 +14,38 @@ class BannedScreen extends StatelessWidget {
     final lang = LanguageService.instance;
     final isPermanent = ban['is_permanent'] == 1 || ban['is_permanent'] == true;
     final expiresAt = ban['expires_at'];
-    final reason = ban['reason'] ?? 'Non spécifié';
+    final reason = ban['reason'] ?? lang.translate('banned_reason_unspecified');
+    final colors = context.colors;
+    final muted = context.tokens.textMuted;
+    final warning = context.isDark ? Colors.orange : Colors.orange.shade800;
 
     String durationText;
     if (isPermanent) {
-      durationText = 'Ban permanent';
+      durationText = lang.translate('banned_permanent');
     } else if (expiresAt != null) {
       try {
         final expiry = DateTime.parse(expiresAt.replaceAll(' ', 'T'));
         final now = DateTime.now();
         final remaining = expiry.difference(now);
         if (remaining.inDays > 0) {
-          durationText = 'Encore ${remaining.inDays} jour(s)';
+          durationText = lang
+              .translate('banned_days_left')
+              .replaceAll('{count}', '${remaining.inDays}');
         } else if (remaining.inHours > 0) {
-          durationText = 'Encore ${remaining.inHours} heure(s)';
+          durationText = lang
+              .translate('banned_hours_left')
+              .replaceAll('{count}', '${remaining.inHours}');
         } else {
-          durationText = 'Expire bientôt';
+          durationText = lang.translate('banned_expires_soon');
         }
       } catch (_) {
-        durationText = 'Durée inconnue';
+        durationText = lang.translate('banned_duration_unknown');
       }
     } else {
-      durationText = 'Durée inconnue';
+      durationText = lang.translate('banned_duration_unknown');
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -51,22 +58,22 @@ class BannedScreen extends StatelessWidget {
                   width: 100,
                   height: 100,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFBE1E1E).withValues(alpha: 0.15),
+                    color: colors.primary.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.block,
                     size: 56,
-                    color: Color(0xFFBE1E1E),
+                    color: colors.primary,
                   ),
                 ),
                 const SizedBox(height: 32),
 
                 // Titre
-                const Text(
-                  'Compte suspendu',
+                Text(
+                  lang.translate('banned_title'),
                   style: TextStyle(
-                    color: Colors.white,
+                    color: colors.onSurface,
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
@@ -79,14 +86,14 @@ class BannedScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                   decoration: BoxDecoration(
                     color: isPermanent
-                        ? const Color(0xFFBE1E1E).withValues(alpha: 0.2)
-                        : Colors.orange.withValues(alpha: 0.2),
+                        ? colors.primary.withValues(alpha: 0.2)
+                        : warning.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     durationText,
                     style: TextStyle(
-                      color: isPermanent ? const Color(0xFFBE1E1E) : Colors.orange,
+                      color: isPermanent ? colors.primary : warning,
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
@@ -99,17 +106,17 @@ class BannedScreen extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E1E1E),
+                    color: colors.surface,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white10),
+                    border: Border.all(color: colors.outlineVariant),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Motif :',
+                      Text(
+                        lang.translate('banned_reason'),
                         style: TextStyle(
-                          color: Colors.white54,
+                          color: muted,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
@@ -117,8 +124,8 @@ class BannedScreen extends StatelessWidget {
                       const SizedBox(height: 8),
                       Text(
                         reason,
-                        style: const TextStyle(
-                          color: Colors.white70,
+                        style: TextStyle(
+                          color: colors.onSurface,
                           fontSize: 14,
                           height: 1.5,
                         ),
@@ -129,10 +136,10 @@ class BannedScreen extends StatelessWidget {
                 const SizedBox(height: 12),
 
                 // Info transparence
-                const Text(
-                  'Cette sanction a été appliquée automatiquement par la communauté suite à des signalements validés.',
+                Text(
+                  lang.translate('banned_community_notice'),
                   style: TextStyle(
-                    color: Colors.white38,
+                    color: muted,
                     fontSize: 12,
                     height: 1.5,
                   ),
@@ -154,13 +161,13 @@ class BannedScreen extends StatelessWidget {
                         );
                       }
                     },
-                    icon: const Icon(Icons.logout, color: Colors.white54),
-                    label: const Text(
-                      'Se déconnecter',
-                      style: TextStyle(color: Colors.white54),
+                    icon: Icon(Icons.logout, color: muted),
+                    label: Text(
+                      lang.translate('logout'),
+                      style: TextStyle(color: muted),
                     ),
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Colors.white24),
+                      side: BorderSide(color: colors.outline),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                   ),

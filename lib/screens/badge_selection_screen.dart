@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/common/common.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../widgets/militant_badge.dart';
@@ -165,9 +166,7 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-            )
+          ? const AppLoader()
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

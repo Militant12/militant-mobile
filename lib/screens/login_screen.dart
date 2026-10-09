@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/common/common.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/account_switcher_service.dart';
@@ -510,16 +511,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 horizontal: 12,
                 vertical: 2,
               ),
-              leading: CircleAvatar(
-                backgroundColor: const Color(0xFFBE1E1E),
-                foregroundColor: Colors.white,
-                backgroundImage:
-                    account.avatarUrl != null && account.avatarUrl!.isNotEmpty
-                    ? NetworkImage(account.avatarUrl!)
-                    : null,
-                child: account.avatarUrl == null || account.avatarUrl!.isEmpty
-                    ? Text(account.initial)
-                    : null,
+              leading: AppAvatar(
+                url: account.avatarUrl,
+                name: account.displayName,
               ),
               title: Text(
                 account.displayName,

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import '../widgets/common/common.dart';
+import '../theme/theme_context.dart';
 import 'package:flutter/services.dart';
 import '../services/account_switcher_service.dart';
 import '../services/api_service.dart';
 import '../services/incoming_call_service.dart';
 import '../services/message_notification_service.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../models/post.dart';
 import '../widgets/post_card.dart';
 import '../widgets/profile_stories.dart';
@@ -249,28 +250,27 @@ class ProfileScreenState extends State<ProfileScreen>
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
         title: Text(
           lang.translate('remove_from_friends'),
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: context.colors.onSurface),
         ),
         content: Text(
           lang.translate('remove_friend_confirm'),
-          style: const TextStyle(color: Colors.white70),
+          style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text(
-              'Annuler',
-              style: TextStyle(color: Colors.white70),
+            child: Text(
+              lang.translate('cancel'),
+              style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7)),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text(
               lang.translate('remove'),
-              style: const TextStyle(color: Color(0xFFBE1E1E)),
+              style: TextStyle(color: context.colors.primary),
             ),
           ),
         ],
@@ -426,9 +426,7 @@ class ProfileScreenState extends State<ProfileScreen>
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const Center(
-        child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-      ),
+      builder: (_) => const AppLoader(),
     );
 
     final previousAccount =
@@ -525,19 +523,9 @@ class ProfileScreenState extends State<ProfileScreen>
                     final isCurrent = account.id == currentAccountId;
                     return ListTile(
                       enabled: !isCurrent,
-                      leading: CircleAvatar(
-                        backgroundColor: const Color(0xFFBE1E1E),
-                        foregroundColor: Colors.white,
-                        backgroundImage:
-                            account.avatarUrl != null &&
-                                account.avatarUrl!.isNotEmpty
-                            ? NetworkImage(account.avatarUrl!)
-                            : null,
-                        child:
-                            account.avatarUrl == null ||
-                                account.avatarUrl!.isEmpty
-                            ? Text(account.initial)
-                            : null,
+                      leading: AppAvatar(
+                        url: account.avatarUrl,
+                        name: account.displayName,
                       ),
                       title: Text(
                         account.displayName,
@@ -596,28 +584,27 @@ class ProfileScreenState extends State<ProfileScreen>
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
         title: Text(
           lang.translate('logout_question'),
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: context.colors.onSurface),
         ),
         content: Text(
           lang.translate('logout_confirm'),
-          style: const TextStyle(color: Colors.white70),
+          style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text(
-              'Annuler',
-              style: TextStyle(color: Colors.white70),
+            child: Text(
+              lang.translate('cancel'),
+              style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7)),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              'Déconnexion',
-              style: TextStyle(color: Color(0xFFBE1E1E)),
+            child: Text(
+              lang.translate('logout'),
+              style: TextStyle(color: context.colors.primary),
             ),
           ),
         ],
@@ -642,16 +629,13 @@ class ProfileScreenState extends State<ProfileScreen>
     if (_isLoading) {
       return Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        body: const Center(
-          child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-        ),
+        body: const AppLoader(),
       );
     }
 
     if (_profile == null) {
       final theme = Theme.of(context);
       final lang = LanguageService.instance;
-      final subtitleColor = theme.textTheme.bodyMedium?.color;
       return Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
@@ -660,29 +644,9 @@ class ProfileScreenState extends State<ProfileScreen>
             style: TextStyle(color: theme.textTheme.titleLarge?.color),
           ),
         ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.wifi_off_outlined,
-                  size: 64, color: subtitleColor ?? Colors.grey),
-              const SizedBox(height: 16),
-              Text(
-                'Impossible de charger le profil',
-                style: TextStyle(color: subtitleColor, fontSize: 16),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: _loadProfile,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Réessayer'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFBE1E1E),
-                  foregroundColor: Colors.white,
-                ),
-              ),
-            ],
-          ),
+        body: ErrorState(
+          title: lang.translate('profile_load_error'),
+          onRetry: _loadProfile,
         ),
       );
     }
@@ -693,7 +657,7 @@ class ProfileScreenState extends State<ProfileScreen>
     final textColor = theme.textTheme.bodyLarge?.color;
     final subtitleColor = theme.textTheme.bodyMedium?.color;
 
-    final username = _profile?['username'] ?? 'Utilisateur';
+    final username = _profile?['username'] ?? lang.translate('user');
 
     // ... (avatar logic unchanged) ...
 
@@ -730,29 +694,7 @@ class ProfileScreenState extends State<ProfileScreen>
             ),
             child: Column(
               children: [
-                _avatarUrl != null
-                    ? CircleAvatar(
-                        radius: 50,
-                        backgroundColor: isDark
-                            ? const Color(0xFF2A2A2A)
-                            : Colors.grey[200],
-                        backgroundImage: NetworkImage(_avatarUrl!),
-                        onBackgroundImageError: (_, __) {},
-                        child: _avatarUrl == null
-                            ? Padding(
-                                padding: const EdgeInsets.all(0.0),
-                                child: SvgPicture.asset('assets/logo.svg'),
-                              )
-                            : null,
-                      )
-                    : CircleAvatar(
-                        radius: 50,
-                        backgroundColor: Colors.transparent,
-                        child: Padding(
-                          padding: const EdgeInsets.all(0.0),
-                          child: SvgPicture.asset('assets/logo.svg'),
-                        ),
-                      ),
+                AppAvatar(url: _avatarUrl, semanticLabel: username, radius: 50),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -1272,10 +1214,9 @@ class ProfileScreenState extends State<ProfileScreen>
             if (_selectedTab == 0) ...[
               // Posts
               if (_isLoadingPosts)
-                const Padding(
-                  padding: EdgeInsets.all(32),
-                  child: Center(
-                    child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
+                const SkeletonPulse(
+                  child: Column(
+                    children: [PostCardSkeleton(), PostCardSkeleton()],
                   ),
                 )
               else if (_hasPostsError && _posts.isEmpty)
@@ -1333,7 +1274,7 @@ class ProfileScreenState extends State<ProfileScreen>
                   );
                 }),
                 if (_isLoadingMorePosts)
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.symmetric(vertical: 20),
                     child: Center(
                       child: SizedBox(
@@ -1341,7 +1282,7 @@ class ProfileScreenState extends State<ProfileScreen>
                         height: 24,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Color(0xFFBE1E1E),
+                          color: context.colors.primary,
                         ),
                       ),
                     ),
@@ -1352,9 +1293,7 @@ class ProfileScreenState extends State<ProfileScreen>
               if (_isLoadingPosts)
                 const Padding(
                   padding: EdgeInsets.all(32),
-                  child: Center(
-                    child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-                  ),
+                  child: AppLoader(),
                 )
               else
                 _buildMediaGrid(),
@@ -1399,11 +1338,7 @@ class ProfileScreenState extends State<ProfileScreen>
     return FutureBuilder<ApiService>(
       future: ApiService.getInstance(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(
-            child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-          );
-        }
+        if (!snapshot.hasData) return const AppLoader();
         final api = snapshot.data!;
 
         return GridView.builder(

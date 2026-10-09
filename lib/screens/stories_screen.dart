@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/common/common.dart';
 import 'dart:async';
 import 'package:video_player/video_player.dart';
 import '../services/api_service.dart';
@@ -296,9 +297,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
       future: _getMediaUrl(media),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const Center(
-            child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-          );
+          return const AppLoader();
         }
 
         final url = snapshot.data!;
@@ -446,9 +445,7 @@ class _StoryVideoPlayerState extends State<StoryVideoPlayer> {
   @override
   Widget build(BuildContext context) {
     if (!_initialized) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-      );
+      return const AppLoader();
     }
 
     return Center(

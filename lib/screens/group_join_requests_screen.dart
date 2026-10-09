@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
+import '../theme/theme_context.dart';
 import '../utils/error_helper.dart';
+import '../widgets/common/common.dart';
 
 class GroupJoinRequestsScreen extends StatefulWidget {
   final int groupId;
@@ -23,6 +24,7 @@ class _GroupJoinRequestsScreenState extends State<GroupJoinRequestsScreen> {
   List<dynamic> _requests = [];
   bool _isLoading = true;
   ApiService? _api;
+  Object? _error;
 
   @override
   void initState() {
@@ -31,33 +33,25 @@ class _GroupJoinRequestsScreenState extends State<GroupJoinRequestsScreen> {
   }
 
   Future<void> _loadRequests() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
     try {
       _api ??= await ApiService.getInstance();
       final requests = await _api!.getGroupJoinRequests(widget.groupId);
+      if (!mounted) return;
       setState(() {
         _requests = requests;
         _isLoading = false;
       });
-    } on FormatException {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        final lang = LanguageService.instance;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${lang.translate('error_generic')}: Réponse invalide du serveur (FormatException)',
-            ),
-          ),
-        );
-      }
     } catch (e) {
+      // FormatException comprise : getFriendlyErrorMessage la traduit.
       if (mounted) {
-        setState(() => _isLoading = false);
-        final lang = LanguageService.instance;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(getFriendlyErrorMessage(e, lang))),
-        );
+        setState(() {
+          _error = e;
+          _isLoading = false;
+        });
       }
     }
   }
@@ -106,59 +100,36 @@ class _GroupJoinRequestsScreenState extends State<GroupJoinRequestsScreen> {
 
   Widget _buildRequestAvatar(dynamic request) {
     final avatar = request['avatar']?.toString();
-    final avatarUrl = avatar == null ? null : _api?.getImageUrl(avatar);
-
-    if (avatarUrl != null && avatarUrl.isNotEmpty) {
-      if (avatarUrl.endsWith('.svg')) {
-        return CircleAvatar(
-          backgroundColor: Colors.white,
-          child: ClipOval(
-            child: SvgPicture.network(
-              avatarUrl,
-              width: 40,
-              height: 40,
-              fit: BoxFit.cover,
-            ),
-          ),
-        );
-      }
-
-      return CircleAvatar(
-        backgroundImage: NetworkImage(avatarUrl),
-        backgroundColor: Colors.white,
-      );
-    }
-
-    return CircleAvatar(
-      backgroundColor: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: SvgPicture.asset('assets/logo.svg', fit: BoxFit.contain),
-      ),
+    return AppAvatar(
+      url: avatar == null ? null : _api?.getImageUrl(avatar),
+      semanticLabel: request['username']?.toString(),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final lang = LanguageService.instance;
-    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(lang.translate('join_requests')),
-        backgroundColor: theme.scaffoldBackgroundColor,
+        backgroundColor: context.theme.scaffoldBackgroundColor,
       ),
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFFBE1E1E)),
-            )
+          ? const SkeletonList()
+          : _error != null
+          ? ErrorState(error: _error, onRetry: _loadRequests)
           : _requests.isEmpty
-          ? Center(child: Text(lang.translate('no_join_requests')))
+          ? EmptyState(
+              icon: Icons.how_to_reg_outlined,
+              title: lang.translate('no_join_requests'),
+            )
           : ListView.builder(
               itemCount: _requests.length,
               itemBuilder: (context, index) {
                 final request = _requests[index];
-                final username = request['username'] ?? 'User';
+                final username =
+                    request['username'] ?? lang.translate('user');
                 final bio = request['bio'] ?? '';
 
                 return Card(
@@ -174,12 +145,12 @@ class _GroupJoinRequestsScreenState extends State<GroupJoinRequestsScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.check, color: Colors.green),
+                          icon: Icon(Icons.check, color: context.tokens.success),
                           onPressed: () => _approveRequest(request),
                           tooltip: lang.translate('approve'),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.close, color: Colors.red),
+                          icon: Icon(Icons.close, color: context.colors.error),
                           onPressed: () => _rejectRequest(request),
                           tooltip: lang.translate('reject'),
                         ),

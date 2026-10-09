@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import '../theme/theme_context.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import '../config/feature_flags.dart';
@@ -20,6 +20,7 @@ import '../widgets/linkable_text.dart';
 import '../widgets/incoming_call_banner.dart';
 import '../widgets/signal_typing_indicator.dart';
 import '../utils/error_helper.dart';
+import '../widgets/common/common.dart';
 
 const String _groupCallMessagePrefix = '__militant_group_call__:';
 const Duration _groupChatPollInterval = Duration(seconds: 10);
@@ -771,19 +772,11 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
               children: [
                 Expanded(
                   child: _isLoading && _messages.isEmpty
-                      ? const Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFFBE1E1E),
-                          ),
-                        )
+                      ? const AppLoader()
                       : _messages.isEmpty
-                      ? Center(
-                          child: Text(
-                            lang.translate('no_group_messages'),
-                            style: TextStyle(
-                              color: theme.textTheme.bodyMedium?.color,
-                            ),
-                          ),
+                      ? EmptyState(
+                          icon: Icons.forum_outlined,
+                          title: lang.translate('no_group_messages'),
                         )
                       : ListView.builder(
                           reverse: true,
@@ -822,30 +815,11 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     }
 
     final avatarPath = _groupDetails?['avatar'] ?? widget.groupAvatar;
-    final url = _api?.getImageUrl(avatarPath);
-    if (url != null && url.endsWith('.svg')) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: SvgPicture.network(
-          url,
-          width: 32,
-          height: 32,
-          fit: BoxFit.cover,
-          placeholderBuilder: (_) =>
-              const CircularProgressIndicator(strokeWidth: 2),
-        ),
-      );
-    } else if (url != null) {
-      return CircleAvatar(radius: 16, backgroundImage: NetworkImage(url));
-    } else {
-      return ClipOval(
-        child: SizedBox(
-          width: 32,
-          height: 32,
-          child: SvgPicture.asset('assets/logo.svg', fit: BoxFit.cover),
-        ),
-      );
-    }
+    return AppAvatar(
+      url: _api?.getImageUrl(avatarPath),
+      semanticLabel: widget.groupName,
+      radius: 16,
+    );
   }
 
   void _showOptions(dynamic message) {
@@ -856,7 +830,6 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E1E1E),
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -890,10 +863,10 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.reply, color: Colors.white),
+              leading: Icon(Icons.reply, color: context.colors.onSurface),
               title: Text(
                 lang.translate('reply'),
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: context.colors.onSurface),
               ),
               onTap: () {
                 Navigator.pop(context);
@@ -904,10 +877,10 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             ),
             if (isMine)
               ListTile(
-                leading: const Icon(Icons.edit, color: Colors.white),
+                leading: Icon(Icons.edit, color: context.colors.onSurface),
                 title: Text(
                   lang.translate('edit'),
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: context.colors.onSurface),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -915,24 +888,23 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                 },
               ),
             ListTile(
-              leading: const Icon(Icons.delete, color: Color(0xFFBE1E1E)),
+              leading: Icon(Icons.delete, color: context.colors.primary),
               title: Text(
                 lang.translate('delete'),
-                style: const TextStyle(color: Color(0xFFBE1E1E)),
+                style: TextStyle(color: context.colors.primary),
               ),
               onTap: () async {
                 Navigator.pop(context);
                 final confirm = await showDialog<bool>(
                   context: context,
                   builder: (context) => AlertDialog(
-                    backgroundColor: const Color(0xFF1E1E1E),
                     title: Text(
                       lang.translate('delete_question'),
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(color: context.colors.onSurface),
                     ),
                     content: Text(
                       lang.translate('delete_message_confirm'),
-                      style: const TextStyle(color: Colors.white70),
+                      style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7)),
                     ),
                     actions: [
                       TextButton(
@@ -943,7 +915,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                         onPressed: () => Navigator.pop(context, true),
                         child: Text(
                           lang.translate('delete'),
-                          style: const TextStyle(color: Color(0xFFBE1E1E)),
+                          style: TextStyle(color: context.colors.primary),
                         ),
                       ),
                     ],
@@ -973,14 +945,13 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     final newContent = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
         title: Text(
           lang.translate('edit_message'),
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: context.colors.onSurface),
         ),
         content: TextField(
           controller: controller,
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: context.colors.onSurface),
           decoration: InputDecoration(border: OutlineInputBorder()),
           maxLines: null,
         ),
@@ -993,7 +964,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             onPressed: () => Navigator.pop(context, controller.text.trim()),
             child: Text(
               lang.translate('save'),
-              style: const TextStyle(color: Color(0xFFBE1E1E)),
+              style: TextStyle(color: context.colors.primary),
             ),
           ),
         ],
@@ -1667,20 +1638,22 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                         print('Erreur chargement image: $url - $error');
                         return Container(
                           height: 100,
-                          color: Colors.grey[800],
+                          color: context.colors.surfaceContainerHigh,
                           child: Center(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.broken_image,
-                                  color: Colors.white54,
+                                  color: context.tokens.textMuted,
                                   size: 40,
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
                                   lang.translate('loading_error'),
-                                  style: const TextStyle(color: Colors.white54),
+                                  style: TextStyle(
+                                    color: context.tokens.textMuted,
+                                  ),
                                 ),
                               ],
                             ),
@@ -1830,23 +1803,25 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
               ),
               if (_messageController.text.trim().isEmpty)
                 IconButton(
-                  icon: const Icon(Icons.mic, color: Color(0xFFBE1E1E)),
+                  tooltip: lang.translate('record_audio'),
+                  icon: Icon(Icons.mic, color: context.colors.primary),
                   onPressed: () {
                     setState(() => _isRecording = true);
                   },
                 )
               else
                 IconButton(
+                  tooltip: lang.translate('send'),
                   icon: _isSending
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Color(0xFFBE1E1E),
+                            color: context.colors.primary,
                           ),
                         )
-                      : const Icon(Icons.send, color: Color(0xFFBE1E1E)),
+                      : Icon(Icons.send, color: context.colors.primary),
                   onPressed: () => _isSending ? null : _sendMessage(),
                 ),
             ],
@@ -1861,32 +1836,31 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     final picker = ImagePicker();
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
-      backgroundColor: const Color(0xFF1E1E1E),
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_library, color: Colors.white),
+              leading: Icon(Icons.photo_library, color: context.colors.onSurface),
               title: Text(
                 lang.translate('gallery'),
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: context.colors.onSurface),
               ),
               onTap: () => Navigator.pop(context, ImageSource.gallery),
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt, color: Colors.white),
+              leading: Icon(Icons.camera_alt, color: context.colors.onSurface),
               title: Text(
                 lang.translate('camera'),
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: context.colors.onSurface),
               ),
               onTap: () => Navigator.pop(context, ImageSource.camera),
             ),
             ListTile(
-              leading: const Icon(Icons.audiotrack, color: Colors.white),
+              leading: Icon(Icons.audiotrack, color: context.colors.onSurface),
               title: Text(
                 lang.translate('audio'),
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: context.colors.onSurface),
               ),
               onTap: () async {
                 Navigator.pop(context);
@@ -1899,10 +1873,10 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.link, color: Colors.white),
+              leading: Icon(Icons.link, color: context.colors.onSurface),
               title: Text(
                 lang.translate('link'),
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: context.colors.onSurface),
               ),
               onTap: () async {
                 Navigator.pop(context);
@@ -1910,17 +1884,16 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                 final url = await showDialog<String>(
                   context: context,
                   builder: (context) => AlertDialog(
-                    backgroundColor: const Color(0xFF1E1E1E),
                     title: Text(
                       lang.translate('share_link'),
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(color: context.colors.onSurface),
                     ),
                     content: TextField(
                       controller: controller,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(color: context.colors.onSurface),
                       decoration: InputDecoration(
                         hintText: 'https://...',
-                        hintStyle: TextStyle(color: Colors.white38),
+                        hintStyle: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.38)),
                       ),
                       autofocus: true,
                     ),

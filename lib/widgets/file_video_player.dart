@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'common/common.dart';
 import 'package:video_player/video_player.dart';
 import 'full_screen_video_page.dart';
 
@@ -58,7 +59,7 @@ class _FileVideoPlayerState extends State<FileVideoPlayer> {
   @override
   Widget build(BuildContext context) {
     if (!_isInitialized) {
-      return const Center(child: CircularProgressIndicator());
+      return const AppLoader();
     }
 
     return AspectRatio(
