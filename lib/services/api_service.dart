@@ -10,11 +10,15 @@ import 'message_notification_service.dart';
 import 'notification_reply_service.dart';
 import 'incoming_call_service.dart';
 import '../models/feature_suggestion.dart';
+import 'api_http_client.dart';
 
 class ApiService {
   String baseUrl;
   String? token;
   int? _currentUserId;
+
+  // Lève une ApiException sur les réponses 429 (voir ApiHttpClient).
+  final http.Client _http = ApiHttpClient();
 
   ApiService({required this.baseUrl, this.token});
 
@@ -116,7 +120,7 @@ class ApiService {
     String endpoint,
     Map<String, dynamic> body,
   ) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl$endpoint'),
       headers: _headers,
       body: jsonEncode(body),
@@ -196,7 +200,7 @@ class ApiService {
   /// Récupère la configuration publique du serveur (comme l'App ID OneSignal)
   Future<Map<String, dynamic>> getServerSettings() async {
     try {
-      final response = await http.get(
+      final response = await _http.get(
         Uri.parse('$apiUrl/v1/settings.php'),
         headers: _headers,
       );
@@ -563,7 +567,7 @@ class ApiService {
       final body = {'username': username, 'password': password};
       if (totp != null) body['totp'] = totp;
 
-      final response = await http.post(
+      final response = await _http.post(
         Uri.parse('$apiUrl/v1/auth.php?action=login'),
         headers: _headers,
         body: jsonEncode(body),
@@ -642,7 +646,7 @@ class ApiService {
       body['cause'] = cause;
     }
 
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/auth.php?action=register'),
       headers: _headers,
       body: jsonEncode(body),
@@ -657,7 +661,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> requestPasswordReset(String email) async {
     try {
-      final response = await http.post(
+      final response = await _http.post(
         Uri.parse('$apiUrl/v1/auth.php?action=forgot_password'),
         headers: _headers,
         body: jsonEncode({'email': email}),
@@ -709,7 +713,7 @@ class ApiService {
   // === TWO-FACTOR AUTHENTICATION ===
 
   Future<Map<String, dynamic>> getTwoFactorStatus() async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/two_factor.php'),
       headers: _headers,
     );
@@ -721,7 +725,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> enableTwoFactor(String code) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/two_factor.php?action=enable'),
       headers: _headers,
       body: jsonEncode({'code': code}),
@@ -735,7 +739,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> disableTwoFactor() async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/two_factor.php'),
       headers: _headers,
     );
@@ -764,7 +768,7 @@ class ApiService {
       url += '&feed_type=$feedType';
     }
 
-    final response = await http.get(Uri.parse(url), headers: _headers);
+    final response = await _http.get(Uri.parse(url), headers: _headers);
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -801,7 +805,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> getPost(int id) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/posts.php?id=$id'),
       headers: _headers,
     );
@@ -818,7 +822,7 @@ class ApiService {
   }
 
   Future<List<dynamic>> getUserPosts(int userId, {int page = 1}) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/posts.php?user_id=$userId&page=$page'),
       headers: _headers,
     );
@@ -842,7 +846,7 @@ class ApiService {
     String? mediaType,
     List<String>? tags,
   }) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/posts.php'),
       headers: _headers,
       body: jsonEncode({
@@ -861,7 +865,7 @@ class ApiService {
   }
 
   Future<void> updatePost(int postId, String content) async {
-    final response = await http.put(
+    final response = await _http.put(
       Uri.parse('$apiUrl/v1/posts.php?id=$postId'),
       headers: _headers,
       body: jsonEncode({'content': content}),
@@ -878,7 +882,7 @@ class ApiService {
     int postId, {
     String type = 'like',
   }) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/reactions.php'),
       headers: _headers,
       body: jsonEncode({'post_id': postId, 'reaction_type': type}),
@@ -892,7 +896,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> unlikePost(int postId) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/reactions.php?post_id=$postId'),
       headers: _headers,
     );
@@ -905,7 +909,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> sharePost(int postId) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/shares.php'),
       headers: _headers,
       body: jsonEncode({'post_id': postId}),
@@ -919,7 +923,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> bookmarkPost(int postId) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/bookmarks.php'),
       headers: _headers,
       body: jsonEncode({'post_id': postId}),
@@ -933,7 +937,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> deletePost(int postId) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/posts.php?id=$postId'),
       headers: _headers,
     );
@@ -1006,7 +1010,7 @@ class ApiService {
   // === COMMENTAIRES ===
 
   Future<List<dynamic>> getComments(int postId, {int page = 1}) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/comments.php?post_id=$postId&page=$page'),
       headers: _headers,
     );
@@ -1034,7 +1038,7 @@ class ApiService {
       body['parent_id'] = parentId;
     }
 
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/comments.php'),
       headers: _headers,
       body: jsonEncode(body),
@@ -1051,7 +1055,7 @@ class ApiService {
     int commentId,
     String content,
   ) async {
-    final response = await http.put(
+    final response = await _http.put(
       Uri.parse('$apiUrl/v1/comments.php?id=$commentId'),
       headers: _headers,
       body: jsonEncode({'content': content}),
@@ -1070,7 +1074,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> deleteComment(int commentId) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/comments.php?id=$commentId'),
       headers: _headers,
     );
@@ -1083,7 +1087,7 @@ class ApiService {
   }
 
   Future<List<dynamic>> getGroupPostComments(int postId, {int page = 1}) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/group_comments.php?post_id=$postId&page=$page'),
       headers: _headers,
     );
@@ -1109,7 +1113,7 @@ class ApiService {
       body['parent_id'] = parentId;
     }
 
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/group_comments.php'),
       headers: _headers,
       body: jsonEncode(body),
@@ -1122,7 +1126,7 @@ class ApiService {
   }
 
   Future<void> updateGroupComment(int commentId, String content) async {
-    final response = await http.put(
+    final response = await _http.put(
       Uri.parse('$apiUrl/v1/group_comments.php'),
       headers: _headers,
       body: jsonEncode({'id': commentId, 'content': content}),
@@ -1139,7 +1143,7 @@ class ApiService {
   }
 
   Future<void> deleteGroupComment(int commentId) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/group_comments.php?id=$commentId'),
       headers: _headers,
     );
@@ -1155,7 +1159,7 @@ class ApiService {
     String commentType, {
     String reactionType = 'like',
   }) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/comment_reactions.php'),
       headers: _headers,
       body: jsonEncode({
@@ -1176,7 +1180,7 @@ class ApiService {
     int commentId,
     String commentType,
   ) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse(
         '$apiUrl/v1/comment_reactions.php?comment_id=$commentId&comment_type=$commentType',
       ),
@@ -1197,7 +1201,7 @@ class ApiService {
         ? '$apiUrl/v1/users.php?id=$userId'
         : '$apiUrl/v1/users.php';
 
-    final response = await http.get(Uri.parse(url), headers: _headers);
+    final response = await _http.get(Uri.parse(url), headers: _headers);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
@@ -1211,7 +1215,7 @@ class ApiService {
     int page = 1,
     int perPage = 20,
   }) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse(
         '$apiUrl/v1/feature_suggestions.php?filter=$filter&page=$page&per_page=$perPage',
       ),
@@ -1245,7 +1249,7 @@ class ApiService {
   Future<Map<String, dynamic>> getFeatureSuggestionDetail(
     int suggestionId,
   ) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/feature_suggestions.php?id=$suggestionId'),
       headers: _headers,
     );
@@ -1280,7 +1284,7 @@ class ApiService {
   }
 
   Future<Map<String, int>> getFeatureSuggestionStats() async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/feature_suggestions.php?action=stats'),
       headers: _headers,
     );
@@ -1309,7 +1313,7 @@ class ApiService {
     String title,
     String description,
   ) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/feature_suggestions.php'),
       headers: _headers,
       body: jsonEncode({'title': title, 'description': description}),
@@ -1336,7 +1340,7 @@ class ApiService {
     int suggestionId,
     int vote,
   ) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/feature_suggestions.php?action=vote'),
       headers: _headers,
       body: jsonEncode({'suggestion_id': suggestionId, 'vote': vote}),
@@ -1360,7 +1364,7 @@ class ApiService {
     int suggestionId,
     String content,
   ) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/feature_suggestions.php?action=comment'),
       headers: _headers,
       body: jsonEncode({'suggestion_id': suggestionId, 'content': content}),
@@ -1388,7 +1392,7 @@ class ApiService {
     String status, {
     String adminResponse = '',
   }) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/feature_suggestions.php?action=update_status'),
       headers: _headers,
       body: jsonEncode({
@@ -1416,7 +1420,7 @@ class ApiService {
   }
 
   Future<void> deleteFeatureSuggestion(int suggestionId) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/feature_suggestions.php?id=$suggestionId'),
       headers: _headers,
     );
@@ -1438,7 +1442,7 @@ class ApiService {
     bool isPublic = true,
     int maxGuests = 8,
   }) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/lives.php'),
       headers: _headers,
       body: jsonEncode({
@@ -1476,7 +1480,7 @@ class ApiService {
 
   /// Marque un live comme terminé (`status = ended`).
   Future<void> endLiveSession(int liveId) async {
-    final response = await http.put(
+    final response = await _http.put(
       Uri.parse('$apiUrl/v1/lives.php?path=$liveId/end'),
       headers: _headers,
     );
@@ -1489,7 +1493,7 @@ class ApiService {
 
   /// Lives actifs (`status = live`) pour fil découverte.
   Future<List<Map<String, dynamic>>> fetchActiveLives() async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/lives.php'),
       headers: _headers,
     );
@@ -1508,7 +1512,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> fetchLiveDetails(int liveId) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/lives.php?path=$liveId'),
       headers: _headers,
     );
@@ -1529,7 +1533,7 @@ class ApiService {
     int liveId, {
     int page = 1,
   }) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/lives.php?path=$liveId/comments&page=$page'),
       headers: _headers,
     );
@@ -1552,7 +1556,7 @@ class ApiService {
   }
 
   Future<int> postLiveComment(int liveId, String content) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/lives.php?path=$liveId/comments'),
       headers: _headers,
       body: jsonEncode({'content': content}),
@@ -1579,7 +1583,7 @@ class ApiService {
 
   /// Ping spectateur / participant pour `live_viewers`.
   Future<void> joinLivePing(int liveId) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/lives.php?path=$liveId/join'),
       headers: _headers,
       body: jsonEncode({}),
@@ -1596,7 +1600,7 @@ class ApiService {
     final suffix = status != null && status.trim().isNotEmpty
         ? '&status=${Uri.encodeQueryComponent(status.trim())}'
         : '';
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/lives.php?path=$liveId/guests$suffix'),
       headers: _headers,
     );
@@ -1617,7 +1621,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> fetchLiveModerationState(int liveId) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/lives.php?path=$liveId/moderation'),
       headers: _headers,
     );
@@ -1635,7 +1639,7 @@ class ApiService {
     int liveId, {
     String? message,
   }) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/lives.php?path=$liveId/request-guest'),
       headers: _headers,
       body: jsonEncode({'message': message ?? ''}),
@@ -1659,7 +1663,7 @@ class ApiService {
   }
 
   Future<void> approveLiveGuestRequest(int liveId, int userId) async {
-    final response = await http.put(
+    final response = await _http.put(
       Uri.parse('$apiUrl/v1/lives.php?path=$liveId/guests/$userId/approve'),
       headers: _headers,
       body: jsonEncode({}),
@@ -1682,7 +1686,7 @@ class ApiService {
   }
 
   Future<void> rejectLiveGuestRequest(int liveId, int userId) async {
-    final response = await http.put(
+    final response = await _http.put(
       Uri.parse('$apiUrl/v1/lives.php?path=$liveId/guests/$userId/reject'),
       headers: _headers,
       body: jsonEncode({}),
@@ -1705,7 +1709,7 @@ class ApiService {
   }
 
   Future<void> assignLiveModerator(int liveId, int userId) async {
-    final response = await http.put(
+    final response = await _http.put(
       Uri.parse('$apiUrl/v1/lives.php?path=$liveId/moderators/$userId'),
       headers: _headers,
       body: jsonEncode({}),
@@ -1728,7 +1732,7 @@ class ApiService {
   }
 
   Future<void> blockLiveChatUser(int liveId, int userId) async {
-    final response = await http.put(
+    final response = await _http.put(
       Uri.parse('$apiUrl/v1/lives.php?path=$liveId/chat-blocks/$userId'),
       headers: _headers,
       body: jsonEncode({}),
@@ -1751,7 +1755,7 @@ class ApiService {
   }
 
   Future<void> deleteLiveComment(int liveId, int commentId) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/lives.php?path=$liveId/comments/$commentId'),
       headers: _headers,
     );
@@ -1777,7 +1781,7 @@ class ApiService {
     String reason = 'inappropriate',
     String description = '',
   }) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/lives.php?path=$liveId/report'),
       headers: _headers,
       body: jsonEncode({'reason': reason, 'description': description}),
@@ -1801,7 +1805,7 @@ class ApiService {
   }
 
   Future<List<dynamic>> getLiveReports() async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/lives.php?path=moderation/reports'),
       headers: _headers,
     );
@@ -1818,7 +1822,7 @@ class ApiService {
     int liveId, {
     String? backgroundImage,
   }) async {
-    final response = await http.put(
+    final response = await _http.put(
       Uri.parse('$apiUrl/v1/lives.php?path=$liveId/background'),
       headers: _headers,
       body: jsonEncode({'background_image': backgroundImage}),
@@ -1865,7 +1869,7 @@ class ApiService {
       if (statusText != null) body['status_text'] = statusText;
     }
 
-    final response = await http.put(
+    final response = await _http.put(
       Uri.parse('$apiUrl/v1/users.php'),
       headers: _headers,
       body: jsonEncode(body),
@@ -1884,7 +1888,7 @@ class ApiService {
   }) async {
     final url =
         '$apiUrl/v1/follows.php?user_id=${userId ?? ''}&type=$type&page=$page';
-    final response = await http.get(Uri.parse(url), headers: _headers);
+    final response = await _http.get(Uri.parse(url), headers: _headers);
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -1898,7 +1902,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> followUser(int userId) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/follows.php'),
       headers: _headers,
       body: jsonEncode({'user_id': userId}),
@@ -1912,7 +1916,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> unfollowUser(int userId) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/follows.php?user_id=$userId'),
       headers: _headers,
     );
@@ -1928,7 +1932,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> getFediverseProfile({int? userId}) async {
     final query = userId != null ? '&user_id=$userId' : '';
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/fediverse.php?action=profile$query'),
       headers: _headers,
     );
@@ -1953,7 +1957,7 @@ class ApiService {
     int perPage = 20,
     bool refresh = false,
   }) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse(
         '$apiUrl/v1/fediverse.php?action=feed&page=$page&per_page=$perPage&refresh=${refresh ? 1 : 0}',
       ),
@@ -1981,7 +1985,7 @@ class ApiService {
     int page = 1,
     int perPage = 20,
   }) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/fediverse.php').replace(
         queryParameters: {
           'action': type,
@@ -2013,7 +2017,7 @@ class ApiService {
     int page = 1,
     int perPage = 20,
   }) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse(
         '$apiUrl/v1/fediverse.php?action=search_remote&q=${Uri.encodeComponent(query)}&page=$page&per_page=$perPage',
       ),
@@ -2040,7 +2044,7 @@ class ApiService {
     bool includePosts = true,
     int postsLimit = 20,
   }) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse(
         '$apiUrl/v1/fediverse.php?action=remote_profile&q=${Uri.encodeComponent(query)}&include_posts=${includePosts ? 1 : 0}&posts_limit=$postsLimit',
       ),
@@ -2067,7 +2071,7 @@ class ApiService {
     bool isActorUrl = false,
   }) async {
     final body = <String, dynamic>{isActorUrl ? 'actor_url' : 'handle': query};
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/fediverse.php?action=follow_remote'),
       headers: _headers,
       body: jsonEncode(body),
@@ -2089,7 +2093,7 @@ class ApiService {
     String query, {
     bool isActorUrl = false,
   }) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/fediverse.php?action=unfollow_remote'),
       headers: _headers,
       body: jsonEncode({isActorUrl ? 'actor_url' : 'handle': query}),
@@ -2116,7 +2120,7 @@ class ApiService {
     String type = 'all',
     int page = 1,
   }) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/friends.php?type=$type&page=$page'),
       headers: _headers,
     );
@@ -2129,7 +2133,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> sendFriendRequest(int userId) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/friends.php'),
       headers: _headers,
       body: jsonEncode({'action': 'send', 'user_id': userId}),
@@ -2147,7 +2151,7 @@ class ApiService {
     int requestId,
     String action, // 'accept' or 'reject'
   ) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/friends.php'),
       headers: _headers,
       body: jsonEncode({'action': action, 'request_id': requestId}),
@@ -2163,7 +2167,7 @@ class ApiService {
   // === APPELS ===
 
   Future<Map<String, dynamic>> getCallInfo(String callId) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/calls.php?action=poll&call_id=$callId'),
       headers: _flutterHeaders,
     );
@@ -2201,7 +2205,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> unfriend(int userId) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/friends.php?user_id=$userId'),
       headers: _headers,
     );
@@ -2227,7 +2231,7 @@ class ApiService {
         ? '$apiUrl/v1/messages.php?user_id=$userId&page=$page$qParam'
         : '$apiUrl/v1/messages.php?page=$page$qParam';
 
-    final response = await http.get(Uri.parse(url), headers: _headers);
+    final response = await _http.get(Uri.parse(url), headers: _headers);
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -2253,7 +2257,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> getPrivateConversationDetails(int userId) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/messages.php?user_id=$userId&page=1&per_page=1'),
       headers: _headers,
     );
@@ -2278,7 +2282,7 @@ class ApiService {
     int userId, {
     int? autoDeleteTime,
   }) async {
-    final response = await http.put(
+    final response = await _http.put(
       Uri.parse('$apiUrl/v1/messages.php?user_id=$userId'),
       headers: _headers,
       body: jsonEncode({
@@ -2299,7 +2303,7 @@ class ApiService {
   }
 
   Future<List<Map<String, dynamic>>> getPrivateTypingUsers(int userId) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/messages.php?typing_user_id=$userId'),
       headers: _headers,
     );
@@ -2314,7 +2318,7 @@ class ApiService {
   }
 
   Future<void> setPrivateTyping(int userId, bool isTyping) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/messages.php?action=typing'),
       headers: _headers,
       body: jsonEncode({'recipient_id': userId, 'is_typing': isTyping}),
@@ -2326,7 +2330,7 @@ class ApiService {
   }
 
   Future<List<dynamic>> getGroupMessages(int groupId, {int page = 1}) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse(
         '$apiUrl/v1/message_groups.php?path=$groupId/messages&page=$page',
       ),
@@ -2347,7 +2351,7 @@ class ApiService {
   }
 
   Future<List<Map<String, dynamic>>> getGroupTypingUsers(int groupId) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/message_groups.php?path=$groupId/typing'),
       headers: _headers,
     );
@@ -2362,7 +2366,7 @@ class ApiService {
   }
 
   Future<void> setGroupTyping(int groupId, bool isTyping) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/message_groups.php?path=$groupId/typing'),
       headers: _headers,
       body: jsonEncode({'is_typing': isTyping}),
@@ -2380,7 +2384,7 @@ class ApiService {
     String? mediaType,
     int? parentId,
   }) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/message_groups.php?path=$groupId/messages'),
       headers: _headers,
       body: jsonEncode({
@@ -2404,7 +2408,7 @@ class ApiService {
   }
 
   Future<void> deleteGroupMessage(int messageId) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/message_groups.php?path=messages/$messageId'),
       headers: _headers,
     );
@@ -2415,7 +2419,7 @@ class ApiService {
   }
 
   Future<void> editGroupMessage(int messageId, String content) async {
-    final response = await http.put(
+    final response = await _http.put(
       Uri.parse('$apiUrl/v1/message_groups.php?path=messages/$messageId'),
       headers: _headers,
       body: jsonEncode({'content': content}),
@@ -2427,7 +2431,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> getGroupDetails(int groupId) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/message_groups.php?path=$groupId'),
       headers: _headers,
     );
@@ -2447,7 +2451,7 @@ class ApiService {
     int? autoDeleteTime,
     bool? makeEveryoneAdmin,
   }) async {
-    final response = await http.put(
+    final response = await _http.put(
       Uri.parse('$apiUrl/v1/message_groups.php?path=$groupId'),
       headers: _headers,
       body: jsonEncode({
@@ -2464,7 +2468,7 @@ class ApiService {
   }
 
   Future<void> leaveMessageGroup(int groupId) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/message_groups.php?path=$groupId'),
       headers: _headers,
     );
@@ -2475,7 +2479,7 @@ class ApiService {
   }
 
   Future<void> removeMemberFromGroup(int groupId, int userId) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/message_groups.php?path=$groupId/members/$userId'),
       headers: _headers,
     );
@@ -2486,7 +2490,7 @@ class ApiService {
   }
 
   Future<void> addGroupMember(int groupId, int userId) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/message_groups.php?path=$groupId/members'),
       headers: _headers,
       body: jsonEncode({'user_id': userId}),
@@ -2498,7 +2502,7 @@ class ApiService {
   }
 
   Future<void> approveGroupRequest(int groupId, int requestId) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse(
         '$apiUrl/v1/message_groups.php?path=$groupId/requests/$requestId/approve',
       ),
@@ -2511,7 +2515,7 @@ class ApiService {
   }
 
   Future<void> rejectGroupRequest(int groupId, int requestId) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse(
         '$apiUrl/v1/message_groups.php?path=$groupId/requests/$requestId/reject',
       ),
@@ -2530,7 +2534,7 @@ class ApiService {
     String? mediaType,
     int? parentId,
   }) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/messages.php'),
       headers: _headers,
       body: jsonEncode({
@@ -2555,7 +2559,7 @@ class ApiService {
   }
 
   Future<void> deleteMessage(int messageId) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/messages.php?id=$messageId'),
       headers: _headers,
     );
@@ -2566,7 +2570,7 @@ class ApiService {
   }
 
   Future<void> deleteConversation(int userId) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/messages.php?user_id=$userId'),
       headers: _headers,
     );
@@ -2577,7 +2581,7 @@ class ApiService {
   }
 
   Future<void> editMessage(int messageId, String content) async {
-    final response = await http.put(
+    final response = await _http.put(
       Uri.parse('$apiUrl/v1/messages.php?id=$messageId'),
       headers: _headers,
       body: jsonEncode({'content': content}),
@@ -2592,7 +2596,7 @@ class ApiService {
     int messageId,
     String reactionType,
   ) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/messages.php?action=react'),
       headers: _headers,
       body: jsonEncode({
@@ -2614,7 +2618,7 @@ class ApiService {
   }
 
   Future<void> removePrivateMessageReaction(int messageId) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/messages.php?action=react&message_id=$messageId'),
       headers: _headers,
     );
@@ -2628,7 +2632,7 @@ class ApiService {
     int messageId,
     String reactionType,
   ) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse(
         '$apiUrl/v1/message_groups.php?path=messages/$messageId/reactions',
       ),
@@ -2649,7 +2653,7 @@ class ApiService {
   }
 
   Future<void> removeGroupMessageReaction(int messageId) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse(
         '$apiUrl/v1/message_groups.php?path=messages/$messageId/reactions',
       ),
@@ -2673,7 +2677,7 @@ class ApiService {
     request.fields['type'] = type;
     request.files.add(await http.MultipartFile.fromPath('media', filePath));
 
-    final streamedResponse = await request.send();
+    final streamedResponse = await _http.send(request);
     final response = await http.Response.fromStream(streamedResponse);
 
     if (response.statusCode == 200 || response.statusCode == 201) {
@@ -2727,7 +2731,7 @@ class ApiService {
     String type = 'all',
     int page = 1,
   }) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/discover.php?type=$type&page=$page'),
       headers: _headers,
     );
@@ -2746,7 +2750,7 @@ class ApiService {
   // === NOTIFICATIONS ===
 
   Future<List<dynamic>> getNotifications({int page = 1}) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/notifications.php?page=$page'),
       headers: _headers,
     );
@@ -2761,7 +2765,7 @@ class ApiService {
 
   Future<int> getUnreadNotificationsCount() async {
     try {
-      final response = await http.get(
+      final response = await _http.get(
         Uri.parse('$apiUrl/v1/notifications.php?action=count'),
         headers: _headers,
       );
@@ -2789,7 +2793,7 @@ class ApiService {
 
   Future<bool> markAllNotificationsAsRead() async {
     try {
-      final response = await http.put(
+      final response = await _http.put(
         Uri.parse('$apiUrl/v1/notifications.php'),
         headers: _headers,
         body: jsonEncode({'mark_all': true}),
@@ -2802,7 +2806,7 @@ class ApiService {
 
   Future<bool> markNotificationAsRead(int notificationId) async {
     try {
-      final response = await http.put(
+      final response = await _http.put(
         Uri.parse('$apiUrl/v1/notifications.php?id=$notificationId'),
         headers: _headers,
         body: jsonEncode({}),
@@ -2819,7 +2823,7 @@ class ApiService {
     final qParam = query != null && query.isNotEmpty
         ? '&q=${Uri.encodeComponent(query)}'
         : '';
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/groups.php?page=$page$qParam'),
       headers: _headers,
     );
@@ -2844,7 +2848,7 @@ class ApiService {
     final qParam = query != null && query.isNotEmpty
         ? '&q=${Uri.encodeComponent(query)}'
         : '';
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/groups.php?discover=1&page=$page$qParam'),
       headers: _headers,
     );
@@ -2870,7 +2874,7 @@ class ApiService {
     String? description,
     bool isPrivate = false,
   }) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/groups.php'),
       headers: _headers,
       body: jsonEncode({
@@ -2890,7 +2894,7 @@ class ApiService {
   }
 
   Future<void> cancelCandidacy() async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/moderators.php'),
       headers: _headers,
     );
@@ -2901,7 +2905,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> joinGroup(int groupId) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/groups.php'),
       headers: _headers,
       body: jsonEncode({'action': 'join', 'group_id': groupId}),
@@ -2934,7 +2938,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> leaveSocialGroup(int groupId) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/groups.php'),
       headers: _headers,
       body: jsonEncode({'action': 'leave', 'group_id': groupId}),
@@ -2949,7 +2953,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> getSocialGroupDetails(int groupId) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/groups.php?id=$groupId'),
       headers: _headers,
     );
@@ -2979,7 +2983,7 @@ class ApiService {
       if (isPrivate != null) 'privacy': isPrivate ? 'private' : 'public',
     };
 
-    final response = await http.put(
+    final response = await _http.put(
       Uri.parse('$apiUrl/v1/groups.php'),
       headers: _headers,
       body: jsonEncode(body),
@@ -2995,7 +2999,7 @@ class ApiService {
     int groupId, {
     int page = 1,
   }) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/groups.php?id=$groupId&join_requests=1&page=$page'),
       headers: _headers,
     );
@@ -3020,7 +3024,7 @@ class ApiService {
     int groupId,
     int userId,
   ) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/groups.php'),
       headers: _headers,
       body: jsonEncode({
@@ -3039,7 +3043,7 @@ class ApiService {
   }
 
   Future<void> inviteToGroup(int groupId, int userId) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/groups.php'),
       headers: _headers,
       body: jsonEncode({
@@ -3059,7 +3063,7 @@ class ApiService {
     int groupId,
     int userId,
   ) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/groups.php'),
       headers: _headers,
       body: jsonEncode({
@@ -3079,7 +3083,7 @@ class ApiService {
 
   /// Promeut un membre au rôle d'administrateur du groupe.
   Future<void> promoteSocialGroupMember(int groupId, int userId) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/groups.php'),
       headers: _headers,
       body: jsonEncode({
@@ -3100,7 +3104,7 @@ class ApiService {
 
   /// Rétrograde un administrateur au rôle de membre simple.
   Future<void> demoteSocialGroupMember(int groupId, int userId) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/groups.php'),
       headers: _headers,
       body: jsonEncode({
@@ -3123,7 +3127,7 @@ class ApiService {
 
   /// Exclut un membre ou un administrateur du groupe.
   Future<void> kickSocialGroupMember(int groupId, int userId) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/groups.php'),
       headers: _headers,
       body: jsonEncode({
@@ -3143,7 +3147,7 @@ class ApiService {
   }
 
   Future<List<dynamic>> getGroupMembers(int groupId, {int page = 1}) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/groups.php?id=$groupId&members=1&page=$page'),
       headers: _headers,
     );
@@ -3168,7 +3172,7 @@ class ApiService {
   }
 
   Future<List<dynamic>> getGroupPosts(int groupId, {int page = 1}) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/group_posts.php?group_id=$groupId&page=$page'),
       headers: _headers,
     );
@@ -3210,7 +3214,7 @@ class ApiService {
       body['tags'] = tags;
     }
 
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/group_posts.php'),
       headers: _headers,
       body: jsonEncode(body),
@@ -3227,7 +3231,7 @@ class ApiService {
     int postId,
     String content,
   ) async {
-    final response = await http.put(
+    final response = await _http.put(
       Uri.parse('$apiUrl/v1/group_posts.php'),
       headers: _headers,
       body: jsonEncode({'id': postId, 'content': content}),
@@ -3244,7 +3248,7 @@ class ApiService {
     int postId,
     String reactionType,
   ) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/group_reactions.php'),
       headers: _headers,
       body: jsonEncode({'post_id': postId, 'reaction_type': reactionType}),
@@ -3258,7 +3262,7 @@ class ApiService {
   }
 
   Future<void> removeGroupPostReaction(int postId) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/group_reactions.php?post_id=$postId'),
       headers: _headers,
     );
@@ -3269,7 +3273,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> deleteGroupPost(int postId) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/group_posts.php?id=$postId'),
       headers: _headers,
     );
@@ -3285,7 +3289,7 @@ class ApiService {
     final qParam = query != null && query.isNotEmpty
         ? '&q=${Uri.encodeComponent(query)}'
         : '';
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/message_groups.php?page=$page$qParam'),
       headers: _headers,
     );
@@ -3311,7 +3315,7 @@ class ApiService {
     String avatar = 'default.svg',
     List<int> memberIds = const [],
   }) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/message_groups.php'),
       headers: _headers,
       body: jsonEncode({
@@ -3329,7 +3333,7 @@ class ApiService {
   }
 
   Future<List<dynamic>> getEvents({int page = 1}) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/events.php?page=$page'),
       headers: _headers,
     );
@@ -3349,7 +3353,7 @@ class ApiService {
     required String eventDate,
     String? image,
   }) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/events.php'),
       headers: _headers,
       body: jsonEncode({
@@ -3367,7 +3371,7 @@ class ApiService {
   }
 
   Future<void> deleteEvent(int eventId) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/events.php?id=$eventId&action=delete'),
       headers: _headers,
     );
@@ -3378,7 +3382,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> getEventDetails(int eventId) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/events.php?id=$eventId'),
       headers: _headers,
     );
@@ -3396,7 +3400,7 @@ class ApiService {
   }
 
   Future<void> joinEvent(int eventId) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/events.php'),
       headers: _headers,
       body: jsonEncode({'action': 'join', 'event_id': eventId}),
@@ -3408,7 +3412,7 @@ class ApiService {
   }
 
   Future<void> leaveEvent(int eventId) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/events.php?id=$eventId&action=leave'),
       headers: _headers,
     );
@@ -3421,7 +3425,7 @@ class ApiService {
   // === STORIES ===
 
   Future<List<dynamic>> getStories() async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/stories.php'),
       headers: _headers,
     );
@@ -3435,7 +3439,7 @@ class ApiService {
   }
 
   Future<List<dynamic>> getUserStories(int userId) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/stories.php?user_id=$userId'),
       headers: _headers,
     );
@@ -3452,7 +3456,7 @@ class ApiService {
     required String media,
     String? text,
   }) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/stories.php'),
       headers: _headers,
       body: jsonEncode({'media': media, 'text': text ?? ''}),
@@ -3477,7 +3481,7 @@ class ApiService {
   }
 
   Future<void> deleteStory(int storyId) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/stories.php?id=$storyId'),
       headers: _headers,
     );
@@ -3490,7 +3494,7 @@ class ApiService {
   // === MODÉRATION ===
 
   Future<List<dynamic>> getReports({int page = 1}) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/reports.php?page=$page'),
       headers: _headers,
     );
@@ -3504,7 +3508,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> voteOnReport(int reportId, String vote) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/reports.php'),
       headers: _headers,
       body: jsonEncode({
@@ -3526,7 +3530,7 @@ class ApiService {
     required String reason,
     String? description,
   }) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/reports.php'),
       headers: _headers,
       body: jsonEncode({
@@ -3550,7 +3554,7 @@ class ApiService {
     int? postId,
     int? userId,
   }) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/reports.php'),
       headers: _headers,
       body: jsonEncode({
@@ -3570,7 +3574,7 @@ class ApiService {
 
   // Candidature modérateur
   Future<Map<String, dynamic>> applyForModerator(String motivation) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/moderators.php?action=apply'),
       headers: _headers,
       body: jsonEncode({'motivation': motivation}),
@@ -3585,7 +3589,7 @@ class ApiService {
 
   // Vote pour/contre un candidat ou modérateur
   Future<Map<String, dynamic>> voteForModerator(int userId, String vote) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/moderators.php?action=vote_moderator'),
       headers: _headers,
       body: jsonEncode({
@@ -3603,7 +3607,7 @@ class ApiService {
 
   // Liste des candidats
   Future<List<dynamic>> getCandidates() async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/moderators.php?type=candidates'),
       headers: _headers,
     );
@@ -3618,7 +3622,7 @@ class ApiService {
 
   // Liste des modérateurs
   Future<List<dynamic>> getModerators() async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/moderators.php?type=moderators'),
       headers: _headers,
     );
@@ -3645,7 +3649,7 @@ class ApiService {
 
   // Action directe de modérateur : supprimer un post signalé
   Future<Map<String, dynamic>> moderatorDeletePost(int reportId) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/reports.php'),
       headers: _headers,
       body: jsonEncode({
@@ -3667,7 +3671,7 @@ class ApiService {
     int reportId, {
     String? reason,
   }) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/reports.php'),
       headers: _headers,
       body: jsonEncode({
@@ -3687,7 +3691,7 @@ class ApiService {
 
   // Journal transparent des actions de modération
   Future<List<dynamic>> getModeratorActions() async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/moderators.php?type=actions'),
       headers: _headers,
     );
@@ -3702,7 +3706,7 @@ class ApiService {
 
   // Sanctions transparentes (toutes les sanctions publiques)
   Future<Map<String, dynamic>> getAllSanctions({int page = 1}) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/sanctions.php?type=all&page=$page'),
       headers: _headers,
     );
@@ -3717,7 +3721,7 @@ class ApiService {
   // Vérifie si l'utilisateur courant est banni
   Future<Map<String, dynamic>?> getMyBanStatus() async {
     try {
-      final response = await http.get(
+      final response = await _http.get(
         Uri.parse('$apiUrl/v1/sanctions.php?type=mine'),
         headers: _headers,
       );
@@ -3734,7 +3738,7 @@ class ApiService {
   // === BOOKMARKS ===
 
   Future<List<dynamic>> getBookmarks({int page = 1}) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/bookmarks.php?page=$page'),
       headers: _headers,
     );
@@ -3752,7 +3756,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> removeBookmark(int postId) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/bookmarks.php?post_id=$postId'),
       headers: _headers,
     );
@@ -3790,7 +3794,7 @@ class ApiService {
     if (mastodon != null) body['mastodon'] = mastodon;
     if (bluesky != null) body['bluesky'] = bluesky;
 
-    final response = await http.put(
+    final response = await _http.put(
       Uri.parse('$apiUrl/v1/users.php'),
       headers: _headers,
       body: jsonEncode(body),
@@ -3804,7 +3808,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> updateMilitantBadge(String? badge) async {
-    final response = await http.put(
+    final response = await _http.put(
       Uri.parse('$apiUrl/v1/users.php'),
       headers: _headers,
       body: jsonEncode({'militant_badge': badge ?? ''}),
@@ -3823,7 +3827,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> getPreferences() async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/user_preferences.php'),
       headers: _headers,
     );
@@ -3839,7 +3843,7 @@ class ApiService {
   Future<Map<String, dynamic>> updatePreferences(
     Map<String, dynamic> prefs,
   ) async {
-    final response = await http.put(
+    final response = await _http.put(
       Uri.parse('$apiUrl/v1/user_preferences.php'),
       headers: _headers,
       body: jsonEncode(prefs),
@@ -3856,7 +3860,7 @@ class ApiService {
     required String currentPassword,
     required String newPassword,
   }) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/change_password.php'),
       headers: _headers,
       body: jsonEncode({
@@ -3880,7 +3884,7 @@ class ApiService {
     String type = 'all',
     int page = 1,
   }) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse(
         '$apiUrl/v1/search.php?q=${Uri.encodeComponent(query)}&type=$type&page=$page',
       ),
@@ -3901,7 +3905,7 @@ class ApiService {
   // === PAGES ===
 
   Future<List<dynamic>> getPages({int page = 1}) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/pages.php?page=$page'),
       headers: _headers,
     );
@@ -3919,7 +3923,7 @@ class ApiService {
   }
 
   Future<List<dynamic>> getFollowedPages({int page = 1}) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/pages.php?followed=1&page=$page'),
       headers: _headers,
     );
@@ -3937,7 +3941,7 @@ class ApiService {
   }
 
   Future<List<dynamic>> discoverPages({int page = 1}) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/pages.php?discover=1&page=$page'),
       headers: _headers,
     );
@@ -3955,7 +3959,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> getPageDetail(int pageId) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/pages.php?id=$pageId'),
       headers: _headers,
     );
@@ -3972,7 +3976,7 @@ class ApiService {
   }
 
   Future<List<dynamic>> getPagePosts(int pageId) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/pages.php?path=$pageId/posts'),
       headers: _headers,
     );
@@ -3989,7 +3993,7 @@ class ApiService {
   }
 
   Future<List<dynamic>> getPagePostComments(int pageId, int postId) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/pages.php?path=$pageId/comments/$postId'),
       headers: _headers,
     );
@@ -4011,7 +4015,7 @@ class ApiService {
     String? category,
     String? avatar,
   }) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/pages.php'),
       headers: _headers,
       body: jsonEncode({
@@ -4037,7 +4041,7 @@ class ApiService {
     String? media,
     String? mediaType,
   }) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/pages.php'),
       headers: _headers,
       body: jsonEncode({
@@ -4060,7 +4064,7 @@ class ApiService {
     int postId,
     String content,
   ) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/pages.php'),
       headers: _headers,
       body: jsonEncode({
@@ -4078,7 +4082,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> reactToPagePost(int postId, String type) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/pages.php'),
       headers: _headers,
       body: jsonEncode({'action': 'react', 'post_id': postId, 'type': type}),
@@ -4092,7 +4096,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> followPage(int pageId) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/pages.php'),
       headers: _headers,
       body: jsonEncode({'action': 'follow', 'page_id': pageId}),
@@ -4106,7 +4110,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> unfollowPage(int pageId) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/pages.php'),
       headers: _headers,
       body: jsonEncode({'action': 'unfollow', 'page_id': pageId}),
@@ -4120,7 +4124,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> deletePagePost(int postId) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/pages.php'),
       headers: _headers,
       body: jsonEncode({'action': 'delete_post', 'post_id': postId}),
@@ -4141,7 +4145,7 @@ class ApiService {
     body['action'] = 'update_page';
     body['page_id'] = pageId;
 
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/pages.php'),
       headers: _headers,
       body: jsonEncode(body),
@@ -4155,7 +4159,7 @@ class ApiService {
   }
 
   Future<List<dynamic>> getPageTeam(int pageId) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/pages.php?path=$pageId/team'),
       headers: _headers,
     );
@@ -4176,7 +4180,7 @@ class ApiService {
     String username,
     String role,
   ) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/pages.php'),
       headers: _headers,
       body: jsonEncode({
@@ -4200,7 +4204,7 @@ class ApiService {
     int userId,
     String role,
   ) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/pages.php'),
       headers: _headers,
       body: jsonEncode({
@@ -4219,7 +4223,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> removeTeamMember(int pageId, int userId) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/pages.php'),
       headers: _headers,
       body: jsonEncode({
@@ -4237,7 +4241,7 @@ class ApiService {
   }
 
   Future<List<dynamic>> getPageFollowers(int pageId) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/pages.php?path=$pageId/followers'),
       headers: _headers,
     );
@@ -4257,7 +4261,7 @@ class ApiService {
     int pageId,
     int userId,
   ) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/pages.php'),
       headers: _headers,
       body: jsonEncode({
@@ -4275,7 +4279,7 @@ class ApiService {
   }
 
   Future<void> updatePagePost(int postId, String content) async {
-    final response = await http.put(
+    final response = await _http.put(
       Uri.parse('$apiUrl/v1/pages.php'),
       headers: _headers,
       body: jsonEncode({
@@ -4290,7 +4294,7 @@ class ApiService {
   }
 
   Future<void> deletePageComment(int commentId) async {
-    final response = await http.delete(
+    final response = await _http.delete(
       Uri.parse('$apiUrl/v1/pages.php'),
       headers: _headers,
       body: jsonEncode({'action': 'delete_comment', 'comment_id': commentId}),
@@ -4308,7 +4312,7 @@ class ApiService {
   }
 
   Future<void> updatePageComment(int commentId, String content) async {
-    final response = await http.put(
+    final response = await _http.put(
       Uri.parse('$apiUrl/v1/pages.php'),
       headers: _headers,
       body: jsonEncode({
@@ -4344,7 +4348,7 @@ class ApiService {
     String callType,
     String offerSdp,
   ) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/calls.php?action=initiate'),
       headers: _flutterHeaders,
       body: jsonEncode({
@@ -4382,7 +4386,7 @@ class ApiService {
     String callId,
     String answerSdp,
   ) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/calls.php?action=answer'),
       headers: _flutterHeaders,
       body: jsonEncode({'call_id': callId, 'answer': answerSdp}),
@@ -4401,7 +4405,7 @@ class ApiService {
     Map<String, dynamic> candidate, {
     int? toUserId,
   }) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/calls.php?action=ice_candidate'),
       headers: _flutterHeaders,
       body: jsonEncode({
@@ -4419,7 +4423,7 @@ class ApiService {
   }
 
   Future<void> rejectCall(String callId) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/calls.php?action=reject'),
       headers: _flutterHeaders,
       body: jsonEncode({'call_id': callId}),
@@ -4431,7 +4435,7 @@ class ApiService {
   }
 
   Future<void> leaveGroupCall(String callId) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/calls.php?action=leave'),
       headers: _flutterHeaders,
       body: jsonEncode({'call_id': callId}),
@@ -4443,7 +4447,7 @@ class ApiService {
   }
 
   Future<void> endCall(String callId) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/calls.php?action=end'),
       headers: _flutterHeaders,
       body: jsonEncode({'call_id': callId}),
@@ -4463,7 +4467,7 @@ class ApiService {
       url += '&last_poll=${Uri.encodeComponent(lastPoll)}';
     }
 
-    final response = await http.get(Uri.parse(url), headers: _flutterHeaders);
+    final response = await _http.get(Uri.parse(url), headers: _flutterHeaders);
 
     if (response.statusCode == 200) {
       final body = jsonDecode(response.body);
@@ -4483,7 +4487,7 @@ class ApiService {
   }
 
   Future<List<dynamic>> getCallHistory({int page = 1}) async {
-    final response = await http.get(
+    final response = await _http.get(
       Uri.parse('$apiUrl/v1/calls.php?action=history&page=$page'),
       headers: _flutterHeaders,
     );
@@ -4501,7 +4505,7 @@ class ApiService {
   }
 
   Future<void> restartIce(String callId, String newOfferSdp) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/calls.php?action=ice_restart'),
       headers: _flutterHeaders,
       body: jsonEncode({'call_id': callId, 'offer': newOfferSdp}),
@@ -4521,7 +4525,7 @@ class ApiService {
     String callType,
     String offerSdp,
   ) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/calls.php?action=initiate'),
       headers: _flutterHeaders,
       body: jsonEncode({
@@ -4546,7 +4550,7 @@ class ApiService {
     String callId, {
     String? offerSdp,
   }) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/calls.php?action=join'),
       headers: _flutterHeaders,
       body: jsonEncode({
@@ -4569,7 +4573,7 @@ class ApiService {
     int toUserId,
     String offerSdp,
   ) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/calls.php?action=peer_offer'),
       headers: _flutterHeaders,
       body: jsonEncode({
@@ -4592,7 +4596,7 @@ class ApiService {
     int toUserId,
     String answerSdp,
   ) async {
-    final response = await http.post(
+    final response = await _http.post(
       Uri.parse('$apiUrl/v1/calls.php?action=peer_answer'),
       headers: _flutterHeaders,
       body: jsonEncode({

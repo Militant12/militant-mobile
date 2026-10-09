@@ -1,14 +1,21 @@
+import '../services/api_http_client.dart';
 import '../services/language_service.dart';
+
+/// Le serveur a refusé la requête parce qu'il en reçoit trop (HTTP 429).
+bool isRateLimitError(Object? error) =>
+    error is ApiException && error.isRateLimited;
 
 /// Nettoie et formate les erreurs pour ne jamais afficher de messages techniques
 /// (comme ClientException, SocketException, URLs internes, ports, codes d'erreur OS) aux utilisateurs.
 String getFriendlyErrorMessage(dynamic error, [LanguageService? lang]) {
   final l = lang ?? LanguageService.instance;
   if (error == null) return l.translate('error_generic');
+  if (isRateLimitError(error)) return l.translate('error_rate_limited');
   final errorStr = error.toString();
 
   // Détection des erreurs réseau / socket / connexion
-  final isNetworkError = errorStr.contains('SocketException') ||
+  final isNetworkError =
+      errorStr.contains('SocketException') ||
       errorStr.contains('ClientException') ||
       errorStr.contains('Connection refused') ||
       errorStr.contains('connection abort') ||
@@ -27,7 +34,8 @@ String getFriendlyErrorMessage(dynamic error, [LanguageService? lang]) {
     return l.translate('error_network');
   }
 
-  if (errorStr.contains('FormatException') || errorStr.contains('Unexpected character')) {
+  if (errorStr.contains('FormatException') ||
+      errorStr.contains('Unexpected character')) {
     return l.translate('error_data_format');
   }
 
