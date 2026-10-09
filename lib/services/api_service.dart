@@ -16,6 +16,10 @@ class ApiService {
   String? token;
   int? _currentUserId;
 
+  static const _ownProfileMaxAge = Duration(seconds: 30);
+  Future<Map<String, dynamic>>? _ownProfileRequest;
+  DateTime? _ownProfileFetchedAt;
+
   ApiService({required this.baseUrl, this.token});
 
   String _bodyPreview(String body) {
@@ -429,6 +433,7 @@ class ApiService {
   // Sauvegarder le token
   Future<void> saveToken(String newToken) async {
     token = newToken;
+    invalidateOwnProfile();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('api_token', newToken);
   }
@@ -437,6 +442,7 @@ class ApiService {
   Future<void> clearToken() async {
     token = null;
     _currentUserId = null;
+    invalidateOwnProfile();
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('api_token');
     await prefs.remove('user_id');
@@ -1192,11 +1198,52 @@ class ApiService {
 
   // === UTILISATEURS ===
 
-  Future<Map<String, dynamic>> getProfile({int? userId}) async {
-    final url = userId != null
-        ? '$apiUrl/v1/users.php?id=$userId'
-        : '$apiUrl/v1/users.php';
+  /// Profil d'un utilisateur, ou de l'utilisateur connecté si [userId] est nul.
+  ///
+  /// Le profil de l'utilisateur connecté est demandé par de nombreux écrans au
+  /// même moment : les appels simultanés partagent une seule requête, et le
+  /// résultat est réutilisé pendant [_ownProfileMaxAge]. [forceRefresh] ignore
+  /// ce cache.
+  Future<Map<String, dynamic>> getProfile({
+    int? userId,
+    bool forceRefresh = false,
+  }) async {
+    if (userId != null) {
+      return _fetchProfile('$apiUrl/v1/users.php?id=$userId');
+    }
 
+    final fetchedAt = _ownProfileFetchedAt;
+    final isFresh =
+        fetchedAt == null ||
+        DateTime.now().difference(fetchedAt) < _ownProfileMaxAge;
+    var request = _ownProfileRequest;
+    if (forceRefresh || request == null || !isFresh) {
+      request = _fetchOwnProfile();
+    }
+    // Copie, pour qu'un écran qui modifie la map n'altère pas le cache.
+    return Map<String, dynamic>.of(await request);
+  }
+
+  Future<Map<String, dynamic>> _fetchOwnProfile() {
+    final request = _fetchProfile('$apiUrl/v1/users.php');
+    _ownProfileRequest = request;
+    _ownProfileFetchedAt = null;
+    request.then(
+      (_) {
+        if (identical(_ownProfileRequest, request)) {
+          _ownProfileFetchedAt = DateTime.now();
+        }
+      },
+      onError: (_) {
+        if (identical(_ownProfileRequest, request)) {
+          _ownProfileRequest = null;
+        }
+      },
+    );
+    return request;
+  }
+
+  Future<Map<String, dynamic>> _fetchProfile(String url) async {
     final response = await http.get(Uri.parse(url), headers: _headers);
 
     if (response.statusCode == 200) {
@@ -1204,6 +1251,12 @@ class ApiService {
     } else {
       throw Exception('Erreur de chargement du profil');
     }
+  }
+
+  /// Oublie le profil en cache après une modification ou un changement de compte.
+  void invalidateOwnProfile() {
+    _ownProfileRequest = null;
+    _ownProfileFetchedAt = null;
   }
 
   Future<List<FeatureSuggestion>> getFeatureSuggestions({
@@ -1871,6 +1924,7 @@ class ApiService {
       body: jsonEncode(body),
     );
     if (response.statusCode == 200) {
+      invalidateOwnProfile();
       return jsonDecode(response.body);
     } else {
       throw Exception('Erreur mise à jour du profil');
@@ -3797,6 +3851,7 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
+      invalidateOwnProfile();
       return jsonDecode(response.body);
     } else {
       throw Exception('Erreur de mise à jour du profil');
@@ -3811,6 +3866,7 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
+      invalidateOwnProfile();
       return jsonDecode(response.body);
     } else {
       throw Exception(
