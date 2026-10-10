@@ -926,6 +926,15 @@ class LanguageService extends ValueNotifier<Locale> {
       'mod_post_deleted_action': 'Post supprimé par action de modérateur',
       'mod_no_actions': 'Aucune action enregistrée',
       'mod_your_candidacy': 'C\'est ta candidature',
+      'mod_votes_count': '{count} votes',
+      'mod_post_by': 'Publication de {username}',
+      'mod_deleted_user': '[Supprimé]',
+      'mod_view_post': 'Voir le post',
+      'mod_you_voted': 'Tu as voté : {vote}',
+      'mod_warning_sent': 'Avertissement envoyé',
+      'mod_post_deleted': 'Post supprimé',
+      'mod_moderator_badge': 'Modérateur·ice',
+      'time_ago': 'il y a {time}',
       'promote_to_admin': 'Nommer admin',
       'promote_to_admin_question': 'Nommer {username} admin ?',
       'demote_to_editor': 'Rétrograder',
@@ -1948,6 +1957,15 @@ class LanguageService extends ValueNotifier<Locale> {
       'mod_post_deleted_action': 'Post deleted by moderator action',
       'mod_no_actions': 'No actions recorded',
       'mod_your_candidacy': 'This is your candidacy',
+      'mod_votes_count': '{count} votes',
+      'mod_post_by': 'Post by {username}',
+      'mod_deleted_user': '[Deleted]',
+      'mod_view_post': 'View post',
+      'mod_you_voted': 'You voted: {vote}',
+      'mod_warning_sent': 'Warning sent',
+      'mod_post_deleted': 'Post deleted',
+      'mod_moderator_badge': 'Moderator',
+      'time_ago': '{time} ago',
       'promote_to_admin': 'Promote to Admin',
       'promote_to_admin_question': 'Promote {username} to admin?',
       'demote_to_editor': 'Demote',
@@ -2965,6 +2983,15 @@ class LanguageService extends ValueNotifier<Locale> {
           'Publicación eliminada por acción de moderador',
       'mod_no_actions': 'No hay acciones registradas',
       'mod_your_candidacy': 'Esta es tu candidatura',
+      'mod_votes_count': '{count} votos',
+      'mod_post_by': 'Publicación de {username}',
+      'mod_deleted_user': '[Eliminado]',
+      'mod_view_post': 'Ver la publicación',
+      'mod_you_voted': 'Votaste: {vote}',
+      'mod_warning_sent': 'Advertencia enviada',
+      'mod_post_deleted': 'Publicación eliminada',
+      'mod_moderator_badge': 'Moderador·a',
+      'time_ago': 'hace {time}',
       'promote_to_admin': 'Promover a Admin',
       'promote_to_admin_question': '¿Promover a {username} a admin?',
       'demote_to_editor': 'Degradar',
@@ -3161,6 +3188,12 @@ class LanguageService extends ValueNotifier<Locale> {
       'no_results': 'Neniuj rezultoj',
     },
   };
+
+  /// Whether [langCode] has its own value for [key], without the French
+  /// fallback that [translate] applies.
+  @visibleForTesting
+  static bool hasTranslation(String langCode, String key) =>
+      _localizedValues[langCode]?.containsKey(key) ?? false;
 
   String translate(String key) {
     final langCode = value.languageCode;

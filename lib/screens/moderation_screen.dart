@@ -248,16 +248,18 @@ class _ModerationScreenState extends State<ModerationScreen>
   }
 
   Widget _buildReportCard(Report report) {
-    final reasonLabels = {
-      'spam': 'Spam',
-      'harassment': 'Harcèlement',
-      'hate_speech': 'Discours haineux',
-      'misinformation': 'Désinformation',
-      'violence': 'Violence',
-      'other': 'Autre',
-    };
-
     final lang = LanguageService.instance;
+    final reasonLabels = {
+      for (final reason in const [
+        'spam',
+        'harassment',
+        'hate_speech',
+        'misinformation',
+        'violence',
+        'other',
+      ])
+        reason: lang.translate('live_report_reason_$reason'),
+    };
 
     return Container(
       margin: const EdgeInsets.all(8),
@@ -300,7 +302,9 @@ class _ModerationScreenState extends State<ModerationScreen>
                   ),
                 ),
                 Text(
-                  '${report.voteCount} votes',
+                  lang
+                      .translate('mod_votes_count')
+                      .replaceAll('{count}', '${report.voteCount}'),
                   style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7), fontSize: 12),
                 ),
               ],
@@ -319,7 +323,11 @@ class _ModerationScreenState extends State<ModerationScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Publication de ${report.reportedUsername ?? "[Supprimé]"}',
+                      lang.translate('mod_post_by').replaceAll(
+                        '{username}',
+                        report.reportedUsername ??
+                            lang.translate('mod_deleted_user'),
+                      ),
                       style: TextStyle(
                         color: context.colors.onSurface.withValues(alpha: 0.7),
                         fontSize: 12,
@@ -351,7 +359,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                     );
                   },
                   icon: const Icon(Icons.open_in_new, size: 16),
-                  label: const Text('Voir le post'),
+                  label: Text(lang.translate('mod_view_post')),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: context.colors.onSurface,
                     side: BorderSide(color: context.colors.onSurface.withValues(alpha: 0.24)),
@@ -390,14 +398,16 @@ class _ModerationScreenState extends State<ModerationScreen>
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Tu as voté: ${_getVoteLabel(report.myVote!)}',
+                      lang
+                          .translate('mod_you_voted')
+                          .replaceAll('{vote}', _getVoteLabel(report.myVote!)),
                       style: TextStyle(color: context.colors.primary),
                     ),
                     const Spacer(),
                     TextButton(
                       onPressed: () => _voteOnReport(report.id, 'cancel'),
                       child: Text(
-                        'Annuler',
+                        lang.translate('cancel'),
                         style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7)),
                       ),
                     ),
@@ -623,7 +633,13 @@ class _ModerationScreenState extends State<ModerationScreen>
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Avertissement envoyé')));
+        ).showSnackBar(
+          SnackBar(
+            content: Text(
+              LanguageService.instance.translate('mod_warning_sent'),
+            ),
+          ),
+        );
         _loadData();
       }
     } catch (e) {
@@ -789,9 +805,9 @@ class _ModerationScreenState extends State<ModerationScreen>
       if (mounted) {
         String message = e.toString();
         if (message.contains('Already a moderator')) {
-          message = 'Tu es déjà modérateur·ice !';
+          message = LanguageService.instance.translate('mod_already_moderator');
         } else if (message.contains('Already a candidate')) {
-          message = 'Tu es déjà candidat·e !';
+          message = LanguageService.instance.translate('mod_already_candidate');
         }
         ScaffoldMessenger.of(
           context,
@@ -1092,13 +1108,7 @@ class _ModerationScreenState extends State<ModerationScreen>
     try {
       final date = DateTime.parse(dateStr.replaceAll(' ', 'T'));
       final diff = DateTime.now().difference(date);
-      if (diff.inDays > 0) {
-        timeAgo = 'il y a ${diff.inDays}j';
-      } else if (diff.inHours > 0) {
-        timeAgo = 'il y a ${diff.inHours}h';
-      } else {
-        timeAgo = 'il y a ${diff.inMinutes}min';
-      }
+      timeAgo = _timeAgo(diff);
     } catch (_) {}
 
     // Ban expiry
@@ -1221,7 +1231,10 @@ class _ModerationScreenState extends State<ModerationScreen>
   Widget _buildActionItem(Map<String, dynamic> action) {
     final isWarning = action['action_type'] == 'warning';
     final color = isWarning ? Colors.orange : context.colors.primary;
-    final label = isWarning ? 'Avertissement' : 'Post supprimé';
+    final lang = LanguageService.instance;
+    final label = isWarning
+        ? lang.translate('mod_sanction_warning')
+        : lang.translate('mod_post_deleted');
     final moderator =
         action['moderator_username'] ?? action['reporter_username'] ?? '?';
     final target = action['target_username'] ?? '?';
@@ -1232,13 +1245,7 @@ class _ModerationScreenState extends State<ModerationScreen>
     try {
       final date = DateTime.parse(dateStr.replaceAll(' ', 'T'));
       final diff = DateTime.now().difference(date);
-      if (diff.inDays > 0) {
-        timeAgo = 'il y a ${diff.inDays}j';
-      } else if (diff.inHours > 0) {
-        timeAgo = 'il y a ${diff.inHours}h';
-      } else {
-        timeAgo = 'il y a ${diff.inMinutes}min';
-      }
+      timeAgo = _timeAgo(diff);
     } catch (_) {}
 
     return Container(
@@ -1299,7 +1306,9 @@ class _ModerationScreenState extends State<ModerationScreen>
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
                   child: Text(
-                    isWarning ? 'par $moderator · $timeAgo' : timeAgo,
+                    isWarning
+                        ? '${lang.translate('mod_sanction_by')} $moderator · $timeAgo'
+                        : timeAgo,
                     style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.24), fontSize: 11),
                   ),
                 ),
@@ -1348,7 +1357,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                     ),
                     if (isModerator)
                       Text(
-                        'Modérateur·ice',
+                        LanguageService.instance.translate('mod_moderator_badge'),
                         style: TextStyle(
                           color: context.colors.primary,
                           fontSize: 12,
@@ -1505,14 +1514,33 @@ class _ModerationScreenState extends State<ModerationScreen>
     );
   }
 
+  String _timeAgo(Duration diff) {
+    final lang = LanguageService.instance;
+    final String time;
+    if (diff.inDays > 0) {
+      time = lang
+          .translate('time_days_short')
+          .replaceAll('{count}', '${diff.inDays}');
+    } else if (diff.inHours > 0) {
+      time = lang
+          .translate('time_hours_short')
+          .replaceAll('{count}', '${diff.inHours}');
+    } else {
+      time = lang
+          .translate('time_minutes_short')
+          .replaceAll('{count}', '${diff.inMinutes}');
+    }
+    return lang.translate('time_ago').replaceAll('{time}', time);
+  }
+
   String _getVoteLabel(String vote) {
     switch (vote) {
       case 'remove':
-        return 'Supprimer';
+        return LanguageService.instance.translate('mod_vote_remove');
       case 'warn':
-        return 'Avertir';
+        return LanguageService.instance.translate('mod_vote_warn');
       case 'keep':
-        return 'Garder';
+        return LanguageService.instance.translate('mod_vote_keep');
       default:
         return vote;
     }
