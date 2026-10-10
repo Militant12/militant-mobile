@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:militant/services/api_http_client.dart';
 import 'package:militant/theme/app_colors.dart';
 import 'package:militant/theme/app_theme.dart';
 import 'package:militant/widgets/common/common.dart';
@@ -92,6 +93,15 @@ void main() {
 
       await tester.tap(find.text('Réessayer'));
       expect(retries, 1);
+    });
+
+    testWidgets('429 : message « trop de requêtes » et sablier', (tester) async {
+      await tester.pumpWidget(
+        _app(const ErrorState(error: ApiException(429))),
+      );
+      expect(find.textContaining('Trop de requêtes'), findsOneWidget);
+      expect(find.byIcon(Icons.hourglass_empty), findsOneWidget);
+      expect(find.byIcon(Icons.wifi_off_outlined), findsNothing);
     });
 
     testWidgets('sans onRetry, pas de bouton', (tester) async {

@@ -77,6 +77,7 @@ class ProfileScreenState extends State<ProfileScreen>
   }
 
   String? _avatarUrl;
+  Object? _loadError;
 
   void _safeSetState(VoidCallback fn) {
     if (mounted) {
@@ -98,7 +99,10 @@ class ProfileScreenState extends State<ProfileScreen>
   }
 
   Future<void> _loadProfile() async {
-    _safeSetState(() => _isLoading = true);
+    _safeSetState(() {
+      _isLoading = true;
+      _loadError = null;
+    });
     try {
       final api = await ApiService.getInstance();
       final myProfile = await api.getProfile();
@@ -128,6 +132,7 @@ class ProfileScreenState extends State<ProfileScreen>
       }
     } catch (e) {
       debugPrint('Error loading profile: $e');
+      _loadError = e;
       // Ne pas afficher de SnackBar intempestif en arrière-plan
     } finally {
       _safeSetState(() => _isLoading = false);
@@ -646,6 +651,7 @@ class ProfileScreenState extends State<ProfileScreen>
         ),
         body: ErrorState(
           title: lang.translate('profile_load_error'),
+          error: _loadError,
           onRetry: _loadProfile,
         ),
       );

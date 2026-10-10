@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:militant/services/api_http_client.dart';
 import 'package:militant/services/language_service.dart';
 import 'package:militant/utils/error_helper.dart';
 
@@ -18,6 +19,16 @@ void main() {
 
     lang.value = const Locale('en');
     expect(getFriendlyErrorMessage(error, lang), startsWith('Unable to reach'));
+  });
+
+  test('trop de requêtes (429) : message dédié', () {
+    const error = ApiException(429, 'Rate limit exceeded');
+    expect(isRateLimitError(error), isTrue);
+    expect(
+      getFriendlyErrorMessage(error, lang),
+      'Trop de requêtes, réessaie dans un moment.',
+    );
+    expect(isRateLimitError(Exception('Erreur de chargement')), isFalse);
   });
 
   test('les URLs internes ne sont jamais affichées', () {

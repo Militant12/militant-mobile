@@ -29,7 +29,7 @@ class ErrorState extends StatelessWidget {
   Widget build(BuildContext context) {
     final lang = LanguageService.instance;
     return EmptyState(
-      icon: icon,
+      icon: isRateLimitError(error) ? Icons.hourglass_empty : icon,
       title: title ?? lang.translate('error_generic'),
       message: error == null ? null : getFriendlyErrorMessage(error, lang),
       action: onRetry == null
