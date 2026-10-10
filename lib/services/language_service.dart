@@ -808,6 +808,15 @@ class LanguageService extends ValueNotifier<Locale> {
       'member_added': 'Membre ajouté !',
       'page_team_role_admin': 'Admin (tout)',
       'page_team_role_editor': 'Éditeur (publier)',
+      'page_role_editor': 'Éditeur',
+      'page_default_name': 'Page',
+      'page_reactions_count_one': '{count} réaction',
+      'page_reactions_count': '{count} réactions',
+      'page_comments_count_one': '{count} commentaire',
+      'page_comments_count': '{count} commentaires',
+      'page_follower_since': 'Depuis le {date}',
+      'page_choose_category': '-- Choisir --',
+      'page_visibility': 'Visibilité',
       'page_public_everyone': 'Publique - Tout le monde peut voir',
 
       // Group detail screen
@@ -1842,6 +1851,15 @@ class LanguageService extends ValueNotifier<Locale> {
       'member_added': 'Member added!',
       'page_team_role_admin': 'Admin (full access)',
       'page_team_role_editor': 'Editor (post only)',
+      'page_role_editor': 'Editor',
+      'page_default_name': 'Page',
+      'page_reactions_count_one': '{count} reaction',
+      'page_reactions_count': '{count} reactions',
+      'page_comments_count_one': '{count} comment',
+      'page_comments_count': '{count} comments',
+      'page_follower_since': 'Since {date}',
+      'page_choose_category': '-- Choose --',
+      'page_visibility': 'Visibility',
       'page_public_everyone': 'Public - Everyone can see',
 
       // Group detail screen
@@ -2826,6 +2844,15 @@ class LanguageService extends ValueNotifier<Locale> {
       'member_added': '¡Miembro añadido!',
       'page_team_role_admin': 'Admin (todo)',
       'page_team_role_editor': 'Editor (publicar)',
+      'page_role_editor': 'Editor',
+      'page_default_name': 'Página',
+      'page_reactions_count_one': '{count} reacción',
+      'page_reactions_count': '{count} reacciones',
+      'page_comments_count_one': '{count} comentario',
+      'page_comments_count': '{count} comentarios',
+      'page_follower_since': 'Desde el {date}',
+      'page_choose_category': '-- Elegir --',
+      'page_visibility': 'Visibilidad',
       'page_public_everyone': 'Pública - Todo el mundo puede verla',
 
       // Group detail screen

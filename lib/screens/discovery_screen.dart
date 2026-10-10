@@ -8,6 +8,7 @@ import 'page_detail_screen.dart';
 import '../theme/theme_context.dart';
 import '../utils/error_helper.dart';
 import '../widgets/common/common.dart';
+import '../utils/page_categories.dart';
 
 class DiscoveryScreen extends StatefulWidget {
   const DiscoveryScreen({super.key});
@@ -310,7 +311,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
           padding: const EdgeInsets.only(bottom: 8.0),
           child: _buildItemCard(
             title: page['name'],
-            subtitle: page['category'] ?? '',
+            subtitle: pageCategoryLabel(page['category'] ?? ''),
             image: page['avatar'],
             onTap: () => Navigator.push(
               context,

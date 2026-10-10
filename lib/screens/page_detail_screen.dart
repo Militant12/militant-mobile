@@ -9,6 +9,7 @@ import '../widgets/linkable_text.dart';
 import '../widgets/video_player_widget.dart';
 import '../widgets/file_video_player.dart';
 import '../utils/error_helper.dart';
+import '../utils/page_categories.dart';
 
 class PageDetailScreen extends StatefulWidget {
   final dynamic page;
@@ -713,7 +714,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final page = _pageDetail ?? widget.page;
-    final name = page['name'] ?? 'Page';
+    final name = page['name'] ?? LanguageService.instance.translate('page_default_name');
     final description = page['description'] ?? '';
     final category = page['category'] ?? '';
     final followersCount = page['followers_count'] ?? 0;
@@ -803,7 +804,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
-                                      category,
+                                      pageCategoryLabel(category),
                                       style: TextStyle(
                                         color: isDark
                                             ? Colors.white54
@@ -1353,7 +1354,8 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        page['name'] ?? 'Page',
+                        page['name'] ??
+                            LanguageService.instance.translate('page_default_name'),
                         style: TextStyle(
                           color: isDark ? Colors.white : Colors.black,
                           fontWeight: FontWeight.bold,
@@ -1460,7 +1462,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 children: [
                   if (likeCount > 0)
                     Text(
-                      '$likeCount réaction${likeCount > 1 ? 's' : ''}',
+                      LanguageService.instance
+                          .translate(likeCount > 1 ? 'page_reactions_count' : 'page_reactions_count_one')
+                          .replaceAll('{count}', '$likeCount'),
                       style: TextStyle(
                         color: isDark ? Colors.white38 : Colors.grey,
                         fontSize: 12,
@@ -1470,7 +1474,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                     GestureDetector(
                       onTap: () => _showCommentsSheet(post),
                       child: Text(
-                        '$commentCount commentaire${commentCount > 1 ? 's' : ''}',
+                        LanguageService.instance
+                            .translate(commentCount > 1 ? 'page_comments_count' : 'page_comments_count_one')
+                            .replaceAll('{count}', '$commentCount'),
                         style: TextStyle(
                           color: isDark ? Colors.white54 : Colors.grey[600],
                           fontSize: 12,
@@ -1514,7 +1520,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                             color: isDark ? Colors.white54 : Colors.grey,
                           ),
                     label: Text(
-                      'J\'aime',
+                      LanguageService.instance.translate('like_action'),
                       style: TextStyle(
                         color: userReaction.isNotEmpty
                             ? const Color(0xFFBE1E1E)
@@ -1533,7 +1539,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                       color: isDark ? Colors.white54 : Colors.grey,
                     ),
                     label: Text(
-                      'Commenter',
+                      LanguageService.instance.translate('comment_action'),
                       style: TextStyle(
                         color: isDark ? Colors.white54 : Colors.grey,
                         fontSize: 13,
@@ -1651,7 +1657,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                           ),
                         ),
                       Text(
-                        'Depuis ${_formatDate(follower['followed_at'] ?? '')}',
+                        LanguageService.instance
+                            .translate('page_follower_since')
+                            .replaceAll('{date}', _formatDate(follower['followed_at'] ?? '')),
                         style: TextStyle(
                           color: isDark ? Colors.white38 : Colors.grey,
                           fontSize: 11,
@@ -1785,8 +1793,10 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                               children: [
                                 Text(
                                   member['role'] == 'admin'
-                                      ? 'Admin'
-                                      : 'Éditeur',
+                                      ? LanguageService.instance
+                                            .translate('admin_badge')
+                                      : LanguageService.instance
+                                            .translate('page_role_editor'),
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 11,
@@ -1936,18 +1946,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
   Widget _buildSettingsTab() {
     final lang = LanguageService.instance;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final categories = [
-      '',
-      'Syndicat',
-      'Collectif',
-      'Association',
-      'Média',
-      'Squat / Lieu',
-      'Infokiosque',
-      'Artiste',
-      'Projet',
-      'Autre',
-    ];
+    final categories = ['', ...pageCategoryKeys.keys];
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -2139,7 +2138,11 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 .map(
                   (c) => DropdownMenuItem(
                     value: c,
-                    child: Text(c.isEmpty ? '-- Choisir --' : c),
+                    child: Text(
+                      c.isEmpty
+                          ? lang.translate('page_choose_category')
+                          : pageCategoryLabel(c),
+                    ),
                   ),
                 )
                 .toList(),
@@ -2155,12 +2158,17 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           ),
           const SizedBox(height: 12),
 
-          _settingsField('Description', _descController, isDark, maxLines: 3),
+          _settingsField(
+            lang.translate('description'),
+            _descController,
+            isDark,
+            maxLines: 3,
+          ),
           const SizedBox(height: 12),
 
           // Privacy
           Text(
-            'Visibilité',
+            lang.translate('page_visibility'),
             style: TextStyle(
               color: isDark ? Colors.white : Colors.black,
               fontWeight: FontWeight.w600,
@@ -2196,14 +2204,14 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           const SizedBox(height: 12),
 
           _settingsField(
-            'Localisation',
+            lang.translate('location_label'),
             _locationController,
             isDark,
-            hint: 'Ville, Pays',
+            hint: lang.translate('location_hint'),
           ),
           const SizedBox(height: 12),
           _settingsField(
-            'Site web',
+            lang.translate('website_label'),
             _websiteController,
             isDark,
             hint: 'https://...',
@@ -2212,7 +2220,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
 
           // Social links
           Text(
-            'Réseaux sociaux',
+            lang.translate('social_links_title'),
             style: TextStyle(
               color: isDark ? Colors.white : Colors.black,
               fontWeight: FontWeight.w600,
@@ -2705,7 +2713,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
               child: Row(
                 children: [
                   Text(
-                    'Commentaires',
+                    LanguageService.instance.translate('comments_title'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -2837,7 +2845,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                                 : Colors.grey,
                                           ),
                                           label: Text(
-                                            'Répondre',
+                                            LanguageService.instance.translate('reply'),
                                             style: TextStyle(
                                               color: isDark
                                                   ? Colors.white54
@@ -2874,7 +2882,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                           label: Text(
                                             reactionsCount > 0
                                                 ? '$reactionsCount'
-                                                : 'Réagir',
+                                                : LanguageService.instance.translate('react'),
                                             style: TextStyle(
                                               color: userReaction.isNotEmpty
                                                   ? const Color(0xFFBE1E1E)
@@ -2911,11 +2919,11 @@ class _CommentsSheetState extends State<_CommentsSheet> {
 
                                     if (isCommentOwner) {
                                       items.add(
-                                        const PopupMenuItem(
+                                        PopupMenuItem(
                                           value: 'edit',
                                           height: 32,
                                           child: Text(
-                                            'Modifier',
+                                            LanguageService.instance.translate('edit'),
                                             style: TextStyle(fontSize: 13),
                                           ),
                                         ),
@@ -2924,11 +2932,11 @@ class _CommentsSheetState extends State<_CommentsSheet> {
 
                                     if (canDeleteComment) {
                                       items.add(
-                                        const PopupMenuItem(
+                                        PopupMenuItem(
                                           value: 'delete',
                                           height: 32,
                                           child: Text(
-                                            'Supprimer',
+                                            LanguageService.instance.translate('delete'),
                                             style: TextStyle(
                                               color: Colors.red,
                                               fontSize: 13,
@@ -2991,7 +2999,9 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'Réponse à ${_replyingTo!['username'] ?? ''}',
+                              LanguageService.instance
+                                  .translate('replying_to_message')
+                                  .replaceAll('{username}', '${_replyingTo!['username'] ?? ''}'),
                               style: TextStyle(
                                 color: isDark ? Colors.white70 : Colors.black54,
                                 fontSize: 12,
@@ -3024,8 +3034,8 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                           ),
                           decoration: InputDecoration(
                             hintText: _replyingTo != null
-                                ? 'Répondre à ${_replyingTo!['username'] ?? ''}...'
-                                : 'Écrire un commentaire...',
+                                ? '${LanguageService.instance.translate('reply_to').replaceAll('{username}', '${_replyingTo!['username'] ?? ''}')}...'
+                                : LanguageService.instance.translate('comment_hint'),
                             hintStyle: TextStyle(
                               color: isDark ? Colors.white38 : Colors.grey,
                             ),
@@ -3077,10 +3087,14 @@ class _CommentsSheetState extends State<_CommentsSheet> {
       final dt = DateTime.parse(date);
       final now = DateTime.now();
       final diff = now.difference(dt);
-      if (diff.inMinutes < 1) return 'à l\'instant';
-      if (diff.inMinutes < 60) return 'il y a ${diff.inMinutes}min';
-      if (diff.inHours < 24) return 'il y a ${diff.inHours}h';
-      if (diff.inDays < 7) return 'il y a ${diff.inDays}j';
+      final lang = LanguageService.instance;
+      String ago(String key, int count) => lang
+          .translate('time_ago')
+          .replaceAll('{time}', lang.translate(key).replaceAll('{count}', '$count'));
+      if (diff.inMinutes < 1) return lang.translate('just_now');
+      if (diff.inMinutes < 60) return ago('time_minutes_short', diff.inMinutes);
+      if (diff.inHours < 24) return ago('time_hours_short', diff.inHours);
+      if (diff.inDays < 7) return ago('time_days_short', diff.inDays);
       return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
     } catch (_) {
       return date;
