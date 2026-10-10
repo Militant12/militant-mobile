@@ -6,6 +6,7 @@ import '../services/language_service.dart';
 import 'page_detail_screen.dart';
 import 'create_page_screen.dart';
 import '../utils/error_helper.dart';
+import '../utils/page_categories.dart';
 
 class PagesScreen extends StatefulWidget {
   const PagesScreen({super.key});
@@ -418,7 +419,7 @@ class _PagesScreenState extends State<PagesScreen>
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            category,
+                            pageCategoryLabel(category),
                             style: TextStyle(
                               color: isDark ? Colors.white54 : Colors.grey[600],
                               fontSize: 11,
