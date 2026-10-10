@@ -6,7 +6,10 @@ import 'package:militant/services/language_service.dart';
 /// Every `translate('key')` used by these screens must exist in each fully
 /// translated language, so that nothing silently falls back to French.
 void main() {
-  const screens = ['lib/screens/moderation_screen.dart'];
+  const screens = [
+    'lib/screens/moderation_screen.dart',
+    'lib/screens/live_screen.dart',
+  ];
   const languages = ['fr', 'en', 'es'];
   final keyPattern = RegExp(r"translate\(\s*'([a-z0-9_]+)'");
 

@@ -371,7 +371,7 @@ class _LiveScreenState extends State<LiveScreen> {
       });
       _appendChatEntry(
         _LiveKitChatEntry(
-          author: nick.isNotEmpty ? nick : 'Moi',
+          author: nick.isNotEmpty ? nick : translate('me_label'),
           text: text,
           dedupeKey: commentId != null
               ? 'server:$commentId'
@@ -2872,7 +2872,7 @@ class _LiveScreenState extends State<LiveScreen> {
                       ),
                     ),
                     Text(
-                      '@$displayName · $viewerCount personnes',
+                      '@$displayName · ${translate(viewerCount == 1 ? 'live_viewer_count_one' : 'live_viewer_count').replaceAll('{count}', '$viewerCount')}',
                       style: const TextStyle(color: Colors.white70),
                     ),
                   ],
@@ -2932,7 +2932,7 @@ class _LiveScreenState extends State<LiveScreen> {
                         itemBuilder: (context, i) {
                           final c = _livekitChatMessages[i];
                           final authorLabel = c.isModerator
-                              ? '${c.author} [MODO] '
+                              ? '${c.author} [${translate('live_moderator_tag')}] '
                               : '${c.author} ';
                           return GestureDetector(
                             onLongPress: _canModerateLive
