@@ -658,9 +658,13 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    _callStatus,
-                    style: const TextStyle(color: Colors.white70, fontSize: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      _callStatus,
+                      style: const TextStyle(color: Colors.white70, fontSize: 16),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                 ],
               ),
