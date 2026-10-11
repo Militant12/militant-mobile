@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'full_screen_video_page.dart';
+import '../services/language_service.dart';
 
 class VideoPlayerWidget extends StatefulWidget {
   final String videoUrl;
@@ -287,21 +288,27 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                   AnimatedOpacity(
                     opacity: 1.0,
                     duration: const Duration(milliseconds: 250),
-                    child: GestureDetector(
-                      onTap: _togglePlayPause,
-                      child: Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFBE1E1E).withOpacity(0.7),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          _controller!.value.isPlaying
-                              ? Icons.pause_rounded
-                              : Icons.play_arrow_rounded,
-                          color: Colors.white,
-                          size: 36,
+                    child: Semantics(
+                      button: true,
+                      label: LanguageService.instance.translate(
+                        _controller!.value.isPlaying ? 'a11y_pause' : 'a11y_play',
+                      ),
+                      child: GestureDetector(
+                        onTap: _togglePlayPause,
+                        child: Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFBE1E1E).withOpacity(0.7),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            _controller!.value.isPlaying
+                                ? Icons.pause_rounded
+                                : Icons.play_arrow_rounded,
+                            color: Colors.white,
+                            size: 36,
+                          ),
                         ),
                       ),
                     ),
@@ -356,21 +363,31 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                                 },
                               ),
                               const Spacer(),
-                              GestureDetector(
-                                onTap: _toggleMute,
-                                child: Icon(
-                                  _isMuted ? Icons.volume_off : Icons.volume_up,
-                                  color: Colors.white,
-                                  size: 20,
+                              Semantics(
+                                button: true,
+                                label: LanguageService.instance.translate(
+                                  _isMuted ? 'a11y_unmute' : 'a11y_mute',
+                                ),
+                                child: GestureDetector(
+                                  onTap: _toggleMute,
+                                  child: Icon(
+                                    _isMuted ? Icons.volume_off : Icons.volume_up,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              GestureDetector(
-                                onTap: _enterFullScreen,
-                                child: const Icon(
-                                  Icons.fullscreen_rounded,
-                                  color: Colors.white,
-                                  size: 24,
+                              Semantics(
+                                button: true,
+                                label: LanguageService.instance.translate('a11y_fullscreen'),
+                                child: GestureDetector(
+                                  onTap: _enterFullScreen,
+                                  child: const Icon(
+                                    Icons.fullscreen_rounded,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
                                 ),
                               ),
                             ],
@@ -521,6 +538,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
+                tooltip: LanguageService.instance.translate('a11y_open_in_browser'),
                 onPressed: _openInBrowser,
                 icon: const Icon(
                   Icons.video_library_outlined,

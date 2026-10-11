@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
+import '../services/language_service.dart';
 
 class FullScreenVideoPage extends StatefulWidget {
   final VideoPlayerController controller;
@@ -80,6 +81,7 @@ class _FullScreenVideoPageState extends State<FullScreenVideoPage> {
                     borderRadius: BorderRadius.circular(30),
                   ),
                   child: IconButton(
+                    tooltip: LanguageService.instance.translate('a11y_back'),
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
@@ -88,22 +90,28 @@ class _FullScreenVideoPageState extends State<FullScreenVideoPage> {
 
             // Center Play/Pause overlay
             if (_showControls || !widget.controller.value.isPlaying)
-              GestureDetector(
-                onTap: _togglePlayPause,
-                child: Container(
-                  width: 70,
-                  height: 70,
-                  decoration: BoxDecoration(
-                    color: Colors.black26,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white24, width: 2),
-                  ),
-                  child: Icon(
-                    widget.controller.value.isPlaying
-                        ? Icons.pause_rounded
-                        : Icons.play_arrow_rounded,
-                    color: Colors.white,
-                    size: 40,
+              Semantics(
+                button: true,
+                label: LanguageService.instance.translate(
+                  widget.controller.value.isPlaying ? 'a11y_pause' : 'a11y_play',
+                ),
+                child: GestureDetector(
+                  onTap: _togglePlayPause,
+                  child: Container(
+                    width: 70,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      color: Colors.black26,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white24, width: 2),
+                    ),
+                    child: Icon(
+                      widget.controller.value.isPlaying
+                          ? Icons.pause_rounded
+                          : Icons.play_arrow_rounded,
+                      color: Colors.white,
+                      size: 40,
+                    ),
                   ),
                 ),
               ),
@@ -148,6 +156,9 @@ class _FullScreenVideoPageState extends State<FullScreenVideoPage> {
                           ),
                           const Spacer(),
                           IconButton(
+                            tooltip: LanguageService.instance.translate(
+                              widget.controller.value.volume == 0 ? 'a11y_unmute' : 'a11y_mute',
+                            ),
                             icon: Icon(
                               widget.controller.value.volume == 0
                                   ? Icons.volume_off
@@ -162,6 +173,7 @@ class _FullScreenVideoPageState extends State<FullScreenVideoPage> {
                             },
                           ),
                           IconButton(
+                            tooltip: LanguageService.instance.translate('a11y_exit_fullscreen'),
                             icon: const Icon(Icons.fullscreen_exit_rounded,
                                 color: Colors.white),
                             onPressed: () => Navigator.of(context).pop(),

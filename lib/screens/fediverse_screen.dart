@@ -554,6 +554,7 @@ class _FediverseProfilesTabState extends State<_FediverseProfilesTab> {
                       prefixIcon: const Icon(Icons.search),
                       suffixIcon: hasQuery
                           ? IconButton(
+                              tooltip: LanguageService.instance.translate('a11y_clear_search'),
                               onPressed: () {
                                 _searchController.clear();
                                 _onSearchChanged('');

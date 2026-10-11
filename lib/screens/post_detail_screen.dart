@@ -804,6 +804,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                     ),
                   ),
                   IconButton(
+                    tooltip: LanguageService.instance.translate('a11y_cancel_reply'),
                     icon: Icon(
                       Icons.close,
                       size: 16,

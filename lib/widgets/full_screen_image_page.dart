@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/language_service.dart';
 
 class FullScreenImagePage extends StatelessWidget {
   final String imageUrl;
@@ -62,6 +63,7 @@ class FullScreenImagePage extends StatelessWidget {
                 child: Material(
                   color: Colors.black.withValues(alpha: 0.5),
                   child: IconButton(
+                    tooltip: LanguageService.instance.translate('a11y_back'),
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
                     onPressed: () => Navigator.pop(context),
                   ),

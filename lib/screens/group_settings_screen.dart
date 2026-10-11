@@ -185,7 +185,9 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                     ),
                   ),
                 )
-              : IconButton(icon: const Icon(Icons.check), onPressed: _saveSettings),
+              : IconButton(
+                tooltip: LanguageService.instance.translate('save'),
+                icon: const Icon(Icons.check), onPressed: _saveSettings),
         ],
       ),
       body: ListView(
@@ -219,18 +221,22 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                 Positioned(
                   bottom: 0,
                   right: 0,
-                  child: GestureDetector(
-                    onTap: _pickImage,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color(0xFFBE1E1E),
-                      ),
-                      child: const Icon(
-                        Icons.camera_alt,
-                        color: Colors.white,
-                        size: 20,
+                  child: Semantics(
+                    button: true,
+                    label: LanguageService.instance.translate('a11y_change_photo'),
+                    child: GestureDetector(
+                      onTap: _pickImage,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color(0xFFBE1E1E),
+                        ),
+                        child: const Icon(
+                          Icons.camera_alt,
+                          color: Colors.white,
+                          size: 20,
+                        ),
                       ),
                     ),
                   ),
@@ -446,6 +452,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                       Row(
                         children: [
                           IconButton(
+                            tooltip: LanguageService.instance.translate('add_member'),
                             icon: const Icon(
                               Icons.person_add,
                               color: Color(0xFFBE1E1E),
@@ -498,6 +505,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                     ),
                     trailing: isAdmin
                         ? IconButton(
+                            tooltip: LanguageService.instance.translate('remove_member'),
                             icon: const Icon(
                               Icons.remove_circle,
                               color: Color(0xFFBE1E1E),
@@ -566,11 +574,13 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(
+                            tooltip: LanguageService.instance.translate('approve'),
                             icon: const Icon(Icons.check, color: Colors.green),
                             onPressed: () =>
                                 _handleRequest(r['request_id'], true),
                           ),
                           IconButton(
+                            tooltip: LanguageService.instance.translate('reject'),
                             icon: const Icon(
                               Icons.close,
                               color: Color(0xFFBE1E1E),

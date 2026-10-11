@@ -317,6 +317,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
             ),
             if (widget.isMe)
               IconButton(
+                tooltip: LanguageService.instance.translate('stories_add'),
                 icon: Icon(
                   Icons.add_circle_outline,
                   color: theme.iconTheme.color,

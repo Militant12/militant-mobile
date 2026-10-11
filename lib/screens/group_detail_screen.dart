@@ -547,6 +547,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                   color: Colors.black.withOpacity(0.5),
                 ),
                 child: IconButton(
+                  tooltip: LanguageService.instance.translate('a11y_back'),
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
                   onPressed: () => Navigator.pop(context),
                 ),
@@ -565,6 +566,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                       child: Stack(
                         children: [
                           IconButton(
+                            tooltip: LanguageService.instance.translate('a11y_join_requests'),
                             icon: const Icon(
                               Icons.person_add,
                               color: Colors.white,
@@ -616,6 +618,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                       color: Colors.black.withOpacity(0.5),
                     ),
                     child: IconButton(
+                      tooltip: LanguageService.instance.translate('invite_to_group'),
                       icon: const Icon(Icons.group_add, color: Colors.white),
                       onPressed: () {
                         Navigator.push(
@@ -637,6 +640,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                       color: Colors.black.withOpacity(0.5),
                     ),
                     child: IconButton(
+                      tooltip: LanguageService.instance.translate('settings'),
                       icon: const Icon(Icons.settings, color: Colors.white),
                       onPressed: _showEditGroupDialog,
                     ),

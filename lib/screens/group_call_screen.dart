@@ -385,6 +385,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
 
   Widget _buildControlButton({
     required IconData icon,
+    required String tooltip,
     required VoidCallback onPressed,
     required Color color,
     Color? backgroundColor,
@@ -395,6 +396,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
         shape: BoxShape.circle,
       ),
       child: IconButton(
+        tooltip: tooltip,
         icon: Icon(icon, color: color),
         iconSize: 30,
         onPressed: onPressed,
@@ -678,17 +680,24 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
                 children: [
                   _buildControlButton(
                     icon: _isMuted ? Icons.mic_off : Icons.mic,
+                    tooltip: LanguageService.instance.translate(
+                      _isMuted ? 'call_unmute' : 'call_mute',
+                    ),
                     onPressed: _toggleMicrophone,
                     color: _isMuted ? Colors.red : Colors.white,
                   ),
                   if (widget.isVideo)
                     _buildControlButton(
                       icon: _isCameraOff ? Icons.videocam_off : Icons.videocam,
+                      tooltip: LanguageService.instance.translate(
+                        _isCameraOff ? 'a11y_camera_on' : 'a11y_camera_off',
+                      ),
                       onPressed: _toggleCamera,
                       color: _isCameraOff ? Colors.red : Colors.white,
                     ),
                   _buildControlButton(
                     icon: Icons.call_end,
+                    tooltip: LanguageService.instance.translate('call_end'),
                     onPressed: _leaveCall,
                     color: Colors.white,
                     backgroundColor: Colors.red,
@@ -696,11 +705,13 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
                   if (widget.isVideo)
                     _buildControlButton(
                       icon: Icons.flip_camera_ios,
+                      tooltip: LanguageService.instance.translate('call_switch_camera'),
                       onPressed: () => _groupCallService?.switchCamera(),
                       color: Colors.white,
                     ),
                   _buildControlButton(
                     icon: Icons.people,
+                    tooltip: LanguageService.instance.translate('call_participants'),
                     onPressed: _showParticipants,
                     color: Colors.white,
                   ),

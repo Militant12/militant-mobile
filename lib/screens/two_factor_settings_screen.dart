@@ -271,6 +271,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                             ),
                           ),
                           IconButton(
+                            tooltip: LanguageService.instance.translate('a11y_copy'),
                             icon: const Icon(Icons.copy),
                             onPressed: () {
                               Clipboard.setData(ClipboardData(text: _secret!));

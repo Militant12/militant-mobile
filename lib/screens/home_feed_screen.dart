@@ -839,6 +839,7 @@ class _InterestEditorSheetState extends State<_InterestEditorSheet> {
                       ),
                     ),
                     IconButton(
+                      tooltip: LanguageService.instance.translate('close'),
                       visualDensity: VisualDensity.compact,
                       onPressed: () => Navigator.pop(context),
                       icon: const Icon(Icons.close, size: 18),
@@ -862,6 +863,7 @@ class _InterestEditorSheetState extends State<_InterestEditorSheet> {
                       borderSide: BorderSide.none,
                     ),
                     suffixIcon: IconButton(
+                      tooltip: LanguageService.instance.translate('add'),
                       onPressed: () => _addInterest(_controller.text),
                       icon: const Icon(Icons.add),
                     ),

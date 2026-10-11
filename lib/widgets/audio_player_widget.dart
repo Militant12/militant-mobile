@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'dart:math' as math;
+import '../services/language_service.dart';
 
 class AudioPlayerWidget extends StatefulWidget {
   final String audioUrl;
@@ -112,30 +113,36 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget>
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // ── Bouton Play / Pause ──────────────────────────────
-          GestureDetector(
-            onTap: _togglePlayPause,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: accentColor.withValues(alpha: 0.18),
-                shape: BoxShape.circle,
-                border: Border.all(color: accentColor, width: 1.5),
-              ),
-              child: _isLoading
-                  ? Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
+          Semantics(
+            button: true,
+            label: LanguageService.instance.translate(
+              _isPlaying ? 'a11y_pause' : 'a11y_play',
+            ),
+            child: GestureDetector(
+              onTap: _togglePlayPause,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.18),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: accentColor, width: 1.5),
+                ),
+                child: _isLoading
+                    ? Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: accentColor,
+                        ),
+                      )
+                    : Icon(
+                        _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
                         color: accentColor,
+                        size: 22,
                       ),
-                    )
-                  : Icon(
-                      _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                      color: accentColor,
-                      size: 22,
-                    ),
+              ),
             ),
           ),
 
