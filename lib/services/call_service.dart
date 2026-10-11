@@ -101,7 +101,9 @@ class CallService {
       debugPrint(
         '[WebRTC][private] scheduling ICE restart reason=$reason call=$currentCallId',
       );
-      onNetworkChange?.call('Reconnexion en cours...');
+      onNetworkChange?.call(
+        LanguageService.instance.translate('call_network_reconnecting'),
+      );
       await _restartIce();
     });
   }

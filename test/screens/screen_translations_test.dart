@@ -17,6 +17,8 @@ void main() {
     'lib/services/private_call_session.dart',
     'lib/services/call_service.dart',
     'lib/services/group_call_service.dart',
+    'lib/services/incoming_call_service.dart',
+    'lib/widgets/incoming_call_banner.dart',
   ];
   const languages = ['fr', 'en', 'es'];
   // Catches plain keys as well as `translate(cond ? 'a' : 'b')`.

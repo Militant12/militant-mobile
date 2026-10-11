@@ -144,7 +144,10 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
           nextParticipantNames[userId] =
               participant['username']?.toString().trim().isNotEmpty == true
               ? participant['username'].toString()
-              : 'Utilisateur $userId';
+              : LanguageService.instance.translate('call_user_fallback').replaceFirst(
+                  '{id}',
+                  '$userId',
+                );
           nextParticipantStatuses[userId] = status;
           final avatar = _extractAvatar(participant);
           if (avatar != null) {
@@ -197,7 +200,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
 
     service.onCallEnded = (_) async {
       if (!mounted || _hasLeft) return;
-      setState(() => _callStatus = 'Appel terminé');
+      setState(() => _callStatus = LanguageService.instance.translate('call_ended'));
       await Future<void>.delayed(const Duration(milliseconds: 600));
       if (mounted) Navigator.of(context).maybePop();
     };
@@ -347,13 +350,13 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
                 ListTile(
                   leading: const CircleAvatar(child: Icon(Icons.person)),
                   title: Text(LanguageService.instance.translate('call_you')),
-                  subtitle: const Text('Connecté'),
+                  subtitle: Text(LanguageService.instance.translate('call_active')),
                 ),
                 if (participants.isEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     child: Text(
-                      'En attente des autres participants…',
+                      LanguageService.instance.translate('call_waiting_participants'),
                       style: theme.textTheme.bodyMedium,
                     ),
                   )
@@ -365,8 +368,10 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
                       subtitle: Text(
                         (_participantStatuses[entry.key] ?? 'invited') ==
                                 'joined'
-                            ? 'Connecté'
-                            : 'Invitation envoyée',
+                            ? LanguageService.instance.translate('call_active')
+                            : LanguageService.instance.translate(
+                                'call_invitation_sent',
+                              ),
                       ),
                     ),
                   ),
@@ -536,7 +541,9 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
             child: participant.isSpeaking
                 ? const _SpeakingBars(key: ValueKey('speaking'))
                 : Text(
-                    isConnected ? 'Connecté' : 'Invité',
+                    LanguageService.instance.translate(
+                      isConnected ? 'call_active' : 'call_invited',
+                    ),
                     key: ValueKey(participant.status),
                     style: TextStyle(
                       color: isConnected ? Colors.white70 : Colors.white38,
@@ -578,7 +585,11 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
         final isLocal = entry.key == -1;
         final label = isLocal
             ? LanguageService.instance.translate('call_you')
-            : (_participantNames[entry.key] ?? 'Utilisateur ${entry.key}');
+            : (_participantNames[entry.key] ??
+                  LanguageService.instance.translate('call_user_fallback').replaceFirst(
+                    '{id}',
+                    '${entry.key}',
+                  ));
 
         return ClipRRect(
           borderRadius: BorderRadius.circular(12),
