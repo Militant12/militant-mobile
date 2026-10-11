@@ -808,6 +808,8 @@ class _ModerationScreenState extends State<ModerationScreen>
           message = LanguageService.instance.translate('mod_already_moderator');
         } else if (message.contains('Already a candidate')) {
           message = LanguageService.instance.translate('mod_already_candidate');
+        } else {
+          message = getFriendlyErrorMessage(e);
         }
         ScaffoldMessenger.of(
           context,

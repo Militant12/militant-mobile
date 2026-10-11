@@ -1423,7 +1423,7 @@ class _ChatScreenState extends State<ChatScreen> {
           final lang = LanguageService.instance;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('${lang.translate('error_translation')}: $e'),
+              content: Text('${lang.translate('error_translation')}: ${getFriendlyErrorMessage(e, lang)}'),
             ),
           );
         }

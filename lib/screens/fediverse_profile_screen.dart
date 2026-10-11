@@ -70,7 +70,7 @@ class _FediverseProfileScreenState extends State<FediverseProfileScreen> {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _error = e.toString();
+        _error = getFriendlyErrorMessage(e);
       });
     }
   }
@@ -246,7 +246,7 @@ class _FediverseProfileScreenState extends State<FediverseProfileScreen> {
             if (_error != null) ...[
               const SizedBox(height: 8),
               Text(
-                _error!.replaceFirst('Exception: ', ''),
+                _error!,
                 textAlign: TextAlign.center,
                 style: TextStyle(color: theme.textTheme.bodyMedium?.color),
               ),

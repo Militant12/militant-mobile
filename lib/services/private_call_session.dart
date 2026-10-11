@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
+import '../utils/error_helper.dart';
 import 'api_service.dart';
 import 'call_service.dart';
 import 'language_service.dart';
@@ -495,6 +496,6 @@ class PrivateCallSession extends ChangeNotifier {
       return 'Impossible de récupérer l’offre de l’appel. Réessaie dans quelques secondes.';
     }
 
-    return message;
+    return getFriendlyErrorMessage(error);
   }
 }

@@ -767,7 +767,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${lang.translate('loading_error')}: ${e.toString()}',
+              getFriendlyErrorMessage(e, lang),
             ),
           ),
         );
@@ -851,7 +851,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${LanguageService.instance.translate('error')}: $e'),
+            content: Text(getFriendlyErrorMessage(e)),
             backgroundColor: Colors.red,
           ),
         );
@@ -894,7 +894,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         setState(() => _pushProvider = previousProvider);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${LanguageService.instance.translate('error')}: $e'),
+            content: Text(getFriendlyErrorMessage(e)),
             backgroundColor: Colors.red,
           ),
         );

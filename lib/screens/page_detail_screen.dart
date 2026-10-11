@@ -219,7 +219,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           context,
         ).showSnackBar(
           SnackBar(
-            content: Text('${lang.translate('error')}: ${e.toString()}'),
+            content: Text(getFriendlyErrorMessage(e, lang)),
           ),
         );
       }
@@ -298,7 +298,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             context,
           ).showSnackBar(
             SnackBar(
-              content: Text('${lang.translate('error')}: ${e.toString()}'),
+              content: Text(getFriendlyErrorMessage(e, lang)),
             ),
           );
         }
@@ -348,7 +348,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           context,
         ).showSnackBar(
           SnackBar(
-            content: Text('${lang.translate('error')}: ${e.toString()}'),
+            content: Text(getFriendlyErrorMessage(e, lang)),
           ),
         );
       }
@@ -393,7 +393,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             context,
           ).showSnackBar(
             SnackBar(
-              content: Text('${lang.translate('error')}: ${e.toString()}'),
+              content: Text(getFriendlyErrorMessage(e, lang)),
             ),
           );
         }
@@ -450,7 +450,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             context,
           ).showSnackBar(
             SnackBar(
-              content: Text('${lang.translate('error')}: ${e.toString()}'),
+              content: Text(getFriendlyErrorMessage(e, lang)),
             ),
           );
         }
@@ -572,7 +572,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           context,
         ).showSnackBar(
           SnackBar(
-            content: Text('${lang.translate('error')}: ${e.toString()}'),
+            content: Text(getFriendlyErrorMessage(e, lang)),
           ),
         );
       }
@@ -689,7 +689,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          '${lang.translate('error')}: ${e.toString()}',
+                          getFriendlyErrorMessage(e, lang),
                         ),
                       ),
                     );
@@ -2495,7 +2495,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
           context,
         ).showSnackBar(
           SnackBar(
-            content: Text('${lang.translate('error')}: ${e.toString()}'),
+            content: Text(getFriendlyErrorMessage(e, lang)),
           ),
         );
       }
@@ -2558,7 +2558,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
           context,
         ).showSnackBar(
           SnackBar(
-            content: Text('${lang.translate('error')}: ${e.toString()}'),
+            content: Text(getFriendlyErrorMessage(e, lang)),
           ),
         );
       }
@@ -2638,7 +2638,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
             context,
           ).showSnackBar(
             SnackBar(
-              content: Text('${lang.translate('error')}: ${e.toString()}'),
+              content: Text(getFriendlyErrorMessage(e, lang)),
             ),
           );
         }
@@ -2688,7 +2688,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
             context,
           ).showSnackBar(
             SnackBar(
-              content: Text('${lang.translate('error')}: ${e.toString()}'),
+              content: Text(getFriendlyErrorMessage(e, lang)),
             ),
           );
         }

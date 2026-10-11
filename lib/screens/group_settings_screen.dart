@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import 'profile_screen.dart';
+import '../utils/error_helper.dart';
 
 class GroupSettingsScreen extends StatefulWidget {
   final int groupId;
@@ -34,7 +35,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
   String? _groupAvatar;
   bool _isSaving = false;
 
-  String _errorText(Object error) => '${LanguageService.instance.translate('error')}: $error';
+  String _errorText(Object error) => getFriendlyErrorMessage(error);
 
   String _replacePlaceholder(String template, String key, String value) {
     return template.replaceAll('{$key}', value);
