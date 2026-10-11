@@ -153,14 +153,17 @@ class _CallScreenState extends State<CallScreen> {
         final message =
             _callSession.errorMessage ??
             LanguageService.instance.translate('call_ended');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(message),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
-          ),
-        );
-        await Future.delayed(const Duration(milliseconds: 500));
+        // Le SnackBar disparaît avec l'écran : on attend qu'il se ferme pour
+        // laisser le temps de lire l'erreur.
+        await ScaffoldMessenger.of(context)
+            .showSnackBar(
+              SnackBar(
+                content: Text(message),
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 4),
+              ),
+            )
+            .closed;
         break;
       case PrivateCallTerminalState.none:
         return;

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
+import '../utils/error_helper.dart';
 
 class TwoFactorSettingsScreen extends StatefulWidget {
   const TwoFactorSettingsScreen({super.key});
@@ -44,7 +45,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: $e')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e, lang))));
       }
     }
   }
@@ -76,7 +77,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${lang.translate('error')}: ${e.toString().replaceAll('Exception: ', '')}',
+              getFriendlyErrorMessage(e, lang),
             ),
           ),
         );
@@ -119,7 +120,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('${lang.translate('error')}: $e')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e, lang))));
       }
     }
   }

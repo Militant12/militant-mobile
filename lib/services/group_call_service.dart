@@ -6,6 +6,7 @@ import 'package:livekit_client/livekit_client.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'api_service.dart';
+import 'language_service.dart';
 import 'livekit_runtime_config.dart';
 import 'livekit_token_service.dart';
 
@@ -184,7 +185,7 @@ class GroupCallService {
 
       final callId = response['call_id']?.toString().trim() ?? '';
       if (callId.isEmpty) {
-        throw Exception('call_id manquant pour l appel de groupe');
+        throw Exception(LanguageService.instance.translate('call_error_start'));
       }
 
       currentCallId = callId;
@@ -219,16 +220,14 @@ class GroupCallService {
 
     final microphone = await Permission.microphone.request();
     if (!microphone.isGranted) {
-      throw Exception('Autorisation microphone refusee pour l appel de groupe');
+      throw Exception(LanguageService.instance.translate('call_error_permission_denied'));
     }
 
     if (callType != 'video') return;
 
     final camera = await Permission.camera.request();
     if (!camera.isGranted) {
-      throw Exception(
-        'Autorisation camera refusee pour l appel video de groupe',
-      );
+      throw Exception(LanguageService.instance.translate('call_error_permission_denied'));
     }
   }
 
@@ -249,7 +248,7 @@ class GroupCallService {
       useDeviceOverrides: false,
     );
     if (wsUrl.trim().isEmpty) {
-      throw Exception('URL LiveKit introuvable');
+      throw Exception(LanguageService.instance.translate('call_error_start'));
     }
 
     final room = Room(
@@ -266,7 +265,7 @@ class GroupCallService {
 
     final localParticipant = room.localParticipant;
     if (localParticipant == null) {
-      throw Exception('Participant local LiveKit indisponible');
+      throw Exception(LanguageService.instance.translate('call_error_start'));
     }
 
     await _publishMicrophone(localParticipant);
@@ -288,7 +287,7 @@ class GroupCallService {
     } catch (e) {
       _microphoneEnabled = false;
       debugPrint('[LiveKit][group] microphone publish failed: $e');
-      throw Exception('Impossible d activer le micro pour l appel de groupe');
+      throw Exception(LanguageService.instance.translate('call_error_microphone'));
     }
   }
 
@@ -301,7 +300,9 @@ class GroupCallService {
       _cameraEnabled = true;
     } catch (e) {
       _cameraEnabled = false;
-      onNetworkChange?.call('Camera indisponible, appel poursuit sans video');
+      onNetworkChange?.call(
+        LanguageService.instance.translate('call_camera_unavailable'),
+      );
       debugPrint('[LiveKit][group] camera publish failed, fallback audio: $e');
     }
   }
@@ -323,7 +324,9 @@ class GroupCallService {
     final listener = room.createListener();
 
     listener.on<RoomReconnectingEvent>((_) {
-      onNetworkChange?.call('Reconnexion en cours...');
+      onNetworkChange?.call(
+        LanguageService.instance.translate('call_network_reconnecting'),
+      );
     });
 
     listener.on<RoomReconnectedEvent>((_) {

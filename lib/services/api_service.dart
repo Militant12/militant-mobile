@@ -3523,14 +3523,20 @@ class ApiService {
         return data;
       } catch (e) {
         print('DEBUG createStory JSON ERROR: ${response.body}');
-        // Si c'est du HTML, on ne peut pas le parser, mais on veut voir ce que c'est
-        throw Exception('Erreur de format API (HTML reçu?): ${response.body}');
+        // Réponse illisible (souvent du HTML) : getFriendlyErrorMessage la
+        // traduit en « erreur de réception des données ».
+        rethrow;
       }
     } else {
       print(
         'DEBUG createStory error: ${response.statusCode} - ${response.body}',
       );
-      throw Exception('Erreur de création de la story: ${response.body}');
+      throw Exception(
+        _extractApiError(
+          response,
+          fallbackError: 'Erreur de création de la story',
+        ),
+      );
     }
   }
 

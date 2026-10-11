@@ -85,7 +85,7 @@ class _GroupsScreenState extends State<GroupsScreen>
   }
 
   String _cleanErrorMessage(Object error) {
-    return error.toString().replaceFirst('Exception: ', '').trim();
+    return getFriendlyErrorMessage(error);
   }
 
   int? _parseGroupId(dynamic value) {

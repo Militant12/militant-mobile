@@ -7,6 +7,7 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../screens/stories_screen.dart';
 import '../widgets/file_video_player.dart';
+import '../utils/error_helper.dart';
 
 class StoriesBar extends StatefulWidget {
   const StoriesBar({super.key});
@@ -176,7 +177,7 @@ class _StoriesBarState extends State<StoriesBar> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${lang.translate('stories_error')}: $e'),
+            content: Text('${lang.translate('stories_error')}: ${getFriendlyErrorMessage(e, lang)}'),
             duration: const Duration(seconds: 5),
             backgroundColor: Colors.red,
           ),

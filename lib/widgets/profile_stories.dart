@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../screens/stories_screen.dart';
 import 'package:image_picker/image_picker.dart';
+import '../utils/error_helper.dart';
 
 class ProfileStories extends StatefulWidget {
   final int userId;
@@ -83,7 +84,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('${lang.translate('stories_error')}: $e'),
+              content: Text('${lang.translate('stories_error')}: ${getFriendlyErrorMessage(e, lang)}'),
               duration: const Duration(seconds: 5),
               backgroundColor: Colors.red,
             ),

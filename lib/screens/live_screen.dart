@@ -15,6 +15,7 @@ import '../services/api_service.dart';
 import '../services/livekit_runtime_config.dart';
 import '../services/livekit_token_service.dart';
 import '../services/language_service.dart';
+import '../utils/error_helper.dart';
 
 class LiveScreen extends StatefulWidget {
   const LiveScreen({super.key});
@@ -391,7 +392,7 @@ class _LiveScreenState extends State<LiveScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('$e')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
       }
     } finally {
       if (mounted) {
@@ -1102,7 +1103,7 @@ class _LiveScreenState extends State<LiveScreen> {
         }
       }
       setState(() {
-        _errorMessage = error.toString().replaceFirst('Exception: ', '');
+        _errorMessage = getFriendlyErrorMessage(error);
       });
     } finally {
       if (mounted) {
@@ -1270,7 +1271,7 @@ class _LiveScreenState extends State<LiveScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${translate('live_background_add_error')}: $e'),
+          content: Text('${translate('live_background_add_error')}: ${getFriendlyErrorMessage(e)}'),
         ),
       );
     } finally {
@@ -1305,7 +1306,7 @@ class _LiveScreenState extends State<LiveScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${translate('live_background_remove_error')}: $e'),
+          content: Text('${translate('live_background_remove_error')}: ${getFriendlyErrorMessage(e)}'),
         ),
       );
     } finally {
@@ -2084,7 +2085,7 @@ class _LiveScreenState extends State<LiveScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${translate('live_guest_request_error')}: $e')),
+        SnackBar(content: Text('${translate('live_guest_request_error')}: ${getFriendlyErrorMessage(e)}')),
       );
     }
   }
@@ -2112,7 +2113,7 @@ class _LiveScreenState extends State<LiveScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${translate('live_guest_approve_error')}: $e')),
+        SnackBar(content: Text('${translate('live_guest_approve_error')}: ${getFriendlyErrorMessage(e)}')),
       );
     }
   }
@@ -2140,7 +2141,7 @@ class _LiveScreenState extends State<LiveScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${translate('live_guest_reject_error')}: $e')),
+        SnackBar(content: Text('${translate('live_guest_reject_error')}: ${getFriendlyErrorMessage(e)}')),
       );
     }
   }
@@ -2241,7 +2242,7 @@ class _LiveScreenState extends State<LiveScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${translate('live_assign_moderator_error')}: $e'),
+          content: Text('${translate('live_assign_moderator_error')}: ${getFriendlyErrorMessage(e)}'),
         ),
       );
     }
@@ -2299,7 +2300,7 @@ class _LiveScreenState extends State<LiveScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${translate('live_block_user_error')}: $e')),
+        SnackBar(content: Text('${translate('live_block_user_error')}: ${getFriendlyErrorMessage(e)}')),
       );
     }
   }
@@ -2334,7 +2335,7 @@ class _LiveScreenState extends State<LiveScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${translate('live_delete_message_error')}: $e'),
+          content: Text('${translate('live_delete_message_error')}: ${getFriendlyErrorMessage(e)}'),
         ),
       );
     }
@@ -2455,7 +2456,7 @@ class _LiveScreenState extends State<LiveScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${translate('live_report_error')}: $e')),
+        SnackBar(content: Text('${translate('live_report_error')}: ${getFriendlyErrorMessage(e)}')),
       );
     } finally {
       descriptionController.dispose();
@@ -2676,7 +2677,7 @@ class _LiveScreenState extends State<LiveScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            '${translate('live_community_vote_error')}: $e',
+                            '${translate('live_community_vote_error')}: ${getFriendlyErrorMessage(e)}',
                           ),
                         ),
                       );

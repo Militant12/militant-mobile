@@ -104,7 +104,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                '${lang.translate('group_detail_error')}: ${e.toString()}',
+                getFriendlyErrorMessage(e, lang),
               ),
             ),
           );

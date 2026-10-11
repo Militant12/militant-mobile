@@ -9,6 +9,7 @@ import '../screens/call_screen.dart';
 import '../screens/group_call_screen.dart';
 import 'api_service.dart';
 import 'call_kit_service.dart';
+import 'language_service.dart';
 import 'ntfy_push_service.dart';
 
 final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
@@ -109,7 +110,7 @@ class IncomingCallService {
       if (openScreenImmediately) {
         _openIncomingGroupCallScreen(
           data: data,
-          callerName: body ?? 'Appel de groupe',
+          callerName: body ?? LanguageService.instance.translate('call_group'),
         );
       } else {
         _showIncomingGroupCallDialog(
@@ -134,9 +135,9 @@ class IncomingCallService {
         callerName:
             _callerNameFromPayload(
               hydratedData,
-              fallback: body ?? 'Appel entrant',
+              fallback: body ?? LanguageService.instance.translate('call_incoming'),
             ) ??
-            'Appel entrant',
+            LanguageService.instance.translate('call_incoming'),
         callerAvatar: _avatarFromPayload(hydratedData),
         isVideo: _isVideoCall(hydratedData),
         offerSdp: _offerSdpFromPayload(hydratedData),
@@ -462,7 +463,7 @@ class IncomingCallService {
               'group_name',
               'groupName',
             ]) ??
-            'Appel de groupe',
+            LanguageService.instance.translate('call_group'),
       );
       return;
     }
@@ -480,7 +481,7 @@ class IncomingCallService {
           hydratedData,
           fallback: _stringFromPayload(hydratedData, const ['title']),
         ) ??
-        'Appel entrant';
+        LanguageService.instance.translate('call_incoming');
 
     _openIncomingCallScreen(
       callId: callId,
@@ -513,9 +514,9 @@ class IncomingCallService {
         callerName:
             _callerNameFromPayload(
               hydratedData,
-              fallback: body ?? 'Appel entrant',
+              fallback: body ?? LanguageService.instance.translate('call_incoming'),
             ) ??
-            'Appel entrant',
+            LanguageService.instance.translate('call_incoming'),
         isVideo: _isVideoCall(hydratedData),
         extra: hydratedData,
       );
@@ -535,7 +536,8 @@ class IncomingCallService {
     _activeForegroundDialogCallId = callId;
 
     final callerName =
-        _callerNameFromPayload(hydratedData, fallback: body) ?? 'Appel entrant';
+        _callerNameFromPayload(hydratedData, fallback: body) ??
+        LanguageService.instance.translate('call_incoming');
     final callerId = _callerIdFromPayload(hydratedData);
     final callerAvatar = _avatarFromPayload(hydratedData);
     final isVideo = _isVideoCall(hydratedData);
@@ -585,7 +587,9 @@ class IncomingCallService {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        isVideo ? 'Appel vidéo entrant' : 'Appel audio entrant',
+                        LanguageService.instance.translate(
+                          isVideo ? 'call_incoming_video' : 'call_incoming_audio',
+                        ),
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w800,
                           color: onSurface,
@@ -593,7 +597,7 @@ class IncomingCallService {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Conversation privée',
+                        LanguageService.instance.translate('call_private_conversation'),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: mutedColor,
                           fontWeight: FontWeight.w500,
@@ -617,9 +621,11 @@ class IncomingCallService {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  isVideo
-                      ? 'Un appel vidéo privé est en attente.'
-                      : 'Un appel audio privé est en attente.',
+                  LanguageService.instance.translate(
+                    isVideo
+                        ? 'call_private_pending_video'
+                        : 'call_private_pending_audio',
+                  ),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: mutedColor,
                   ),
@@ -643,7 +649,7 @@ class IncomingCallService {
                   Navigator.pop(ctx);
                   await _rejectIncomingCall(callId);
                 },
-                child: const Text('Refuser'),
+                child: Text(LanguageService.instance.translate('call_decline')),
               ),
               FilledButton(
                 style: FilledButton.styleFrom(
@@ -669,7 +675,7 @@ class IncomingCallService {
                     offerSdp: offerSdp,
                   );
                 },
-                child: const Text('Répondre'),
+                child: Text(LanguageService.instance.translate('call_answer')),
               ),
             ],
           ),
@@ -711,7 +717,7 @@ class IncomingCallService {
               'group_name',
               'groupName',
             ]) ??
-            'Appel de groupe',
+            LanguageService.instance.translate('call_group'),
       );
       return;
     }
@@ -722,9 +728,10 @@ class IncomingCallService {
       callerName:
           _callerNameFromPayload(
             extra,
-            fallback: extra?['callerName']?.toString() ?? 'Appel entrant',
+            fallback:
+                extra?['callerName']?.toString() ?? LanguageService.instance.translate('call_incoming'),
           ) ??
-          'Appel entrant',
+          LanguageService.instance.translate('call_incoming'),
       callerAvatar: _avatarFromPayload(extra),
       isVideo: extra?['isVideo'] == true || extra?['isVideo'] == 'true',
       offerSdp: _offerSdpFromPayload(extra),
@@ -816,7 +823,7 @@ class IncomingCallService {
               'groupName',
             ]) ??
             body ??
-            'Appel de groupe entrant',
+            LanguageService.instance.translate('call_group_incoming_title'),
         isVideo: _isVideoCall(data),
         extra: data,
       );
@@ -836,7 +843,8 @@ class IncomingCallService {
     }
     if (_activeForegroundDialogCallId == callId) return;
 
-    final callerName = body ?? 'Appel de groupe entrant';
+    final callerName =
+        body ?? LanguageService.instance.translate('call_group_incoming_title');
     final isVideo = _isVideoCall(data);
 
     _activeForegroundDialogCallId = callId;
@@ -883,9 +891,9 @@ class IncomingCallService {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      isVideo
-                          ? 'Appel vidéo de groupe'
-                          : 'Appel audio de groupe',
+                      LanguageService.instance.translate(
+                        isVideo ? 'call_group_video' : 'call_group_audio',
+                      ),
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
                         color: onSurface,
@@ -893,7 +901,7 @@ class IncomingCallService {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Conversation de groupe',
+                      LanguageService.instance.translate('call_group_conversation'),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: mutedColor,
                         fontWeight: FontWeight.w500,
@@ -917,9 +925,11 @@ class IncomingCallService {
               ),
               const SizedBox(height: 10),
               Text(
-                isVideo
-                    ? 'Un appel vidéo de groupe est en attente.'
-                    : 'Un appel audio de groupe est en attente.',
+                LanguageService.instance.translate(
+                  isVideo
+                      ? 'call_group_pending_video'
+                      : 'call_group_pending_audio',
+                ),
                 style: theme.textTheme.bodyMedium?.copyWith(color: mutedColor),
               ),
             ],
@@ -941,7 +951,7 @@ class IncomingCallService {
                 Navigator.pop(ctx);
                 await _rejectIncomingCall(callId);
               },
-              child: const Text('Refuser'),
+              child: Text(LanguageService.instance.translate('call_decline')),
             ),
             FilledButton(
               style: FilledButton.styleFrom(
@@ -956,7 +966,7 @@ class IncomingCallService {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text('Rejoindre'),
+              child: Text(LanguageService.instance.translate('join')),
               onPressed: () {
                 Navigator.pop(ctx);
                 _openIncomingGroupCallScreen(

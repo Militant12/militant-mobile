@@ -1073,7 +1073,7 @@ class _PostCardState extends State<PostCard> {
                         content: Text(
                           errorMessage.contains('Already reported')
                               ? lang.translate('report_already_sent')
-                              : '${lang.translate('error')}: $errorMessage',
+                              : getFriendlyErrorMessage(e, lang),
                         ),
                       ),
                     );
@@ -1112,7 +1112,7 @@ class _PostCardState extends State<PostCard> {
       messenger.showSnackBar(
         SnackBar(
           content: Text(
-            '${lang.translate('error')}: ${e.toString().replaceFirst('Exception: ', '')}',
+            getFriendlyErrorMessage(e, lang),
           ),
         ),
       );

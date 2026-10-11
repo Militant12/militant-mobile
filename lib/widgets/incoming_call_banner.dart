@@ -6,6 +6,7 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 import '../screens/call_screen.dart';
 import '../screens/group_call_screen.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 
 String? _payloadString(Map<String, dynamic>? data, List<String> keys) {
   if (data == null) return null;
@@ -132,7 +133,7 @@ class IncomingCallController {
         final callerName =
             _payloadString(data, const ['caller_name', 'callerName']) ??
             event.notification.body ??
-            'Appel entrant';
+            LanguageService.instance.translate('call_incoming');
 
         final isVideo =
             _payloadString(data, const ['call_type', 'callType']) == 'video' ||
@@ -221,7 +222,7 @@ class IncomingCallController {
             callerName:
                 call['caller_username']?.toString().trim().isNotEmpty == true
                 ? call['caller_username'].toString()
-                : 'Appel entrant',
+                : LanguageService.instance.translate('call_incoming'),
             callerAvatar: _payloadAvatar(call),
             isVideo: call['call_type']?.toString() == 'video',
             isGroup: false,
@@ -450,13 +451,15 @@ class _IncomingCallBannerState extends State<IncomingCallBanner>
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          call.isGroup
-                              ? (call.isVideo
-                                    ? 'Appel vidéo de groupe'
-                                    : 'Appel audio de groupe')
-                              : (call.isVideo
-                                    ? 'Appel vidéo entrant'
-                                    : 'Appel audio entrant'),
+                          LanguageService.instance.translate(
+                            call.isGroup
+                                ? (call.isVideo
+                                      ? 'call_group_video'
+                                      : 'call_group_audio')
+                                : (call.isVideo
+                                      ? 'call_incoming_video'
+                                      : 'call_incoming_audio'),
+                          ),
                           style: TextStyle(color: muted, fontSize: 12),
                         ),
                       ],
@@ -472,7 +475,7 @@ class _IncomingCallBannerState extends State<IncomingCallBanner>
                     foregroundColor: Colors.white,
                     backgroundColor: accent,
                     outlined: false,
-                    label: 'Refuser',
+                    label: LanguageService.instance.translate('call_decline'),
                     labelColor: muted,
                     onTap: _refuse,
                   ),
@@ -486,7 +489,9 @@ class _IncomingCallBannerState extends State<IncomingCallBanner>
                     backgroundColor: surface,
                     borderColor: border,
                     outlined: true,
-                    label: call.isGroup ? 'Rejoindre' : 'Répondre',
+                    label: LanguageService.instance.translate(
+                      call.isGroup ? 'join' : 'call_answer',
+                    ),
                     labelColor: muted,
                     onTap: _accept,
                   ),
