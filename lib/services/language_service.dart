@@ -1037,6 +1037,14 @@ class LanguageService extends ValueNotifier<Locale> {
       'call_duration': 'Durée',
       'call_incoming_from': 'Appel entrant de {name}',
       'call_group_incoming': 'Appel de groupe dans {group}',
+      'call_error_not_found': 'Appel introuvable.',
+      'call_error_start': "Impossible de démarrer l'appel.",
+      'call_error_offer_missing': "Impossible de récupérer les informations de l'appel. Réessaie dans quelques secondes.",
+      'call_error_invalid_offer': "Impossible d'établir la connexion de l'appel.",
+      'call_error_microphone': "Impossible d'activer le micro.",
+      'call_error_permission_denied': "Permission refusée. Autorise l'accès au micro et à la caméra.",
+      'call_error_no_device': 'Aucun micro ni caméra trouvé sur cet appareil.',
+      'call_error_access_denied': 'Accès refusé. Autorise les permissions dans les paramètres.',
 
       // User Status
       'status_add': 'Ajouter un statut',
@@ -2078,6 +2086,14 @@ class LanguageService extends ValueNotifier<Locale> {
       'call_duration': 'Duration',
       'call_incoming_from': 'Incoming call from {name}',
       'call_group_incoming': 'Group call in {group}',
+      'call_error_not_found': 'Call not found.',
+      'call_error_start': "Couldn't start the call.",
+      'call_error_offer_missing': "Couldn't retrieve the call details. Try again in a few seconds.",
+      'call_error_invalid_offer': "Couldn't establish the call connection.",
+      'call_error_microphone': "Couldn't turn on the microphone.",
+      'call_error_permission_denied': 'Permission denied. Allow access to the microphone and camera.',
+      'call_error_no_device': 'No microphone or camera found on this device.',
+      'call_error_access_denied': 'Access denied. Allow the permissions in your settings.',
 
       // User Status
       'status_add': 'Add a status',
@@ -3116,6 +3132,14 @@ class LanguageService extends ValueNotifier<Locale> {
       'call_duration': 'Duración',
       'call_incoming_from': 'Llamada entrante de {name}',
       'call_group_incoming': 'Llamada grupal en {group}',
+      'call_error_not_found': 'Llamada no encontrada.',
+      'call_error_start': 'No se pudo iniciar la llamada.',
+      'call_error_offer_missing': 'No se pudieron obtener los datos de la llamada. Vuelve a intentarlo en unos segundos.',
+      'call_error_invalid_offer': 'No se pudo establecer la conexión de la llamada.',
+      'call_error_microphone': 'No se pudo activar el micrófono.',
+      'call_error_permission_denied': 'Permiso denegado. Permite el acceso al micrófono y a la cámara.',
+      'call_error_no_device': 'No se encontró ningún micrófono ni cámara en este dispositivo.',
+      'call_error_access_denied': 'Acceso denegado. Permite los permisos en los ajustes.',
 
       // Discovery
       'discover_militants': 'Descubrir militantes',

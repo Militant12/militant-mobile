@@ -223,12 +223,12 @@ class PrivateCallSession extends ChangeNotifier {
       if (isIncoming) {
         final incomingCallId = callId;
         if (incomingCallId == null || incomingCallId.isEmpty) {
-          throw Exception('call_id manquant');
+          throw Exception(LanguageService.instance.translate('call_error_not_found'));
         }
 
         final remoteSdp = await _resolveIncomingOfferSdp(incomingCallId);
         if (remoteSdp.isEmpty) {
-          throw Exception('offer_sdp manquant');
+          throw Exception(LanguageService.instance.translate('call_error_offer_missing'));
         }
 
         callStatus = LanguageService.instance.translate('call_connecting');
@@ -481,19 +481,18 @@ class PrivateCallSession extends ChangeNotifier {
   }
 
   String _humanizeError(Object error) {
-    var message = error.toString().replaceAll('Exception: ', '');
+    final lang = LanguageService.instance;
+    final message = error.toString();
 
     if (message.contains('Permission') || message.contains('permission')) {
-      return 'Permission refusée. Veuillez autoriser l\'accès au microphone et à la caméra.';
+      return lang.translate('call_error_permission_denied');
     }
-    if (message.contains('NotFoundError') || message.contains('not found')) {
-      return 'Aucun microphone ou caméra trouvé sur cet appareil.';
+    if (message.contains('NotFoundError') ||
+        message.contains('device not found')) {
+      return lang.translate('call_error_no_device');
     }
     if (message.contains('NotAllowedError')) {
-      return 'Accès refusé. Veuillez autoriser les permissions dans les paramètres.';
-    }
-    if (message.contains('offer_sdp manquant')) {
-      return 'Impossible de récupérer l’offre de l’appel. Réessaie dans quelques secondes.';
+      return lang.translate('call_error_access_denied');
     }
 
     return getFriendlyErrorMessage(error);

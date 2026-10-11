@@ -6,6 +6,7 @@ import 'package:livekit_client/livekit_client.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'api_service.dart';
+import 'language_service.dart';
 import 'livekit_runtime_config.dart';
 import 'livekit_token_service.dart';
 
@@ -184,7 +185,7 @@ class GroupCallService {
 
       final callId = response['call_id']?.toString().trim() ?? '';
       if (callId.isEmpty) {
-        throw Exception('call_id manquant pour l appel de groupe');
+        throw Exception(LanguageService.instance.translate('call_error_start'));
       }
 
       currentCallId = callId;
@@ -288,7 +289,7 @@ class GroupCallService {
     } catch (e) {
       _microphoneEnabled = false;
       debugPrint('[LiveKit][group] microphone publish failed: $e');
-      throw Exception('Impossible d activer le micro pour l appel de groupe');
+      throw Exception(LanguageService.instance.translate('call_error_microphone'));
     }
   }
 

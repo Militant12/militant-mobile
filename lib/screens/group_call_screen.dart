@@ -209,7 +209,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
       if (widget.isIncoming) {
         final incomingCallId = widget.callId;
         if (incomingCallId == null || incomingCallId.isEmpty) {
-          throw Exception('call_id manquant pour rejoindre l\'appel');
+          throw Exception(LanguageService.instance.translate('call_error_not_found'));
         }
         setState(
           () =>
@@ -222,7 +222,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
       } else {
         final groupId = widget.groupId;
         if (groupId == null) {
-          throw Exception('group_id manquant pour initier l\'appel');
+          throw Exception(LanguageService.instance.translate('call_error_start'));
         }
         setState(
           () =>

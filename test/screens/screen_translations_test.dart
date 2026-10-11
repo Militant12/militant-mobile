@@ -13,6 +13,10 @@ void main() {
     'lib/screens/pages_screen.dart',
     'lib/screens/page_detail_screen.dart',
     'lib/screens/create_page_screen.dart',
+    'lib/screens/group_call_screen.dart',
+    'lib/services/private_call_session.dart',
+    'lib/services/call_service.dart',
+    'lib/services/group_call_service.dart',
   ];
   const languages = ['fr', 'en', 'es'];
   // Catches plain keys as well as `translate(cond ? 'a' : 'b')`.

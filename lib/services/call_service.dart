@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'api_service.dart';
+import 'language_service.dart';
 import 'webrtc_config_service.dart';
 
 class CallService {
@@ -521,7 +522,7 @@ class CallService {
     try {
       final trimmedSdp = offerSdp.trim();
       if (trimmedSdp.isEmpty || trimmedSdp == 'null') {
-        throw Exception('offer_sdp manquant');
+        throw Exception(LanguageService.instance.translate('call_error_offer_missing'));
       }
       final normalizedOfferSdp = offerSdp.endsWith('\n')
           ? offerSdp
@@ -583,7 +584,7 @@ class CallService {
         debugPrint(
           '[WebRTC][private] setRemoteDescription offer failed: $e\nSDP: $normalizedOfferSdp',
         );
-        throw Exception('Offre SDP invalide ou malformée.');
+        throw Exception(LanguageService.instance.translate('call_error_invalid_offer'));
       }
 
       // Créer la réponse
