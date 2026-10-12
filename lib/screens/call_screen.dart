@@ -7,6 +7,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../services/private_call_session.dart';
+import '../theme/app_colors.dart';
 
 class CallScreen extends StatefulWidget {
   final String? callId;
@@ -316,7 +317,7 @@ class _CallScreenState extends State<CallScreen> {
           else
             CircleAvatar(
               radius: 60,
-              backgroundColor: const Color(0xFFBE1E1E),
+              backgroundColor: AppColors.militantRed,
               child: Padding(
                 padding: const EdgeInsets.all(18),
                 child: SvgPicture.asset(

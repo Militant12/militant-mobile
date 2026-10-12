@@ -7,6 +7,7 @@ import 'moderation_screen.dart';
 import 'discovery_screen.dart';
 import 'fediverse_screen.dart';
 import 'feature_suggestions_screen.dart';
+import '../theme/app_colors.dart';
 
 class CommunityScreen extends StatelessWidget {
   const CommunityScreen({super.key});
@@ -61,7 +62,7 @@ class CommunityScreen extends StatelessWidget {
                   translate('discover_militants_desc'),
                   Icons.person_search,
                   const DiscoveryScreen(),
-                  const Color(0xFFBE1E1E),
+                  AppColors.militantRed,
                   isDark,
                 ),
                 const SizedBox(height: 8),
@@ -71,7 +72,7 @@ class CommunityScreen extends StatelessWidget {
                   translate('groups_desc'),
                   Icons.group,
                   const GroupsScreen(),
-                  const Color(0xFFBE1E1E),
+                  AppColors.militantRed,
                   isDark,
                 ),
                 const SizedBox(height: 8),

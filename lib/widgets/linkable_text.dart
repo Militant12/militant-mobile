@@ -7,6 +7,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
+import '../theme/app_colors.dart';
 
 class LinkableText extends StatelessWidget {
   final String text;
@@ -28,7 +29,7 @@ class LinkableText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final defaultLinkColor = linkColor ?? const Color(0xFFBE1E1E);
+    final defaultLinkColor = linkColor ?? AppColors.militantRed;
 
     // Extraire les URLs pour les cartes embed
     final urls = _extractUrls(text);
@@ -445,7 +446,7 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
     return Container(
       margin: const EdgeInsets.only(top: 12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[100],
+        color: isDark ? AppColors.darkSurfaceHigh : Colors.grey[100],
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: isDark ? Colors.white10 : Colors.black12),
       ),
@@ -636,7 +637,7 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
   }
 
   Color _getPlatformColor(String? platform) {
-    if (platform == null) return const Color(0xFF888888);
+    if (platform == null) return AppColors.grey888;
     switch (platform) {
       case 'openai':
         return const Color(0xFF10A37F);
@@ -672,7 +673,7 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
       case 'reddit':
         return const Color(0xFFFF4500);
       default:
-        return const Color(0xFFBE1E1E); // Couleur thème Militant par défaut
+        return AppColors.militantRed; // Couleur thème Militant par défaut
     }
   }
 

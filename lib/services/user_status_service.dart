@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'api_service.dart';
 import 'language_service.dart';
+import '../theme/app_colors.dart';
 
 /// Statut personnalisé d'un utilisateur militant
 class UserStatus {
@@ -43,21 +44,21 @@ const List<PresetStatus> kPresetStatuses = [
     key: 'manif',
     labelKey: 'status_manif',
     icon: FontAwesomeIcons.fistRaised,
-    color: Color(0xFFBE1E1E),
+    color: AppColors.militantRed,
   ),
   PresetStatus(
     key: 'action',
     labelKey: 'status_action',
     icon: FontAwesomeIcons.flag,
-    color: Color(0xFFBE1E1E),
+    color: AppColors.militantRed,
   ),
   PresetStatus(
     key: 'reunion',
     labelKey: 'status_reunion',
     icon: FontAwesomeIcons.users,
-    color: Color(0xFFBE1E1E),
+    color: AppColors.militantRed,
     gradient: LinearGradient(
-      colors: [Color(0xFFBE1E1E), Color(0xFF1A0000)],
+      colors: [AppColors.militantRed, Color(0xFF1A0000)],
       begin: Alignment.centerLeft,
       end: Alignment.centerRight,
     ),
@@ -66,7 +67,7 @@ const List<PresetStatus> kPresetStatuses = [
     key: 'dnd',
     labelKey: 'status_dnd',
     icon: FontAwesomeIcons.volumeXmark,
-    color: Color(0xFF888888),
+    color: AppColors.grey888,
   ),
   PresetStatus(
     key: 'formation',
@@ -90,7 +91,7 @@ const List<PresetStatus> kPresetStatuses = [
     key: 'greve',
     labelKey: 'status_greve',
     icon: FontAwesomeIcons.personDigging,
-    color: Color(0xFFBE1E1E),
+    color: AppColors.militantRed,
   ),
   PresetStatus(
     key: 'terrain',

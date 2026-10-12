@@ -20,6 +20,7 @@ import '../widgets/incoming_call_banner.dart';
 import '../widgets/signal_typing_indicator.dart';
 import '../utils/error_helper.dart';
 import '../widgets/common/common.dart';
+import '../theme/app_colors.dart';
 
 const Duration _privateChatPollInterval = Duration(seconds: 10);
 const Duration _privateTypingPollInterval = Duration(seconds: 6);
@@ -189,7 +190,7 @@ class _ChatScreenState extends State<ChatScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: theme.brightness == Brightness.dark
-          ? const Color(0xFF1E1E1E)
+          ? AppColors.darkSurface
           : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -234,7 +235,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     height: 160,
                     decoration: BoxDecoration(
                       color: theme.brightness == Brightness.dark
-                          ? const Color(0xFF121212)
+                          ? AppColors.darkBackground
                           : Colors.grey[200],
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.grey.withOpacity(0.3)),
@@ -263,7 +264,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   // Select button
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFBE1E1E),
+                      backgroundColor: AppColors.militantRed,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
@@ -282,7 +283,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     const SizedBox(height: 8),
                     TextButton.icon(
                       style: TextButton.styleFrom(
-                        foregroundColor: const Color(0xFFBE1E1E),
+                        foregroundColor: AppColors.militantRed,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       icon: const Icon(Icons.delete),
@@ -620,7 +621,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final selected = await showDialog<int>(
       context: context,
       builder: (context) => SimpleDialog(
-        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
         title: Text(LanguageService.instance.translate('ephemeral_messages')),
         children: [
           _timeOption(0, LanguageService.instance.translate('disabled')),
@@ -680,7 +681,7 @@ class _ChatScreenState extends State<ChatScreen> {
           Icon(
             _autoDeleteTime == value ? Icons.radio_button_checked : Icons.radio_button_off,
             size: 20,
-            color: const Color(0xFFBE1E1E),
+            color: AppColors.militantRed,
           ),
           const SizedBox(width: 12),
           Text(label),
@@ -697,16 +698,16 @@ class _ChatScreenState extends State<ChatScreen> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      color: const Color(0xFFBE1E1E).withValues(alpha: 0.10),
+      color: AppColors.militantRed.withValues(alpha: 0.10),
       child: Row(
         children: [
-          const Icon(Icons.timer_outlined, size: 18, color: Color(0xFFBE1E1E)),
+          const Icon(Icons.timer_outlined, size: 18, color: AppColors.militantRed),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               _autoDeleteSubtitle(),
               style: const TextStyle(
-                color: Color(0xFFBE1E1E),
+                color: AppColors.militantRed,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -1175,8 +1176,8 @@ class _ChatScreenState extends State<ChatScreen> {
     final translatedText = message['_translatedText'];
 
     final bubbleColor = isMine
-        ? const Color(0xFFBE1E1E)
-        : (isDark ? const Color(0xFF2A2A2A) : Colors.grey[300]);
+        ? AppColors.militantRed
+        : (isDark ? AppColors.darkSurfaceHigh : Colors.grey[300]);
 
     final textColor = isMine
         ? Colors.white
@@ -1210,7 +1211,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border(
                       left: BorderSide(
-                        color: isMine ? Colors.white70 : const Color(0xFFBE1E1E),
+                        color: isMine ? Colors.white70 : AppColors.militantRed,
                         width: 3,
                       ),
                     ),
@@ -1363,14 +1364,14 @@ class _ChatScreenState extends State<ChatScreen> {
                             color: isSelected
                                 ? (isMine
                                       ? Colors.white
-                                      : const Color(0xFFFFE5E5))
+                                      : AppColors.militantRedLight)
                                 : (isMine
                                       ? Colors.white.withValues(alpha: 0.16)
                                       : Colors.black.withValues(alpha: 0.08)),
                             borderRadius: BorderRadius.circular(999),
                             border: Border.all(
                               color: isSelected
-                                  ? const Color(0xFFBE1E1E)
+                                  ? AppColors.militantRed
                                   : Colors.transparent,
                             ),
                           ),
@@ -1378,7 +1379,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             '${_reactionEmoji(entry.key)} ${entry.value}',
                             style: TextStyle(
                               color: isSelected
-                                  ? const Color(0xFFBE1E1E)
+                                  ? AppColors.militantRed
                                   : textColor,
                               fontSize: 12,
                               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
@@ -1575,7 +1576,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     width: 3,
                     height: 34,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFBE1E1E),
+                      color: AppColors.militantRed,
                       borderRadius: BorderRadius.circular(99),
                     ),
                   ),
@@ -1619,7 +1620,7 @@ class _ChatScreenState extends State<ChatScreen> {
             children: [
           IconButton(
             tooltip: LanguageService.instance.translate('a11y_attach'),
-            icon: const Icon(Icons.attach_file, color: Color(0xFFBE1E1E)),
+            icon: const Icon(Icons.attach_file, color: AppColors.militantRed),
             onPressed: _pickMedia,
           ),
           Expanded(

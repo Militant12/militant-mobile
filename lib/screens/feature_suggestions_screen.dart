@@ -8,6 +8,7 @@ import '../models/feature_suggestion.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../utils/error_helper.dart';
+import '../theme/app_colors.dart';
 
 class FeatureSuggestionsScreen extends StatefulWidget {
   const FeatureSuggestionsScreen({super.key});
@@ -136,22 +137,22 @@ class _FeatureSuggestionsScreenState extends State<FeatureSuggestionsScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final backgroundColor = isDark
-        ? const Color(0xFF121212)
-        : const Color(0xFFF5F5F5);
+        ? AppColors.darkBackground
+        : AppColors.lightSurfaceHigh;
 
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(title: Text(translate('feature_suggestions'))),
       floatingActionButton: FloatingActionButton(
         onPressed: _openCreateDialog,
-        backgroundColor: const Color(0xFFBE1E1E),
+        backgroundColor: AppColors.militantRed,
         child: const Icon(Icons.add, color: Colors.white),
       ),
       body: _isLoading
           ? const AppLoader()
           : RefreshIndicator(
               onRefresh: _loadData,
-              color: const Color(0xFFBE1E1E),
+              color: AppColors.militantRed,
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
                 children: [
@@ -186,8 +187,8 @@ class _FeatureSuggestionsScreenState extends State<FeatureSuggestionsScreen> {
     String Function(String) translate,
     bool isDark,
   ) {
-    final cardColor = isDark ? const Color(0xFF171717) : Colors.white;
-    final borderColor = isDark ? Colors.white10 : const Color(0xFFE3E3E3);
+    final cardColor = isDark ? AppColors.darkSurfaceLow : Colors.white;
+    final borderColor = isDark ? Colors.white10 : AppColors.greyE3;
     final textColor = isDark ? Colors.white : const Color(0xFF111111);
     final subColor = isDark ? Colors.white70 : const Color(0xFF5F6368);
     return Container(
@@ -215,7 +216,7 @@ class _FeatureSuggestionsScreenState extends State<FeatureSuggestionsScreen> {
                 width: 36,
                 height: 36,
                 decoration: const BoxDecoration(
-                  color: Color(0xFFBE1E1E),
+                  color: AppColors.militantRed,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.lightbulb_outline, color: Colors.white),
@@ -279,7 +280,7 @@ class _FeatureSuggestionsScreenState extends State<FeatureSuggestionsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white10 : const Color(0xFFF1F3F4),
+        color: isDark ? Colors.white10 : AppColors.lightSurfaceLow,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
@@ -313,7 +314,7 @@ class _FeatureSuggestionsScreenState extends State<FeatureSuggestionsScreen> {
                 setState(() => _filter = entry.key);
                 _loadData();
               },
-              selectedColor: const Color(0xFFBE1E1E),
+              selectedColor: AppColors.militantRed,
               labelStyle: TextStyle(
                 color: selected ? Colors.white : null,
                 fontWeight: FontWeight.w600,
@@ -330,11 +331,11 @@ class _FeatureSuggestionsScreenState extends State<FeatureSuggestionsScreen> {
     String Function(String) translate,
     bool isDark,
   ) {
-    final borderColor = isDark ? Colors.white10 : const Color(0xFFE3E3E3);
+    final borderColor = isDark ? Colors.white10 : AppColors.greyE3;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF171717) : Colors.white,
+        color: isDark ? AppColors.darkSurfaceLow : Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: borderColor),
         boxShadow: isDark
@@ -487,8 +488,8 @@ class _FeatureSuggestionDetailScreenState
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final backgroundColor = isDark
-        ? const Color(0xFF121212)
-        : const Color(0xFFF5F5F5);
+        ? AppColors.darkBackground
+        : AppColors.lightSurfaceHigh;
 
     return PopScope(
       canPop: false,
@@ -521,7 +522,7 @@ class _FeatureSuggestionDetailScreenState
                   Expanded(
                     child: RefreshIndicator(
                       onRefresh: _loadDetail,
-                      color: const Color(0xFFBE1E1E),
+                      color: AppColors.militantRed,
                       child: ListView(
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
                         children: [
@@ -556,12 +557,12 @@ class _FeatureSuggestionDetailScreenState
                     child: Container(
                       padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF171717) : Colors.white,
+                        color: isDark ? AppColors.darkSurfaceLow : Colors.white,
                         border: Border(
                           top: BorderSide(
                             color: isDark
                                 ? Colors.white10
-                                : const Color(0xFFE3E3E3),
+                                : AppColors.greyE3,
                           ),
                         ),
                         boxShadow: isDark
@@ -586,7 +587,7 @@ class _FeatureSuggestionDetailScreenState
                                 filled: true,
                                 fillColor: isDark
                                     ? Colors.white10
-                                    : const Color(0xFFF1F3F4),
+                                    : AppColors.lightSurfaceLow,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(14),
                                   borderSide: BorderSide.none,
@@ -601,7 +602,7 @@ class _FeatureSuggestionDetailScreenState
                                 ? null
                                 : _submitComment,
                             style: IconButton.styleFrom(
-                              backgroundColor: const Color(0xFFBE1E1E),
+                              backgroundColor: AppColors.militantRed,
                             ),
                             icon: _isSubmittingComment
                                 ? const SizedBox(
@@ -626,11 +627,11 @@ class _FeatureSuggestionDetailScreenState
 
   Widget _buildDetailCard(String Function(String) translate, bool isDark) {
     final suggestion = _suggestion!;
-    final borderColor = isDark ? Colors.white10 : const Color(0xFFE3E3E3);
+    final borderColor = isDark ? Colors.white10 : AppColors.greyE3;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF171717) : Colors.white,
+        color: isDark ? AppColors.darkSurfaceLow : Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: borderColor),
         boxShadow: isDark
@@ -691,7 +692,7 @@ class _FeatureSuggestionDetailScreenState
               decoration: BoxDecoration(
                 color: isDark
                     ? Colors.white10
-                    : const Color(0xFFBE1E1E).withValues(alpha: 0.06),
+                    : AppColors.militantRed.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
@@ -700,7 +701,7 @@ class _FeatureSuggestionDetailScreenState
                   Text(
                     translate('admin_response'),
                     style: TextStyle(
-                      color: isDark ? Colors.white : const Color(0xFFBE1E1E),
+                      color: isDark ? Colors.white : AppColors.militantRed,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -771,8 +772,8 @@ class _SuggestionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cardColor = isDark ? const Color(0xFF171717) : Colors.white;
-    final borderColor = isDark ? Colors.white10 : const Color(0xFFE3E3E3);
+    final cardColor = isDark ? AppColors.darkSurfaceLow : Colors.white;
+    final borderColor = isDark ? Colors.white10 : AppColors.greyE3;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -915,10 +916,10 @@ class _CommentTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF171717) : Colors.white,
+        color: isDark ? AppColors.darkSurfaceLow : Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? Colors.white10 : const Color(0xFFE3E3E3),
+          color: isDark ? Colors.white10 : AppColors.greyE3,
         ),
         boxShadow: isDark
             ? null
@@ -1018,7 +1019,7 @@ class _MiniVoteButton extends StatelessWidget {
           width: 34,
           height: 34,
           decoration: BoxDecoration(
-            color: selected ? const Color(0xFFBE1E1E) : Colors.transparent,
+            color: selected ? AppColors.militantRed : Colors.transparent,
             shape: BoxShape.circle,
             border: Border.all(
               color: Theme.of(context).brightness == Brightness.dark

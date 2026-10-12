@@ -7,6 +7,7 @@ import '../screens/call_screen.dart';
 import '../screens/group_call_screen.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
+import '../theme/app_colors.dart';
 
 String? _payloadString(Map<String, dynamic>? data, List<String> keys) {
   if (data == null) return null;
@@ -404,7 +405,7 @@ class _IncomingCallBannerState extends State<IncomingCallBanner>
     final call = _call!;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final accent = const Color(0xFFBE1E1E);
+    final accent = AppColors.militantRed;
     final surface = colorScheme.surface;
     final onSurface = colorScheme.onSurface;
     final muted = onSurface.withValues(alpha: 0.72);
@@ -540,7 +541,7 @@ class _PulsingIconState extends State<_PulsingIcon>
 
   @override
   Widget build(BuildContext context) {
-    final accent = const Color(0xFFBE1E1E);
+    final accent = AppColors.militantRed;
     return ScaleTransition(
       scale: _scale,
       child: Container(

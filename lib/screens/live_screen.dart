@@ -17,6 +17,7 @@ import '../services/livekit_runtime_config.dart';
 import '../services/livekit_token_service.dart';
 import '../services/language_service.dart';
 import '../utils/error_helper.dart';
+import '../theme/app_colors.dart';
 
 class LiveScreen extends StatefulWidget {
   const LiveScreen({super.key});
@@ -215,7 +216,7 @@ class _LiveScreenState extends State<LiveScreen> {
             onPressed: () => Navigator.pop(ctx),
             child: Text(
               translate('live_suspended_ack'),
-              style: const TextStyle(color: Color(0xFFBE1E1E)),
+              style: const TextStyle(color: AppColors.militantRed),
             ),
           ),
         ],
@@ -1511,8 +1512,8 @@ class _LiveScreenState extends State<LiveScreen> {
           elevation: 0,
           backgroundColor: theme.appBarTheme.backgroundColor,
           bottom: TabBar(
-            indicatorColor: const Color(0xFFBE1E1E),
-            labelColor: const Color(0xFFBE1E1E),
+            indicatorColor: AppColors.militantRed,
+            labelColor: AppColors.militantRed,
             unselectedLabelColor: theme.textTheme.bodyMedium?.color?.withValues(
               alpha: 0.6,
             ),
@@ -1626,7 +1627,7 @@ class _LiveScreenState extends State<LiveScreen> {
                   ),
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: const Color(0xFFBE1E1E),
+                      backgroundColor: AppColors.militantRed,
                       child: const Icon(
                         Icons.live_tv_rounded,
                         color: Colors.white,
@@ -1746,7 +1747,7 @@ class _LiveScreenState extends State<LiveScreen> {
                       : const LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [Color(0xFFBE1E1E), Color(0xFF131313)],
+                          colors: [AppColors.militantRed, Color(0xFF131313)],
                         ),
                 ),
                 child: isValidUrl(backgroundUrl)
@@ -1793,7 +1794,7 @@ class _LiveScreenState extends State<LiveScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFBE1E1E),
+                  color: AppColors.militantRed,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: const Row(
@@ -1943,7 +1944,7 @@ class _LiveScreenState extends State<LiveScreen> {
               const SizedBox(height: 20),
               SwitchListTile.adaptive(
                 value: _cameraEnabled,
-                activeThumbColor: const Color(0xFFBE1E1E),
+                activeThumbColor: AppColors.militantRed,
                 activeTrackColor: const Color(
                   0xFFBE1E1E,
                 ).withValues(alpha: 0.5),
@@ -1954,7 +1955,7 @@ class _LiveScreenState extends State<LiveScreen> {
               ),
               SwitchListTile.adaptive(
                 value: _microphoneEnabled,
-                activeThumbColor: const Color(0xFFBE1E1E),
+                activeThumbColor: AppColors.militantRed,
                 activeTrackColor: const Color(
                   0xFFBE1E1E,
                 ).withValues(alpha: 0.5),
@@ -1980,7 +1981,7 @@ class _LiveScreenState extends State<LiveScreen> {
                 child: FilledButton(
                   onPressed: _isConnecting ? null : _startAsCreator,
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFFBE1E1E),
+                    backgroundColor: AppColors.militantRed,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -2417,7 +2418,7 @@ class _LiveScreenState extends State<LiveScreen> {
                     child: FilledButton(
                       onPressed: () => Navigator.of(sheetContext).pop(true),
                       style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFFBE1E1E),
+                        backgroundColor: AppColors.militantRed,
                       ),
                       child: Text(translate('live_report_submit')),
                     ),
@@ -2849,7 +2850,7 @@ class _LiveScreenState extends State<LiveScreen> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFBE1E1E),
+                  color: AppColors.militantRed,
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
@@ -3009,7 +3010,7 @@ class _LiveScreenState extends State<LiveScreen> {
                   IconButton(
                     tooltip: LanguageService.instance.translate('send'),
                     style: IconButton.styleFrom(
-                      backgroundColor: const Color(0xFFBE1E1E),
+                      backgroundColor: AppColors.militantRed,
                       foregroundColor: Colors.white,
                     ),
                     onPressed: (_isSendingChat || isChatBlocked)
@@ -3218,7 +3219,7 @@ class _LiveScreenState extends State<LiveScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(18),
-        borderSide: const BorderSide(color: Color(0xFFBE1E1E), width: 1.5),
+        borderSide: const BorderSide(color: AppColors.militantRed, width: 1.5),
       ),
       filled: true,
       fillColor: isDark
@@ -3264,7 +3265,7 @@ class _LiveScreenState extends State<LiveScreen> {
       tooltip: LanguageService.instance.translate('a11y_live_background'),
       onPressed: _isUpdatingLiveBackground ? null : _openLiveBackgroundSheet,
       style: IconButton.styleFrom(
-        backgroundColor: hasBackdrop ? const Color(0xFFBE1E1E) : Colors.black45,
+        backgroundColor: hasBackdrop ? AppColors.militantRed : Colors.black45,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.all(12),
       ),

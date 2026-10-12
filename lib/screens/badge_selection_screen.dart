@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../widgets/militant_badge.dart';
 import '../utils/error_helper.dart';
+import '../theme/app_colors.dart';
 
 class BadgeSelectionScreen extends StatefulWidget {
   const BadgeSelectionScreen({super.key});
@@ -148,7 +149,7 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
               onPressed: _saveBadge,
               child: Text(
                 lang.translate('save'),
-                style: const TextStyle(color: Color(0xFFBE1E1E)),
+                style: const TextStyle(color: AppColors.militantRed),
               ),
             ),
           if (_isSaving)
@@ -159,7 +160,7 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Color(0xFFBE1E1E),
+                  color: AppColors.militantRed,
                 ),
               ),
             ),
@@ -215,7 +216,7 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
           color: isSelected
-              ? const Color(0xFFBE1E1E).withOpacity(0.1)
+              ? AppColors.militantRed.withOpacity(0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
@@ -240,7 +241,7 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
                 name,
                 style: TextStyle(
                   color: isSelected
-                      ? const Color(0xFFBE1E1E)
+                      ? AppColors.militantRed
                       : (isDark ? Colors.white : Colors.black),
                   fontSize: 16,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -248,7 +249,7 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
               ),
             ),
             if (isSelected)
-              const Icon(Icons.check_circle, color: Color(0xFFBE1E1E)),
+              const Icon(Icons.check_circle, color: AppColors.militantRed),
           ],
         ),
       ),

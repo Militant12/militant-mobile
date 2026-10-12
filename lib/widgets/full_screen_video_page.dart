@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import '../services/language_service.dart';
+import '../theme/app_colors.dart';
 
 class FullScreenVideoPage extends StatefulWidget {
   final VideoPlayerController controller;
@@ -135,7 +136,7 @@ class _FullScreenVideoPageState extends State<FullScreenVideoPage> {
                         widget.controller,
                         allowScrubbing: true,
                         colors: const VideoProgressColors(
-                          playedColor: Color(0xFFBE1E1E),
+                          playedColor: AppColors.militantRed,
                           bufferedColor: Colors.white24,
                           backgroundColor: Colors.white10,
                         ),

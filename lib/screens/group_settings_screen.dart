@@ -9,6 +9,7 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import 'profile_screen.dart';
 import '../utils/error_helper.dart';
+import '../theme/app_colors.dart';
 
 class GroupSettingsScreen extends StatefulWidget {
   final int groupId;
@@ -181,7 +182,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                       height: 24,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Color(0xFFBE1E1E),
+                        color: AppColors.militantRed,
                       ),
                     ),
                   ),
@@ -204,8 +205,8 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                     height: 100,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
-                      border: Border.all(color: const Color(0xFFBE1E1E), width: 2),
+                      color: isDark ? AppColors.darkSurfaceHigh : Colors.white,
+                      border: Border.all(color: AppColors.militantRed, width: 2),
                     ),
                     child: ClipOval(
                       child: _newGroupImageFile != null
@@ -231,7 +232,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                         padding: const EdgeInsets.all(6),
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Color(0xFFBE1E1E),
+                          color: AppColors.militantRed,
                         ),
                         child: const Icon(
                           Icons.camera_alt,
@@ -247,7 +248,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
           ),
           const SizedBox(height: 24),
           Card(
-            color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
+            color: isDark ? AppColors.darkSurfaceHigh : Colors.white,
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -258,7 +259,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFFBE1E1E),
+                      color: AppColors.militantRed,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -280,7 +281,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
           ),
           const SizedBox(height: 16),
           Card(
-            color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
+            color: isDark ? AppColors.darkSurfaceHigh : Colors.white,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -291,7 +292,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFFBE1E1E),
+                      color: AppColors.militantRed,
                     ),
                   ),
                 ),
@@ -319,7 +320,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
           ),
           const SizedBox(height: 16),
           Card(
-            color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
+            color: isDark ? AppColors.darkSurfaceHigh : Colors.white,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -330,7 +331,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFFBE1E1E),
+                      color: AppColors.militantRed,
                     ),
                   ),
                 ),
@@ -349,7 +350,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                       context: context,
                       builder: (context) => SimpleDialog(
                         backgroundColor: isDark
-                            ? const Color(0xFF1E1E1E)
+                            ? AppColors.darkSurface
                             : Colors.white,
                         title: Text(lang.translate('deletion_delay')),
                         children: [
@@ -381,7 +382,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                       context: context,
                       builder: (context) => AlertDialog(
                         backgroundColor: isDark
-                            ? const Color(0xFF1E1E1E)
+                            ? AppColors.darkSurface
                             : Colors.white,
                         title: Text(lang.translate('confirm_question')),
                         content: Text(
@@ -396,7 +397,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                             onPressed: () => Navigator.pop(context, true),
                             child: Text(
                               lang.translate('confirm'),
-                              style: TextStyle(color: Color(0xFFBE1E1E)),
+                              style: TextStyle(color: AppColors.militantRed),
                             ),
                           ),
                         ],
@@ -433,7 +434,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
           ),
           const SizedBox(height: 16),
           Card(
-            color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
+            color: isDark ? AppColors.darkSurfaceHigh : Colors.white,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -447,7 +448,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFFBE1E1E),
+                          color: AppColors.militantRed,
                         ),
                       ),
                       Row(
@@ -456,7 +457,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                             tooltip: LanguageService.instance.translate('add_member'),
                             icon: const Icon(
                               Icons.person_add,
-                              color: Color(0xFFBE1E1E),
+                              color: AppColors.militantRed,
                             ),
                             onPressed: _showAddMemberDialog,
                           ),
@@ -497,7 +498,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                           : lang.translate('member'),
                       style: TextStyle(
                         color: isAdmin
-                            ? const Color(0xFFBE1E1E)
+                            ? AppColors.militantRed
                             : theme.hintColor,
                         fontWeight: isAdmin
                             ? FontWeight.bold
@@ -509,7 +510,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                             tooltip: LanguageService.instance.translate('remove_member'),
                             icon: const Icon(
                               Icons.remove_circle,
-                              color: Color(0xFFBE1E1E),
+                              color: AppColors.militantRed,
                             ),
                             onPressed: () =>
                                 _removeMember(m['user_id'], m['username']),
@@ -524,7 +525,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
           if (_requests.isNotEmpty) ...[
             const SizedBox(height: 16),
             Card(
-              color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
+              color: isDark ? AppColors.darkSurfaceHigh : Colors.white,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -538,7 +539,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFFBE1E1E),
+                            color: AppColors.militantRed,
                           ),
                         ),
                         Text(
@@ -584,7 +585,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                             tooltip: LanguageService.instance.translate('reject'),
                             icon: const Icon(
                               Icons.close,
-                              color: Color(0xFFBE1E1E),
+                              color: AppColors.militantRed,
                             ),
                             onPressed: () =>
                                 _handleRequest(r['request_id'], false),
@@ -600,13 +601,13 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
           ],
           const SizedBox(height: 16),
           Card(
-            color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
+            color: isDark ? AppColors.darkSurfaceHigh : Colors.white,
             child: ListTile(
-              leading: const Icon(Icons.exit_to_app, color: Color(0xFFBE1E1E)),
+              leading: const Icon(Icons.exit_to_app, color: AppColors.militantRed),
               title: Text(
                 lang.translate('leave_group_action'),
                 style: TextStyle(
-                  color: const Color(0xFFBE1E1E),
+                  color: AppColors.militantRed,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -671,7 +672,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
             builder: (context, setStateBuilder) {
               return AlertDialog(
                 backgroundColor: Theme.of(context).brightness == Brightness.dark
-                    ? const Color(0xFF1E1E1E)
+                    ? AppColors.darkSurface
                     : Colors.white,
                 title: Text(LanguageService.instance.translate('add_member')),
                 content: SizedBox(
@@ -826,7 +827,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF1E1E1E)
+            ? AppColors.darkSurface
             : Colors.white,
         title: Text(LanguageService.instance.translate('remove_member_question')),
         content: Text(
@@ -845,7 +846,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
             onPressed: () => Navigator.pop(context, true),
             child: Text(
               LanguageService.instance.translate('remove'),
-              style: TextStyle(color: Color(0xFFBE1E1E)),
+              style: TextStyle(color: AppColors.militantRed),
             ),
           ),
         ],
@@ -880,7 +881,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF1E1E1E)
+            ? AppColors.darkSurface
             : Colors.white,
         title: Text(LanguageService.instance.translate('leave_group_title')),
         content: Text(
@@ -895,7 +896,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
             onPressed: () => Navigator.pop(context, true),
             child: Text(
               LanguageService.instance.translate('leave'),
-              style: TextStyle(color: Color(0xFFBE1E1E)),
+              style: TextStyle(color: AppColors.militantRed),
             ),
           ),
         ],

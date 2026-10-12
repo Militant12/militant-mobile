@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'full_screen_video_page.dart';
 import '../services/language_service.dart';
+import '../theme/app_colors.dart';
 
 class VideoPlayerWidget extends StatefulWidget {
   final String videoUrl;
@@ -236,7 +237,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                         width: 64,
                         height: 64,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFBE1E1E).withOpacity(0.9),
+                          color: AppColors.militantRed.withOpacity(0.9),
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
@@ -300,7 +301,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                           width: 64,
                           height: 64,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFBE1E1E).withOpacity(0.7),
+                            color: AppColors.militantRed.withOpacity(0.7),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -343,7 +344,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                             _controller!,
                             allowScrubbing: true,
                             colors: const VideoProgressColors(
-                              playedColor: Color(0xFFBE1E1E),
+                              playedColor: AppColors.militantRed,
                               bufferedColor: Colors.white30,
                               backgroundColor: Colors.white12,
                             ),
@@ -433,7 +434,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const CircularProgressIndicator(
-                  color: Color(0xFFBE1E1E),
+                  color: AppColors.militantRed,
                   strokeWidth: 2,
                 ),
                 const SizedBox(height: 16),
@@ -499,7 +500,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFBE1E1E).withOpacity(0.9),
+                    color: AppColors.militantRed.withOpacity(0.9),
                     shape: BoxShape.circle,
                     boxShadow: const [
                       BoxShadow(
@@ -543,7 +544,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                 onPressed: _openInBrowser,
                 icon: const Icon(
                   Icons.video_library_outlined,
-                  color: Color(0xFFBE1E1E),
+                  color: AppColors.militantRed,
                   size: 40,
                 ),
               ),
@@ -557,7 +558,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                 onPressed: _openInBrowser,
                 icon: const Icon(Icons.open_in_new, size: 14),
                 label: Text(LanguageService.instance.translate('video_open')),
-                style: TextButton.styleFrom(foregroundColor: const Color(0xFFBE1E1E)),
+                style: TextButton.styleFrom(foregroundColor: AppColors.militantRed),
               ),
             ],
           ),

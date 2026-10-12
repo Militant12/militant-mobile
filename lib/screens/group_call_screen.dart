@@ -6,6 +6,7 @@ import '../services/api_service.dart';
 import '../services/group_call_service.dart';
 import '../services/language_service.dart';
 import '../utils/error_helper.dart';
+import '../theme/app_colors.dart';
 
 class GroupCallScreen extends StatefulWidget {
   final String? callId;
@@ -455,7 +456,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
   Widget _buildAudioParticipantTile(_AudioParticipant participant) {
     final isConnected = participant.status == 'joined';
     final borderColor = participant.isSpeaking
-        ? const Color(0xFF35D07F)
+        ? AppColors.success
         : Colors.white24;
 
     return AnimatedContainer(
@@ -472,7 +473,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
         boxShadow: participant.isSpeaking
             ? [
                 BoxShadow(
-                  color: const Color(0xFF35D07F).withValues(alpha: 0.32),
+                  color: AppColors.success.withValues(alpha: 0.32),
                   blurRadius: 18,
                   spreadRadius: 1,
                 ),
@@ -520,7 +521,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
                   right: -4,
                   bottom: -4,
                   child: _AudioStatusDot(
-                    color: Color(0xFF35D07F),
+                    color: AppColors.success,
                     icon: Icons.graphic_eq,
                   ),
                 ),
@@ -809,7 +810,7 @@ class _SpeakingBar extends StatelessWidget {
       width: 4,
       height: height,
       decoration: BoxDecoration(
-        color: const Color(0xFF35D07F),
+        color: AppColors.success,
         borderRadius: BorderRadius.circular(999),
       ),
     );

@@ -18,6 +18,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../utils/error_helper.dart';
+import '../theme/app_colors.dart';
 
 class GroupDetailScreen extends StatefulWidget {
   final dynamic group;
@@ -149,7 +150,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
           context: context,
           builder: (context) => AlertDialog(
             backgroundColor: Theme.of(context).brightness == Brightness.dark
-                ? const Color(0xFF1E1E1E)
+                ? AppColors.darkSurface
                 : Colors.white,
             title: Text(lang.translate('join_private_group_title')),
             content: Text(lang.translate('join_private_group_message')),
@@ -162,7 +163,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                 onPressed: () => Navigator.pop(context, true),
                 child: Text(
                   lang.translate('send_request'),
-                  style: const TextStyle(color: Color(0xFFBE1E1E)),
+                  style: const TextStyle(color: AppColors.militantRed),
                 ),
               ),
             ],
@@ -207,7 +208,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF1E1E1E)
+            ? AppColors.darkSurface
             : Colors.white,
         title: Text(lang.translate('leave_group_title')),
         content: Text(lang.translate('leave_group_confirm')),
@@ -220,7 +221,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
             onPressed: () => Navigator.pop(context, true),
             child: Text(
               lang.translate('leave'),
-              style: const TextStyle(color: Color(0xFFBE1E1E)),
+              style: const TextStyle(color: AppColors.militantRed),
             ),
           ),
         ],
@@ -502,7 +503,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFBE1E1E),
+                backgroundColor: AppColors.militantRed,
                 foregroundColor: Colors.white,
               ),
               child: Text(lang.translate('save')),
@@ -591,7 +592,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                               child: Container(
                                 padding: const EdgeInsets.all(4),
                                 decoration: const BoxDecoration(
-                                  color: Color(0xFFBE1E1E),
+                                  color: AppColors.militantRed,
                                   shape: BoxShape.circle,
                                 ),
                                 constraints: const BoxConstraints(
@@ -748,7 +749,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                                   : (_groupData!['has_pending_request'] ==
                                             'pending'
                                         ? Colors.orange
-                                        : const Color(0xFFBE1E1E)),
+                                        : AppColors.militantRed),
                               foregroundColor: isMember
                                   ? (isDark ? Colors.white70 : Colors.black87)
                                   : Colors.white,
@@ -968,13 +969,13 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFBE1E1E).withOpacity(0.1),
+                  color: AppColors.militantRed.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.arrow_forward_ios_rounded,
                   size: 14,
-                  color: Color(0xFFBE1E1E),
+                  color: AppColors.militantRed,
                 ),
               ),
             ],
@@ -1024,6 +1025,6 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
         errorBuilder: (_, __, ___) => Container(color: Colors.grey[900]),
       );
     }
-    return Container(color: const Color(0xFFBE1E1E).withOpacity(0.5));
+    return Container(color: AppColors.militantRed.withOpacity(0.5));
   }
 }

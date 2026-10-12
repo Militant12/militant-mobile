@@ -5,6 +5,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../utils/error_helper.dart';
+import '../theme/app_colors.dart';
 
 class TwoFactorSettingsScreen extends StatefulWidget {
   const TwoFactorSettingsScreen({super.key});
@@ -295,7 +296,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                         labelText: lang.translate('six_digit_code'),
                         border: const OutlineInputBorder(),
                         focusedBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFFBE1E1E)),
+                          borderSide: BorderSide(color: AppColors.militantRed),
                         ),
                       ),
                       keyboardType: TextInputType.number,
@@ -307,7 +308,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                       child: ElevatedButton(
                         onPressed: _enable,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFBE1E1E),
+                          backgroundColor: AppColors.militantRed,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),

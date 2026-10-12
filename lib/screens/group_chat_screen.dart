@@ -22,6 +22,7 @@ import '../widgets/incoming_call_banner.dart';
 import '../widgets/signal_typing_indicator.dart';
 import '../utils/error_helper.dart';
 import '../widgets/common/common.dart';
+import '../theme/app_colors.dart';
 
 const String _groupCallMessagePrefix = '__militant_group_call__:';
 const Duration _groupChatPollInterval = Duration(seconds: 10);
@@ -284,7 +285,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: theme.brightness == Brightness.dark
-          ? const Color(0xFF1E1E1E)
+          ? AppColors.darkSurface
           : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -330,7 +331,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     height: 160,
                     decoration: BoxDecoration(
                       color: theme.brightness == Brightness.dark
-                          ? const Color(0xFF121212)
+                          ? AppColors.darkBackground
                           : Colors.grey[200],
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.grey.withOpacity(0.3)),
@@ -367,7 +368,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   // Select button
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFBE1E1E),
+                      backgroundColor: AppColors.militantRed,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
@@ -386,7 +387,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     const SizedBox(height: 8),
                     TextButton.icon(
                       style: TextButton.styleFrom(
-                        foregroundColor: const Color(0xFFBE1E1E),
+                        foregroundColor: AppColors.militantRed,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       icon: const Icon(Icons.delete),
@@ -674,7 +675,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                             _groupDetails!['auto_delete_time'].toString(),
                           ),
                       style: const TextStyle(
-                        color: Color(0xFFBE1E1E),
+                        color: AppColors.militantRed,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
@@ -1134,8 +1135,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     // Debug skipped
 
     final bubbleColor = isMine
-        ? const Color(0xFFBE1E1E)
-        : (isDark ? const Color(0xFF2A2A2A) : Colors.grey[300]);
+        ? AppColors.militantRed
+        : (isDark ? AppColors.darkSurfaceHigh : Colors.grey[300]);
 
     final textColor = isMine
         ? Colors.white
@@ -1201,7 +1202,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                           left: BorderSide(
                             color: isMine
                                 ? Colors.white70
-                                : const Color(0xFFBE1E1E),
+                                : AppColors.militantRed,
                             width: 3,
                           ),
                         ),
@@ -1361,14 +1362,14 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                                 color: isSelected
                                     ? (isMine
                                           ? Colors.white
-                                          : const Color(0xFFFFE5E5))
+                                          : AppColors.militantRedLight)
                                     : (isMine
                                           ? Colors.white.withOpacity(0.16)
                                           : Colors.black.withOpacity(0.08)),
                                 borderRadius: BorderRadius.circular(999),
                                 border: Border.all(
                                   color: isSelected
-                                      ? const Color(0xFFBE1E1E)
+                                      ? AppColors.militantRed
                                       : Colors.transparent,
                                 ),
                               ),
@@ -1376,7 +1377,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                                 '${_reactionEmoji(entry.key)} ${entry.value}',
                                 style: TextStyle(
                                   color: isSelected
-                                      ? const Color(0xFFBE1E1E)
+                                      ? AppColors.militantRed
                                       : textColor,
                                   fontSize: 12,
                                   fontWeight: isSelected
@@ -1475,7 +1476,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
               label: Text(LanguageService.instance.translate('join')),
               style: FilledButton.styleFrom(
                 backgroundColor: Colors.white,
-                foregroundColor: const Color(0xFFBE1E1E),
+                foregroundColor: AppColors.militantRed,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 14,
                   vertical: 10,
@@ -1717,7 +1718,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     width: 3,
                     height: 34,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFBE1E1E),
+                      color: AppColors.militantRed,
                       borderRadius: BorderRadius.circular(99),
                     ),
                   ),
@@ -1768,7 +1769,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             children: [
               IconButton(
                 tooltip: LanguageService.instance.translate('a11y_attach'),
-                icon: const Icon(Icons.attach_file, color: Color(0xFFBE1E1E)),
+                icon: const Icon(Icons.attach_file, color: AppColors.militantRed),
                 onPressed: _pickMedia,
               ),
               Expanded(

@@ -6,6 +6,7 @@ import '../services/language_service.dart';
 import 'post_detail_screen.dart';
 import '../utils/error_helper.dart';
 import '../widgets/common/common.dart';
+import '../theme/app_colors.dart';
 
 class ModerationScreen extends StatefulWidget {
   const ModerationScreen({super.key});
@@ -463,10 +464,10 @@ class _ModerationScreenState extends State<ModerationScreen>
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFDAA520).withValues(alpha: 0.1),
+                  color: AppColors.gold.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: const Color(0xFFDAA520).withValues(alpha: 0.3),
+                    color: AppColors.gold.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Column(
@@ -477,13 +478,13 @@ class _ModerationScreenState extends State<ModerationScreen>
                         const Icon(
                           Icons.shield,
                           size: 16,
-                          color: Color(0xFFDAA520),
+                          color: AppColors.gold,
                         ),
                         const SizedBox(width: 6),
                         Text(
                           lang.translate('mod_action_title'),
                           style: const TextStyle(
-                            color: Color(0xFFDAA520),
+                            color: AppColors.gold,
                             fontWeight: FontWeight.bold,
                             fontSize: 13,
                           ),

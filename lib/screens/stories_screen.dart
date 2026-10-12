@@ -5,6 +5,7 @@ import 'package:video_player/video_player.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
+import '../theme/app_colors.dart';
 
 class StoriesScreen extends StatefulWidget {
   final List<dynamic> stories;
@@ -206,12 +207,12 @@ class _StoriesScreenState extends State<StoriesScreen> {
                           return CircleAvatar(
                             radius: 20,
                             backgroundImage: CachedNetworkImageProvider(snapshot.data!),
-                            backgroundColor: const Color(0xFFBE1E1E),
+                            backgroundColor: AppColors.militantRed,
                           );
                         }
                         return CircleAvatar(
                           radius: 20,
-                          backgroundColor: const Color(0xFFBE1E1E),
+                          backgroundColor: AppColors.militantRed,
                           child: Text(
                             username[0].toUpperCase(),
                             style: const TextStyle(color: Colors.white),
@@ -289,9 +290,9 @@ class _StoriesScreenState extends State<StoriesScreen> {
   Widget _buildMediaWidget(String media, bool isActive) {
     if (media.isEmpty) {
       return Container(
-        color: const Color(0xFF1E1E1E),
+        color: AppColors.darkSurface,
         child: const Center(
-          child: Icon(Icons.image, size: 64, color: Color(0xFF888888)),
+          child: Icon(Icons.image, size: 64, color: AppColors.grey888),
         ),
       );
     }
@@ -318,12 +319,12 @@ class _StoriesScreenState extends State<StoriesScreen> {
           image: CachedNetworkImageProvider(url),
           fit: BoxFit.contain,
           errorBuilder: (_, __, ___) => Container(
-            color: const Color(0xFF1E1E1E),
+            color: AppColors.darkSurface,
             child: const Center(
               child: Icon(
                 Icons.broken_image,
                 size: 64,
-                color: Color(0xFF888888),
+                color: AppColors.grey888,
               ),
             ),
           ),

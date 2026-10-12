@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../utils/error_helper.dart';
+import '../theme/app_colors.dart';
 
 class CreatePageScreen extends StatefulWidget {
   const CreatePageScreen({super.key});
@@ -74,9 +75,9 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
     final categories = _getCategories();
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : Colors.grey[50],
+      backgroundColor: isDark ? AppColors.darkBackground : Colors.grey[50],
       appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
         title: Text(
           lang.translate('create_page_title'),
           style: TextStyle(color: isDark ? Colors.white : Colors.black),
@@ -93,12 +94,12 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFBE1E1E).withOpacity(0.1),
+                  color: AppColors.militantRed.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.flag,
-                  color: Color(0xFFBE1E1E),
+                  color: AppColors.militantRed,
                   size: 40,
                 ),
               ),
@@ -108,7 +109,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
               child: Text(
                 lang.translate('create_page_for_cause'),
                 style: TextStyle(
-                  color: isDark ? const Color(0xFF888888) : Colors.grey[600],
+                  color: isDark ? AppColors.grey888 : Colors.grey[600],
                   fontSize: 14,
                 ),
               ),
@@ -133,7 +134,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
                   color: isDark ? Colors.white38 : Colors.grey,
                 ),
                 filled: true,
-                fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                fillColor: isDark ? AppColors.darkSurface : Colors.white,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide.none,
@@ -185,9 +186,9 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
                     ],
                   ),
                   backgroundColor: isDark
-                      ? const Color(0xFF2A2A2A)
+                      ? AppColors.darkSurfaceHigh
                       : Colors.grey[100],
-                  selectedColor: const Color(0xFFBE1E1E),
+                  selectedColor: AppColors.militantRed,
                   checkmarkColor: Colors.white,
                   onSelected: (selected) {
                     setState(
@@ -220,7 +221,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
                   color: isDark ? Colors.white38 : Colors.grey,
                 ),
                 filled: true,
-                fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                fillColor: isDark ? AppColors.darkSurface : Colors.white,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide.none,
@@ -246,7 +247,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
                     : const Icon(Icons.add),
                 label: Text(_isLoading ? lang.translate('creating') : lang.translate('create_page_button')),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFBE1E1E),
+                  backgroundColor: AppColors.militantRed,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(

@@ -6,6 +6,7 @@ import '../screens/stories_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../utils/error_helper.dart';
+import '../theme/app_colors.dart';
 
 class ProfileStories extends StatefulWidget {
   final int userId;
@@ -57,7 +58,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
           SnackBar(
             content: Text(lang.translate('stories_uploading')),
             duration: const Duration(seconds: 2),
-            backgroundColor: const Color(0xFFBE1E1E),
+            backgroundColor: AppColors.militantRed,
           ),
         );
       }
@@ -108,7 +109,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
         height: 100,
         child: Center(
           child: CircularProgressIndicator(
-            color: Color(0xFFBE1E1E),
+            color: AppColors.militantRed,
             strokeWidth: 2,
           ),
         ),
@@ -137,12 +138,12 @@ class _ProfileStoriesState extends State<ProfileStories> {
                 height: 70,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFFBE1E1E), width: 2),
-                  color: isDark ? const Color(0xFF1E1E1E) : Colors.grey[100],
+                  border: Border.all(color: AppColors.militantRed, width: 2),
+                  color: isDark ? AppColors.darkSurface : Colors.grey[100],
                 ),
                 child: const Icon(
                   Icons.add,
-                  color: Color(0xFFBE1E1E),
+                  color: AppColors.militantRed,
                   size: 30,
                 ),
               ),
@@ -210,7 +211,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: const Color(0xFFBE1E1E),
+                      color: AppColors.militantRed,
                       width: 3,
                     ),
                   ),
@@ -222,7 +223,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
                         if (!snapshot.hasData) {
                           return Container(
                             color: isDark
-                                ? const Color(0xFF1E1E1E)
+                                ? AppColors.darkSurface
                                 : Colors.grey[100],
                           );
                         }
@@ -231,7 +232,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => Container(
                             color: isDark
-                                ? const Color(0xFF1E1E1E)
+                                ? AppColors.darkSurface
                                 : Colors.grey[100],
                           ),
                         );
@@ -264,7 +265,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFBE1E1E),
+                        color: AppColors.militantRed,
                         shape: BoxShape.circle,
                         border: Border.all(color: context.colors.surface, width: 2),
                       ),

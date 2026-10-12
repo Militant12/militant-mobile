@@ -11,6 +11,7 @@ import './badge_selection_screen.dart';
 import './two_factor_settings_screen.dart';
 import './edit_profile_screen.dart';
 import '../utils/error_helper.dart';
+import '../theme/app_colors.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -233,7 +234,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final dividerColor = isDark ? Colors.white10 : Colors.black12;
-    final subtitleColor = isDark ? const Color(0xFF888888) : Colors.grey[700];
+    final subtitleColor = isDark ? AppColors.grey888 : Colors.grey[700];
     final titleColor = theme.textTheme.bodyLarge?.color;
 
     return InkWell(
@@ -245,7 +246,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         child: Row(
           children: [
-            Icon(icon, color: const Color(0xFFBE1E1E)),
+            Icon(icon, color: AppColors.militantRed),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -293,10 +294,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               leading: Icon(
                 Icons.dark_mode,
-                color: isDark ? const Color(0xFFBE1E1E) : onSurface,
+                color: isDark ? AppColors.militantRed : onSurface,
               ),
               trailing: isDark
-                  ? const Icon(Icons.check, color: Color(0xFFBE1E1E))
+                  ? const Icon(Icons.check, color: AppColors.militantRed)
                   : null,
               onTap: () {
                 Navigator.pop(context);
@@ -310,10 +311,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               leading: Icon(
                 Icons.light_mode,
-                color: !isDark ? const Color(0xFFBE1E1E) : onSurface,
+                color: !isDark ? AppColors.militantRed : onSurface,
               ),
               trailing: !isDark
-                  ? const Icon(Icons.check, color: Color(0xFFBE1E1E))
+                  ? const Icon(Icons.check, color: AppColors.militantRed)
                   : null,
               onTap: () {
                 Navigator.pop(context);
@@ -361,7 +362,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
       trailing: isSelected
-          ? const Icon(Icons.check, color: Color(0xFFBE1E1E))
+          ? const Icon(Icons.check, color: AppColors.militantRed)
           : null,
       onTap: () {
         Navigator.pop(context);
@@ -382,7 +383,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       applicationIcon: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[100],
+          color: isDark ? AppColors.darkSurfaceHigh : Colors.grey[100],
           borderRadius: BorderRadius.circular(16),
         ),
         child: SvgPicture.asset('assets/logo.svg', width: 60, height: 60),
@@ -417,7 +418,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               icon: const Icon(Icons.language, size: 18),
               label: Text(lang.translate('view_website')),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFBE1E1E),
+                backgroundColor: AppColors.militantRed,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 textStyle: const TextStyle(fontSize: 12),
@@ -456,7 +457,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           backgroundColor: theme.scaffoldBackgroundColor,
           title: Text(
             lang.translate('delete_account_title'),
-            style: const TextStyle(color: Color(0xFFBE1E1E)),
+            style: const TextStyle(color: AppColors.militantRed),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -478,7 +479,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   labelText: lang.translate('enter_password_to_delete'),
                   labelStyle: const TextStyle(color: Colors.grey),
                   focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFFBE1E1E)),
+                    borderSide: BorderSide(color: AppColors.militantRed),
                   ),
                 ),
               ),
@@ -533,12 +534,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Color(0xFFBE1E1E),
+                        color: AppColors.militantRed,
                       ),
                     )
                   : Text(
                       lang.translate('delete_account_confirm'),
-                      style: const TextStyle(color: Color(0xFFBE1E1E)),
+                      style: const TextStyle(color: AppColors.militantRed),
                     ),
             ),
           ],
@@ -629,7 +630,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     borderSide: BorderSide(color: borderColor),
                   ),
                   focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFFBE1E1E)),
+                    borderSide: BorderSide(color: AppColors.militantRed),
                   ),
                 ),
                 validator: (v) =>
@@ -647,7 +648,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     borderSide: BorderSide(color: borderColor),
                   ),
                   focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFFBE1E1E)),
+                    borderSide: BorderSide(color: AppColors.militantRed),
                   ),
                 ),
                 validator: (v) => v!.length < 8
@@ -666,7 +667,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     borderSide: BorderSide(color: borderColor),
                   ),
                   focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFFBE1E1E)),
+                    borderSide: BorderSide(color: AppColors.militantRed),
                   ),
                 ),
                 validator: (v) => v != _newPasswordController.text
@@ -677,7 +678,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               ElevatedButton(
                 onPressed: _isLoading ? null : _changePassword,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFBE1E1E),
+                  backgroundColor: AppColors.militantRed,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
@@ -969,7 +970,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               style: const TextStyle(fontSize: 12),
                             ),
                             value: PushProvider.ntfy,
-                            activeColor: const Color(0xFFBE1E1E),
+                            activeColor: AppColors.militantRed,
                             groupValue: _pushProvider,
                             onChanged: _isUpdatingPushProvider
                                 ? null
@@ -996,7 +997,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               style: const TextStyle(fontSize: 12),
                             ),
                             value: PushProvider.onesignal,
-                            activeColor: const Color(0xFFBE1E1E),
+                            activeColor: AppColors.militantRed,
                             groupValue: _pushProvider,
                             onChanged: _isUpdatingPushProvider
                                 ? null
@@ -1021,7 +1022,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               style: const TextStyle(fontSize: 12),
                             ),
                             value: PushProvider.both,
-                            activeColor: const Color(0xFFBE1E1E),
+                            activeColor: AppColors.militantRed,
                             groupValue: _pushProvider,
                             onChanged: _isUpdatingPushProvider
                                 ? null
@@ -1078,7 +1079,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 ListTile(
                   leading: const Icon(
                     Icons.send_to_mobile,
-                    color: Color(0xFFBE1E1E),
+                    color: AppColors.militantRed,
                   ),
                   title: Text(lang.translate('test_notifications')),
                   subtitle: Text(lang.translate('test_notifications_desc')),
@@ -1136,7 +1137,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       child: Text(
         title.toUpperCase(),
         style: const TextStyle(
-          color: Color(0xFFBE1E1E),
+          color: AppColors.militantRed,
           fontSize: 12,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.0,
@@ -1157,7 +1158,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return SwitchListTile(
       value: value,
       onChanged: onChanged,
-      activeThumbColor: const Color(0xFFBE1E1E),
+      activeThumbColor: AppColors.militantRed,
       tileColor: theme.scaffoldBackgroundColor, // Seamless with background
       title: Text(
         title,
@@ -1310,7 +1311,7 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
     return SwitchListTile(
       value: value,
       onChanged: onChanged,
-      activeThumbColor: const Color(0xFFBE1E1E),
+      activeThumbColor: AppColors.militantRed,
       tileColor: theme.scaffoldBackgroundColor,
       title: Text(
         title,

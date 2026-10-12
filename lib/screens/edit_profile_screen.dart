@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
 import '../utils/error_helper.dart';
+import '../theme/app_colors.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -166,13 +167,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Color(0xFFBE1E1E),
+                        color: AppColors.militantRed,
                       ),
                     )
                   : Text(
                       lang.translate('save_button'),
                       style: const TextStyle(
-                        color: Color(0xFFBE1E1E),
+                        color: AppColors.militantRed,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -193,7 +194,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         CircleAvatar(
                           radius: 60,
                           backgroundColor: isDark
-                              ? const Color(0xFF2A2A2A)
+                              ? AppColors.darkSurfaceHigh
                               : Colors.grey[200],
                           backgroundImage: _avatarFile != null
                               ? FileImage(_avatarFile!)
@@ -213,7 +214,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           right: 0,
                           child: CircleAvatar(
                             radius: 20,
-                            backgroundColor: const Color(0xFFBE1E1E),
+                            backgroundColor: AppColors.militantRed,
                             child: IconButton(
                               tooltip: LanguageService.instance.translate('change_avatar'),
                               icon: const Icon(
@@ -246,7 +247,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         borderSide: BorderSide(color: borderColor),
                       ),
                       focusedBorder: const OutlineInputBorder(
-                        borderSide: BorderSide(color: Color(0xFFBE1E1E)),
+                        borderSide: BorderSide(color: AppColors.militantRed),
                       ),
                     ),
                   ),
@@ -263,7 +264,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         borderSide: BorderSide(color: borderColor),
                       ),
                       focusedBorder: const UnderlineInputBorder(
-                        borderSide: BorderSide(color: Color(0xFFBE1E1E)),
+                        borderSide: BorderSide(color: AppColors.militantRed),
                       ),
                     ),
                   ),
@@ -337,7 +338,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Text(
       title.toUpperCase(),
       style: const TextStyle(
-        color: Color(0xFFBE1E1E),
+        color: AppColors.militantRed,
         fontSize: 12,
         fontWeight: FontWeight.bold,
         letterSpacing: 1.0,
@@ -368,7 +369,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             borderSide: BorderSide(color: borderColor),
           ),
           focusedBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(color: Color(0xFFBE1E1E)),
+            borderSide: BorderSide(color: AppColors.militantRed),
           ),
         ),
       ),

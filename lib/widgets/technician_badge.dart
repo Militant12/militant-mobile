@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/language_service.dart';
+import '../theme/app_colors.dart';
 
 class TechnicianBadge extends StatelessWidget {
   final double size;
@@ -16,13 +17,13 @@ class TechnicianBadge extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: const LinearGradient(
-            colors: [Color(0xFFBE1E1E), Color(0xFFFF4C4C)],
+            colors: [AppColors.militantRed, Color(0xFFFF4C4C)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFBE1E1E).withOpacity(0.4),
+              color: AppColors.militantRed.withOpacity(0.4),
               blurRadius: size * 0.2,
               spreadRadius: 0.5,
             ),

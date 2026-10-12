@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import 'home_screen.dart';
 import '../utils/error_helper.dart';
+import '../theme/app_colors.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -70,7 +71,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       ),
       trailing: isSelected
-          ? const Icon(Icons.check, color: Color(0xFFBE1E1E))
+          ? const Icon(Icons.check, color: AppColors.militantRed)
           : null,
       onTap: () {
         Navigator.pop(context);
@@ -189,10 +190,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 alignment: Alignment.topRight,
                 child: TextButton.icon(
                   onPressed: () => _showLanguageDialog(context),
-                  icon: const Icon(Icons.language, color: Color(0xFFBE1E1E)),
+                  icon: const Icon(Icons.language, color: AppColors.militantRed),
                   label: Text(
                     lang.translate('language_title'),
-                    style: const TextStyle(color: Color(0xFFBE1E1E)),
+                    style: const TextStyle(color: AppColors.militantRed),
                   ),
                 ),
               ),
@@ -217,7 +218,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Text(
                 lang.translate('join_community'),
                 style: TextStyle(
-                  color: isDark ? const Color(0xFFAAAAAA) : Colors.grey[600],
+                  color: isDark ? AppColors.greyAAA : Colors.grey[600],
                   fontSize: 14,
                 ),
               ),
@@ -271,7 +272,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // Champ cause
               Container(
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[200],
+                  color: isDark ? AppColors.darkSurfaceHigh : Colors.grey[200],
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: DropdownButtonFormField<String>(
@@ -280,13 +281,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     labelText: lang.translate('your_main_cause'),
                     labelStyle: TextStyle(
                       color: isDark
-                          ? const Color(0xFF888888)
+                          ? AppColors.grey888
                           : Colors.grey[600],
                     ),
                     prefixIcon: Icon(
                       Icons.flag,
                       color: isDark
-                          ? const Color(0xFF888888)
+                          ? AppColors.grey888
                           : Colors.grey[600],
                     ),
                     filled: true,
@@ -301,11 +302,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFBE1E1E)),
+                      borderSide: const BorderSide(color: AppColors.militantRed),
                     ),
                   ),
                   dropdownColor: isDark
-                      ? const Color(0xFF2A2A2A)
+                      ? AppColors.darkSurfaceHigh
                       : Colors.white,
                   style: TextStyle(color: theme.textTheme.bodyLarge?.color),
                   items: _causes.map((cause) {
@@ -347,7 +348,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : () => _register(),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFBE1E1E),
+                    backgroundColor: AppColors.militantRed,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
@@ -382,7 +383,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     '${lang.translate('login_link').split('?')[0]}? ',
                     style: TextStyle(
                       color: isDark
-                          ? const Color(0xFFAAAAAA)
+                          ? AppColors.greyAAA
                           : Colors.grey[600],
                     ),
                   ),
@@ -396,7 +397,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: Text(
                       lang.translate('login_button'),
                       style: const TextStyle(
-                        color: Color(0xFFBE1E1E),
+                        color: AppColors.militantRed,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -428,14 +429,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(
-          color: isDark ? const Color(0xFF888888) : Colors.grey[600],
+          color: isDark ? AppColors.grey888 : Colors.grey[600],
         ),
         prefixIcon: Icon(
           icon,
-          color: isDark ? const Color(0xFF888888) : Colors.grey[600],
+          color: isDark ? AppColors.grey888 : Colors.grey[600],
         ),
         filled: true,
-        fillColor: isDark ? const Color(0xFF2A2A2A) : Colors.grey[200],
+        fillColor: isDark ? AppColors.darkSurfaceHigh : Colors.grey[200],
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -446,7 +447,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFBE1E1E)),
+          borderSide: const BorderSide(color: AppColors.militantRed),
         ),
       ),
     );
