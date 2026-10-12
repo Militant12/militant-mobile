@@ -4,6 +4,7 @@ import '../widgets/common/common.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import 'profile_screen.dart';
@@ -132,8 +133,8 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
   Widget _buildAvatarPreview() {
     final avatarUrl = _api?.getImageUrl(_groupAvatar);
     if (avatarUrl != null) {
-      return Image.network(
-        avatarUrl,
+      return Image(
+        image: CachedNetworkImageProvider(avatarUrl),
         width: 100,
         height: 100,
         fit: BoxFit.cover,

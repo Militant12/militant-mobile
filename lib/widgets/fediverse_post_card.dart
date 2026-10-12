@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'common/app_avatar.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../models/fediverse_post.dart';
 import '../services/api_service.dart';
@@ -102,8 +103,8 @@ class FediversePostCard extends StatelessWidget {
               else
                 ClipRRect(
                   borderRadius: BorderRadius.circular(14),
-                  child: Image.network(
-                    post.mediaUrl!,
+                  child: Image(
+                    image: CachedNetworkImageProvider(post.mediaUrl!),
                     width: double.infinity,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {

@@ -9,6 +9,7 @@ import 'linkable_text.dart';
 import 'militant_badge.dart';
 import 'technician_badge.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../theme/app_tokens.dart';
 import '../theme/theme_context.dart';
 import '../utils/date_formatter.dart';
@@ -390,8 +391,8 @@ class _PostCardState extends State<PostCard> {
                 else
                   ClipRRect(
                     borderRadius: BorderRadius.circular(AppTokens.radius12),
-                    child: Image.network(
-                      _mediaUrl!,
+                    child: Image(
+                      image: CachedNetworkImageProvider(_mediaUrl!),
                       width: double.infinity,
                       fit: BoxFit.contain,
                       loadingBuilder: (context, child, loadingProgress) {

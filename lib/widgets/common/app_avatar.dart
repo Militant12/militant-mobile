@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../theme/theme_context.dart';
 
@@ -76,8 +77,8 @@ class AppAvatar extends StatelessWidget {
         placeholderBuilder: (context) => _fallback(context),
       );
     } else {
-      image = Image.network(
-        src,
+      image = Image(
+        image: CachedNetworkImageProvider(src),
         width: _size,
         height: _size,
         fit: BoxFit.cover,

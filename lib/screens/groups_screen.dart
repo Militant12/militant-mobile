@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../theme/theme_context.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import 'group_detail_screen.dart';
@@ -787,8 +788,8 @@ class _GroupsScreenState extends State<GroupsScreen>
         placeholderBuilder: (_) => const SkeletonBox(height: size, width: size),
       );
     } else if (url != null) {
-      image = Image.network(
-        url,
+      image = Image(
+        image: CachedNetworkImageProvider(url),
         width: size,
         height: size,
         fit: BoxFit.cover,

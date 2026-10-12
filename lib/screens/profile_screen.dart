@@ -22,6 +22,7 @@ import 'users_list_screen.dart';
 import 'friends_screen.dart';
 import '../services/language_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../widgets/linkable_text.dart';
 import 'chat_screen.dart';
 import '../utils/error_helper.dart';
@@ -1394,8 +1395,8 @@ class ProfileScreenState extends State<ProfileScreen>
                                 size: 40,
                               ),
                             )
-                          : Image.network(
-                              imageUrl,
+                          : Image(
+                              image: CachedNetworkImageProvider(imageUrl),
                               fit: BoxFit.cover,
                               loadingBuilder:
                                   (context, child, loadingProgress) {

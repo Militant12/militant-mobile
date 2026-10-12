@@ -16,6 +16,7 @@ import 'group_invite_screen.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../utils/error_helper.dart';
 
 class GroupDetailScreen extends StatefulWidget {
@@ -338,8 +339,8 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                                           ?.isNotEmpty ??
                                       false))
                               ? ClipOval(
-                                  child: Image.network(
-                                    _api!.getImageUrl(_groupData!['avatar'])!,
+                                  child: Image(
+                                    image: CachedNetworkImageProvider(_api!.getImageUrl(_groupData!['avatar'])!),
                                     width: 80,
                                     height: 80,
                                     fit: BoxFit.cover,
@@ -398,7 +399,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                                     .toString()
                                     .isNotEmpty)
                           ? DecorationImage(
-                              image: NetworkImage(
+                              image: CachedNetworkImageProvider(
                                 _api!.getImageUrl(_groupData!['cover_image'])!,
                               ),
                               fit: BoxFit.cover,
@@ -1000,8 +1001,8 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     final coverUrl = _api?.getImageUrl(coverImage);
 
     if (coverUrl != null && coverUrl.isNotEmpty) {
-      return Image.network(
-        coverUrl,
+      return Image(
+        image: CachedNetworkImageProvider(coverUrl),
         fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => Container(color: Colors.grey[900]),
       );
@@ -1017,8 +1018,8 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
           placeholderBuilder: (_) => Container(color: Colors.grey[900]),
         );
       }
-      return Image.network(
-        url,
+      return Image(
+        image: CachedNetworkImageProvider(url),
         fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => Container(color: Colors.grey[900]),
       );

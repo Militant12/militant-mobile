@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../screens/stories_screen.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../utils/error_helper.dart';
 
 class ProfileStories extends StatefulWidget {
@@ -225,8 +226,8 @@ class _ProfileStoriesState extends State<ProfileStories> {
                                 : Colors.grey[100],
                           );
                         }
-                        return Image.network(
-                          snapshot.data!,
+                        return Image(
+                          image: CachedNetworkImageProvider(snapshot.data!),
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => Container(
                             color: isDark

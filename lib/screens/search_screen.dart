@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../theme/theme_context.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
@@ -269,8 +270,8 @@ class _SearchScreenState extends State<SearchScreen> {
                     if (mediaUrl == null) return const SizedBox.shrink();
                     return ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        mediaUrl,
+                      child: Image(
+                        image: CachedNetworkImageProvider(mediaUrl),
                         width: double.infinity,
                         fit: BoxFit.cover,
                         loadingBuilder: (context, child, loadingProgress) {
@@ -298,8 +299,8 @@ class _SearchScreenState extends State<SearchScreen> {
                     if (imageUrl == null) return const SizedBox.shrink();
                     return ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        imageUrl,
+                      child: Image(
+                        image: CachedNetworkImageProvider(imageUrl),
                         width: double.infinity,
                         fit: BoxFit.cover,
                         loadingBuilder: (context, child, loadingProgress) {
