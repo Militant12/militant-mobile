@@ -859,24 +859,51 @@ class _PostCardState extends State<PostCard> {
     }
   }
 
+  /// Enregistre le post en affichant tout de suite la confirmation, avec
+  /// « Annuler ». L'API n'indique pas si un post est déjà enregistré, donc
+  /// le menu ne peut pas proposer « Retirer » : l'annulation se fait ici.
   Future<void> _savePost() async {
-    try {
-      final api = await ApiService.getInstance();
-      await api.bookmarkPost(widget.post.id);
+    final lang = LanguageService.instance;
+    final messenger = ScaffoldMessenger.of(context);
+    final postId = widget.post.id;
+    final Future<void> save = ApiService.getInstance().then(
+      (api) => api.bookmarkPost(postId),
+    );
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(lang.translate('bookmark_added')),
+        action: SnackBarAction(
+          label: lang.translate('undo'),
+          onPressed: () async {
+            try {
+              await save;
+            } catch (_) {
+              return; // L'erreur d'enregistrement est déjà affichée.
+            }
+            try {
+              final api = await ApiService.getInstance();
+              await api.removeBookmark(postId);
+              messenger.showSnackBar(
+                SnackBar(content: Text(lang.translate('bookmark_removed'))),
+              );
+            } catch (e) {
+              messenger.showSnackBar(
+                SnackBar(content: Text(getFriendlyErrorMessage(e))),
+              );
+            }
+          },
+        ),
+      ),
+    );
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(LanguageService.instance.translate('success')),
-          ),
-        );
-      }
+    try {
+      await save;
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
-      }
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
+        SnackBar(content: Text(getFriendlyErrorMessage(e))),
+      );
     }
   }
 
@@ -899,7 +926,7 @@ class _PostCardState extends State<PostCard> {
           maxLines: 5,
           style: TextStyle(color: theme.textTheme.bodyLarge?.color),
           decoration: InputDecoration(
-            hintText: lang.translate('whats_new'),
+            hintText: lang.translate('create_post_hint'),
             hintStyle: TextStyle(color: theme.textTheme.bodyMedium?.color),
             border: OutlineInputBorder(),
           ),
