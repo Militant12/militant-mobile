@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
 import '../utils/error_helper.dart';
+import '../services/language_service.dart';
 
 class AudioRecorderWidget extends StatefulWidget {
   final Function(File audioFile) onRecordingComplete;
@@ -116,6 +117,7 @@ class _AudioRecorderWidgetState extends State<AudioRecorderWidget> {
       child: Row(
         children: [
           IconButton(
+            tooltip: LanguageService.instance.translate('a11y_cancel_recording'),
             icon: const Icon(Icons.close, color: Colors.white),
             onPressed: () async {
               await _audioRecorder.stop();
@@ -142,6 +144,7 @@ class _AudioRecorderWidgetState extends State<AudioRecorderWidget> {
           ),
           const Spacer(),
           IconButton(
+            tooltip: LanguageService.instance.translate('send'),
             icon: const Icon(Icons.send, color: Color(0xFFBE1E1E)),
             onPressed: _stopRecording,
           ),

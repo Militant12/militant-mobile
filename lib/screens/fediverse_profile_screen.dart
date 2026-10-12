@@ -193,6 +193,7 @@ class _FediverseProfileScreenState extends State<FediverseProfileScreen> {
             title: Text(lang.translate('fediverse_title')),
             actions: [
               IconButton(
+                tooltip: LanguageService.instance.translate('refresh'),
                 onPressed: _loadProfile,
                 icon: const Icon(Icons.refresh),
               ),

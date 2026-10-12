@@ -3,6 +3,7 @@ import '../widgets/common/common.dart';
 import 'dart:async';
 import 'package:video_player/video_player.dart';
 import '../services/api_service.dart';
+import '../services/language_service.dart';
 
 class StoriesScreen extends StatefulWidget {
   final List<dynamic> stories;
@@ -241,6 +242,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
                       ),
                     ),
                     IconButton(
+                      tooltip: LanguageService.instance.translate('close'),
                       icon: const Icon(Icons.close, color: Colors.white),
                       onPressed: () => Navigator.pop(context),
                     ),

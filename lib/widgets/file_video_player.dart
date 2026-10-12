@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'common/common.dart';
 import 'package:video_player/video_player.dart';
 import 'full_screen_video_page.dart';
+import '../services/language_service.dart';
 
 class FileVideoPlayer extends StatefulWidget {
   final File file;
@@ -131,6 +132,7 @@ class _ControlsOverlay extends StatelessWidget {
           top: 0,
           right: 0,
           child: IconButton(
+            tooltip: LanguageService.instance.translate('a11y_fullscreen'),
             icon: const Icon(Icons.fullscreen, color: Colors.white),
             onPressed: onFullScreen,
           ),

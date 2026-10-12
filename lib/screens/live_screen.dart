@@ -2880,6 +2880,7 @@ class _LiveScreenState extends State<LiveScreen> {
                 ),
               ),
               IconButton.filledTonal(
+                tooltip: LanguageService.instance.translate('a11y_leave_live'),
                 onPressed: _disconnectRoom,
                 style: IconButton.styleFrom(
                   backgroundColor: Colors.black45,
@@ -2895,6 +2896,7 @@ class _LiveScreenState extends State<LiveScreen> {
             top: 86,
             left: 16,
             child: IconButton.filledTonal(
+              tooltip: LanguageService.instance.translate('live_tab_moderation'),
               onPressed: _openModerationSheet,
               style: IconButton.styleFrom(
                 backgroundColor: Colors.black45,
@@ -3004,6 +3006,7 @@ class _LiveScreenState extends State<LiveScreen> {
                   ),
                   const SizedBox(width: 6),
                   IconButton(
+                    tooltip: LanguageService.instance.translate('send'),
                     style: IconButton.styleFrom(
                       backgroundColor: const Color(0xFFBE1E1E),
                       foregroundColor: Colors.white,
@@ -3061,6 +3064,7 @@ class _LiveScreenState extends State<LiveScreen> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: IconButton.filledTonal(
+                    tooltip: LanguageService.instance.translate('live_report_live_title'),
                     onPressed: _isReportingLive ? null : _reportCurrentLive,
                     style: IconButton.styleFrom(
                       backgroundColor: Colors.black45,
@@ -3083,6 +3087,7 @@ class _LiveScreenState extends State<LiveScreen> {
                 child: Column(
                   children: [
                     IconButton.filledTonal(
+                      tooltip: LanguageService.instance.translate('live_community_vote_title'),
                       onPressed: _openCommunityVoteSheet,
                       style: IconButton.styleFrom(
                         backgroundColor: Colors.black45,
@@ -3163,6 +3168,7 @@ class _LiveScreenState extends State<LiveScreen> {
                                 ),
                               ),
                               IconButton(
+                                tooltip: LanguageService.instance.translate('approve'),
                                 visualDensity: VisualDensity.compact,
                                 onPressed: () => _approveGuestRequest(request),
                                 icon: const Icon(
@@ -3171,6 +3177,7 @@ class _LiveScreenState extends State<LiveScreen> {
                                 ),
                               ),
                               IconButton(
+                                tooltip: LanguageService.instance.translate('reject'),
                                 visualDensity: VisualDensity.compact,
                                 onPressed: () => _rejectGuestRequest(request),
                                 icon: const Icon(
@@ -3221,6 +3228,9 @@ class _LiveScreenState extends State<LiveScreen> {
 
   Widget _buildMicroSideButton() {
     return IconButton.filled(
+      tooltip: LanguageService.instance.translate(
+        _microphoneEnabled ? 'call_mute' : 'call_unmute',
+      ),
       onPressed: _toggleMicrophone,
       style: IconButton.styleFrom(
         backgroundColor: Colors.black45,
@@ -3233,6 +3243,9 @@ class _LiveScreenState extends State<LiveScreen> {
 
   Widget _buildCamSideButton() {
     return IconButton.filled(
+      tooltip: LanguageService.instance.translate(
+        _cameraEnabled ? 'a11y_camera_off' : 'a11y_camera_on',
+      ),
       onPressed: _toggleCamera,
       style: IconButton.styleFrom(
         backgroundColor: Colors.black45,
@@ -3247,6 +3260,7 @@ class _LiveScreenState extends State<LiveScreen> {
     final hasBackdrop =
         _liveBackgroundImageUrl != null || _liveBackgroundImageFile != null;
     return IconButton.filled(
+      tooltip: LanguageService.instance.translate('a11y_live_background'),
       onPressed: _isUpdatingLiveBackground ? null : _openLiveBackgroundSheet,
       style: IconButton.styleFrom(
         backgroundColor: hasBackdrop ? const Color(0xFFBE1E1E) : Colors.black45,

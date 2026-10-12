@@ -501,12 +501,14 @@ class _FeatureSuggestionDetailScreenState
         appBar: AppBar(
           title: Text(translate('feature_suggestions')),
           leading: IconButton(
+            tooltip: LanguageService.instance.translate('a11y_back'),
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.of(context).pop(_hasChanged),
           ),
           actions: [
             if (widget.canModerate && _suggestion != null)
               IconButton(
+                tooltip: LanguageService.instance.translate('a11y_moderate'),
                 onPressed: _openModerationDialog,
                 icon: const Icon(Icons.edit_outlined),
               ),
@@ -594,6 +596,7 @@ class _FeatureSuggestionDetailScreenState
                           ),
                           const SizedBox(width: 10),
                           IconButton.filled(
+                            tooltip: LanguageService.instance.translate('send'),
                             onPressed: _isSubmittingComment
                                 ? null
                                 : _submitComment,
@@ -800,6 +803,7 @@ class _SuggestionCard extends StatelessWidget {
                   children: [
                     _MiniVoteButton(
                       icon: Icons.keyboard_arrow_up,
+                      label: LanguageService.instance.translate('a11y_vote_up'),
                       selected: suggestion.myVote == 1,
                       onTap: onUpvote,
                     ),
@@ -819,6 +823,7 @@ class _SuggestionCard extends StatelessWidget {
                     ),
                     _MiniVoteButton(
                       icon: Icons.keyboard_arrow_down,
+                      label: LanguageService.instance.translate('a11y_vote_down'),
                       selected: suggestion.myVote == -1,
                       onTap: onDownvote,
                     ),
@@ -988,33 +993,41 @@ class _StatusBadge extends StatelessWidget {
 
 class _MiniVoteButton extends StatelessWidget {
   final IconData icon;
+  final String label;
   final bool selected;
   final VoidCallback onTap;
 
   const _MiniVoteButton({
     required this.icon,
+    required this.label,
     required this.selected,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(999),
-      child: Container(
-        width: 34,
-        height: 34,
-        decoration: BoxDecoration(
-          color: selected ? const Color(0xFFBE1E1E) : Colors.transparent,
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white10
-                : const Color(0xFFD8DADF),
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      excludeSemantics: true,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            color: selected ? const Color(0xFFBE1E1E) : Colors.transparent,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white10
+                  : const Color(0xFFD8DADF),
+            ),
           ),
+          child: Icon(icon, color: selected ? Colors.white : null),
         ),
-        child: Icon(icon, color: selected ? Colors.white : null),
       ),
     );
   }

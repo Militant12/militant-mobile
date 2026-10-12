@@ -349,6 +349,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     top: 8,
                     right: 8,
                     child: IconButton(
+                      tooltip: LanguageService.instance.translate('a11y_remove_attachment'),
                       icon: const Icon(Icons.close, color: Colors.white),
                       onPressed: () {
                         setState(() => _imagePath = null);

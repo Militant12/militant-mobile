@@ -1018,11 +1018,17 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           url = '$baseUrl$value';
         }
         links.add(
-          InkWell(
-            onTap: () => _launchUrl(url),
-            child: Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: Icon(icon, color: color, size: 24),
+          Semantics(
+            button: true,
+            label: key == 'website'
+                ? LanguageService.instance.translate('website_label')
+                : key[0].toUpperCase() + key.substring(1),
+            child: InkWell(
+              onTap: () => _launchUrl(url),
+              child: Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Icon(icon, color: color, size: 24),
+              ),
             ),
           ),
         );
@@ -1201,18 +1207,22 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                         Positioned(
                           top: 4,
                           right: 4,
-                          child: GestureDetector(
-                            onTap: () => setState(() => _mediaFile = null),
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: Colors.black54,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 16,
+                          child: Semantics(
+                            button: true,
+                            label: LanguageService.instance.translate('a11y_remove_attachment'),
+                            child: GestureDetector(
+                              onTap: () => setState(() => _mediaFile = null),
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Colors.black54,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.close,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
                               ),
                             ),
                           ),
@@ -1669,6 +1679,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                   ),
                 ),
                 IconButton(
+                  tooltip: LanguageService.instance.translate('remove'),
                   icon: const Icon(Icons.close, color: Colors.red, size: 20),
                   onPressed: () async {
                     final confirm = await showDialog<bool>(
@@ -1822,6 +1833,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                   if (_isAdmin &&
                       member['user_id'].toString() != _currentUserId.toString())
                     IconButton(
+                      tooltip: LanguageService.instance.translate('remove_member'),
                       icon: const Icon(
                         Icons.close,
                         color: Colors.red,
@@ -1956,75 +1968,79 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           // Logo and Cover pickers
           Row(
             children: [
-              GestureDetector(
-                onTap: () async {
-                  final picked = await _picker.pickImage(
-                    source: ImageSource.gallery,
-                  );
-                  if (picked != null) {
-                    setState(() => _newAvatar = File(picked.path));
-                  }
-                },
-                child: Stack(
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? const Color(0xFF2A2A2A)
-                            : Colors.grey[200],
-                        shape: BoxShape.circle,
-                        image: _newAvatar != null
-                            ? DecorationImage(
-                                image: FileImage(_newAvatar!),
-                                fit: BoxFit.cover,
-                              )
-                            : (_pageDetail?['avatar'] != null && _api != null
-                                  ? DecorationImage(
-                                      image: NetworkImage(
-                                        _api?.getImageUrl(
-                                              _pageDetail!['avatar'],
-                                            ) ??
-                                            '',
-                                      ),
-                                      fit: BoxFit.cover,
-                                    )
-                                  : null),
-                      ),
-                      child:
-                          _newAvatar == null &&
-                              (_pageDetail?['avatar'] == null ||
-                                  _pageDetail!['avatar'].toString().isEmpty)
-                          ? Icon(
-                              Icons.camera_alt,
-                              color: isDark ? Colors.white54 : Colors.grey,
-                            )
-                          : null,
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
+              Semantics(
+                button: true,
+                label: LanguageService.instance.translate('a11y_change_photo'),
+                child: GestureDetector(
+                  onTap: () async {
+                    final picked = await _picker.pickImage(
+                      source: ImageSource.gallery,
+                    );
+                    if (picked != null) {
+                      setState(() => _newAvatar = File(picked.path));
+                    }
+                  },
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: 80,
+                        height: 80,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFBE1E1E),
+                          color: isDark
+                              ? const Color(0xFF2A2A2A)
+                              : Colors.grey[200],
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: isDark
-                                ? const Color(0xFF121212)
-                                : Colors.white,
-                            width: 2,
+                          image: _newAvatar != null
+                              ? DecorationImage(
+                                  image: FileImage(_newAvatar!),
+                                  fit: BoxFit.cover,
+                                )
+                              : (_pageDetail?['avatar'] != null && _api != null
+                                    ? DecorationImage(
+                                        image: NetworkImage(
+                                          _api?.getImageUrl(
+                                                _pageDetail!['avatar'],
+                                              ) ??
+                                              '',
+                                        ),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : null),
+                        ),
+                        child:
+                            _newAvatar == null &&
+                                (_pageDetail?['avatar'] == null ||
+                                    _pageDetail!['avatar'].toString().isEmpty)
+                            ? Icon(
+                                Icons.camera_alt,
+                                color: isDark ? Colors.white54 : Colors.grey,
+                              )
+                            : null,
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFBE1E1E),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isDark
+                                  ? const Color(0xFF121212)
+                                  : Colors.white,
+                              width: 2,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.edit,
+                            color: Colors.white,
+                            size: 14,
                           ),
                         ),
-                        child: const Icon(
-                          Icons.edit,
-                          color: Colors.white,
-                          size: 14,
-                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -2722,6 +2738,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                   ),
                   const Spacer(),
                   IconButton(
+                    tooltip: LanguageService.instance.translate('close'),
                     onPressed: () => Navigator.pop(context),
                     icon: Icon(
                       Icons.close,
@@ -3010,6 +3027,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                             ),
                           ),
                           IconButton(
+                            tooltip: LanguageService.instance.translate('a11y_cancel_reply'),
                             onPressed: () {
                               setState(() => _replyingTo = null);
                             },
@@ -3056,6 +3074,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                       ),
                       const SizedBox(width: 8),
                       IconButton(
+                        tooltip: LanguageService.instance.translate('send'),
                         onPressed: _isSending ? null : _sendComment,
                         icon: _isSending
                             ? const SizedBox(

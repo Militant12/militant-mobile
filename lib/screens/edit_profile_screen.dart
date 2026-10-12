@@ -214,6 +214,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             radius: 20,
                             backgroundColor: const Color(0xFFBE1E1E),
                             child: IconButton(
+                              tooltip: LanguageService.instance.translate('change_avatar'),
                               icon: const Icon(
                                 Icons.camera_alt,
                                 size: 20,

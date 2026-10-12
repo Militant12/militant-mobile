@@ -99,36 +99,40 @@ class _CreateMessageGroupScreenState extends State<CreateMessageGroupScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             Center(
-              child: GestureDetector(
-                onTap: _pickImage,
-                child: Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 60,
-                      backgroundColor: colors.primary,
-                      backgroundImage: _imageFile != null ? FileImage(_imageFile!) : null,
-                      child: _imageFile == null
-                          ? Icon(Icons.group, size: 60, color: colors.onPrimary)
-                          : null,
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: colors.primary,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: theme.scaffoldBackgroundColor, width: 2),
-                        ),
-                        child: Icon(
-                          Icons.camera_alt,
-                          size: 20,
-                          color: colors.onPrimary,
+              child: Semantics(
+                button: true,
+                label: LanguageService.instance.translate('a11y_change_photo'),
+                child: GestureDetector(
+                  onTap: _pickImage,
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 60,
+                        backgroundColor: colors.primary,
+                        backgroundImage: _imageFile != null ? FileImage(_imageFile!) : null,
+                        child: _imageFile == null
+                            ? Icon(Icons.group, size: 60, color: colors.onPrimary)
+                            : null,
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: colors.primary,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: theme.scaffoldBackgroundColor, width: 2),
+                          ),
+                          child: Icon(
+                            Icons.camera_alt,
+                            size: 20,
+                            color: colors.onPrimary,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

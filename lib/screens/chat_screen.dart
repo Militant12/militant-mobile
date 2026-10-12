@@ -1606,6 +1606,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
                   IconButton(
+                    tooltip: LanguageService.instance.translate('a11y_cancel_reply'),
                     onPressed: () => setState(() => _replyingTo = null),
                     icon: Icon(Icons.close, color: theme.hintColor, size: 18),
                     visualDensity: VisualDensity.compact,
@@ -1616,6 +1617,7 @@ class _ChatScreenState extends State<ChatScreen> {
           Row(
             children: [
           IconButton(
+            tooltip: LanguageService.instance.translate('a11y_attach'),
             icon: const Icon(Icons.attach_file, color: Color(0xFFBE1E1E)),
             onPressed: _pickMedia,
           ),

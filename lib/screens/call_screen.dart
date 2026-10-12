@@ -237,6 +237,9 @@ class _CallScreenState extends State<CallScreen> {
                   // Bouton micro
                   _buildControlButton(
                     icon: _isMuted ? Icons.mic_off : Icons.mic,
+                    tooltip: LanguageService.instance.translate(
+                      _isMuted ? 'call_unmute' : 'call_mute',
+                    ),
                     onPressed: () {
                       _callSession.toggleMicrophone();
                     },
@@ -246,6 +249,9 @@ class _CallScreenState extends State<CallScreen> {
                   // Bouton haut-parleur
                   _buildControlButton(
                     icon: _isSpeakerOn ? Icons.volume_up : Icons.hearing,
+                    tooltip: LanguageService.instance.translate(
+                      _isSpeakerOn ? 'a11y_speaker_off' : 'a11y_speaker_on',
+                    ),
                     onPressed: () {
                       _callSession.toggleSpeaker();
                     },
@@ -256,6 +262,9 @@ class _CallScreenState extends State<CallScreen> {
                   if (widget.isVideo)
                     _buildControlButton(
                       icon: _isCameraOff ? Icons.videocam_off : Icons.videocam,
+                      tooltip: LanguageService.instance.translate(
+                        _isCameraOff ? 'a11y_camera_on' : 'a11y_camera_off',
+                      ),
                       onPressed: () {
                         _callSession.toggleCamera();
                       },
@@ -265,6 +274,7 @@ class _CallScreenState extends State<CallScreen> {
                   // Bouton raccrocher
                   _buildControlButton(
                     icon: Icons.call_end,
+                    tooltip: LanguageService.instance.translate('call_end'),
                     onPressed: () async {
                       debugPrint(
                         '[WebRTC][private][screen] hangup button pressed callId=${_callSession.callId}',
@@ -279,6 +289,7 @@ class _CallScreenState extends State<CallScreen> {
                   if (widget.isVideo)
                     _buildControlButton(
                       icon: Icons.flip_camera_ios,
+                      tooltip: LanguageService.instance.translate('call_switch_camera'),
                       onPressed: () => _callSession.switchCamera(),
                       color: Colors.white,
                     ),
@@ -322,6 +333,7 @@ class _CallScreenState extends State<CallScreen> {
 
   Widget _buildControlButton({
     required IconData icon,
+    required String tooltip,
     required VoidCallback onPressed,
     required Color color,
     Color? backgroundColor,
@@ -332,6 +344,7 @@ class _CallScreenState extends State<CallScreen> {
         shape: BoxShape.circle,
       ),
       child: IconButton(
+        tooltip: tooltip,
         icon: Icon(icon, color: color),
         iconSize: 32,
         onPressed: onPressed,

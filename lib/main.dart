@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fvp/fvp.dart' as fvp;
 import 'package:flutter_svg/flutter_svg.dart';
@@ -76,6 +77,11 @@ class MilitantApp extends StatelessWidget {
               navigatorKey: appNavigatorKey,
               title: 'Militant',
               locale: locale,
+              // Libellés intégrés de Flutter (bouton retour, menus, sélecteurs
+              // de date…). L'espéranto n'est pas pris en charge : Flutter
+              // retombe sur le premier de la liste, comme les textes de l'appli.
+              supportedLocales: const [Locale('fr'), Locale('en'), Locale('es')],
+              localizationsDelegates: GlobalMaterialLocalizations.delegates,
               themeMode: mode,
               theme: AppTheme.light(),
               darkTheme: AppTheme.dark(),

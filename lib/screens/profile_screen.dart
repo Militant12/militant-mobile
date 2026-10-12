@@ -682,6 +682,7 @@ class ProfileScreenState extends State<ProfileScreen>
               onPressed: _showAccountSwitcher,
             ),
             IconButton(
+              tooltip: LanguageService.instance.translate('logout'),
               icon: Icon(Icons.logout, color: theme.iconTheme.color),
               onPressed: _logout,
             ),
@@ -1460,6 +1461,10 @@ class ProfileScreenState extends State<ProfileScreen>
       if (value != null && value.toString().isNotEmpty) {
         icons.add(
           IconButton(
+            tooltip: social['key'] == 'website'
+                ? LanguageService.instance.translate('website_label')
+                : (social['key'] as String)[0].toUpperCase() +
+                      (social['key'] as String).substring(1),
             icon: Icon(social['icon'] as IconData, size: 24),
             color: const Color(0xFFBE1E1E),
             onPressed: () async {
