@@ -1423,7 +1423,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
 
   Widget _buildGroupCallMessageCard(Map<String, String> data) {
     final isVideo = (data['call_type'] ?? 'audio') == 'video';
-    final label = isVideo ? 'Appel video de groupe' : 'Appel audio de groupe';
+    final label = LanguageService.instance.translate(
+      isVideo ? 'call_group_video' : 'call_group_audio',
+    );
 
     return Container(
       width: double.infinity,
@@ -1457,7 +1459,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Touchez pour rejoindre depuis le groupe.',
+            LanguageService.instance.translate('call_group_tap_to_join'),
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.88),
               fontSize: 13,
@@ -1469,7 +1471,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             child: FilledButton.icon(
               onPressed: () => _joinGroupCallFromMessage(data),
               icon: const Icon(Icons.login, size: 18),
-              label: const Text('Rejoindre'),
+              label: Text(LanguageService.instance.translate('join')),
               style: FilledButton.styleFrom(
                 backgroundColor: Colors.white,
                 foregroundColor: const Color(0xFFBE1E1E),
@@ -1496,7 +1498,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       if (status == 'ended' || status == 'rejected' || status == 'missed') {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Cet appel de groupe est termine.')),
+          SnackBar(content: Text(LanguageService.instance.translate('call_group_ended'))),
         );
         return;
       }

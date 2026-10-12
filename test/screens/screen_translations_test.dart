@@ -19,6 +19,13 @@ void main() {
     'lib/services/group_call_service.dart',
     'lib/services/incoming_call_service.dart',
     'lib/widgets/incoming_call_banner.dart',
+    'lib/screens/settings_screen.dart',
+    'lib/screens/group_chat_screen.dart',
+    'lib/screens/create_post_screen.dart',
+    'lib/screens/feature_suggestions_screen.dart',
+    'lib/screens/group_detail_screen.dart',
+    'lib/screens/profile_screen.dart',
+    'lib/widgets/video_player_widget.dart',
   ];
   const languages = ['fr', 'en', 'es'];
   // Catches plain keys as well as `translate(cond ? 'a' : 'b')`.

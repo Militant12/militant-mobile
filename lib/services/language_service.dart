@@ -1086,6 +1086,18 @@ class LanguageService extends ValueNotifier<Locale> {
       'a11y_moderate': 'Modérer',
       'a11y_vote_up': 'Voter pour',
       'a11y_vote_down': 'Voter contre',
+
+      // Derniers textes traduits
+      'call_group_tap_to_join': 'Touchez pour rejoindre depuis le groupe.',
+      'call_group_ended': 'Cet appel de groupe est terminé.',
+      'video_preview_loading': "Chargement de l'aperçu…",
+      'video_tap_to_load': 'Touchez pour charger la vidéo',
+      'video_preview_unavailable': 'Aperçu indisponible',
+      'video_open': 'Voir la vidéo',
+      'suggestion_too_short': 'Le titre ou la description est trop court.',
+      'group_members_subtitle': 'Admins et membres du groupe',
+      'profile_last_active': 'Dernière activité : {time}',
+      'profile_posts_error': 'Impossible de charger les publications',
       'call_camera_unavailable': "Caméra indisponible, l'appel continue sans vidéo.",
 
       // User Status
@@ -2177,6 +2189,18 @@ class LanguageService extends ValueNotifier<Locale> {
       'a11y_moderate': 'Moderate',
       'a11y_vote_up': 'Vote up',
       'a11y_vote_down': 'Vote down',
+
+      // Derniers textes traduits
+      'call_group_tap_to_join': 'Tap to join from the group.',
+      'call_group_ended': 'This group call has ended.',
+      'video_preview_loading': 'Loading preview…',
+      'video_tap_to_load': 'Tap to load the video',
+      'video_preview_unavailable': 'Preview unavailable',
+      'video_open': 'Watch the video',
+      'suggestion_too_short': 'The title or description is too short.',
+      'group_members_subtitle': 'Group admins and members',
+      'profile_last_active': 'Last active: {time}',
+      'profile_posts_error': 'Unable to load posts',
       'call_camera_unavailable': 'Camera unavailable, the call continues without video.',
 
       // User Status
@@ -3265,6 +3289,18 @@ class LanguageService extends ValueNotifier<Locale> {
       'a11y_moderate': 'Moderar',
       'a11y_vote_up': 'Votar a favor',
       'a11y_vote_down': 'Votar en contra',
+
+      // Derniers textes traduits
+      'call_group_tap_to_join': 'Toca para unirte desde el grupo.',
+      'call_group_ended': 'Esta llamada grupal ha terminado.',
+      'video_preview_loading': 'Cargando la vista previa…',
+      'video_tap_to_load': 'Toca para cargar el video',
+      'video_preview_unavailable': 'Vista previa no disponible',
+      'video_open': 'Ver el video',
+      'suggestion_too_short': 'El título o la descripción es demasiado corto.',
+      'group_members_subtitle': 'Administradores y miembros del grupo',
+      'profile_last_active': 'Última actividad: {time}',
+      'profile_posts_error': 'No se pudieron cargar las publicaciones',
       'call_camera_unavailable': 'Cámara no disponible, la llamada continúa sin video.',
 
       // Discovery

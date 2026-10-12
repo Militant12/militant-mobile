@@ -152,13 +152,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildOption(
             context,
             icon: Icons.download,
-            title: lang.translate('export_data_title') == 'export_data_title'
-                ? 'Exporter mes données'
-                : lang.translate('export_data_title'),
+            title: lang.translate('export_data_title'),
             subtitle:
-                lang.translate('export_data_subtitle') == 'export_data_subtitle'
-                ? 'Télécharger une copie de vos données (JSON)'
-                : lang.translate('export_data_subtitle'),
+                lang.translate('export_data_subtitle'),
             onTap: _exportData,
           ),
           _buildOption(
@@ -1116,10 +1112,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              lang.translate('notification_test_sent') !=
-                      'notification_test_sent'
-                  ? lang.translate('notification_test_sent')
-                  : 'Test envoyé ! Vérifiez vos notifications.',
+              lang.translate('notification_test_sent'),
             ),
             backgroundColor: Colors.blue,
           ),
@@ -1248,9 +1241,9 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
       await api.updatePreferences({key: value});
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Paramètre mis à jour'),
-            duration: Duration(seconds: 1),
+          SnackBar(
+            content: Text(LanguageService.instance.translate('settings_updated')),
+            duration: const Duration(seconds: 1),
           ),
         );
       }
@@ -1258,7 +1251,7 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Erreur de sauvegarde')));
+        ).showSnackBar(SnackBar(content: Text(getFriendlyErrorMessage(e))));
       }
     }
   }
