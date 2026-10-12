@@ -1098,6 +1098,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'group_members_subtitle': 'Admins et membres du groupe',
       'profile_last_active': 'Dernière activité : {time}',
       'profile_posts_error': 'Impossible de charger les publications',
+      'offline_banner': 'Pas de connexion internet',
       'call_camera_unavailable': "Caméra indisponible, l'appel continue sans vidéo.",
 
       // User Status
@@ -2201,6 +2202,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'group_members_subtitle': 'Group admins and members',
       'profile_last_active': 'Last active: {time}',
       'profile_posts_error': 'Unable to load posts',
+      'offline_banner': 'No internet connection',
       'call_camera_unavailable': 'Camera unavailable, the call continues without video.',
 
       // User Status
@@ -3301,6 +3303,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'group_members_subtitle': 'Administradores y miembros del grupo',
       'profile_last_active': 'Última actividad: {time}',
       'profile_posts_error': 'No se pudieron cargar las publicaciones',
+      'offline_banner': 'Sin conexión a internet',
       'call_camera_unavailable': 'Cámara no disponible, la llamada continúa sin video.',
 
       // Discovery
