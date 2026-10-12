@@ -18,6 +18,7 @@ import '../services/livekit_token_service.dart';
 import '../services/language_service.dart';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
 
 class LiveScreen extends StatefulWidget {
   const LiveScreen({super.key});
@@ -1929,7 +1930,7 @@ class _LiveScreenState extends State<LiveScreen> {
                 ? Colors.white.withValues(alpha: 0.05)
                 : Colors.black.withValues(alpha: 0.02),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: isDark ? Colors.white12 : Colors.black12),
+            border: Border.all(color: context.colors.outlineVariant),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2713,7 +2714,7 @@ class _LiveScreenState extends State<LiveScreen> {
             ? Colors.white.withValues(alpha: 0.05)
             : Colors.black.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: isDark ? Colors.white12 : Colors.black12),
+        border: Border.all(color: context.colors.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -3215,7 +3216,7 @@ class _LiveScreenState extends State<LiveScreen> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(18),
-        borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.black12),
+        borderSide: BorderSide(color: context.colors.outlineVariant),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(18),

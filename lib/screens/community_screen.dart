@@ -147,7 +147,7 @@ class CommunityScreen extends StatelessWidget {
     }
 
     final cardBg = isDark ? const Color(0xFF151515) : Colors.white;
-    final borderColor = isDark ? Colors.white10 : Colors.grey[300]!;
+    final borderColor = context.colors.outlineVariant;
     final shadowColor = isDark
         ? Colors.black.withValues(alpha: 0.4)
         : Colors.grey.withValues(alpha: 0.2);
@@ -236,7 +236,7 @@ class CommunityScreen extends StatelessWidget {
                   if (!isNarrow)
                     Icon(
                       Icons.arrow_forward_ios,
-                      color: isDark ? Colors.white24 : Colors.black12,
+                      color: context.colors.outlineVariant,
                       size: 16,
                     ),
                 ],

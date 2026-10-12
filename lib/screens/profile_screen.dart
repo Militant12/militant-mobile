@@ -551,9 +551,7 @@ class ProfileScreenState extends State<ProfileScreen>
                             : account.baseUrl,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: isDark
-                              ? AppColors.greyAAA
-                              : Colors.grey[700],
+                          color: context.tokens.textMuted,
                         ),
                       ),
                       trailing: isCurrent
@@ -662,7 +660,6 @@ class ProfileScreenState extends State<ProfileScreen>
 
     final theme = Theme.of(context);
     final lang = LanguageService.instance;
-    final isDark = theme.brightness == Brightness.dark;
     final textColor = theme.textTheme.bodyLarge?.color;
     final subtitleColor = theme.textTheme.bodyMedium?.color;
 
@@ -1029,9 +1026,7 @@ class ProfileScreenState extends State<ProfileScreen>
                           child: ElevatedButton(
                             onPressed: _unfriend,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: isDark
-                                  ? AppColors.darkSurfaceHigh
-                                  : Colors.grey[200],
+                              backgroundColor: context.colors.surfaceContainerHigh,
                               minimumSize: const Size(double.infinity, 45),
                             ),
                             child: Row(
@@ -1094,9 +1089,7 @@ class ProfileScreenState extends State<ProfileScreen>
                     ElevatedButton(
                       onPressed: null,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isDark
-                            ? AppColors.darkSurfaceHigh
-                            : Colors.grey[200],
+                        backgroundColor: context.colors.surfaceContainerHigh,
                         minimumSize: const Size(double.infinity, 45),
                       ),
                       child: Text(lang.translate('friend_request_sent')),
@@ -1120,9 +1113,7 @@ class ProfileScreenState extends State<ProfileScreen>
                           child: ElevatedButton(
                             onPressed: _rejectFriendRequest,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: isDark
-                                  ? AppColors.darkSurfaceHigh
-                                  : Colors.grey[200],
+                              backgroundColor: context.colors.surfaceContainerHigh,
                               minimumSize: const Size(double.infinity, 45),
                             ),
                             child: Text(
@@ -1148,9 +1139,7 @@ class ProfileScreenState extends State<ProfileScreen>
                     onPressed: _toggleFollow,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _isFollowing
-                          ? (isDark
-                                ? AppColors.darkSurfaceHigh
-                                : Colors.grey[200])
+                          ? (context.colors.surfaceContainerHigh)
                           : Colors.transparent,
                       side: _isFollowing
                           ? null

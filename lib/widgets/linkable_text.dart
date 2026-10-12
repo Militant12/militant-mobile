@@ -8,6 +8,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
 
 class LinkableText extends StatelessWidget {
   final String text;
@@ -446,9 +447,9 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
     return Container(
       margin: const EdgeInsets.only(top: 12),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurfaceHigh : Colors.grey[100],
+        color: context.colors.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isDark ? Colors.white10 : Colors.black12),
+        border: Border.all(color: context.colors.outlineVariant),
       ),
       child: InkWell(
         onTap: () => _launchUrl(widget.url),
@@ -489,7 +490,7 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
                       borderRadius: BorderRadius.circular(8),
                       border: _platform == null
                           ? Border.all(
-                              color: isDark ? Colors.white10 : Colors.black12,
+                              color: context.colors.outlineVariant,
                             )
                           : null,
                     ),

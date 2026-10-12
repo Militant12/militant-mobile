@@ -7,6 +7,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -193,9 +194,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       children: [
                         CircleAvatar(
                           radius: 60,
-                          backgroundColor: isDark
-                              ? AppColors.darkSurfaceHigh
-                              : Colors.grey[200],
+                          backgroundColor: context.colors.surfaceContainerHigh,
                           backgroundImage: _avatarFile != null
                               ? FileImage(_avatarFile!)
                               : (_currentAvatarUrl != null

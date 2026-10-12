@@ -111,7 +111,7 @@ class _PagesScreenState extends State<PagesScreen>
           controller: _tabController,
           indicatorColor: AppColors.militantRed,
           labelColor: context.colors.onSurface,
-          unselectedLabelColor: isDark ? Colors.white54 : Colors.grey,
+          unselectedLabelColor: context.tokens.textMuted,
           isScrollable: true,
           tabs: [
             Tab(
@@ -344,8 +344,6 @@ class _PagesScreenState extends State<PagesScreen>
     bool showFollow = false,
   }) {
     final lang = LanguageService.instance;
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final name = page['name'] ?? lang.translate('pages_title');
     final description = page['description'] ?? '';
     final category = page['category'] ?? '';
@@ -365,7 +363,7 @@ class _PagesScreenState extends State<PagesScreen>
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: isDark ? Colors.white10 : Colors.grey[200]!,
+              color: context.colors.outlineVariant,
             ),
           ),
         ),
@@ -418,13 +416,13 @@ class _PagesScreenState extends State<PagesScreen>
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: isDark ? Colors.white10 : Colors.grey[200],
+                            color: context.colors.outlineVariant,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             pageCategoryLabel(category),
                             style: TextStyle(
-                              color: isDark ? Colors.white54 : Colors.grey[600],
+                              color: context.tokens.textMuted,
                               fontSize: 11,
                             ),
                           ),
@@ -448,14 +446,14 @@ class _PagesScreenState extends State<PagesScreen>
                     children: [
                       Icon(
                         Icons.people,
-                        color: isDark ? AppColors.grey888 : Colors.grey,
+                        color: context.tokens.textMuted,
                         size: 14,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         '$followersCount ${followersCount > 1 ? lang.translate('followers_count_plural') : lang.translate('followers_count')}',
                         style: TextStyle(
-                          color: isDark ? AppColors.grey888 : Colors.grey,
+                          color: context.tokens.textMuted,
                           fontSize: 12,
                         ),
                       ),

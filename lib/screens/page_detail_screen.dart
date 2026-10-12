@@ -801,17 +801,13 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                       vertical: 2,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: isDark
-                                          ? Colors.white10
-                                          : Colors.grey[200],
+                                      color: context.colors.outlineVariant,
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
                                       pageCategoryLabel(category),
                                       style: TextStyle(
-                                        color: isDark
-                                            ? Colors.white54
-                                            : Colors.grey[600],
+                                        color: context.tokens.textMuted,
                                         fontSize: 12,
                                       ),
                                     ),
@@ -850,9 +846,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                 Text(
                                   '$followersCount ${followersCount > 1 ? lang.translate('followers_count_plural') : lang.translate('followers_count')}',
                                   style: TextStyle(
-                                    color: isDark
-                                        ? AppColors.grey888
-                                        : Colors.grey,
+                                    color: context.tokens.textMuted,
                                     fontSize: 12,
                                   ),
                                 ),
@@ -886,9 +880,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                           onPressed: _toggleFollow,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _isFollowed
-                                ? (isDark
-                                      ? AppColors.darkSurfaceHigh
-                                      : Colors.grey[200])
+                                ? (context.colors.surfaceContainerHigh)
                                 : AppColors.militantRed,
                             foregroundColor: _isFollowed
                                 ? (context.colors.onSurface)
@@ -933,7 +925,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                   controller: _tabController,
                   indicatorColor: AppColors.militantRed,
                   labelColor: context.colors.onSurface,
-                  unselectedLabelColor: isDark ? Colors.white54 : Colors.grey,
+                  unselectedLabelColor: context.tokens.textMuted,
                   isScrollable: (_tabController?.length ?? 1) > 3,
                   tabs: _buildTabs(),
                 ),
@@ -1094,13 +1086,13 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 Icon(
                   Icons.location_on,
                   size: 16,
-                  color: isDark ? Colors.white38 : Colors.grey,
+                  color: context.tokens.textMuted,
                 ),
                 const SizedBox(width: 6),
                 Text(
                   location,
                   style: TextStyle(
-                    color: isDark ? Colors.white54 : Colors.grey,
+                    color: context.tokens.textMuted,
                     fontSize: 14,
                   ),
                 ),
@@ -1117,7 +1109,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                   Icon(
                     Icons.link,
                     size: 16,
-                    color: isDark ? Colors.white38 : Colors.grey,
+                    color: context.tokens.textMuted,
                   ),
                   const SizedBox(width: 6),
                   Flexible(
@@ -1147,7 +1139,6 @@ class _PageDetailScreenState extends State<PageDetailScreen>
   // ==================== POSTS TAB ====================
   Widget _buildPostsTab() {
     final lang = LanguageService.instance;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return RefreshIndicator(
       onRefresh: _loadPosts,
@@ -1175,12 +1166,10 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                     decoration: InputDecoration(
                       hintText: lang.translate('post_content_hint'),
                       hintStyle: TextStyle(
-                        color: isDark ? Colors.white38 : Colors.grey,
+                        color: context.tokens.textMuted,
                       ),
                       filled: true,
-                      fillColor: isDark
-                          ? AppColors.darkSurfaceHigh
-                          : Colors.grey[100],
+                      fillColor: context.colors.surfaceContainerHigh,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
@@ -1240,7 +1229,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                         onPressed: _isUploading ? null : _pickMedia,
                         icon: Icon(
                           Icons.photo_camera,
-                          color: isDark ? Colors.white54 : Colors.grey[600],
+                          color: context.tokens.textMuted,
                         ),
                         tooltip: lang.translate('add_media'),
                       ),
@@ -1259,7 +1248,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                               },
                         icon: Icon(
                           Icons.image,
-                          color: isDark ? Colors.white54 : Colors.grey[600],
+                          color: context.tokens.textMuted,
                         ),
                         tooltip: lang.translate('quick_image'),
                       ),
@@ -1308,7 +1297,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                     Icon(
                       Icons.article_outlined,
                       size: 48,
-                      color: isDark ? AppColors.grey888 : Colors.grey,
+                      color: context.tokens.textMuted,
                     ),
                     const SizedBox(height: 12),
                     Text(
@@ -1375,7 +1364,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                       Text(
                         _formatDate(post['created_at'] ?? ''),
                         style: TextStyle(
-                          color: isDark ? AppColors.grey888 : Colors.grey,
+                          color: context.tokens.textMuted,
                           fontSize: 12,
                         ),
                       ),
@@ -1389,7 +1378,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                   PopupMenuButton<String>(
                     icon: Icon(
                       Icons.more_vert,
-                      color: isDark ? Colors.white54 : Colors.grey,
+                      color: context.tokens.textMuted,
                     ),
                     itemBuilder: (context) => [
                       PopupMenuItem(
@@ -1477,7 +1466,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                           .translate(likeCount > 1 ? 'page_reactions_count' : 'page_reactions_count_one')
                           .replaceAll('{count}', '$likeCount'),
                       style: TextStyle(
-                        color: isDark ? Colors.white38 : Colors.grey,
+                        color: context.tokens.textMuted,
                         fontSize: 12,
                       ),
                     ),
@@ -1489,7 +1478,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                             .translate(commentCount > 1 ? 'page_comments_count' : 'page_comments_count_one')
                             .replaceAll('{count}', '$commentCount'),
                         style: TextStyle(
-                          color: isDark ? Colors.white54 : Colors.grey[600],
+                          color: context.tokens.textMuted,
                           fontSize: 12,
                           decoration: TextDecoration.underline,
                         ),
@@ -1504,7 +1493,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             decoration: BoxDecoration(
               border: Border(
                 top: BorderSide(
-                  color: isDark ? Colors.white10 : Colors.grey[200]!,
+                  color: context.colors.outlineVariant,
                 ),
               ),
             ),
@@ -1528,14 +1517,14 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                         : Icon(
                             Icons.thumb_up_outlined,
                             size: 18,
-                            color: isDark ? Colors.white54 : Colors.grey,
+                            color: context.tokens.textMuted,
                           ),
                     label: Text(
                       LanguageService.instance.translate('like_action'),
                       style: TextStyle(
                         color: userReaction.isNotEmpty
                             ? AppColors.militantRed
-                            : (isDark ? Colors.white54 : Colors.grey),
+                            : (context.tokens.textMuted),
                         fontSize: 13,
                       ),
                     ),
@@ -1547,12 +1536,12 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                     icon: Icon(
                       Icons.comment_outlined,
                       size: 18,
-                      color: isDark ? Colors.white54 : Colors.grey,
+                      color: context.tokens.textMuted,
                     ),
                     label: Text(
                       LanguageService.instance.translate('comment_action'),
                       style: TextStyle(
-                        color: isDark ? Colors.white54 : Colors.grey,
+                        color: context.tokens.textMuted,
                         fontSize: 13,
                       ),
                     ),
@@ -1599,7 +1588,6 @@ class _PageDetailScreenState extends State<PageDetailScreen>
 
   // ==================== FOLLOWERS TAB ====================
   Widget _buildFollowersTab() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (_followers.isEmpty) {
       return Center(
@@ -1609,13 +1597,13 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             Icon(
               Icons.people_outline,
               size: 48,
-              color: isDark ? AppColors.grey888 : Colors.grey,
+              color: context.tokens.textMuted,
             ),
             const SizedBox(height: 12),
             Text(
               LanguageService.instance.translate('no_followers'),
               style: TextStyle(
-                color: isDark ? AppColors.grey888 : Colors.grey,
+                color: context.tokens.textMuted,
                 fontSize: 16,
               ),
             ),
@@ -1663,7 +1651,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                         Text(
                           follower['cause'],
                           style: TextStyle(
-                            color: isDark ? Colors.white38 : Colors.grey,
+                            color: context.tokens.textMuted,
                             fontSize: 12,
                           ),
                         ),
@@ -1672,7 +1660,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                             .translate('page_follower_since')
                             .replaceAll('{date}', _formatDate(follower['followed_at'] ?? '')),
                         style: TextStyle(
-                          color: isDark ? Colors.white38 : Colors.grey,
+                          color: context.tokens.textMuted,
                           fontSize: 11,
                         ),
                       ),
@@ -1730,7 +1718,6 @@ class _PageDetailScreenState extends State<PageDetailScreen>
   // ==================== TEAM TAB ====================
   Widget _buildTeamTab() {
     final lang = LanguageService.instance;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return RefreshIndicator(
       onRefresh: _loadTeam,
@@ -1749,7 +1736,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             child: Text(
               lang.translate('admin_editor_description'),
               style: TextStyle(
-                color: isDark ? Colors.white38 : Colors.grey,
+                color: context.tokens.textMuted,
                 fontSize: 13,
               ),
             ),
@@ -1987,9 +1974,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
-                          color: isDark
-                              ? AppColors.darkSurfaceHigh
-                              : Colors.grey[200],
+                          color: context.colors.surfaceContainerHigh,
                           shape: BoxShape.circle,
                           image: _newAvatar != null
                               ? DecorationImage(
@@ -2014,7 +1999,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                     _pageDetail!['avatar'].toString().isEmpty)
                             ? Icon(
                                 Icons.camera_alt,
-                                color: isDark ? Colors.white54 : Colors.grey,
+                                color: context.tokens.textMuted,
                               )
                             : null,
                       ),
@@ -2060,9 +2045,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                       Container(
                         height: 80,
                         decoration: BoxDecoration(
-                          color: isDark
-                              ? AppColors.darkSurfaceHigh
-                              : Colors.grey[200],
+                          color: context.colors.surfaceContainerHigh,
                           borderRadius: BorderRadius.circular(8),
                           image: _newCover != null
                               ? DecorationImage(
@@ -2091,17 +2074,13 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                   children: [
                                     Icon(
                                       Icons.image,
-                                      color: isDark
-                                          ? Colors.white54
-                                          : Colors.grey,
+                                      color: context.tokens.textMuted,
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
                                       lang.translate('add_cover'),
                                       style: TextStyle(
-                                        color: isDark
-                                            ? Colors.white54
-                                            : Colors.grey,
+                                        color: context.tokens.textMuted,
                                       ),
                                     ),
                                   ],
@@ -2322,7 +2301,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           style: TextStyle(color: context.colors.onSurface),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.grey),
+            hintStyle: TextStyle(color: context.tokens.textMuted),
             filled: true,
             fillColor: isDark ? AppColors.darkSurfaceHigh : Colors.white,
             border: OutlineInputBorder(
@@ -2346,7 +2325,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Icon(icon, color: isDark ? Colors.white38 : Colors.grey, size: 20),
+          Icon(icon, color: context.tokens.textMuted, size: 20),
           const SizedBox(width: 8),
           Expanded(
             child: TextField(
@@ -2743,7 +2722,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                     onPressed: () => Navigator.pop(context),
                     icon: Icon(
                       Icons.close,
-                      color: isDark ? Colors.white54 : Colors.grey,
+                      color: context.tokens.textMuted,
                     ),
                   ),
                 ],
@@ -2760,7 +2739,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                       child: Text(
                         LanguageService.instance.translate('no_comments'),
                         style: TextStyle(
-                          color: isDark ? Colors.white38 : Colors.grey,
+                          color: context.tokens.textMuted,
                         ),
                       ),
                     )
@@ -2830,9 +2809,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                             comment['created_at'] ?? '',
                                           ),
                                           style: TextStyle(
-                                            color: isDark
-                                                ? Colors.white38
-                                                : Colors.grey,
+                                            color: context.tokens.textMuted,
                                             fontSize: 11,
                                           ),
                                         ),
@@ -2856,16 +2833,12 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                           icon: Icon(
                                             Icons.reply,
                                             size: 14,
-                                            color: isDark
-                                                ? Colors.white54
-                                                : Colors.grey,
+                                            color: context.tokens.textMuted,
                                           ),
                                           label: Text(
                                             LanguageService.instance.translate('reply'),
                                             style: TextStyle(
-                                              color: isDark
-                                                  ? Colors.white54
-                                                  : Colors.grey,
+                                              color: context.tokens.textMuted,
                                               fontSize: 12,
                                             ),
                                           ),
@@ -2891,9 +2864,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                               : Icon(
                                                   Icons.thumb_up_outlined,
                                                   size: 14,
-                                                  color: isDark
-                                                      ? Colors.white54
-                                                      : Colors.grey,
+                                                  color: context.tokens.textMuted,
                                                 ),
                                           label: Text(
                                             reactionsCount > 0
@@ -2902,9 +2873,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                             style: TextStyle(
                                               color: userReaction.isNotEmpty
                                                   ? AppColors.militantRed
-                                                  : (isDark
-                                                        ? Colors.white54
-                                                        : Colors.grey),
+                                                  : (context.tokens.textMuted),
                                               fontSize: 12,
                                             ),
                                           ),
@@ -2925,9 +2894,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                   icon: Icon(
                                     Icons.more_vert,
                                     size: 16,
-                                    color: isDark
-                                        ? Colors.white54
-                                        : Colors.grey,
+                                    color: context.tokens.textMuted,
                                   ),
                                   padding: EdgeInsets.zero,
                                   itemBuilder: (context) {
@@ -2984,7 +2951,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
               decoration: BoxDecoration(
                 border: Border(
                   top: BorderSide(
-                    color: isDark ? Colors.white10 : Colors.grey[300]!,
+                    color: context.colors.outlineVariant,
                   ),
                 ),
               ),
@@ -3000,9 +2967,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.darkSurfaceHigh
-                            : Colors.grey[200],
+                        color: context.colors.surfaceContainerHigh,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -3054,12 +3019,10 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                 ? '${LanguageService.instance.translate('reply_to').replaceAll('{username}', '${_replyingTo!['username'] ?? ''}')}...'
                                 : LanguageService.instance.translate('comment_hint'),
                             hintStyle: TextStyle(
-                              color: isDark ? Colors.white38 : Colors.grey,
+                              color: context.tokens.textMuted,
                             ),
                             filled: true,
-                            fillColor: isDark
-                                ? AppColors.darkSurfaceHigh
-                                : Colors.grey[100],
+                            fillColor: context.colors.surfaceContainerHigh,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20),
                               borderSide: BorderSide.none,
@@ -3202,7 +3165,7 @@ class _PageDescriptionContentState extends State<_PageDescriptionContent> {
         LinkableText(
           text: widget.description,
           style: TextStyle(
-            color: widget.isDark ? AppColors.greyAAA : Colors.grey[700],
+            color: context.tokens.textMuted,
             fontSize: 14,
           ),
           onLinksDetected: (urls) {

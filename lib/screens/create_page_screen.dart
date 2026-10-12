@@ -132,7 +132,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
               decoration: InputDecoration(
                 hintText: lang.translate('page_name_hint'),
                 hintStyle: TextStyle(
-                  color: isDark ? Colors.white38 : Colors.grey,
+                  color: context.tokens.textMuted,
                 ),
                 filled: true,
                 fillColor: context.colors.surface,
@@ -142,7 +142,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
                 ),
                 prefixIcon: Icon(
                   Icons.edit,
-                  color: isDark ? Colors.white38 : Colors.grey,
+                  color: context.tokens.textMuted,
                 ),
               ),
             ),
@@ -172,7 +172,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
                         size: 16,
                         color: isSelected
                             ? Colors.white
-                            : (isDark ? Colors.white54 : Colors.grey[600]),
+                            : (context.tokens.textMuted),
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -186,9 +186,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
                       ),
                     ],
                   ),
-                  backgroundColor: isDark
-                      ? AppColors.darkSurfaceHigh
-                      : Colors.grey[100],
+                  backgroundColor: context.colors.surfaceContainerHigh,
                   selectedColor: AppColors.militantRed,
                   checkmarkColor: Colors.white,
                   onSelected: (selected) {
@@ -219,7 +217,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
               decoration: InputDecoration(
                 hintText: lang.translate('describe_page_hint'),
                 hintStyle: TextStyle(
-                  color: isDark ? Colors.white38 : Colors.grey,
+                  color: context.tokens.textMuted,
                 ),
                 filled: true,
                 fillColor: context.colors.surface,

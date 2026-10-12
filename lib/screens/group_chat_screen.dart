@@ -1098,7 +1098,6 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   Widget _buildMessageBubble(dynamic message) {
     final lang = LanguageService.instance;
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     final content = message['content'] ?? '';
     final groupCallMessage = _parseGroupCallMessage(content.toString());
@@ -1136,7 +1135,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
 
     final bubbleColor = isMine
         ? AppColors.militantRed
-        : (isDark ? AppColors.darkSurfaceHigh : Colors.grey[300]);
+        : (context.colors.surfaceContainerHigh);
 
     final textColor = isMine
         ? Colors.white

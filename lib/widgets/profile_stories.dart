@@ -100,7 +100,6 @@ class _ProfileStoriesState extends State<ProfileStories> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final lang = LanguageService.instance;
-    final isDark = theme.brightness == Brightness.dark;
     final titleColor = theme.textTheme.bodyLarge?.color;
     final subtitleColor = theme.textTheme.bodyMedium?.color;
 
@@ -139,7 +138,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(color: AppColors.militantRed, width: 2),
-                  color: isDark ? AppColors.darkSurface : Colors.grey[100],
+                  color: context.colors.surfaceContainer,
                 ),
                 child: const Icon(
                   Icons.add,
@@ -222,18 +221,14 @@ class _ProfileStoriesState extends State<ProfileStories> {
                       builder: (context, snapshot) {
                         if (!snapshot.hasData) {
                           return Container(
-                            color: isDark
-                                ? AppColors.darkSurface
-                                : Colors.grey[100],
+                            color: context.colors.surfaceContainer,
                           );
                         }
                         return Image(
                           image: CachedNetworkImageProvider(snapshot.data!),
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => Container(
-                            color: isDark
-                                ? AppColors.darkSurface
-                                : Colors.grey[100],
+                            color: context.colors.surfaceContainer,
                           ),
                         );
                       },

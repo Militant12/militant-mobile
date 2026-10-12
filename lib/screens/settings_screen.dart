@@ -234,7 +234,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final dividerColor = isDark ? Colors.white10 : Colors.black12;
+    final dividerColor = context.colors.outlineVariant;
     final subtitleColor = isDark ? AppColors.grey888 : Colors.grey[700];
     final titleColor = theme.textTheme.bodyLarge?.color;
 
@@ -384,7 +384,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       applicationIcon: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.darkSurfaceHigh : Colors.grey[100],
+          color: context.colors.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(16),
         ),
         child: SvgPicture.asset('assets/logo.svg', width: 60, height: 60),
@@ -404,7 +404,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white54 : Colors.grey[600],
+            color: context.tokens.textMuted,
           ),
         ),
         const SizedBox(height: 24),
@@ -433,7 +433,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               icon: const Icon(Icons.code, size: 18),
               label: Text(lang.translate('source_code')),
               style: ElevatedButton.styleFrom(
-                backgroundColor: isDark ? Colors.white10 : Colors.grey[200],
+                backgroundColor: context.colors.outlineVariant,
                 foregroundColor: context.colors.onSurface,
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 textStyle: const TextStyle(fontSize: 12),
@@ -1154,7 +1154,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     ValueChanged<bool> onChanged,
   ) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return SwitchListTile(
       value: value,
@@ -1168,7 +1167,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       subtitle: Text(
         subtitle,
         style: TextStyle(
-          color: isDark ? Colors.white70 : Colors.grey,
+          color: context.tokens.textMuted,
           fontSize: 12,
         ),
       ),
@@ -1307,7 +1306,6 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
     ValueChanged<bool> onChanged,
   ) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return SwitchListTile(
       value: value,
@@ -1321,7 +1319,7 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
       subtitle: Text(
         subtitle,
         style: TextStyle(
-          color: isDark ? Colors.white70 : Colors.grey,
+          color: context.tokens.textMuted,
           fontSize: 12,
         ),
       ),

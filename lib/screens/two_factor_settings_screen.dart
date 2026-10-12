@@ -6,6 +6,7 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
 
 class TwoFactorSettingsScreen extends StatefulWidget {
   const TwoFactorSettingsScreen({super.key});
@@ -256,7 +257,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: isDark ? Colors.white10 : Colors.grey[200],
+                        color: context.colors.outlineVariant,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(

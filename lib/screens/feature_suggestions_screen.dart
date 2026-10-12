@@ -277,11 +277,10 @@ class _FeatureSuggestionsScreenState extends State<FeatureSuggestionsScreen> {
     int value,
     Color subColor,
   ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white10 : AppColors.lightSurfaceLow,
+        color: context.colors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
@@ -584,9 +583,7 @@ class _FeatureSuggestionDetailScreenState
                               decoration: InputDecoration(
                                 hintText: translate('add_comment'),
                                 filled: true,
-                                fillColor: isDark
-                                    ? Colors.white10
-                                    : AppColors.lightSurfaceLow,
+                                fillColor: context.colors.surfaceContainerLow,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(14),
                                   borderSide: BorderSide.none,

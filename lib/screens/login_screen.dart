@@ -282,7 +282,6 @@ class _LoginScreenState extends State<LoginScreen> {
         context: context,
         builder: (dialogContext) {
           final theme = Theme.of(dialogContext);
-          final isDark = theme.brightness == Brightness.dark;
           String? dialogError;
           bool isSubmitting = false;
 
@@ -352,9 +351,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Text(
                       lang.translate('forgot_password_hint'),
                       style: TextStyle(
-                        color: isDark
-                            ? AppColors.greyAAA
-                            : Colors.grey[700],
+                        color: context.tokens.textMuted,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -375,9 +372,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: context.tokens.textMuted,
                         ),
                         filled: true,
-                        fillColor: isDark
-                            ? AppColors.darkSurfaceHigh
-                            : Colors.grey[200],
+                        fillColor: context.colors.surfaceContainerHigh,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
@@ -501,7 +496,7 @@ class _LoginScreenState extends State<LoginScreen> {
           return Container(
             margin: const EdgeInsets.only(bottom: 8),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.darkSurfaceHigh : Colors.grey[200],
+              color: context.colors.surfaceContainerHigh,
               borderRadius: BorderRadius.circular(12),
             ),
             child: ListTile(
@@ -525,7 +520,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 account.baseUrl,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: isDark ? AppColors.greyAAA : Colors.grey[700],
+                  color: context.tokens.textMuted,
                 ),
               ),
               trailing: IconButton(
@@ -593,7 +588,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Text(
                 lang.translate('app_subtitle'),
                 style: TextStyle(
-                  color: isDark ? AppColors.greyAAA : Colors.grey[600],
+                  color: context.tokens.textMuted,
                   fontSize: 16,
                 ),
               ),
@@ -774,9 +769,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Text(
                     '${lang.translate('no_account_yet')} ',
                     style: TextStyle(
-                      color: isDark
-                          ? AppColors.greyAAA
-                          : Colors.grey[600],
+                      color: context.tokens.textMuted,
                     ),
                   ),
                   TextButton(
@@ -818,7 +811,6 @@ class _LoginScreenState extends State<LoginScreen> {
     TextInputType keyboardType = TextInputType.text,
   }) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return TextField(
       controller: controller,
@@ -835,7 +827,7 @@ class _LoginScreenState extends State<LoginScreen> {
           color: context.tokens.textMuted,
         ),
         filled: true,
-        fillColor: isDark ? AppColors.darkSurfaceHigh : Colors.grey[200],
+        fillColor: context.colors.surfaceContainerHigh,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,

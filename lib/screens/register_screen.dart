@@ -219,7 +219,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Text(
                 lang.translate('join_community'),
                 style: TextStyle(
-                  color: isDark ? AppColors.greyAAA : Colors.grey[600],
+                  color: context.tokens.textMuted,
                   fontSize: 14,
                 ),
               ),
@@ -273,7 +273,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // Champ cause
               Container(
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkSurfaceHigh : Colors.grey[200],
+                  color: context.colors.surfaceContainerHigh,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: DropdownButtonFormField<String>(
@@ -379,9 +379,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   Text(
                     '${lang.translate('login_link').split('?')[0]}? ',
                     style: TextStyle(
-                      color: isDark
-                          ? AppColors.greyAAA
-                          : Colors.grey[600],
+                      color: context.tokens.textMuted,
                     ),
                   ),
                   TextButton(
@@ -416,7 +414,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     TextInputType? keyboardType,
   }) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return TextField(
       controller: controller,
@@ -433,7 +430,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           color: context.tokens.textMuted,
         ),
         filled: true,
-        fillColor: isDark ? AppColors.darkSurfaceHigh : Colors.grey[200],
+        fillColor: context.colors.surfaceContainerHigh,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
