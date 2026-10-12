@@ -25,6 +25,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../widgets/linkable_text.dart';
 import 'chat_screen.dart';
 import '../utils/error_helper.dart';
+import '../utils/date_formatter.dart';
 
 class ProfileScreen extends StatefulWidget {
   final int? userId;
@@ -734,7 +735,7 @@ class ProfileScreenState extends State<ProfileScreen>
                         _profile?['is_moderator'] == '1') ...[
                       const SizedBox(width: 6),
                       Tooltip(
-                        message: 'Modérateur·ice élu·e',
+                        message: LanguageService.instance.translate('post_elected_moderator'),
                         child: Container(
                           padding: const EdgeInsets.all(3),
                           decoration: BoxDecoration(
@@ -785,7 +786,12 @@ class ProfileScreenState extends State<ProfileScreen>
                       ),
                     ] else if (_profile?['last_active'] != null) ...[
                       Text(
-                        'Dernière activité: ${_profile!['last_active']}', // TODO: Format date
+                        LanguageService.instance.translate('profile_last_active').replaceFirst(
+                          '{time}',
+                          DateFormatter.formatRelative(
+                            DateFormatter.parseApiDate(_profile!['last_active']),
+                          ),
+                        ),
                         style: TextStyle(color: subtitleColor, fontSize: 13),
                       ),
                     ],
@@ -1237,7 +1243,7 @@ class ProfileScreenState extends State<ProfileScreen>
                             color: subtitleColor, size: 36),
                         const SizedBox(height: 12),
                         Text(
-                          'Impossible de charger les publications',
+                          LanguageService.instance.translate('profile_posts_error'),
                           style: TextStyle(color: subtitleColor),
                         ),
                         const SizedBox(height: 12),
@@ -1252,8 +1258,8 @@ class ProfileScreenState extends State<ProfileScreen>
                           },
                           icon: const Icon(Icons.refresh,
                               size: 18, color: Color(0xFFBE1E1E)),
-                          label: const Text(
-                            'Réessayer',
+                          label: Text(
+                            LanguageService.instance.translate('retry'),
                             style: TextStyle(color: Color(0xFFBE1E1E)),
                           ),
                         ),
@@ -1481,7 +1487,7 @@ class ProfileScreenState extends State<ProfileScreen>
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          '${lang.translate('cannot_open_url')}: $urlString',
+                          '${lang.translate('cannot_open_link')}: $urlString',
                         ),
                       ),
                     );

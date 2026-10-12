@@ -51,6 +51,16 @@ class _EventsScreenState extends State<EventsScreen> {
     }
   }
 
+
+  Future<void> _createEvent() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const CreateEventScreen()),
+    );
+    if (result == true) {
+      _loadEvents();
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,6 +75,15 @@ class _EventsScreenState extends State<EventsScreen> {
           ? EmptyState(
               icon: Icons.event_outlined,
               title: LanguageService.instance.translate('no_events'),
+              action: ElevatedButton.icon(
+                onPressed: _createEvent,
+                icon: const Icon(Icons.add),
+                label: Text(LanguageService.instance.translate('create_event')),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: context.colors.primary,
+                  foregroundColor: context.colors.onPrimary,
+                ),
+              ),
             )
           : RefreshIndicator(
               onRefresh: _loadEvents,
@@ -78,15 +97,7 @@ class _EventsScreenState extends State<EventsScreen> {
               ),
             ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const CreateEventScreen()),
-          );
-          if (result == true) {
-            _loadEvents();
-          }
-        },
+        onPressed: _createEvent,
         backgroundColor: context.colors.primary,
         foregroundColor: context.colors.onPrimary,
         tooltip: LanguageService.instance.translate('create_event'),

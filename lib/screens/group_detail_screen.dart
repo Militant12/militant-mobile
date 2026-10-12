@@ -954,7 +954,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Admins et membres du groupe',
+                      LanguageService.instance.translate('group_members_subtitle'),
                       style: TextStyle(
                         fontSize: 12,
                         color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7) ?? Colors.grey,

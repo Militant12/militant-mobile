@@ -5,3 +5,4 @@ export 'app_avatar.dart';
 export 'empty_state.dart';
 export 'error_state.dart';
 export 'loading.dart';
+export 'offline_banner.dart';

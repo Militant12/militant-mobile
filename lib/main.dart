@@ -24,6 +24,7 @@ import 'widgets/incoming_call_banner.dart';
 
 import 'package:flutter/services.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'widgets/common/offline_banner.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -85,6 +86,8 @@ class MilitantApp extends StatelessWidget {
               themeMode: mode,
               theme: AppTheme.light(),
               darkTheme: AppTheme.dark(),
+              builder: (context, child) =>
+                  OfflineBanner(child: child ?? const SizedBox.shrink()),
               home: const SplashScreen(),
               onGenerateRoute: (settings) {
                 if (settings.name == '/profile') {

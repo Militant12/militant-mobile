@@ -420,10 +420,10 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
             ],
           ),
         ),
-        child: const Stack(
+        child: Stack(
           alignment: Alignment.center,
           children: [
-            Positioned(
+            const Positioned(
               top: 10,
               left: 10,
               child: _VideoBadge(),
@@ -431,14 +431,14 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                CircularProgressIndicator(
+                const CircularProgressIndicator(
                   color: Color(0xFFBE1E1E),
                   strokeWidth: 2,
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(
-                  'Chargement de l\'aperçu...',
-                  style: TextStyle(color: Colors.white54, fontSize: 12),
+                  LanguageService.instance.translate('video_preview_loading'),
+                  style: const TextStyle(color: Colors.white54, fontSize: 12),
                 ),
               ],
             ),
@@ -485,7 +485,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                   left: 18,
                   right: 18,
                   child: Text(
-                    'Touchez pour charger la video',
+                    LanguageService.instance.translate('video_tap_to_load'),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white70,
@@ -547,15 +547,15 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Aperçu indisponible',
+              Text(
+                LanguageService.instance.translate('video_preview_unavailable'),
                 style: TextStyle(color: Colors.white60, fontSize: 13),
               ),
               const SizedBox(height: 12),
               TextButton.icon(
                 onPressed: _openInBrowser,
                 icon: const Icon(Icons.open_in_new, size: 14),
-                label: const Text('Voir la vidéo'),
+                label: Text(LanguageService.instance.translate('video_open')),
                 style: TextButton.styleFrom(foregroundColor: const Color(0xFFBE1E1E)),
               ),
             ],

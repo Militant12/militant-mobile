@@ -540,7 +540,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 IconButton(
                   icon: const Icon(Icons.photo, color: Color(0xFFBE1E1E)),
                   onPressed: _pickMedia,
-                  tooltip: 'Ajouter une image ou vidéo',
+                  tooltip: LanguageService.instance.translate('add_media'),
                 ),
                 const Spacer(),
                 if (_hasDraft)

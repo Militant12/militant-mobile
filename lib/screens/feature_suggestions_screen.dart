@@ -1165,8 +1165,8 @@ class _CreateFeatureSuggestionDialogState
     final description = _descriptionController.text.trim();
     if (title.length < 5 || description.length < 20) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Le titre ou la description est trop court.'),
+        SnackBar(
+          content: Text(LanguageService.instance.translate('suggestion_too_short')),
         ),
       );
       return;
