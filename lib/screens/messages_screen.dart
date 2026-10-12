@@ -8,6 +8,7 @@ import 'chat_screen.dart';
 import 'group_chat_screen.dart';
 import 'create_message_group_screen.dart';
 import '../utils/error_helper.dart';
+import 'discovery_screen.dart';
 
 class MessagesScreen extends StatefulWidget {
   const MessagesScreen({super.key});
@@ -161,6 +162,16 @@ class _MessagesScreenState extends State<MessagesScreen>
     }
   }
 
+
+  Future<void> _createGroup() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const CreateMessageGroupScreen()),
+    );
+    if (result != null) {
+      _loadConversations();
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<Locale>(
@@ -198,17 +209,7 @@ class _MessagesScreenState extends State<MessagesScreen>
           ),
           floatingActionButton: _tabController.index == 1
               ? FloatingActionButton(
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                    builder: (_) => const CreateMessageGroupScreen(),
-                  ),
-                );
-                if (result != null) {
-                  _loadConversations();
-                }
-              },
+                  onPressed: _createGroup,
               backgroundColor: context.colors.primary,
               foregroundColor: context.colors.onPrimary,
               tooltip: lang.translate('create_group'),
@@ -324,6 +325,30 @@ class _MessagesScreenState extends State<MessagesScreen>
             : (isPrivate
                   ? lang.translate('no_conversations')
                   : lang.translate('no_group_discussions')),
+        action: _searchQuery.isNotEmpty
+            ? null
+            : isPrivate
+            ? ElevatedButton.icon(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const DiscoveryScreen()),
+                ),
+                icon: const Icon(Icons.explore),
+                label: Text(lang.translate('discover_militants')),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: context.colors.primary,
+                  foregroundColor: context.colors.onPrimary,
+                ),
+              )
+            : ElevatedButton.icon(
+                onPressed: _createGroup,
+                icon: const Icon(Icons.add),
+                label: Text(lang.translate('create_group')),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: context.colors.primary,
+                  foregroundColor: context.colors.onPrimary,
+                ),
+              ),
       );
     }
 

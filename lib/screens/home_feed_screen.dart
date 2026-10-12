@@ -13,6 +13,7 @@ import '../services/notification_badge_service.dart';
 import '../theme/app_tokens.dart';
 import '../theme/theme_context.dart';
 import '../widgets/common/common.dart';
+import 'discovery_screen.dart';
 
 const _feedInterestStorageKey = 'feed_interests';
 
@@ -600,6 +601,20 @@ class _FeedListState extends State<FeedList>
         title: widget.feedType == 'following'
             ? lang.translate('empty_feed_following')
             : lang.translate('empty_feed_global'),
+        action: widget.feedType == 'following'
+            ? ElevatedButton.icon(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const DiscoveryScreen()),
+                ),
+                icon: const Icon(Icons.explore),
+                label: Text(lang.translate('discover_militants')),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: context.colors.primary,
+                  foregroundColor: context.colors.onPrimary,
+                ),
+              )
+            : null,
       );
     }
     return SizedBox(
