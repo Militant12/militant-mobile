@@ -8,11 +8,12 @@ import '../widgets/stories_bar.dart';
 import 'create_post_screen.dart';
 import 'search_screen.dart';
 import 'notifications_screen.dart';
-import 'messages_screen.dart';
+import 'community_screen.dart';
 import '../services/notification_badge_service.dart';
 import '../theme/app_tokens.dart';
 import '../theme/theme_context.dart';
 import '../widgets/common/common.dart';
+import '../widgets/live_now_strip.dart';
 import 'discovery_screen.dart';
 
 const _feedInterestStorageKey = 'feed_interests';
@@ -103,13 +104,15 @@ class _HomeFeedScreenState extends State<HomeFeedScreen>
                 },
               ),
               IconButton(
-                icon: const Icon(Icons.message),
-                tooltip: LanguageService.instance.translate('action_messages'),
+                icon: const Icon(Icons.grid_view),
+                tooltip: LanguageService.instance.translate(
+                  'community_nav_title',
+                ),
                 onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const MessagesScreen(),
+                      builder: (context) => const CommunityScreen(),
                     ),
                   );
                 },
@@ -672,7 +675,9 @@ class _FeedListState extends State<FeedList>
         itemCount: listItemCount,
         itemBuilder: (context, index) {
           if (index == 0) {
-            return const StoriesBar();
+            return widget.feedType == 'global'
+                ? const Column(children: [StoriesBar(), LiveNowStrip()])
+                : const StoriesBar();
           }
 
           if (widget.feedType == 'global' && index == 1) {

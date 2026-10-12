@@ -22,7 +22,11 @@ import '../theme/theme_context.dart';
 import '../theme/app_tokens.dart';
 
 class LiveScreen extends StatefulWidget {
-  const LiveScreen({super.key});
+  const LiveScreen({super.key, this.initialLiveId});
+
+  /// Live à rejoindre dès l'ouverture (ex. depuis le bandeau « En direct »
+  /// du fil).
+  final Object? initialLiveId;
 
   @override
   State<LiveScreen> createState() => _LiveScreenState();
@@ -100,6 +104,9 @@ class _LiveScreenState extends State<LiveScreen> {
     await _loadDiscoveryLives();
     if (_isMilitantTechnician || _isElectedModerator) {
       await _loadModerationReports();
+    }
+    if (mounted && widget.initialLiveId != null) {
+      _joinDirectly(widget.initialLiveId);
     }
   }
 

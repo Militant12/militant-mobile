@@ -1101,6 +1101,11 @@ class LanguageService extends ValueNotifier<Locale> {
       'profile_last_active': 'Dernière activité : {time}',
       'profile_posts_error': 'Impossible de charger les publications',
       'offline_banner': 'Pas de connexion internet',
+
+      // Navigation
+      'agenda_title': 'Agenda',
+      'live_desc': 'Regarder ou lancer un direct.',
+      'live_now_item': '{user} en direct : {title}',
       'call_camera_unavailable': "Caméra indisponible, l'appel continue sans vidéo.",
 
       // User Status
@@ -2207,6 +2212,11 @@ class LanguageService extends ValueNotifier<Locale> {
       'profile_last_active': 'Last active: {time}',
       'profile_posts_error': 'Unable to load posts',
       'offline_banner': 'No internet connection',
+
+      // Navigation
+      'agenda_title': 'Calendar',
+      'live_desc': 'Watch or start a live.',
+      'live_now_item': '{user} live: {title}',
       'call_camera_unavailable': 'Camera unavailable, the call continues without video.',
 
       // User Status
@@ -3310,6 +3320,11 @@ class LanguageService extends ValueNotifier<Locale> {
       'profile_last_active': 'Última actividad: {time}',
       'profile_posts_error': 'No se pudieron cargar las publicaciones',
       'offline_banner': 'Sin conexión a internet',
+
+      // Navigation
+      'agenda_title': 'Agenda',
+      'live_desc': 'Ver o iniciar un directo.',
+      'live_now_item': '{user} en directo: {title}',
       'call_camera_unavailable': 'Cámara no disponible, la llamada continúa sin video.',
 
       // Discovery
