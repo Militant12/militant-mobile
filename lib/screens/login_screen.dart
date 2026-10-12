@@ -13,6 +13,7 @@ import 'home_screen.dart';
 import 'register_screen.dart';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
 
 class LoginScreen extends StatefulWidget {
   final SavedAccount? fallbackAccount;
@@ -367,15 +368,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       decoration: InputDecoration(
                         labelText: lang.translate('email_label'),
                         labelStyle: TextStyle(
-                          color: isDark
-                              ? AppColors.grey888
-                              : Colors.grey[600],
+                          color: context.tokens.textMuted,
                         ),
                         prefixIcon: Icon(
                           Icons.email_outlined,
-                          color: isDark
-                              ? AppColors.grey888
-                              : Colors.grey[600],
+                          color: context.tokens.textMuted,
                         ),
                         filled: true,
                         fillColor: isDark
@@ -493,7 +490,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Text(
             lang.translate('quick_accounts'),
             style: TextStyle(
-              color: isDark ? Colors.white : Colors.black,
+              color: context.colors.onSurface,
               fontSize: 15,
               fontWeight: FontWeight.w700,
             ),
@@ -520,7 +517,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 account.displayName,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black,
+                  color: context.colors.onSurface,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -587,7 +584,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(
                   color:
                       theme.textTheme.displayLarge?.color ??
-                      (isDark ? Colors.white : Colors.black),
+                      (context.colors.onSurface),
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
                 ),
@@ -688,7 +685,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black,
+                    color: context.colors.onSurface,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -831,11 +828,11 @@ class _LoginScreenState extends State<LoginScreen> {
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(
-          color: isDark ? AppColors.grey888 : Colors.grey[600],
+          color: context.tokens.textMuted,
         ),
         prefixIcon: Icon(
           icon,
-          color: isDark ? AppColors.grey888 : Colors.grey[600],
+          color: context.tokens.textMuted,
         ),
         filled: true,
         fillColor: isDark ? AppColors.darkSurfaceHigh : Colors.grey[200],

@@ -1140,7 +1140,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
 
     final textColor = isMine
         ? Colors.white
-        : (isDark ? Colors.white : Colors.black);
+        : (context.colors.onSurface);
 
     return Align(
       alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,

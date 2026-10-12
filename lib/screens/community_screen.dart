@@ -8,6 +8,7 @@ import 'discovery_screen.dart';
 import 'fediverse_screen.dart';
 import 'feature_suggestions_screen.dart';
 import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
 
 class CommunityScreen extends StatelessWidget {
   const CommunityScreen({super.key});
@@ -159,7 +160,7 @@ class CommunityScreen extends StatelessWidget {
           )
         : null;
 
-    final textColor = isDark ? Colors.white : Colors.black;
+    final textColor = context.colors.onSurface;
     final subTextColor = isDark ? Colors.grey[400] : Colors.grey[700];
 
     return Material(

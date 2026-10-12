@@ -9,6 +9,7 @@ import 'create_page_screen.dart';
 import '../utils/error_helper.dart';
 import '../utils/page_categories.dart';
 import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
 
 class PagesScreen extends StatefulWidget {
   const PagesScreen({super.key});
@@ -101,15 +102,15 @@ class _PagesScreenState extends State<PagesScreen>
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : Colors.grey[50],
       appBar: AppBar(
-        backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+        backgroundColor: context.colors.surface,
         title: Text(
           lang.translate('pages_title'),
-          style: TextStyle(color: isDark ? Colors.white : Colors.black),
+          style: TextStyle(color: context.colors.onSurface),
         ),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.militantRed,
-          labelColor: isDark ? Colors.white : Colors.black,
+          labelColor: context.colors.onSurface,
           unselectedLabelColor: isDark ? Colors.white54 : Colors.grey,
           isScrollable: true,
           tabs: [
@@ -382,7 +383,7 @@ class _PagesScreenState extends State<PagesScreen>
                         child: Text(
                           name,
                           style: TextStyle(
-                            color: isDark ? Colors.white : Colors.black,
+                            color: context.colors.onSurface,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -437,9 +438,7 @@ class _PagesScreenState extends State<PagesScreen>
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: isDark
-                            ? AppColors.grey888
-                            : Colors.grey[600],
+                        color: context.tokens.textMuted,
                         fontSize: 14,
                       ),
                     ),

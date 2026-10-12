@@ -5,6 +5,7 @@ import '../services/language_service.dart';
 import '../widgets/militant_badge.dart';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
 
 class BadgeSelectionScreen extends StatefulWidget {
   const BadgeSelectionScreen({super.key});
@@ -242,7 +243,7 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
                 style: TextStyle(
                   color: isSelected
                       ? AppColors.militantRed
-                      : (isDark ? Colors.white : Colors.black),
+                      : (context.colors.onSurface),
                   fontSize: 16,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),

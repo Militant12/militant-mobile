@@ -12,6 +12,7 @@ import './two_factor_settings_screen.dart';
 import './edit_profile_screen.dart';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -433,7 +434,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               label: Text(lang.translate('source_code')),
               style: ElevatedButton.styleFrom(
                 backgroundColor: isDark ? Colors.white10 : Colors.grey[200],
-                foregroundColor: isDark ? Colors.white : Colors.black,
+                foregroundColor: context.colors.onSurface,
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 textStyle: const TextStyle(fontSize: 12),
               ),

@@ -161,8 +161,7 @@ class _StatusPickerDialogState extends State<StatusPickerDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final bg = isDark ? AppColors.darkSurface : Colors.white;
+    final bg = context.colors.surface;
     final accent = AppColors.militantRed;
 
     return Container(

@@ -3,6 +3,7 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
 
 class CreatePageScreen extends StatefulWidget {
   const CreatePageScreen({super.key});
@@ -77,12 +78,12 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : Colors.grey[50],
       appBar: AppBar(
-        backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+        backgroundColor: context.colors.surface,
         title: Text(
           lang.translate('create_page_title'),
-          style: TextStyle(color: isDark ? Colors.white : Colors.black),
+          style: TextStyle(color: context.colors.onSurface),
         ),
-        iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
+        iconTheme: IconThemeData(color: context.colors.onSurface),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -109,7 +110,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
               child: Text(
                 lang.translate('create_page_for_cause'),
                 style: TextStyle(
-                  color: isDark ? AppColors.grey888 : Colors.grey[600],
+                  color: context.tokens.textMuted,
                   fontSize: 14,
                 ),
               ),
@@ -120,21 +121,21 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
             Text(
               lang.translate('name_field'),
               style: TextStyle(
-                color: isDark ? Colors.white : Colors.black,
+                color: context.colors.onSurface,
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 6),
             TextField(
               controller: _nameController,
-              style: TextStyle(color: isDark ? Colors.white : Colors.black),
+              style: TextStyle(color: context.colors.onSurface),
               decoration: InputDecoration(
                 hintText: lang.translate('page_name_hint'),
                 hintStyle: TextStyle(
                   color: isDark ? Colors.white38 : Colors.grey,
                 ),
                 filled: true,
-                fillColor: isDark ? AppColors.darkSurface : Colors.white,
+                fillColor: context.colors.surface,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide.none,
@@ -151,7 +152,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
             Text(
               lang.translate('category_field'),
               style: TextStyle(
-                color: isDark ? Colors.white : Colors.black,
+                color: context.colors.onSurface,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -179,7 +180,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
                         style: TextStyle(
                           color: isSelected
                               ? Colors.white
-                              : (isDark ? Colors.white : Colors.black),
+                              : (context.colors.onSurface),
                           fontSize: 13,
                         ),
                       ),
@@ -206,7 +207,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
             Text(
               lang.translate('description_field'),
               style: TextStyle(
-                color: isDark ? Colors.white : Colors.black,
+                color: context.colors.onSurface,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -214,14 +215,14 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
             TextField(
               controller: _descController,
               maxLines: 4,
-              style: TextStyle(color: isDark ? Colors.white : Colors.black),
+              style: TextStyle(color: context.colors.onSurface),
               decoration: InputDecoration(
                 hintText: lang.translate('describe_page_hint'),
                 hintStyle: TextStyle(
                   color: isDark ? Colors.white38 : Colors.grey,
                 ),
                 filled: true,
-                fillColor: isDark ? AppColors.darkSurface : Colors.white,
+                fillColor: context.colors.surface,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide.none,

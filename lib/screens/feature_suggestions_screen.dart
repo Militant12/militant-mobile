@@ -9,6 +9,7 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
 
 class FeatureSuggestionsScreen extends StatefulWidget {
   const FeatureSuggestionsScreen({super.key});
@@ -188,7 +189,7 @@ class _FeatureSuggestionsScreenState extends State<FeatureSuggestionsScreen> {
     bool isDark,
   ) {
     final cardColor = isDark ? AppColors.darkSurfaceLow : Colors.white;
-    final borderColor = isDark ? Colors.white10 : AppColors.greyE3;
+    final borderColor = context.colors.outlineVariant;
     final textColor = isDark ? Colors.white : const Color(0xFF111111);
     final subColor = isDark ? Colors.white70 : const Color(0xFF5F6368);
     return Container(
@@ -331,7 +332,7 @@ class _FeatureSuggestionsScreenState extends State<FeatureSuggestionsScreen> {
     String Function(String) translate,
     bool isDark,
   ) {
-    final borderColor = isDark ? Colors.white10 : AppColors.greyE3;
+    final borderColor = context.colors.outlineVariant;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -560,9 +561,7 @@ class _FeatureSuggestionDetailScreenState
                         color: isDark ? AppColors.darkSurfaceLow : Colors.white,
                         border: Border(
                           top: BorderSide(
-                            color: isDark
-                                ? Colors.white10
-                                : AppColors.greyE3,
+                            color: context.colors.outlineVariant,
                           ),
                         ),
                         boxShadow: isDark
@@ -627,7 +626,7 @@ class _FeatureSuggestionDetailScreenState
 
   Widget _buildDetailCard(String Function(String) translate, bool isDark) {
     final suggestion = _suggestion!;
-    final borderColor = isDark ? Colors.white10 : AppColors.greyE3;
+    final borderColor = context.colors.outlineVariant;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -773,7 +772,7 @@ class _SuggestionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cardColor = isDark ? AppColors.darkSurfaceLow : Colors.white;
-    final borderColor = isDark ? Colors.white10 : AppColors.greyE3;
+    final borderColor = context.colors.outlineVariant;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -919,7 +918,7 @@ class _CommentTile extends StatelessWidget {
         color: isDark ? AppColors.darkSurfaceLow : Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? Colors.white10 : AppColors.greyE3,
+          color: context.colors.outlineVariant,
         ),
         boxShadow: isDark
             ? null

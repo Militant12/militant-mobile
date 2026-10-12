@@ -541,7 +541,7 @@ class ProfileScreenState extends State<ProfileScreen>
                         style: TextStyle(
                           color: isCurrent
                               ? (isDark ? Colors.white70 : Colors.black54)
-                              : (isDark ? Colors.white : Colors.black),
+                              : (context.colors.onSurface),
                           fontWeight: FontWeight.w600,
                         ),
                       ),

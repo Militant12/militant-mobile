@@ -616,12 +616,10 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _showConversationSettings() async {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final selected = await showDialog<int>(
       context: context,
       builder: (context) => SimpleDialog(
-        backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+        backgroundColor: context.colors.surface,
         title: Text(LanguageService.instance.translate('ephemeral_messages')),
         children: [
           _timeOption(0, LanguageService.instance.translate('disabled')),
@@ -1181,7 +1179,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     final textColor = isMine
         ? Colors.white
-        : (isDark ? Colors.white : Colors.black);
+        : (context.colors.onSurface);
 
     return Align(
       alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,

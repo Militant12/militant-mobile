@@ -5,6 +5,7 @@ import '../services/language_service.dart';
 import 'home_screen.dart';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -209,7 +210,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 style: TextStyle(
                   color:
                       theme.textTheme.displayLarge?.color ??
-                      (isDark ? Colors.white : Colors.black),
+                      (context.colors.onSurface),
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                 ),
@@ -280,15 +281,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   decoration: InputDecoration(
                     labelText: lang.translate('your_main_cause'),
                     labelStyle: TextStyle(
-                      color: isDark
-                          ? AppColors.grey888
-                          : Colors.grey[600],
+                      color: context.tokens.textMuted,
                     ),
                     prefixIcon: Icon(
                       Icons.flag,
-                      color: isDark
-                          ? AppColors.grey888
-                          : Colors.grey[600],
+                      color: context.tokens.textMuted,
                     ),
                     filled: true,
                     fillColor: Colors.transparent,
@@ -429,11 +426,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(
-          color: isDark ? AppColors.grey888 : Colors.grey[600],
+          color: context.tokens.textMuted,
         ),
         prefixIcon: Icon(
           icon,
-          color: isDark ? AppColors.grey888 : Colors.grey[600],
+          color: context.tokens.textMuted,
         ),
         filled: true,
         fillColor: isDark ? AppColors.darkSurfaceHigh : Colors.grey[200],

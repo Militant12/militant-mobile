@@ -10,6 +10,7 @@ import '../services/language_service.dart';
 import 'profile_screen.dart';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
 
 class GroupSettingsScreen extends StatefulWidget {
   final int groupId;
@@ -349,9 +350,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                     final val = await showDialog<int>(
                       context: context,
                       builder: (context) => SimpleDialog(
-                        backgroundColor: isDark
-                            ? AppColors.darkSurface
-                            : Colors.white,
+                        backgroundColor: context.colors.surface,
                         title: Text(lang.translate('deletion_delay')),
                         children: [
                           _timeOption(0, lang.translate('disabled')),
@@ -381,9 +380,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                     final confirm = await showDialog<bool>(
                       context: context,
                       builder: (context) => AlertDialog(
-                        backgroundColor: isDark
-                            ? AppColors.darkSurface
-                            : Colors.white,
+                        backgroundColor: context.colors.surface,
                         title: Text(lang.translate('confirm_question')),
                         content: Text(
                           lang.translate('grant_admin_rights'),

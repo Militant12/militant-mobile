@@ -12,6 +12,7 @@ import '../widgets/file_video_player.dart';
 import '../utils/error_helper.dart';
 import '../utils/page_categories.dart';
 import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
 
 class PageDetailScreen extends StatefulWidget {
   final dynamic page;
@@ -732,7 +733,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           SliverAppBar(
             expandedHeight: 200,
             pinned: true,
-            backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+            backgroundColor: context.colors.surface,
             iconTheme: const IconThemeData(color: Colors.white),
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
@@ -767,7 +768,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           // Page info
           SliverToBoxAdapter(
             child: Container(
-              color: isDark ? AppColors.darkSurface : Colors.white,
+              color: context.colors.surface,
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -785,7 +786,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                             Text(
                               name,
                               style: TextStyle(
-                                color: isDark ? Colors.white : Colors.black,
+                                color: context.colors.onSurface,
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -890,7 +891,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                       : Colors.grey[200])
                                 : AppColors.militantRed,
                             foregroundColor: _isFollowed
-                                ? (isDark ? Colors.white : Colors.black)
+                                ? (context.colors.onSurface)
                                 : Colors.white,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16,
@@ -931,12 +932,12 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                   key: ValueKey(_tabController.hashCode),
                   controller: _tabController,
                   indicatorColor: AppColors.militantRed,
-                  labelColor: isDark ? Colors.white : Colors.black,
+                  labelColor: context.colors.onSurface,
                   unselectedLabelColor: isDark ? Colors.white54 : Colors.grey,
                   isScrollable: (_tabController?.length ?? 1) > 3,
                   tabs: _buildTabs(),
                 ),
-                isDark ? AppColors.darkSurface : Colors.white,
+                context.colors.surface,
               ),
             ),
         ],
@@ -1046,7 +1047,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
     addLink(
       'social_twitter',
       Icons.alternate_email,
-      isDark ? Colors.white : Colors.black,
+      context.colors.onSurface,
       'https://twitter.com/',
     );
     addLink(
@@ -1064,7 +1065,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
     addLink(
       'social_tiktok',
       Icons.music_note,
-      isDark ? Colors.white : Colors.black,
+      context.colors.onSurface,
       'https://tiktok.com/@',
     );
     addLink(
@@ -1159,7 +1160,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isDark ? AppColors.darkSurface : Colors.white,
+                color: context.colors.surface,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
@@ -1169,7 +1170,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                     maxLines: 3,
                     minLines: 1,
                     style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black,
+                      color: context.colors.onSurface,
                     ),
                     decoration: InputDecoration(
                       hintText: lang.translate('post_content_hint'),
@@ -1298,7 +1299,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             Container(
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
-                color: isDark ? AppColors.darkSurface : Colors.white,
+                color: context.colors.surface,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
@@ -1313,9 +1314,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                     Text(
                       lang.translate('no_posts_message'),
                       style: TextStyle(
-                        color: isDark
-                            ? AppColors.grey888
-                            : Colors.grey[600],
+                        color: context.tokens.textMuted,
                         fontSize: 16,
                       ),
                     ),
@@ -1348,7 +1347,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : Colors.white,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -1369,7 +1368,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                         page['name'] ??
                             LanguageService.instance.translate('page_default_name'),
                         style: TextStyle(
-                          color: isDark ? Colors.white : Colors.black,
+                          color: context.colors.onSurface,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -1638,7 +1637,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.darkSurface : Colors.white,
+              color: context.colors.surface,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -1656,7 +1655,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                       Text(
                         follower['username'] ?? '',
                         style: TextStyle(
-                          color: isDark ? Colors.white : Colors.black,
+                          color: context.colors.onSurface,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -1744,7 +1743,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             padding: const EdgeInsets.all(12),
             margin: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.darkSurface : Colors.white,
+              color: context.colors.surface,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -1764,7 +1763,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                color: isDark ? AppColors.darkSurface : Colors.white,
+                color: context.colors.surface,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -1781,7 +1780,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                         Text(
                           member['username'] ?? '',
                           style: TextStyle(
-                            color: isDark ? Colors.white : Colors.black,
+                            color: context.colors.onSurface,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -2140,7 +2139,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           Text(
             lang.translate('category'),
             style: TextStyle(
-              color: isDark ? Colors.white : Colors.black,
+              color: context.colors.onSurface,
               fontWeight: FontWeight.w600,
               fontSize: 14,
             ),
@@ -2151,7 +2150,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 ? _selectedCategory
                 : '',
             dropdownColor: isDark ? AppColors.darkSurfaceHigh : Colors.white,
-            style: TextStyle(color: isDark ? Colors.white : Colors.black),
+            style: TextStyle(color: context.colors.onSurface),
             items: categories
                 .map(
                   (c) => DropdownMenuItem(
@@ -2188,7 +2187,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           Text(
             lang.translate('page_visibility'),
             style: TextStyle(
-              color: isDark ? Colors.white : Colors.black,
+              color: context.colors.onSurface,
               fontWeight: FontWeight.w600,
               fontSize: 14,
             ),
@@ -2197,7 +2196,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           DropdownButtonFormField<String>(
             initialValue: _selectedPrivacy,
             dropdownColor: isDark ? AppColors.darkSurfaceHigh : Colors.white,
-            style: TextStyle(color: isDark ? Colors.white : Colors.black),
+            style: TextStyle(color: context.colors.onSurface),
             items: [
               DropdownMenuItem(
                 value: 'public',
@@ -2240,7 +2239,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           Text(
             lang.translate('social_links_title'),
             style: TextStyle(
-              color: isDark ? Colors.white : Colors.black,
+              color: context.colors.onSurface,
               fontWeight: FontWeight.w600,
               fontSize: 14,
             ),
@@ -2311,7 +2310,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
         Text(
           label,
           style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
+            color: context.colors.onSurface,
             fontWeight: FontWeight.w600,
             fontSize: 14,
           ),
@@ -2320,7 +2319,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
         TextField(
           controller: controller,
           maxLines: maxLines,
-          style: TextStyle(color: isDark ? Colors.white : Colors.black),
+          style: TextStyle(color: context.colors.onSurface),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.grey),
@@ -2353,7 +2352,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             child: TextField(
               controller: controller,
               style: TextStyle(
-                color: isDark ? Colors.white : Colors.black,
+                color: context.colors.onSurface,
                 fontSize: 14,
               ),
               decoration: InputDecoration(
@@ -2735,7 +2734,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black,
+                      color: context.colors.onSurface,
                     ),
                   ),
                   const Spacer(),
@@ -2822,9 +2821,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 13,
-                                            color: isDark
-                                                ? Colors.white
-                                                : Colors.black,
+                                            color: context.colors.onSurface,
                                           ),
                                         ),
                                         const SizedBox(width: 8),
@@ -3050,7 +3047,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                         child: TextField(
                           controller: _commentController,
                           style: TextStyle(
-                            color: isDark ? Colors.white : Colors.black,
+                            color: context.colors.onSurface,
                           ),
                           decoration: InputDecoration(
                             hintText: _replyingTo != null
@@ -3154,7 +3151,7 @@ class _PagePostContentState extends State<_PagePostContent> {
           child: LinkableText(
             text: widget.content,
             style: TextStyle(
-              color: widget.isDark ? Colors.white : Colors.black,
+              color: context.colors.onSurface,
               fontSize: 15,
             ),
             onLinksDetected: (urls) {
