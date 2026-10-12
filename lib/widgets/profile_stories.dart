@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class ProfileStories extends StatefulWidget {
   final int userId;
@@ -159,14 +160,14 @@ class _ProfileStoriesState extends State<ProfileStories> {
                       style: TextStyle(
                         color: titleColor,
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: AppTokens.fontBodyLarge,
                       ),
                     ),
                     Text(
                       lang.translate('profile_stories_add_subtitle'),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: subtitleColor, fontSize: 13),
+                      style: TextStyle(color: subtitleColor, fontSize: AppTokens.fontBodyMedium),
                     ),
                   ],
                 ),
@@ -268,7 +269,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
                         '$count',
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 10,
+                          fontSize: AppTokens.fontLabelSmall,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -291,7 +292,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
                     style: TextStyle(
                       color: titleColor,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: AppTokens.fontBodyLarge,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -307,7 +308,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
                         : lang.translate('profile_stories_watch'),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: subtitleColor, fontSize: 13),
+                    style: TextStyle(color: subtitleColor, fontSize: AppTokens.fontBodyMedium),
                   ),
                 ],
               ),

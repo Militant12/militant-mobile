@@ -9,6 +9,7 @@ import 'group_chat_screen.dart';
 import 'create_message_group_screen.dart';
 import '../utils/error_helper.dart';
 import 'discovery_screen.dart';
+import '../theme/app_tokens.dart';
 
 class MessagesScreen extends StatefulWidget {
   const MessagesScreen({super.key});
@@ -266,12 +267,12 @@ class _MessagesScreenState extends State<MessagesScreen>
         child: TextField(
           controller: _searchController,
           onChanged: _onSearchChanged,
-          style: TextStyle(color: colors.onSurface, fontSize: 15),
+          style: TextStyle(color: colors.onSurface, fontSize: AppTokens.fontBodyLarge),
           decoration: InputDecoration(
             hintText: _tabController.index == 0
                 ? lang.translate('search_users')
                 : lang.translate('search_group'),
-            hintStyle: TextStyle(color: muted, fontSize: 14),
+            hintStyle: TextStyle(color: muted, fontSize: AppTokens.fontBodyMedium),
             prefixIcon: Icon(Icons.search, color: colors.primary, size: 20),
             suffixIcon: _searchQuery.isNotEmpty
                 ? IconButton(
@@ -405,7 +406,7 @@ class _MessagesScreenState extends State<MessagesScreen>
                     name,
                     style: TextStyle(
                       color: context.colors.onSurface,
-                      fontSize: 16,
+                      fontSize: AppTokens.fontBodyLarge,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -416,7 +417,7 @@ class _MessagesScreenState extends State<MessagesScreen>
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: context.tokens.textMuted,
-                      fontSize: 14,
+                      fontSize: AppTokens.fontBodyMedium,
                     ),
                   ),
                 ],
@@ -467,7 +468,7 @@ class _MessagesScreenState extends State<MessagesScreen>
                     username,
                     style: TextStyle(
                       color: context.colors.onSurface,
-                      fontSize: 16,
+                      fontSize: AppTokens.fontBodyLarge,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -478,7 +479,7 @@ class _MessagesScreenState extends State<MessagesScreen>
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: context.tokens.textMuted,
-                      fontSize: 14,
+                      fontSize: AppTokens.fontBodyMedium,
                     ),
                   ),
                 ],
@@ -498,7 +499,7 @@ class _MessagesScreenState extends State<MessagesScreen>
                       .replaceAll('{count}', unreadCount.toString()),
                   style: TextStyle(
                     color: context.colors.onPrimary,
-                    fontSize: 12,
+                    fontSize: AppTokens.fontBodySmall,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

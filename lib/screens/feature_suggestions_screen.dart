@@ -10,6 +10,7 @@ import '../services/language_service.dart';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
 import '../theme/theme_context.dart';
+import '../theme/app_tokens.dart';
 
 class FeatureSuggestionsScreen extends StatefulWidget {
   const FeatureSuggestionsScreen({super.key});
@@ -228,7 +229,7 @@ class _FeatureSuggestionsScreenState extends State<FeatureSuggestionsScreen> {
                   translate('suggest_features_desc'),
                   style: TextStyle(
                     color: textColor,
-                    fontSize: 15,
+                    fontSize: AppTokens.fontBodyLarge,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -285,7 +286,7 @@ class _FeatureSuggestionsScreenState extends State<FeatureSuggestionsScreen> {
       ),
       child: Text(
         '$label $value',
-        style: TextStyle(color: subColor, fontSize: 12),
+        style: TextStyle(color: subColor, fontSize: AppTokens.fontBodySmall),
       ),
     );
   }
@@ -532,7 +533,7 @@ class _FeatureSuggestionDetailScreenState
                             translate('comments_title'),
                             style: TextStyle(
                               color: isDark ? Colors.white : Colors.black87,
-                              fontSize: 16,
+                              fontSize: AppTokens.fontBodyLarge,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -654,7 +655,7 @@ class _FeatureSuggestionDetailScreenState
                       suggestion.title,
                       style: TextStyle(
                         color: isDark ? Colors.white : const Color(0xFF111111),
-                        fontSize: 20,
+                        fontSize: AppTokens.fontTitleLarge,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -842,7 +843,7 @@ class _SuggestionCard extends StatelessWidget {
                               color: isDark
                                   ? Colors.white
                                   : const Color(0xFF111111),
-                              fontSize: 16,
+                              fontSize: AppTokens.fontBodyLarge,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -875,7 +876,7 @@ class _SuggestionCard extends StatelessWidget {
                             color: isDark
                                 ? Colors.white60
                                 : const Color(0xFF5F6368),
-                            fontSize: 12,
+                            fontSize: AppTokens.fontBodySmall,
                           ),
                         ),
                         Text(
@@ -884,7 +885,7 @@ class _SuggestionCard extends StatelessWidget {
                             color: isDark
                                 ? Colors.white60
                                 : const Color(0xFF5F6368),
-                            fontSize: 12,
+                            fontSize: AppTokens.fontBodySmall,
                           ),
                         ),
                       ],
@@ -982,7 +983,7 @@ class _StatusBadge extends StatelessWidget {
       ),
       child: Text(
         translate('status_$status'),
-        style: TextStyle(color: fg, fontSize: 11, fontWeight: FontWeight.w700),
+        style: TextStyle(color: fg, fontSize: AppTokens.fontLabelSmall, fontWeight: FontWeight.w700),
       ),
     );
   }

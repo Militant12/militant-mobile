@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import '../services/language_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class FullScreenVideoPage extends StatefulWidget {
   final VideoPlayerController controller;
@@ -151,7 +152,7 @@ class _FullScreenVideoPageState extends State<FullScreenVideoPage> {
                               final duration = value.duration;
                               return Text(
                                 '${_format(position)} / ${_format(duration)}',
-                                style: const TextStyle(color: Colors.white, fontSize: 13),
+                                style: const TextStyle(color: Colors.white, fontSize: AppTokens.fontBodyMedium),
                               );
                             },
                           ),

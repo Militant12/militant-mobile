@@ -19,6 +19,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class GroupDetailScreen extends StatefulWidget {
   final dynamic group;
@@ -603,7 +604,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                                   '${_groupData!['pending_requests_count']}',
                                   style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: 10,
+                                    fontSize: AppTokens.fontLabelSmall,
                                     fontWeight: FontWeight.bold,
                                   ),
                                   textAlign: TextAlign.center,
@@ -671,7 +672,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                     Text(
                       name,
                       style: TextStyle(
-                        fontSize: 26,
+                        fontSize: AppTokens.fontHeadlineMedium,
                         fontWeight: FontWeight.w800,
                         color: theme.textTheme.titleLarge?.color,
                       ),
@@ -794,7 +795,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                         text: description,
                         style: TextStyle(
                           color: isDark ? Colors.white70 : Colors.black87,
-                          fontSize: 16,
+                          fontSize: AppTokens.fontBodyLarge,
                         ),
                       ),
                     ],
@@ -804,7 +805,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                       Text(
                         lang.translate('publications_title'),
                         style: const TextStyle(
-                          fontSize: 20,
+                          fontSize: AppTokens.fontTitleLarge,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -950,7 +951,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                       '$membersCount ${membersCount > 1 ? lang.translate('members') : lang.translate('member')}',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: AppTokens.fontBodyMedium,
                         color: theme.textTheme.bodyLarge?.color,
                       ),
                     ),
@@ -958,7 +959,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                     Text(
                       LanguageService.instance.translate('group_members_subtitle'),
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: AppTokens.fontBodySmall,
                         color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7) ?? Colors.grey,
                       ),
                     ),

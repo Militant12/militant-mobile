@@ -8,6 +8,7 @@ import 'dart:io';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
 import '../theme/theme_context.dart';
+import '../theme/app_tokens.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -338,7 +339,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       title.toUpperCase(),
       style: const TextStyle(
         color: AppColors.militantRed,
-        fontSize: 12,
+        fontSize: AppTokens.fontBodySmall,
         fontWeight: FontWeight.bold,
         letterSpacing: 1.0,
       ),

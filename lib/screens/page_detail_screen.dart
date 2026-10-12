@@ -13,6 +13,7 @@ import '../utils/error_helper.dart';
 import '../utils/page_categories.dart';
 import '../theme/app_colors.dart';
 import '../theme/theme_context.dart';
+import '../theme/app_tokens.dart';
 
 class PageDetailScreen extends StatefulWidget {
   final dynamic page;
@@ -510,7 +511,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                             size: 24,
                           ),
                         )
-                      : Text(e.value, style: const TextStyle(fontSize: 32)),
+                      : Text(e.value, style: const TextStyle(fontSize: AppTokens.fontHeadlineLarge)),
                 ),
               )
               .toList(),
@@ -787,7 +788,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                               name,
                               style: TextStyle(
                                 color: context.colors.onSurface,
-                                fontSize: 20,
+                                fontSize: AppTokens.fontTitleLarge,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -808,7 +809,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                       pageCategoryLabel(category),
                                       style: TextStyle(
                                         color: context.tokens.textMuted,
-                                        fontSize: 12,
+                                        fontSize: AppTokens.fontBodySmall,
                                       ),
                                     ),
                                   ),
@@ -836,7 +837,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                           lang.translate('private'),
                                           style: const TextStyle(
                                             color: Colors.white70,
-                                            fontSize: 11,
+                                            fontSize: AppTokens.fontLabelSmall,
                                           ),
                                         ),
                                       ],
@@ -847,7 +848,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                   '$followersCount ${followersCount > 1 ? lang.translate('followers_count_plural') : lang.translate('followers_count')}',
                                   style: TextStyle(
                                     color: context.tokens.textMuted,
-                                    fontSize: 12,
+                                    fontSize: AppTokens.fontBodySmall,
                                   ),
                                 ),
                               ],
@@ -870,7 +871,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                             lang.translate('admin_badge'),
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 12,
+                              fontSize: AppTokens.fontBodySmall,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -1093,7 +1094,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                   location,
                   style: TextStyle(
                     color: context.tokens.textMuted,
-                    fontSize: 14,
+                    fontSize: AppTokens.fontBodyMedium,
                   ),
                 ),
               ],
@@ -1117,7 +1118,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                       website,
                       style: const TextStyle(
                         color: AppColors.militantRed,
-                        fontSize: 14,
+                        fontSize: AppTokens.fontBodyMedium,
                         decoration: TextDecoration.underline,
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -1304,7 +1305,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                       lang.translate('no_posts_message'),
                       style: TextStyle(
                         color: context.tokens.textMuted,
-                        fontSize: 16,
+                        fontSize: AppTokens.fontBodyLarge,
                       ),
                     ),
                   ],
@@ -1365,7 +1366,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                         _formatDate(post['created_at'] ?? ''),
                         style: TextStyle(
                           color: context.tokens.textMuted,
-                          fontSize: 12,
+                          fontSize: AppTokens.fontBodySmall,
                         ),
                       ),
                     ],
@@ -1467,7 +1468,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                           .replaceAll('{count}', '$likeCount'),
                       style: TextStyle(
                         color: context.tokens.textMuted,
-                        fontSize: 12,
+                        fontSize: AppTokens.fontBodySmall,
                       ),
                     ),
                   if (commentCount > 0)
@@ -1479,7 +1480,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                             .replaceAll('{count}', '$commentCount'),
                         style: TextStyle(
                           color: context.tokens.textMuted,
-                          fontSize: 12,
+                          fontSize: AppTokens.fontBodySmall,
                           decoration: TextDecoration.underline,
                         ),
                       ),
@@ -1512,7 +1513,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                         : userReaction.isNotEmpty
                         ? Text(
                             emojis[userReaction] ?? '',
-                            style: const TextStyle(fontSize: 16),
+                            style: const TextStyle(fontSize: AppTokens.fontBodyLarge),
                           )
                         : Icon(
                             Icons.thumb_up_outlined,
@@ -1525,7 +1526,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                         color: userReaction.isNotEmpty
                             ? AppColors.militantRed
                             : (context.tokens.textMuted),
-                        fontSize: 13,
+                        fontSize: AppTokens.fontBodyMedium,
                       ),
                     ),
                   ),
@@ -1542,7 +1543,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                       LanguageService.instance.translate('comment_action'),
                       style: TextStyle(
                         color: context.tokens.textMuted,
-                        fontSize: 13,
+                        fontSize: AppTokens.fontBodyMedium,
                       ),
                     ),
                   ),
@@ -1604,7 +1605,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               LanguageService.instance.translate('no_followers'),
               style: TextStyle(
                 color: context.tokens.textMuted,
-                fontSize: 16,
+                fontSize: AppTokens.fontBodyLarge,
               ),
             ),
           ],
@@ -1652,7 +1653,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                           follower['cause'],
                           style: TextStyle(
                             color: context.tokens.textMuted,
-                            fontSize: 12,
+                            fontSize: AppTokens.fontBodySmall,
                           ),
                         ),
                       Text(
@@ -1661,7 +1662,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                             .replaceAll('{date}', _formatDate(follower['followed_at'] ?? '')),
                         style: TextStyle(
                           color: context.tokens.textMuted,
-                          fontSize: 11,
+                          fontSize: AppTokens.fontLabelSmall,
                         ),
                       ),
                     ],
@@ -1737,7 +1738,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               lang.translate('admin_editor_description'),
               style: TextStyle(
                 color: context.tokens.textMuted,
-                fontSize: 13,
+                fontSize: AppTokens.fontBodyMedium,
               ),
             ),
           ),
@@ -1798,7 +1799,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                             .translate('page_role_editor'),
                                   style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: 11,
+                                    fontSize: AppTokens.fontLabelSmall,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -2120,7 +2121,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             style: TextStyle(
               color: context.colors.onSurface,
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: AppTokens.fontBodyMedium,
             ),
           ),
           const SizedBox(height: 6),
@@ -2168,7 +2169,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             style: TextStyle(
               color: context.colors.onSurface,
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: AppTokens.fontBodyMedium,
             ),
           ),
           const SizedBox(height: 6),
@@ -2220,7 +2221,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             style: TextStyle(
               color: context.colors.onSurface,
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: AppTokens.fontBodyMedium,
             ),
           ),
           const SizedBox(height: 8),
@@ -2291,7 +2292,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           style: TextStyle(
             color: context.colors.onSurface,
             fontWeight: FontWeight.w600,
-            fontSize: 14,
+            fontSize: AppTokens.fontBodyMedium,
           ),
         ),
         const SizedBox(height: 6),
@@ -2332,13 +2333,13 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               controller: controller,
               style: TextStyle(
                 color: context.colors.onSurface,
-                fontSize: 14,
+                fontSize: AppTokens.fontBodyMedium,
               ),
               decoration: InputDecoration(
                 hintText: hint ?? label,
                 hintStyle: TextStyle(
                   color: isDark ? Colors.white24 : Colors.grey[400],
-                  fontSize: 14,
+                  fontSize: AppTokens.fontBodyMedium,
                 ),
                 filled: true,
                 fillColor: isDark ? AppColors.darkSurfaceHigh : Colors.white,
@@ -2592,7 +2593,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                   },
                   child: Text(
                     e.value,
-                    style: const TextStyle(fontSize: 28),
+                    style: const TextStyle(fontSize: AppTokens.fontHeadlineMedium),
                   ),
                 ),
               )
@@ -2711,7 +2712,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                   Text(
                     LanguageService.instance.translate('comments_title'),
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: AppTokens.fontBodyLarge,
                       fontWeight: FontWeight.bold,
                       color: context.colors.onSurface,
                     ),
@@ -2799,7 +2800,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                           comment['username'] ?? '',
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            fontSize: 13,
+                                            fontSize: AppTokens.fontBodyMedium,
                                             color: context.colors.onSurface,
                                           ),
                                         ),
@@ -2810,7 +2811,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                           ),
                                           style: TextStyle(
                                             color: context.tokens.textMuted,
-                                            fontSize: 11,
+                                            fontSize: AppTokens.fontLabelSmall,
                                           ),
                                         ),
                                       ],
@@ -2822,7 +2823,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                         color: isDark
                                             ? Colors.white70
                                             : Colors.black87,
-                                        fontSize: 14,
+                                        fontSize: AppTokens.fontBodyMedium,
                                       ),
                                     ),
                                     const SizedBox(height: 4),
@@ -2839,7 +2840,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                             LanguageService.instance.translate('reply'),
                                             style: TextStyle(
                                               color: context.tokens.textMuted,
-                                              fontSize: 12,
+                                              fontSize: AppTokens.fontBodySmall,
                                             ),
                                           ),
                                           style: TextButton.styleFrom(
@@ -2858,7 +2859,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                               ? Text(
                                                   reactionEmoji,
                                                   style: const TextStyle(
-                                                    fontSize: 14,
+                                                    fontSize: AppTokens.fontBodyMedium,
                                                   ),
                                                 )
                                               : Icon(
@@ -2874,7 +2875,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                               color: userReaction.isNotEmpty
                                                   ? AppColors.militantRed
                                                   : (context.tokens.textMuted),
-                                              fontSize: 12,
+                                              fontSize: AppTokens.fontBodySmall,
                                             ),
                                           ),
                                           style: TextButton.styleFrom(
@@ -2907,7 +2908,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                           height: 32,
                                           child: Text(
                                             LanguageService.instance.translate('edit'),
-                                            style: TextStyle(fontSize: 13),
+                                            style: TextStyle(fontSize: AppTokens.fontBodyMedium),
                                           ),
                                         ),
                                       );
@@ -2922,7 +2923,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                             LanguageService.instance.translate('delete'),
                                             style: TextStyle(
                                               color: Colors.red,
-                                              fontSize: 13,
+                                              fontSize: AppTokens.fontBodyMedium,
                                             ),
                                           ),
                                         ),
@@ -2985,7 +2986,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                   .replaceAll('{username}', '${_replyingTo!['username'] ?? ''}'),
                               style: TextStyle(
                                 color: isDark ? Colors.white70 : Colors.black54,
-                                fontSize: 12,
+                                fontSize: AppTokens.fontBodySmall,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -3115,7 +3116,7 @@ class _PagePostContentState extends State<_PagePostContent> {
             text: widget.content,
             style: TextStyle(
               color: context.colors.onSurface,
-              fontSize: 15,
+              fontSize: AppTokens.fontBodyLarge,
             ),
             onLinksDetected: (urls) {
               final newUrls = urls
@@ -3166,7 +3167,7 @@ class _PageDescriptionContentState extends State<_PageDescriptionContent> {
           text: widget.description,
           style: TextStyle(
             color: context.tokens.textMuted,
-            fontSize: 14,
+            fontSize: AppTokens.fontBodyMedium,
           ),
           onLinksDetected: (urls) {
             final newUrls = urls

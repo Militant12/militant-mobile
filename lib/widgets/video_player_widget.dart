@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'full_screen_video_page.dart';
 import '../services/language_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class VideoPlayerWidget extends StatefulWidget {
   final String videoUrl;
@@ -275,7 +276,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                           'VIDÉO',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 10,
+                            fontSize: AppTokens.fontLabelSmall,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 0.5,
                           ),
@@ -359,7 +360,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                                     '${_formatDuration(value.position)} / ${_formatDuration(value.duration)}',
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      fontSize: 11,
+                                      fontSize: AppTokens.fontLabelSmall,
                                     ),
                                   );
                                 },
@@ -440,7 +441,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                 const SizedBox(height: 16),
                 Text(
                   LanguageService.instance.translate('video_preview_loading'),
-                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  style: const TextStyle(color: Colors.white54, fontSize: AppTokens.fontBodySmall),
                 ),
               ],
             ),
@@ -491,7 +492,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white70,
-                      fontSize: 12,
+                      fontSize: AppTokens.fontBodySmall,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -551,7 +552,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
               const SizedBox(height: 8),
               Text(
                 LanguageService.instance.translate('video_preview_unavailable'),
-                style: TextStyle(color: Colors.white60, fontSize: 13),
+                style: TextStyle(color: Colors.white60, fontSize: AppTokens.fontBodyMedium),
               ),
               const SizedBox(height: 12),
               TextButton.icon(
@@ -588,7 +589,7 @@ class _VideoBadge extends StatelessWidget {
             'VIDÉO',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 10,
+              fontSize: AppTokens.fontLabelSmall,
               fontWeight: FontWeight.bold,
               letterSpacing: 0.5,
             ),

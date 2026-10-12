@@ -9,6 +9,7 @@ import 'fediverse_screen.dart';
 import 'feature_suggestions_screen.dart';
 import '../theme/app_colors.dart';
 import '../theme/theme_context.dart';
+import '../theme/app_tokens.dart';
 
 class CommunityScreen extends StatelessWidget {
   const CommunityScreen({super.key});
@@ -42,7 +43,7 @@ class CommunityScreen extends StatelessWidget {
                     translate('explore_mobilize_title'),
                     style: TextStyle(
                       color: textColor,
-                      fontSize: 20,
+                      fontSize: AppTokens.fontTitleLarge,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -217,7 +218,7 @@ class CommunityScreen extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             color: textColor,
-                            fontSize: 16,
+                            fontSize: AppTokens.fontBodyLarge,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 0.5,
                           ),
@@ -228,7 +229,7 @@ class CommunityScreen extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           softWrap: true,
-                          style: TextStyle(color: subTextColor, fontSize: 12),
+                          style: TextStyle(color: subTextColor, fontSize: AppTokens.fontBodySmall),
                         ),
                       ],
                     ),

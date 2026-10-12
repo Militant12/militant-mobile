@@ -6,6 +6,7 @@ import 'home_screen.dart';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
 import '../theme/theme_context.dart';
+import '../theme/app_tokens.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -211,7 +212,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   color:
                       theme.textTheme.displayLarge?.color ??
                       (context.colors.onSurface),
-                  fontSize: 28,
+                  fontSize: AppTokens.fontHeadlineMedium,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -220,7 +221,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 lang.translate('join_community'),
                 style: TextStyle(
                   color: context.tokens.textMuted,
-                  fontSize: 14,
+                  fontSize: AppTokens.fontBodyMedium,
                 ),
               ),
               const SizedBox(height: 32),
@@ -364,7 +365,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       : Text(
                           lang.translate('sign_up'),
                           style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: AppTokens.fontBodyLarge,
                             fontWeight: FontWeight.w600,
                           ),
                         ),

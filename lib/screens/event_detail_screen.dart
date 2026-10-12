@@ -5,6 +5,7 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../utils/error_helper.dart';
 import '../widgets/common/common.dart';
+import '../theme/app_tokens.dart';
 
 class EventDetailScreen extends StatefulWidget {
   final int eventId;
@@ -179,7 +180,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                     _event!['title'] ?? lang.translate('event'),
                     style: TextStyle(
                       color: context.colors.onSurface,
-                      fontSize: 26,
+                      fontSize: AppTokens.fontHeadlineMedium,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -204,14 +205,14 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                             '${lang.translate('organized_by')} ',
                             style: TextStyle(
                               color: context.tokens.textMuted,
-                              fontSize: 14,
+                              fontSize: AppTokens.fontBodyMedium,
                             ),
                           ),
                           Text(
                             _event!['username'],
                             style: TextStyle(
                               color: context.colors.onSurface,
-                              fontSize: 14,
+                              fontSize: AppTokens.fontBodyMedium,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -253,7 +254,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                     lang.translate('date_and_time'),
                                     style: TextStyle(
                                       color: context.tokens.textMuted,
-                                      fontSize: 12,
+                                      fontSize: AppTokens.fontBodySmall,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
@@ -261,7 +262,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                     _formatDate(_event!['event_date']),
                                     style: TextStyle(
                                       color: context.colors.onSurface,
-                                      fontSize: 15,
+                                      fontSize: AppTokens.fontBodyLarge,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -301,7 +302,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                       lang.translate('location'),
                                       style: TextStyle(
                                         color: context.tokens.textMuted,
-                                        fontSize: 12,
+                                        fontSize: AppTokens.fontBodySmall,
                                       ),
                                     ),
                                     const SizedBox(height: 2),
@@ -309,7 +310,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                       _event!['location'],
                                       style: TextStyle(
                                         color: context.colors.onSurface,
-                                        fontSize: 15,
+                                        fontSize: AppTokens.fontBodyLarge,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -348,7 +349,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                     lang.translate('participants'),
                                     style: TextStyle(
                                       color: context.tokens.textMuted,
-                                      fontSize: 12,
+                                      fontSize: AppTokens.fontBodySmall,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
@@ -356,7 +357,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                     '$participantsCount ${participantsCount > 1 ? lang.translate('participant_count_plural') : lang.translate('participant_count')}',
                                     style: TextStyle(
                                       color: context.colors.onSurface,
-                                      fontSize: 15,
+                                      fontSize: AppTokens.fontBodyLarge,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -395,7 +396,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         isParticipating ? lang.translate('participating_status') : lang.translate('participate_button'),
                         style: TextStyle(
                           color: buttonForeground,
-                          fontSize: 16,
+                          fontSize: AppTokens.fontBodyLarge,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -423,7 +424,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                       lang.translate('about_event'),
                       style: TextStyle(
                         color: context.colors.onSurface,
-                        fontSize: 20,
+                        fontSize: AppTokens.fontTitleLarge,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -440,7 +441,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         _event!['description'],
                         style: TextStyle(
                           color: context.colors.onSurface.withValues(alpha: 0.8),
-                          fontSize: 15,
+                          fontSize: AppTokens.fontBodyLarge,
                           height: 1.6,
                         ),
                       ),

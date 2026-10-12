@@ -10,6 +10,7 @@ import '../utils/date_formatter.dart';
 import '../utils/fediverse_text.dart';
 import 'linkable_text.dart';
 import 'video_player_widget.dart';
+import '../theme/app_tokens.dart';
 
 class FediversePostCard extends StatelessWidget {
   final FediversePost post;
@@ -55,7 +56,7 @@ class FediversePostCard extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              fontSize: 15,
+                              fontSize: AppTokens.fontBodyLarge,
                               fontWeight: FontWeight.bold,
                             ),
                           ),

@@ -10,6 +10,7 @@ import '../utils/error_helper.dart';
 import '../utils/page_categories.dart';
 import '../theme/app_colors.dart';
 import '../theme/theme_context.dart';
+import '../theme/app_tokens.dart';
 
 class PagesScreen extends StatefulWidget {
   const PagesScreen({super.key});
@@ -194,7 +195,7 @@ class _PagesScreenState extends State<PagesScreen>
                 color: Theme.of(context).brightness == Brightness.dark
                     ? AppColors.grey888
                     : Colors.grey[600],
-                fontSize: 16,
+                fontSize: AppTokens.fontBodyLarge,
               ),
             ),
             const SizedBox(height: 8),
@@ -204,7 +205,7 @@ class _PagesScreenState extends State<PagesScreen>
                 color: Theme.of(context).brightness == Brightness.dark
                     ? AppColors.grey666
                     : Colors.grey[500],
-                fontSize: 14,
+                fontSize: AppTokens.fontBodyMedium,
               ),
             ),
             const SizedBox(height: 24),
@@ -262,7 +263,7 @@ class _PagesScreenState extends State<PagesScreen>
                 color: Theme.of(context).brightness == Brightness.dark
                     ? AppColors.grey888
                     : Colors.grey[600],
-                fontSize: 16,
+                fontSize: AppTokens.fontBodyLarge,
               ),
             ),
             const SizedBox(height: 24),
@@ -314,7 +315,7 @@ class _PagesScreenState extends State<PagesScreen>
                 color: Theme.of(context).brightness == Brightness.dark
                     ? AppColors.grey888
                     : Colors.grey[600],
-                fontSize: 16,
+                fontSize: AppTokens.fontBodyLarge,
               ),
             ),
           ],
@@ -382,7 +383,7 @@ class _PagesScreenState extends State<PagesScreen>
                           name,
                           style: TextStyle(
                             color: context.colors.onSurface,
-                            fontSize: 16,
+                            fontSize: AppTokens.fontBodyLarge,
                             fontWeight: FontWeight.bold,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -403,7 +404,7 @@ class _PagesScreenState extends State<PagesScreen>
                             showBadge,
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 10,
+                              fontSize: AppTokens.fontLabelSmall,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -423,7 +424,7 @@ class _PagesScreenState extends State<PagesScreen>
                             pageCategoryLabel(category),
                             style: TextStyle(
                               color: context.tokens.textMuted,
-                              fontSize: 11,
+                              fontSize: AppTokens.fontLabelSmall,
                             ),
                           ),
                         ),
@@ -437,7 +438,7 @@ class _PagesScreenState extends State<PagesScreen>
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: context.tokens.textMuted,
-                        fontSize: 14,
+                        fontSize: AppTokens.fontBodyMedium,
                       ),
                     ),
                   ],
@@ -454,7 +455,7 @@ class _PagesScreenState extends State<PagesScreen>
                         '$followersCount ${followersCount > 1 ? lang.translate('followers_count_plural') : lang.translate('followers_count')}',
                         style: TextStyle(
                           color: context.tokens.textMuted,
-                          fontSize: 12,
+                          fontSize: AppTokens.fontBodySmall,
                         ),
                       ),
                     ],
@@ -477,7 +478,7 @@ class _PagesScreenState extends State<PagesScreen>
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
-                child: Text(lang.translate('follow_button'), style: const TextStyle(fontSize: 13)),
+                child: Text(lang.translate('follow_button'), style: const TextStyle(fontSize: AppTokens.fontBodyMedium)),
               ),
             ],
           ],

@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import '../utils/error_helper.dart';
 import '../services/language_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class AudioRecorderWidget extends StatefulWidget {
   final Function(File audioFile) onRecordingComplete;
@@ -139,7 +140,7 @@ class _AudioRecorderWidgetState extends State<AudioRecorderWidget> {
             _formatDuration(_recordDuration),
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 16,
+              fontSize: AppTokens.fontBodyLarge,
               fontWeight: FontWeight.bold,
             ),
           ),

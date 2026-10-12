@@ -7,6 +7,7 @@ import '../services/language_service.dart';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
 import '../theme/theme_context.dart';
+import '../theme/app_tokens.dart';
 
 class TwoFactorSettingsScreen extends StatefulWidget {
   const TwoFactorSettingsScreen({super.key});
@@ -205,7 +206,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                         ? lang.translate('2fa_enabled')
                         : lang.translate('secure_your_account'),
                     style: const TextStyle(
-                      fontSize: 20,
+                      fontSize: AppTokens.fontTitleLarge,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -267,7 +268,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                               _secret!,
                               style: const TextStyle(
                                 fontFamily: 'monospace',
-                                fontSize: 16,
+                                fontSize: AppTokens.fontBodyLarge,
                                 letterSpacing: 2,
                               ),
                             ),

@@ -11,6 +11,7 @@ import 'profile_screen.dart';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
 import '../theme/theme_context.dart';
+import '../theme/app_tokens.dart';
 
 class GroupSettingsScreen extends StatefulWidget {
   final int groupId;
@@ -258,7 +259,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                   Text(
                     lang.translate('general'),
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: AppTokens.fontBodyLarge,
                       fontWeight: FontWeight.bold,
                       color: AppColors.militantRed,
                     ),
@@ -291,7 +292,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                   child: Text(
                     lang.translate('sharing_and_invitation'),
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: AppTokens.fontBodyLarge,
                       fontWeight: FontWeight.bold,
                       color: AppColors.militantRed,
                     ),
@@ -330,7 +331,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                   child: Text(
                     lang.translate('privacy'),
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: AppTokens.fontBodyLarge,
                       fontWeight: FontWeight.bold,
                       color: AppColors.militantRed,
                     ),
@@ -443,7 +444,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                       Text(
                         lang.translate('members_title'),
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: AppTokens.fontBodyLarge,
                           fontWeight: FontWeight.bold,
                           color: AppColors.militantRed,
                         ),
@@ -534,7 +535,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                         Text(
                           lang.translate('join_requests'),
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: AppTokens.fontBodyLarge,
                             fontWeight: FontWeight.bold,
                             color: AppColors.militantRed,
                           ),
@@ -927,7 +928,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
       onPressed: () => Navigator.pop(context, value),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Text(label, style: const TextStyle(fontSize: 16)),
+        child: Text(label, style: const TextStyle(fontSize: AppTokens.fontBodyLarge)),
       ),
     );
   }

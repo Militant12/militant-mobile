@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_tokens.dart';
 
 class PlaceholderScreen extends StatelessWidget {
   final String title;
@@ -15,7 +16,7 @@ class PlaceholderScreen extends StatelessWidget {
           Text(
             '$title\nEn cours de développement',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white70, fontSize: 18),
+            style: TextStyle(color: Colors.white70, fontSize: AppTokens.fontBodyLarge),
           ),
         ],
       ),

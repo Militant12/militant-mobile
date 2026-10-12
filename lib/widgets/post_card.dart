@@ -199,7 +199,7 @@ class _PostCardState extends State<PostCard> {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: subtitleColor,
-                          fontSize: 13,
+                          fontSize: AppTokens.fontBodyMedium,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -255,7 +255,7 @@ class _PostCardState extends State<PostCard> {
                                   style: TextStyle(
                                     color: textColor,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 17,
+                                    fontSize: AppTokens.fontBodyLarge,
                                   ),
                                 ),
                               ),
@@ -297,7 +297,7 @@ class _PostCardState extends State<PostCard> {
                         ),
                         Text(
                           DateFormatter.formatRelative(widget.post.feedDate),
-                          style: TextStyle(color: subtitleColor, fontSize: 13),
+                          style: TextStyle(color: subtitleColor, fontSize: AppTokens.fontBodyMedium),
                         ),
                       ],
                     ),
@@ -316,7 +316,7 @@ class _PostCardState extends State<PostCard> {
                 text: _showTranslation && _translatedContent != null
                     ? _translatedContent!
                     : _currentContent,
-                style: TextStyle(color: textColor, fontSize: 18, height: 1.4),
+                style: TextStyle(color: textColor, fontSize: AppTokens.fontBodyLarge, height: 1.4),
                 onLinksDetected: (urls) {
                   // Filtrer les nouvelles URLs pour éviter les rebuilds inutiles
                   final newUrls = urls
@@ -372,7 +372,7 @@ class _PostCardState extends State<PostCard> {
                           color: _showTranslation
                               ? colors.primary
                               : subtitleColor,
-                          fontSize: 13,
+                          fontSize: AppTokens.fontBodyMedium,
                         ),
                       ),
                     ],
@@ -422,7 +422,7 @@ class _PostCardState extends State<PostCard> {
                                   lang.translate('post_image_unavailable'),
                                   style: TextStyle(
                                     color: subtitleColor,
-                                    fontSize: 12,
+                                    fontSize: AppTokens.fontBodySmall,
                                   ),
                                 ),
                               ],
@@ -505,7 +505,7 @@ class _PostCardState extends State<PostCard> {
               '$count',
               style: TextStyle(
                 color: color,
-                fontSize: 14,
+                fontSize: AppTokens.fontBodyMedium,
                 fontWeight: FontWeight.w500,
               ),
             ),

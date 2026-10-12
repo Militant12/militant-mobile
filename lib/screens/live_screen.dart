@@ -19,6 +19,7 @@ import '../services/language_service.dart';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
 import '../theme/theme_context.dart';
+import '../theme/app_tokens.dart';
 
 class LiveScreen extends StatefulWidget {
   const LiveScreen({super.key});
@@ -1462,7 +1463,7 @@ class _LiveScreenState extends State<LiveScreen> {
               initial,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 42,
+                fontSize: AppTokens.fontDisplayMedium,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -1472,7 +1473,7 @@ class _LiveScreenState extends State<LiveScreen> {
             displayName.isEmpty ? 'Militant' : displayName,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 20,
+              fontSize: AppTokens.fontTitleLarge,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -1807,7 +1808,7 @@ class _LiveScreenState extends State<LiveScreen> {
                       'DIRECT',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 10,
+                        fontSize: AppTokens.fontLabelSmall,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -1839,7 +1840,7 @@ class _LiveScreenState extends State<LiveScreen> {
                       viewers,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 10,
+                        fontSize: AppTokens.fontLabelSmall,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -1862,7 +1863,7 @@ class _LiveScreenState extends State<LiveScreen> {
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                      fontSize: AppTokens.fontBodyMedium,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -1890,7 +1891,7 @@ class _LiveScreenState extends State<LiveScreen> {
                           user,
                           style: const TextStyle(
                             color: Colors.white70,
-                            fontSize: 12,
+                            fontSize: AppTokens.fontBodySmall,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -1973,7 +1974,7 @@ class _LiveScreenState extends State<LiveScreen> {
                     _errorMessage!,
                     style: const TextStyle(
                       color: Colors.redAccent,
-                      fontSize: 13,
+                      fontSize: AppTokens.fontBodyMedium,
                     ),
                   ),
                 ),
@@ -1995,7 +1996,7 @@ class _LiveScreenState extends State<LiveScreen> {
                       : Text(
                           translate('live_button_start'),
                           style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: AppTokens.fontBodyLarge,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -2375,7 +2376,7 @@ class _LiveScreenState extends State<LiveScreen> {
                     translate('live_report_live_title'),
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 18,
+                      fontSize: AppTokens.fontBodyLarge,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -2633,7 +2634,7 @@ class _LiveScreenState extends State<LiveScreen> {
                 child: Text(
                   translate('live_community_vote_description'),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                  style: const TextStyle(color: Colors.white70, fontSize: AppTokens.fontBodyMedium),
                 ),
               ),
               const SizedBox(height: 16),
@@ -2786,7 +2787,7 @@ class _LiveScreenState extends State<LiveScreen> {
             ).replaceFirst('{mode}', credentialsMode),
             style: TextStyle(
               color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
-              fontSize: 12,
+              fontSize: AppTokens.fontBodySmall,
             ),
           ),
           const SizedBox(height: 4),
@@ -2799,7 +2800,7 @@ class _LiveScreenState extends State<LiveScreen> {
             style: TextStyle(
               color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
               height: 1.35,
-              fontSize: 12,
+              fontSize: AppTokens.fontBodySmall,
             ),
           ),
           const SizedBox(height: 4),
@@ -2813,7 +2814,7 @@ class _LiveScreenState extends State<LiveScreen> {
                       : translate('live_config_url_none_user')),
             style: TextStyle(
               color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
-              fontSize: 12,
+              fontSize: AppTokens.fontBodySmall,
             ),
           ),
         ],
@@ -2871,7 +2872,7 @@ class _LiveScreenState extends State<LiveScreen> {
                       displayedTitle,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 18,
+                        fontSize: AppTokens.fontBodyLarge,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -2949,7 +2950,7 @@ class _LiveScreenState extends State<LiveScreen> {
                               child: RichText(
                                 text: TextSpan(
                                   style: const TextStyle(
-                                    fontSize: 13,
+                                    fontSize: AppTokens.fontBodyMedium,
                                     height: 1.25,
                                   ),
                                   children: [
@@ -2986,7 +2987,7 @@ class _LiveScreenState extends State<LiveScreen> {
                     child: TextField(
                       controller: _chatInputController,
                       enabled: !isChatBlocked,
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      style: const TextStyle(color: Colors.white, fontSize: AppTokens.fontBodyMedium),
                       decoration: InputDecoration(
                         hintText: isChatBlocked
                             ? translate('live_chat_blocked_hint')
@@ -3113,7 +3114,7 @@ class _LiveScreenState extends State<LiveScreen> {
                           "$_reportCount/5",
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 10,
+                            fontSize: AppTokens.fontLabelSmall,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

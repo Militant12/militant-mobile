@@ -12,6 +12,7 @@ import '../widgets/mention_user_avatar.dart';
 import '../utils/post_tags.dart';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class CreatePostScreen extends StatefulWidget {
   final int? groupId;
@@ -396,7 +397,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       style: const TextStyle(
                         color: AppColors.militantRed,
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: AppTokens.fontBodyLarge,
                       ),
                     ),
             ),
@@ -417,7 +418,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     maxLines: null,
                     style: TextStyle(
                       color: theme.textTheme.bodyLarge?.color,
-                      fontSize: 16,
+                      fontSize: AppTokens.fontBodyLarge,
                     ),
                     decoration: InputDecoration(
                       hintText: lang.translate('create_post_hint'),

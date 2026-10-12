@@ -6,6 +6,7 @@ import '../theme/theme_context.dart';
 import 'profile_screen.dart';
 import '../utils/error_helper.dart';
 import '../widgets/common/common.dart';
+import '../theme/app_tokens.dart';
 
 class FriendsScreen extends StatefulWidget {
   final int? userId;
@@ -161,7 +162,7 @@ class _FriendsScreenState extends State<FriendsScreen>
                           '${_pendingRequests.length}',
                           style: TextStyle(
                             color: context.colors.onPrimary,
-                            fontSize: 10,
+                            fontSize: AppTokens.fontLabelSmall,
                           ),
                         ),
                       ),

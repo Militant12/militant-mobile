@@ -28,6 +28,7 @@ import 'chat_screen.dart';
 import '../utils/error_helper.dart';
 import '../utils/date_formatter.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class ProfileScreen extends StatefulWidget {
   final int? userId;
@@ -710,7 +711,7 @@ class ProfileScreenState extends State<ProfileScreen>
                       username,
                       style: TextStyle(
                         color: textColor,
-                        fontSize: 24,
+                        fontSize: AppTokens.fontHeadlineSmall,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -779,7 +780,7 @@ class ProfileScreenState extends State<ProfileScreen>
                         lang.translate('online'),
                         style: const TextStyle(
                           color: Colors.green,
-                          fontSize: 13,
+                          fontSize: AppTokens.fontBodyMedium,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -791,7 +792,7 @@ class ProfileScreenState extends State<ProfileScreen>
                             DateFormatter.parseApiDate(_profile!['last_active']),
                           ),
                         ),
-                        style: TextStyle(color: subtitleColor, fontSize: 13),
+                        style: TextStyle(color: subtitleColor, fontSize: AppTokens.fontBodyMedium),
                       ),
                     ],
                   ],
@@ -878,7 +879,7 @@ class ProfileScreenState extends State<ProfileScreen>
                                 cleanHandle,
                                 style: TextStyle(
                                   color: subtitleColor,
-                                  fontSize: 13,
+                                  fontSize: AppTokens.fontBodyMedium,
                                   fontWeight: FontWeight.w500,
                                 ),
                                 overflow: TextOverflow.ellipsis,
@@ -904,7 +905,7 @@ class ProfileScreenState extends State<ProfileScreen>
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: textColor?.withOpacity(0.7),
-                      fontSize: 14,
+                      fontSize: AppTokens.fontBodyMedium,
                     ),
                   ),
                 ],
@@ -1178,7 +1179,7 @@ class ProfileScreenState extends State<ProfileScreen>
                     lang.translate('private_account_title'),
                     style: TextStyle(
                       color: textColor,
-                      fontSize: 18,
+                      fontSize: AppTokens.fontBodyLarge,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -1514,7 +1515,7 @@ class ProfileScreenState extends State<ProfileScreen>
             value,
             style: TextStyle(
               color: theme.textTheme.bodyLarge?.color,
-              fontSize: 20,
+              fontSize: AppTokens.fontTitleLarge,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -1523,7 +1524,7 @@ class ProfileScreenState extends State<ProfileScreen>
             label,
             style: TextStyle(
               color: theme.textTheme.bodyMedium?.color,
-              fontSize: 14,
+              fontSize: AppTokens.fontBodyMedium,
             ),
           ),
         ],
@@ -1553,7 +1554,7 @@ class ProfileScreenState extends State<ProfileScreen>
                 title,
                 style: TextStyle(
                   color: theme.textTheme.bodyLarge?.color,
-                  fontSize: 16,
+                  fontSize: AppTokens.fontBodyLarge,
                 ),
               ),
             ),

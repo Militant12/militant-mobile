@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class StoriesScreen extends StatefulWidget {
   final List<dynamic> stories;
@@ -177,7 +178,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
                 ),
                 child: Text(
                   text,
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                  style: const TextStyle(color: Colors.white, fontSize: AppTokens.fontBodyLarge),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -230,14 +231,14 @@ class _StoriesScreenState extends State<StoriesScreen> {
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: AppTokens.fontBodyLarge,
                             ),
                           ),
                           Text(
                             _formatTime(createdAt),
                             style: const TextStyle(
                               color: Colors.white70,
-                              fontSize: 12,
+                              fontSize: AppTokens.fontBodySmall,
                             ),
                           ),
                         ],

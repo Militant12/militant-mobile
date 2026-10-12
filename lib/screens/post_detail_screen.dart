@@ -13,6 +13,7 @@ import '../widgets/mention_user_avatar.dart';
 import '../theme/theme_context.dart';
 import '../utils/error_helper.dart';
 import '../widgets/common/common.dart';
+import '../theme/app_tokens.dart';
 
 class PostDetailScreen extends StatefulWidget {
   final Post? post;
@@ -331,7 +332,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                     style: TextStyle(
                       color: textColor,
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                      fontSize: AppTokens.fontBodyLarge,
                     ),
                   ),
                 ),
@@ -414,7 +415,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                             style: TextStyle(
                               color: textColor,
                               fontWeight: FontWeight.bold,
-                              fontSize: 17,
+                              fontSize: AppTokens.fontBodyLarge,
                             ),
                           ),
                         ),
@@ -452,7 +453,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                         const SizedBox(width: 8),
                         Text(
                           _formatDate(comment.createdAt),
-                          style: TextStyle(color: subtitleColor, fontSize: 13),
+                          style: TextStyle(color: subtitleColor, fontSize: AppTokens.fontBodyMedium),
                         ),
                         const Spacer(),
                         if (_currentUserId != null &&
@@ -493,7 +494,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                               : comment.content),
                       style: TextStyle(
                         color: textColor,
-                        fontSize: 18,
+                        fontSize: AppTokens.fontBodyLarge,
                         height: 1.4,
                       ),
                     ),
@@ -516,7 +517,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                             lang.translate('reply'),
                             style: TextStyle(
                               color: subtitleColor,
-                              fontSize: 13,
+                              fontSize: AppTokens.fontBodyMedium,
                             ),
                           ),
                           style: TextButton.styleFrom(
@@ -544,7 +545,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                               color: comment.hasReacted
                                   ? context.colors.primary
                                   : subtitleColor,
-                              fontSize: 14,
+                              fontSize: AppTokens.fontBodyMedium,
                             ),
                           ),
                           style: TextButton.styleFrom(
@@ -572,7 +573,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                               color: comment.isTranslated
                                   ? context.colors.primary
                                   : subtitleColor,
-                              fontSize: 14,
+                              fontSize: AppTokens.fontBodyMedium,
                             ),
                           ),
                           style: TextButton.styleFrom(
@@ -798,7 +799,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                           .replaceAll('{username}', _replyingTo!.username),
                       style: TextStyle(
                         color: theme.textTheme.bodyMedium?.color,
-                        fontSize: 12,
+                        fontSize: AppTokens.fontBodySmall,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),

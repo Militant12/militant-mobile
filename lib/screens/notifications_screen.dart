@@ -12,6 +12,7 @@ import '../theme/theme_context.dart';
 import '../utils/date_formatter.dart';
 import '../utils/error_helper.dart';
 import '../widgets/common/common.dart';
+import '../theme/app_tokens.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -426,7 +427,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 children: [
                   RichText(
                     text: TextSpan(
-                      style: TextStyle(color: colors.onSurface, fontSize: 14),
+                      style: TextStyle(color: colors.onSurface, fontSize: AppTokens.fontBodyMedium),
                       children: [
                         TextSpan(
                           text: username,
@@ -443,7 +444,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     _formatDate(createdAt),
                     style: TextStyle(
                       color: isUnread ? colors.primary : muted,
-                      fontSize: 12,
+                      fontSize: AppTokens.fontBodySmall,
                       fontWeight: isUnread ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),

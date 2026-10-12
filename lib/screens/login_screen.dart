@@ -14,6 +14,7 @@ import 'register_screen.dart';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
 import '../theme/theme_context.dart';
+import '../theme/app_tokens.dart';
 
 class LoginScreen extends StatefulWidget {
   final SavedAccount? fallbackAccount;
@@ -486,7 +487,7 @@ class _LoginScreenState extends State<LoginScreen> {
             lang.translate('quick_accounts'),
             style: TextStyle(
               color: context.colors.onSurface,
-              fontSize: 15,
+              fontSize: AppTokens.fontBodyLarge,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -580,7 +581,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   color:
                       theme.textTheme.displayLarge?.color ??
                       (context.colors.onSurface),
-                  fontSize: 32,
+                  fontSize: AppTokens.fontHeadlineLarge,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -589,7 +590,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 lang.translate('app_subtitle'),
                 style: TextStyle(
                   color: context.tokens.textMuted,
-                  fontSize: 16,
+                  fontSize: AppTokens.fontBodyLarge,
                 ),
               ),
               const SizedBox(height: 32),
@@ -678,7 +679,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   lang.translate('two_fa_required'),
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: AppTokens.fontBodyLarge,
                     fontWeight: FontWeight.bold,
                     color: context.colors.onSurface,
                   ),
@@ -738,7 +739,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       : Text(
                           lang.translate('login_button'),
                           style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: AppTokens.fontBodyLarge,
                             fontWeight: FontWeight.w600,
                           ),
                         ),

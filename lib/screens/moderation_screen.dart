@@ -7,6 +7,7 @@ import 'post_detail_screen.dart';
 import '../utils/error_helper.dart';
 import '../widgets/common/common.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class ModerationScreen extends StatefulWidget {
   const ModerationScreen({super.key});
@@ -290,7 +291,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                     reasonLabels[report.reason] ?? report.reason,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 12,
+                      fontSize: AppTokens.fontBodySmall,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -299,14 +300,14 @@ class _ModerationScreenState extends State<ModerationScreen>
                 Expanded(
                   child: Text(
                     '${lang.translate('mod_sanction_by')} ${report.reporterUsername}',
-                    style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7), fontSize: 12),
+                    style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7), fontSize: AppTokens.fontBodySmall),
                   ),
                 ),
                 Text(
                   lang
                       .translate('mod_votes_count')
                       .replaceAll('{count}', '${report.voteCount}'),
-                  style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7), fontSize: 12),
+                  style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7), fontSize: AppTokens.fontBodySmall),
                 ),
               ],
             ),
@@ -331,7 +332,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                       ),
                       style: TextStyle(
                         color: context.colors.onSurface.withValues(alpha: 0.7),
-                        fontSize: 12,
+                        fontSize: AppTokens.fontBodySmall,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -375,7 +376,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                 report.description!,
                 style: TextStyle(
                   color: context.colors.onSurface.withValues(alpha: 0.7),
-                  fontSize: 13,
+                  fontSize: AppTokens.fontBodyMedium,
                   fontStyle: FontStyle.italic,
                 ),
               ),
@@ -486,7 +487,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                           style: const TextStyle(
                             color: AppColors.gold,
                             fontWeight: FontWeight.bold,
-                            fontSize: 13,
+                            fontSize: AppTokens.fontBodyMedium,
                           ),
                         ),
                       ],
@@ -672,7 +673,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                 lang.translate('mod_principles_title'),
                 style: TextStyle(
                   color: context.colors.onSurface,
-                  fontSize: 16,
+                  fontSize: AppTokens.fontBodyLarge,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -746,7 +747,7 @@ class _ModerationScreenState extends State<ModerationScreen>
           children: [
             Text(
               lang.translate('mod_apply_dialog_desc'),
-              style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7), fontSize: 14),
+              style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.7), fontSize: AppTokens.fontBodyMedium),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -914,7 +915,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                     lang.translate('mod_transparency_title'),
                     style: const TextStyle(
                       color: Colors.red,
-                      fontSize: 16,
+                      fontSize: AppTokens.fontBodyLarge,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -923,7 +924,7 @@ class _ModerationScreenState extends State<ModerationScreen>
               const SizedBox(height: 4),
               Text(
                 lang.translate('mod_transparency_desc'),
-                style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.38), fontSize: 12),
+                style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.38), fontSize: AppTokens.fontBodySmall),
               ),
               const SizedBox(height: 12),
 
@@ -987,7 +988,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                     lang.translate('mod_sanctions_title'),
                     style: const TextStyle(
                       color: Colors.orange,
-                      fontSize: 16,
+                      fontSize: AppTokens.fontBodyLarge,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -996,7 +997,7 @@ class _ModerationScreenState extends State<ModerationScreen>
               const SizedBox(height: 4),
               Text(
                 lang.translate('mod_sanctions_desc'),
-                style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.38), fontSize: 12),
+                style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.38), fontSize: AppTokens.fontBodySmall),
               ),
             ],
           ),
@@ -1019,7 +1020,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                       '${_sanctions.length}',
                       style: const TextStyle(
                         color: Colors.orange,
-                        fontSize: 24,
+                        fontSize: AppTokens.fontHeadlineSmall,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -1027,7 +1028,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                       lang.translate('mod_sanction_warning'),
                       style: TextStyle(
                         color: context.colors.onSurface.withValues(alpha: 0.54),
-                        fontSize: 12,
+                        fontSize: AppTokens.fontBodySmall,
                       ),
                     ),
                   ],
@@ -1048,7 +1049,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                       '${_bans.length}',
                       style: TextStyle(
                         color: context.colors.primary,
-                        fontSize: 24,
+                        fontSize: AppTokens.fontHeadlineSmall,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -1056,7 +1057,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                       lang.translate('mod_sanction_ban'),
                       style: TextStyle(
                         color: context.colors.onSurface.withValues(alpha: 0.54),
-                        fontSize: 12,
+                        fontSize: AppTokens.fontBodySmall,
                       ),
                     ),
                   ],
@@ -1156,13 +1157,13 @@ class _ModerationScreenState extends State<ModerationScreen>
                       style: TextStyle(
                         color: color,
                         fontWeight: FontWeight.bold,
-                        fontSize: 13,
+                        fontSize: AppTokens.fontBodyMedium,
                       ),
                     ),
                     const SizedBox(width: 6),
                     Text(
                       '→ ',
-                      style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.38), fontSize: 13),
+                      style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.38), fontSize: AppTokens.fontBodyMedium),
                     ),
                     Flexible(
                       child: Text(
@@ -1170,7 +1171,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                         style: TextStyle(
                           color: context.colors.onSurface,
                           fontWeight: FontWeight.w600,
-                          fontSize: 13,
+                          fontSize: AppTokens.fontBodyMedium,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -1185,7 +1186,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                       reason,
                       style: TextStyle(
                         color: context.colors.onSurface.withValues(alpha: 0.54),
-                        fontSize: 12,
+                        fontSize: AppTokens.fontBodySmall,
                         fontStyle: FontStyle.italic,
                       ),
                       maxLines: 3,
@@ -1209,7 +1210,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                         expiryInfo,
                         style: TextStyle(
                           color: color,
-                          fontSize: 11,
+                          fontSize: AppTokens.fontLabelSmall,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -1220,7 +1221,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
                     '${lang.translate('mod_sanction_by')} $issuedBy · $timeAgo',
-                    style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.24), fontSize: 11),
+                    style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.24), fontSize: AppTokens.fontLabelSmall),
                   ),
                 ),
               ],
@@ -1274,7 +1275,7 @@ class _ModerationScreenState extends State<ModerationScreen>
               children: [
                 RichText(
                   text: TextSpan(
-                    style: TextStyle(fontSize: 13, color: context.colors.onSurface.withValues(alpha: 0.7)),
+                    style: TextStyle(fontSize: AppTokens.fontBodyMedium, color: context.colors.onSurface.withValues(alpha: 0.7)),
                     children: [
                       TextSpan(
                         text: label,
@@ -1301,7 +1302,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                       reason,
                       style: TextStyle(
                         color: context.colors.onSurface.withValues(alpha: 0.38),
-                        fontSize: 12,
+                        fontSize: AppTokens.fontBodySmall,
                         fontStyle: FontStyle.italic,
                       ),
                     ),
@@ -1312,7 +1313,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                     isWarning
                         ? '${lang.translate('mod_sanction_by')} $moderator · $timeAgo'
                         : timeAgo,
-                    style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.24), fontSize: 11),
+                    style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.24), fontSize: AppTokens.fontLabelSmall),
                   ),
                 ),
               ],
@@ -1363,7 +1364,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                         LanguageService.instance.translate('mod_moderator_badge'),
                         style: TextStyle(
                           color: context.colors.primary,
-                          fontSize: 12,
+                          fontSize: AppTokens.fontBodySmall,
                         ),
                       ),
                   ],
@@ -1446,7 +1447,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                     style: TextStyle(
                       color: context.colors.primary,
                       fontWeight: FontWeight.bold,
-                      fontSize: 13,
+                      fontSize: AppTokens.fontBodyMedium,
                     ),
                   ),
                 ],

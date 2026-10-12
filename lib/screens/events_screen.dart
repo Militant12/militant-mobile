@@ -6,6 +6,7 @@ import 'create_event_screen.dart';
 import 'event_detail_screen.dart';
 import '../utils/error_helper.dart';
 import '../widgets/common/common.dart';
+import '../theme/app_tokens.dart';
 
 class EventsScreen extends StatefulWidget {
   const EventsScreen({super.key});
@@ -146,7 +147,7 @@ class _EventsScreenState extends State<EventsScreen> {
                     _getDay(date),
                     style: TextStyle(
                       color: context.colors.onPrimary,
-                      fontSize: 18,
+                      fontSize: AppTokens.fontBodyLarge,
                       fontWeight: FontWeight.bold,
                       height: 1.0,
                     ),
@@ -156,7 +157,7 @@ class _EventsScreenState extends State<EventsScreen> {
                     _getMonth(date),
                     style: TextStyle(
                       color: context.colors.onPrimary,
-                      fontSize: 11,
+                      fontSize: AppTokens.fontLabelSmall,
                       height: 1.0,
                     ),
                   ),
@@ -172,7 +173,7 @@ class _EventsScreenState extends State<EventsScreen> {
                     title,
                     style: TextStyle(
                       color: context.colors.onSurface,
-                      fontSize: 16,
+                      fontSize: AppTokens.fontBodyLarge,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -191,7 +192,7 @@ class _EventsScreenState extends State<EventsScreen> {
                             location,
                             style: TextStyle(
                               color: context.tokens.textMuted,
-                              fontSize: 13,
+                              fontSize: AppTokens.fontBodyMedium,
                             ),
                           ),
                         ),
@@ -206,7 +207,7 @@ class _EventsScreenState extends State<EventsScreen> {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: context.tokens.textMuted,
-                        fontSize: 14,
+                        fontSize: AppTokens.fontBodyMedium,
                       ),
                     ),
                   ],

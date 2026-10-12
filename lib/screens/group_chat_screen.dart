@@ -23,6 +23,7 @@ import '../widgets/signal_typing_indicator.dart';
 import '../utils/error_helper.dart';
 import '../widgets/common/common.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 const String _groupCallMessagePrefix = '__militant_group_call__:';
 const Duration _groupChatPollInterval = Duration(seconds: 10);
@@ -319,7 +320,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     lang.translate('wallpaper_title'),
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: AppTokens.fontBodyLarge,
                       fontWeight: FontWeight.bold,
                       color: theme.textTheme.titleLarge?.color,
                     ),
@@ -661,7 +662,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     maxLines: 1,
                     style: TextStyle(
                       color: theme.textTheme.titleLarge?.color,
-                      fontSize: 16,
+                      fontSize: AppTokens.fontBodyLarge,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -676,7 +677,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                           ),
                       style: const TextStyle(
                         color: AppColors.militantRed,
-                        fontSize: 10,
+                        fontSize: AppTokens.fontLabelSmall,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -857,7 +858,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                       ),
                       child: Text(
                         _reactionEmoji(reactionType),
-                        style: const TextStyle(fontSize: 22),
+                        style: const TextStyle(fontSize: AppTokens.fontTitleLarge),
                       ),
                     ),
                   );
@@ -1170,7 +1171,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   },
                   child: Text(
                     username,
-                    style: TextStyle(color: theme.hintColor, fontSize: 12),
+                    style: TextStyle(color: theme.hintColor, fontSize: AppTokens.fontBodySmall),
                   ),
                 ),
               ),
@@ -1215,7 +1216,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                                 : lang.translate('anonymous_user'),
                             style: TextStyle(
                               color: textColor.withOpacity(0.85),
-                              fontSize: 12,
+                              fontSize: AppTokens.fontBodySmall,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -1226,7 +1227,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               color: textColor.withOpacity(0.72),
-                              fontSize: 12,
+                              fontSize: AppTokens.fontBodySmall,
                             ),
                           ),
                         ],
@@ -1248,7 +1249,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                           text: isTranslated && translatedText != null
                               ? translatedText
                               : content,
-                          style: TextStyle(color: textColor, fontSize: 15),
+                          style: TextStyle(color: textColor, fontSize: AppTokens.fontBodyLarge),
                         ),
                         if (content.isNotEmpty)
                           Builder(
@@ -1297,7 +1298,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                                       : lang.translate('translate_action'),
                                   style: TextStyle(
                                     color: textColor.withOpacity(0.7),
-                                    fontSize: 11,
+                                    fontSize: AppTokens.fontLabelSmall,
                                   ),
                                 ),
                               ],
@@ -1315,7 +1316,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                           '${lang.translate('edited_label')} ',
                           style: TextStyle(
                             color: textColor.withOpacity(0.5),
-                            fontSize: 9,
+                            fontSize: AppTokens.fontLabelSmall,
                             fontStyle: FontStyle.italic,
                           ),
                         ),
@@ -1323,7 +1324,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                         _formatTime(createdAt),
                         style: TextStyle(
                           color: textColor.withOpacity(0.7),
-                          fontSize: 11,
+                          fontSize: AppTokens.fontLabelSmall,
                         ),
                       ),
                       if (isMine) ...[
@@ -1378,7 +1379,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                                   color: isSelected
                                       ? AppColors.militantRed
                                       : textColor,
-                                  fontSize: 12,
+                                  fontSize: AppTokens.fontBodySmall,
                                   fontWeight: isSelected
                                       ? FontWeight.w700
                                       : FontWeight.w500,
@@ -1452,7 +1453,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
-                    fontSize: 14,
+                    fontSize: AppTokens.fontBodyMedium,
                   ),
                 ),
               ),
@@ -1463,7 +1464,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             LanguageService.instance.translate('call_group_tap_to_join'),
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.88),
-              fontSize: 13,
+              fontSize: AppTokens.fontBodyMedium,
             ),
           ),
           const SizedBox(height: 10),
@@ -1739,7 +1740,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                           style: TextStyle(
                             color: theme.textTheme.bodyMedium?.color,
                             fontWeight: FontWeight.w700,
-                            fontSize: 12,
+                            fontSize: AppTokens.fontBodySmall,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -1749,7 +1750,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             color: theme.hintColor,
-                            fontSize: 12,
+                            fontSize: AppTokens.fontBodySmall,
                           ),
                         ),
                       ],

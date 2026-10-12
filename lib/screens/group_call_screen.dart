@@ -7,6 +7,7 @@ import '../services/group_call_service.dart';
 import '../services/language_service.dart';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class GroupCallScreen extends StatefulWidget {
   final String? callId;
@@ -501,7 +502,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
                         _initialsFor(participant.name),
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 24,
+                          fontSize: AppTokens.fontHeadlineSmall,
                           fontWeight: FontWeight.bold,
                         ),
                       )
@@ -535,7 +536,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 14,
+              fontSize: AppTokens.fontBodyMedium,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -551,7 +552,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
                     key: ValueKey(participant.status),
                     style: TextStyle(
                       color: isConnected ? Colors.white70 : Colors.white38,
-                      fontSize: 12,
+                      fontSize: AppTokens.fontBodySmall,
                     ),
                   ),
           ),
@@ -627,7 +628,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
                   ),
                   child: Text(
                     label,
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    style: const TextStyle(color: Colors.white, fontSize: AppTokens.fontBodySmall),
                   ),
                 ),
               ),
@@ -656,7 +657,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
                     widget.groupName,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 24,
+                      fontSize: AppTokens.fontHeadlineSmall,
                       fontWeight: FontWeight.bold,
                     ),
                     textAlign: TextAlign.center,
@@ -666,7 +667,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Text(
                       _callStatus,
-                      style: const TextStyle(color: Colors.white70, fontSize: 16),
+                      style: const TextStyle(color: Colors.white70, fontSize: AppTokens.fontBodyLarge),
                       textAlign: TextAlign.center,
                     ),
                   ),

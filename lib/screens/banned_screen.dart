@@ -3,6 +3,7 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../theme/theme_context.dart';
 import 'login_screen.dart';
+import '../theme/app_tokens.dart';
 
 class BannedScreen extends StatelessWidget {
   final Map<String, dynamic> ban;
@@ -74,7 +75,7 @@ class BannedScreen extends StatelessWidget {
                   lang.translate('banned_title'),
                   style: TextStyle(
                     color: colors.onSurface,
-                    fontSize: 24,
+                    fontSize: AppTokens.fontHeadlineSmall,
                     fontWeight: FontWeight.bold,
                   ),
                   textAlign: TextAlign.center,
@@ -95,7 +96,7 @@ class BannedScreen extends StatelessWidget {
                     style: TextStyle(
                       color: isPermanent ? colors.primary : warning,
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                      fontSize: AppTokens.fontBodyMedium,
                     ),
                   ),
                 ),
@@ -117,7 +118,7 @@ class BannedScreen extends StatelessWidget {
                         lang.translate('banned_reason'),
                         style: TextStyle(
                           color: muted,
-                          fontSize: 12,
+                          fontSize: AppTokens.fontBodySmall,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -126,7 +127,7 @@ class BannedScreen extends StatelessWidget {
                         reason,
                         style: TextStyle(
                           color: colors.onSurface,
-                          fontSize: 14,
+                          fontSize: AppTokens.fontBodyMedium,
                           height: 1.5,
                         ),
                       ),
@@ -140,7 +141,7 @@ class BannedScreen extends StatelessWidget {
                   lang.translate('banned_community_notice'),
                   style: TextStyle(
                     color: muted,
-                    fontSize: 12,
+                    fontSize: AppTokens.fontBodySmall,
                     height: 1.5,
                   ),
                   textAlign: TextAlign.center,

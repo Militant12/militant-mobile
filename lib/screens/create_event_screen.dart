@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../utils/error_helper.dart';
+import '../theme/app_tokens.dart';
 
 class CreateEventScreen extends StatefulWidget {
   const CreateEventScreen({super.key});
@@ -306,7 +307,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     lang.translate('create'),
                     style: TextStyle(
                       color: context.colors.primary,
-                      fontSize: 16,
+                      fontSize: AppTokens.fontBodyLarge,
                     ),
                   ),
           ),

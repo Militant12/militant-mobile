@@ -10,6 +10,7 @@ import '../theme/theme_context.dart';
 import '../utils/error_helper.dart';
 import '../widgets/common/common.dart';
 import '../utils/page_categories.dart';
+import '../theme/app_tokens.dart';
 
 class DiscoveryScreen extends StatefulWidget {
   const DiscoveryScreen({super.key});
@@ -159,7 +160,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
     return Text(
       title,
       style: const TextStyle(
-        fontSize: 18,
+        fontSize: AppTokens.fontBodyLarge,
         fontWeight: FontWeight.bold,
         letterSpacing: 0.5,
       ),
@@ -230,7 +231,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                 overflow: TextOverflow.clip,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 13,
+                  fontSize: AppTokens.fontBodyMedium,
                 ),
               ),
               const SizedBox(height: 4),
@@ -241,7 +242,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                 overflow: TextOverflow.clip,
                 softWrap: true,
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: AppTokens.fontLabelSmall,
                   color: context.colors.onSurface.withValues(alpha: 0.7),
                 ),
               ),
@@ -261,7 +262,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                   ),
                   child: Text(
                     LanguageService.instance.translate('follow'),
-                    style: const TextStyle(fontSize: 10),
+                    style: const TextStyle(fontSize: AppTokens.fontLabelSmall),
                   ),
                 ),
               ),
@@ -369,7 +370,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                     overflow: TextOverflow.clip,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                      fontSize: AppTokens.fontBodySmall,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -379,7 +380,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                     overflow: TextOverflow.clip,
                     softWrap: true,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: AppTokens.fontBodySmall,
                       color: context.colors.onSurface.withValues(alpha: 0.7),
                     ),
                   ),

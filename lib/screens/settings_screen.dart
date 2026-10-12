@@ -13,6 +13,7 @@ import './edit_profile_screen.dart';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
 import '../theme/theme_context.dart';
+import '../theme/app_tokens.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -255,12 +256,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   Text(
                     title,
-                    style: TextStyle(color: titleColor, fontSize: 16),
+                    style: TextStyle(color: titleColor, fontSize: AppTokens.fontBodyLarge),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(color: subtitleColor, fontSize: 14),
+                    style: TextStyle(color: subtitleColor, fontSize: AppTokens.fontBodyMedium),
                   ),
                 ],
               ),
@@ -394,7 +395,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Text(
           lang.translate('social_network'),
           style: TextStyle(
-            fontSize: 14,
+            fontSize: AppTokens.fontBodyMedium,
             color: isDark ? Colors.white70 : Colors.black87,
           ),
         ),
@@ -402,7 +403,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Text(
           lang.translate('copyright'),
           style: TextStyle(
-            fontSize: 12,
+            fontSize: AppTokens.fontBodySmall,
             fontWeight: FontWeight.bold,
             color: context.tokens.textMuted,
           ),
@@ -422,7 +423,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 backgroundColor: AppColors.militantRed,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 12),
-                textStyle: const TextStyle(fontSize: 12),
+                textStyle: const TextStyle(fontSize: AppTokens.fontBodySmall),
               ),
             ),
             ElevatedButton.icon(
@@ -436,7 +437,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 backgroundColor: context.colors.outlineVariant,
                 foregroundColor: context.colors.onSurface,
                 padding: const EdgeInsets.symmetric(horizontal: 12),
-                textStyle: const TextStyle(fontSize: 12),
+                textStyle: const TextStyle(fontSize: AppTokens.fontBodySmall),
               ),
             ),
           ],
@@ -961,14 +962,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               lang.translate('notifications_provider_ntfy'),
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
-                                fontSize: 14,
+                                fontSize: AppTokens.fontBodyMedium,
                               ),
                             ),
                             subtitle: Text(
                               lang.translate(
                                 'notifications_provider_ntfy_subtitle',
                               ),
-                              style: const TextStyle(fontSize: 12),
+                              style: const TextStyle(fontSize: AppTokens.fontBodySmall),
                             ),
                             value: PushProvider.ntfy,
                             activeColor: AppColors.militantRed,
@@ -988,14 +989,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               ),
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
-                                fontSize: 14,
+                                fontSize: AppTokens.fontBodyMedium,
                               ),
                             ),
                             subtitle: Text(
                               lang.translate(
                                 'notifications_provider_onesignal_subtitle',
                               ),
-                              style: const TextStyle(fontSize: 12),
+                              style: const TextStyle(fontSize: AppTokens.fontBodySmall),
                             ),
                             value: PushProvider.onesignal,
                             activeColor: AppColors.militantRed,
@@ -1013,14 +1014,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               lang.translate('notifications_provider_both'),
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
-                                fontSize: 14,
+                                fontSize: AppTokens.fontBodyMedium,
                               ),
                             ),
                             subtitle: Text(
                               lang.translate(
                                 'notifications_provider_both_subtitle',
                               ),
-                              style: const TextStyle(fontSize: 12),
+                              style: const TextStyle(fontSize: AppTokens.fontBodySmall),
                             ),
                             value: PushProvider.both,
                             activeColor: AppColors.militantRed,
@@ -1139,7 +1140,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         title.toUpperCase(),
         style: const TextStyle(
           color: AppColors.militantRed,
-          fontSize: 12,
+          fontSize: AppTokens.fontBodySmall,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.0,
         ),
@@ -1168,7 +1169,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         subtitle,
         style: TextStyle(
           color: context.tokens.textMuted,
-          fontSize: 12,
+          fontSize: AppTokens.fontBodySmall,
         ),
       ),
     );
@@ -1320,7 +1321,7 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
         subtitle,
         style: TextStyle(
           color: context.tokens.textMuted,
-          fontSize: 12,
+          fontSize: AppTokens.fontBodySmall,
         ),
       ),
     );

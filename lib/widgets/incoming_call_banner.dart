@@ -8,6 +8,7 @@ import '../screens/group_call_screen.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 String? _payloadString(Map<String, dynamic>? data, List<String> keys) {
   if (data == null) return null;
@@ -445,7 +446,7 @@ class _IncomingCallBannerState extends State<IncomingCallBanner>
                           style: TextStyle(
                             color: onSurface,
                             fontWeight: FontWeight.bold,
-                            fontSize: 15,
+                            fontSize: AppTokens.fontBodyLarge,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -461,7 +462,7 @@ class _IncomingCallBannerState extends State<IncomingCallBanner>
                                       ? 'call_incoming_video'
                                       : 'call_incoming_audio'),
                           ),
-                          style: TextStyle(color: muted, fontSize: 12),
+                          style: TextStyle(color: muted, fontSize: AppTokens.fontBodySmall),
                         ),
                       ],
                     ),
@@ -604,7 +605,7 @@ class _CallButton extends StatelessWidget {
             child: Icon(icon, color: foregroundColor, size: 22),
           ),
           const SizedBox(height: 3),
-          Text(label, style: TextStyle(color: labelColor, fontSize: 10)),
+          Text(label, style: TextStyle(color: labelColor, fontSize: AppTokens.fontLabelSmall)),
         ],
       ),
     );

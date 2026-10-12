@@ -4,6 +4,7 @@ import '../services/language_service.dart';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
 import '../theme/theme_context.dart';
+import '../theme/app_tokens.dart';
 
 class CreatePageScreen extends StatefulWidget {
   const CreatePageScreen({super.key});
@@ -111,7 +112,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
                 lang.translate('create_page_for_cause'),
                 style: TextStyle(
                   color: context.tokens.textMuted,
-                  fontSize: 14,
+                  fontSize: AppTokens.fontBodyMedium,
                 ),
               ),
             ),
@@ -181,7 +182,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
                           color: isSelected
                               ? Colors.white
                               : (context.colors.onSurface),
-                          fontSize: 13,
+                          fontSize: AppTokens.fontBodyMedium,
                         ),
                       ),
                     ],

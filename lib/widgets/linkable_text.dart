@@ -9,6 +9,7 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/theme_context.dart';
+import '../theme/app_tokens.dart';
 
 class LinkableText extends StatelessWidget {
   final String text;
@@ -543,7 +544,7 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
                             style: TextStyle(
                               color: theme.textTheme.bodyLarge?.color,
                               fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                              fontSize: AppTokens.fontBodyMedium,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -554,7 +555,7 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
                             style: TextStyle(
                               color: theme.textTheme.bodyLarge?.color,
                               fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                              fontSize: AppTokens.fontBodyMedium,
                             ),
                           ),
 
@@ -565,7 +566,7 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
                             _description!,
                             style: TextStyle(
                               color: theme.textTheme.bodyMedium?.color,
-                              fontSize: 12,
+                              fontSize: AppTokens.fontBodySmall,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -575,7 +576,7 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
                             _shortenUrl(widget.url),
                             style: TextStyle(
                               color: theme.textTheme.bodyMedium?.color,
-                              fontSize: 12,
+                              fontSize: AppTokens.fontBodySmall,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,

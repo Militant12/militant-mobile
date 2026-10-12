@@ -25,6 +25,7 @@ import 'widgets/incoming_call_banner.dart';
 import 'package:flutter/services.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'widgets/common/offline_banner.dart';
+import 'theme/app_tokens.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -290,7 +291,7 @@ class _SplashScreenState extends State<SplashScreen>
                   LanguageService.instance.translate('splash_tagline'),
                   style: TextStyle(
                     color: context.colors.onSurface.withValues(alpha: 0.5),
-                    fontSize: 14,
+                    fontSize: AppTokens.fontBodyMedium,
                     fontWeight: FontWeight.w300,
                     letterSpacing: 1.5,
                   ),
