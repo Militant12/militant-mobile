@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 
@@ -460,8 +461,8 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(12),
                 ),
-                child: Image.network(
-                  _imageUrl!,
+                child: Image(
+                  image: CachedNetworkImageProvider(_imageUrl!),
                   height: 150,
                   width: double.infinity,
                   fit: BoxFit.cover,
@@ -505,8 +506,8 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
                           : _faviconUrl != null
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(4),
-                              child: Image.network(
-                                _faviconUrl!,
+                              child: Image(
+                                image: CachedNetworkImageProvider(_faviconUrl!),
                                 width: 24,
                                 height: 24,
                                 errorBuilder: (context, error, stackTrace) =>

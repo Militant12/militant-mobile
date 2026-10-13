@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../services/language_service.dart';
 
 class FullScreenImagePage extends StatelessWidget {
@@ -26,8 +27,8 @@ class FullScreenImagePage extends StatelessWidget {
                   clipBehavior: Clip.none,
                   child: Hero(
                     tag: imageUrl,
-                    child: Image.network(
-                      imageUrl,
+                    child: Image(
+                      image: CachedNetworkImageProvider(imageUrl),
                       fit: BoxFit.contain,
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;

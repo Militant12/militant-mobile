@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/theme_context.dart';
 import 'common/common.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../screens/stories_screen.dart';
@@ -305,8 +306,8 @@ class _StoriesBarState extends State<StoriesBar> {
                                 ),
                               );
                             }
-                            return Image.network(
-                              snapshot.data!,
+                            return Image(
+                              image: CachedNetworkImageProvider(snapshot.data!),
                               fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => Container(
                                 color: context.colors.surface,

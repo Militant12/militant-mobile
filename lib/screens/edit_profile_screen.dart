@@ -3,6 +3,7 @@ import '../widgets/common/common.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
 import '../utils/error_helper.dart';
 
@@ -197,7 +198,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           backgroundImage: _avatarFile != null
                               ? FileImage(_avatarFile!)
                               : (_currentAvatarUrl != null
-                                  ? NetworkImage(_currentAvatarUrl!)
+                                  ? CachedNetworkImageProvider(_currentAvatarUrl!)
                                   : null) as ImageProvider?,
                           child: _avatarFile == null && _currentAvatarUrl == null
                               ? Icon(

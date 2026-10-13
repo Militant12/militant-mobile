@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../services/private_call_session.dart';
@@ -310,7 +311,7 @@ class _CallScreenState extends State<CallScreen> {
           if (_resolvedRecipientAvatar != null)
             CircleAvatar(
               radius: 60,
-              backgroundImage: NetworkImage(_resolvedRecipientAvatar!),
+              backgroundImage: CachedNetworkImageProvider(_resolvedRecipientAvatar!),
             )
           else
             CircleAvatar(

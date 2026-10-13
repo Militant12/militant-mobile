@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../services/api_service.dart';
 import '../services/group_call_service.dart';
@@ -490,7 +491,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
                 backgroundImage:
                     participant.avatarUrl != null &&
                         participant.avatarUrl!.isNotEmpty
-                    ? NetworkImage(participant.avatarUrl!)
+                    ? CachedNetworkImageProvider(participant.avatarUrl!)
                     : null,
                 child:
                     participant.avatarUrl == null ||

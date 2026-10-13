@@ -5,6 +5,7 @@ import 'dart:io';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../widgets/linkable_text.dart';
 import '../widgets/video_player_widget.dart';
 import '../widgets/file_video_player.dart';
@@ -737,8 +738,8 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 fit: StackFit.expand,
                 children: [
                   if (coverImage != null && coverImage.isNotEmpty)
-                    Image.network(
-                      _api?.getImageUrl(coverImage) ?? '',
+                    Image(
+                      image: CachedNetworkImageProvider(_api?.getImageUrl(coverImage) ?? ''),
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => _buildDefaultCover(),
                     )
@@ -996,7 +997,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
     if (url != null && !url.endsWith('.svg') && !url.contains('default')) {
       return CircleAvatar(
         radius: size / 2,
-        backgroundImage: NetworkImage(url),
+        backgroundImage: CachedNetworkImageProvider(url),
         backgroundColor: Colors.white24,
       );
     }
@@ -1453,8 +1454,8 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    _api?.getImageUrl('uploads/posts/${post['media']}') ?? '',
+                  child: Image(
+                    image: CachedNetworkImageProvider(_api?.getImageUrl('uploads/posts/${post['media']}') ?? ''),
                     fit: BoxFit.cover,
                     width: double.infinity,
                     errorBuilder: (_, __, ___) => const SizedBox(),
@@ -1997,7 +1998,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                 )
                               : (_pageDetail?['avatar'] != null && _api != null
                                     ? DecorationImage(
-                                        image: NetworkImage(
+                                        image: CachedNetworkImageProvider(
                                           _api?.getImageUrl(
                                                 _pageDetail!['avatar'],
                                               ) ??
@@ -2071,7 +2072,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                               : (_pageDetail?['cover_image'] != null &&
                                         _api != null
                                     ? DecorationImage(
-                                        image: NetworkImage(
+                                        image: CachedNetworkImageProvider(
                                           _api?.getImageUrl(
                                                 _pageDetail!['cover_image'],
                                               ) ??

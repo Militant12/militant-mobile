@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../theme/theme_context.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
@@ -153,8 +154,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                       future: _getImageUrl(coverImage),
                       builder: (context, snapshot) {
                         if (snapshot.hasData && snapshot.data != null) {
-                          return Image.network(
-                            snapshot.data!,
+                          return Image(
+                            image: CachedNetworkImageProvider(snapshot.data!),
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) =>
                                 _buildPlaceholderCover(),

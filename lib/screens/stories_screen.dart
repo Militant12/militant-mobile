@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/common/common.dart';
 import 'dart:async';
 import 'package:video_player/video_player.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 
@@ -204,7 +205,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
                         if (snapshot.hasData && snapshot.data!.isNotEmpty) {
                           return CircleAvatar(
                             radius: 20,
-                            backgroundImage: NetworkImage(snapshot.data!),
+                            backgroundImage: CachedNetworkImageProvider(snapshot.data!),
                             backgroundColor: const Color(0xFFBE1E1E),
                           );
                         }
@@ -313,8 +314,8 @@ class _StoriesScreenState extends State<StoriesScreen> {
           );
         }
 
-        return Image.network(
-          url,
+        return Image(
+          image: CachedNetworkImageProvider(url),
           fit: BoxFit.contain,
           errorBuilder: (_, __, ___) => Container(
             color: const Color(0xFF1E1E1E),

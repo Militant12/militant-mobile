@@ -4,6 +4,7 @@ import '../theme/theme_context.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
 import '../widgets/video_player_widget.dart';
 import '../widgets/file_video_player.dart';
@@ -242,7 +243,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               image: (_backgroundImagePath!.startsWith('/') ||
                                       _backgroundImagePath!.startsWith('file://'))
                                   ? FileImage(File(_backgroundImagePath!))
-                                  : NetworkImage(_api?.getImageUrl(_backgroundImagePath!) ?? '')
+                                  : CachedNetworkImageProvider(_api?.getImageUrl(_backgroundImagePath!) ?? '')
                                       as ImageProvider,
                               fit: BoxFit.cover,
                             )
@@ -823,7 +824,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   image: (_backgroundImagePath!.startsWith('/') ||
                           _backgroundImagePath!.startsWith('file://'))
                       ? FileImage(File(_backgroundImagePath!))
-                      : NetworkImage(_api?.getImageUrl(_backgroundImagePath!) ?? '')
+                      : CachedNetworkImageProvider(_api?.getImageUrl(_backgroundImagePath!) ?? '')
                           as ImageProvider,
                   fit: BoxFit.cover,
                 ),
@@ -1485,8 +1486,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 },
                 child: Hero(
                   tag: url,
-                  child: Image.network(
-                    url,
+                  child: Image(
+                    image: CachedNetworkImageProvider(url),
                     fit: BoxFit.cover,
                     loadingBuilder: (context, child, loadingProgress) {
                       if (loadingProgress == null) return child;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/common/common.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import 'page_detail_screen.dart';
@@ -511,7 +512,7 @@ class _PagesScreenState extends State<PagesScreen>
         height: 56,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          image: DecorationImage(image: NetworkImage(url), fit: BoxFit.cover),
+          image: DecorationImage(image: CachedNetworkImageProvider(url), fit: BoxFit.cover),
         ),
       );
     } else {

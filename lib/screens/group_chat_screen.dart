@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../theme/theme_context.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../config/feature_flags.dart';
 import '../widgets/video_player_widget.dart';
 import '../widgets/audio_player_widget.dart';
@@ -341,7 +342,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                                         'file://',
                                       ))
                                   ? FileImage(File(_backgroundImagePath!))
-                                  : NetworkImage(
+                                  : CachedNetworkImageProvider(
                                           _api?.getImageUrl(
                                                 _backgroundImagePath!,
                                               ) ??
@@ -758,7 +759,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                       (_backgroundImagePath!.startsWith('/') ||
                           _backgroundImagePath!.startsWith('file://'))
                       ? FileImage(File(_backgroundImagePath!))
-                      : NetworkImage(
+                      : CachedNetworkImageProvider(
                               _api?.getImageUrl(_backgroundImagePath!) ?? '',
                             )
                             as ImageProvider,
@@ -1619,8 +1620,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                       minHeight: 100,
                       maxHeight: 300,
                     ),
-                    child: Image.network(
-                      url,
+                    child: Image(
+                      image: CachedNetworkImageProvider(url),
                       fit: BoxFit.cover,
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;

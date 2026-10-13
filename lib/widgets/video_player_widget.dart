@@ -2,6 +2,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'full_screen_video_page.dart';
 import '../services/language_service.dart';
 
@@ -611,8 +612,8 @@ class _VideoThumbnailBackground extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        Image.network(
-          thumbnailUrl!,
+        Image(
+          image: CachedNetworkImageProvider(thumbnailUrl!),
           fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => _buildFallback(),
         ),

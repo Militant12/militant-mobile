@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'profile_screen.dart';
 import 'group_detail_screen.dart';
 import 'page_detail_screen.dart';
@@ -344,7 +345,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                 borderRadius: BorderRadius.circular(8),
                 image: image != null && image != 'default.svg'
                     ? DecorationImage(
-                        image: NetworkImage(_api?.getImageUrl(image) ?? ''),
+                        image: CachedNetworkImageProvider(_api?.getImageUrl(image) ?? ''),
                         fit: BoxFit.cover,
                       )
                     : null,

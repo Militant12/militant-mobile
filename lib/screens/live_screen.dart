@@ -9,6 +9,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../config/livekit_config.dart';
 import '../services/api_service.dart';
@@ -1409,8 +1410,8 @@ class _LiveScreenState extends State<LiveScreen> {
       return Stack(
         fit: StackFit.expand,
         children: [
-          Image.network(
-            remoteImageUrl,
+          Image(
+            image: CachedNetworkImageProvider(remoteImageUrl),
             fit: BoxFit.cover,
             errorBuilder: (_, __, ___) => _buildDefaultLiveBackdrop(),
           ),
@@ -1724,7 +1725,7 @@ class _LiveScreenState extends State<LiveScreen> {
           color: Colors.black,
           image: isValidUrl(backgroundUrl)
               ? DecorationImage(
-                  image: NetworkImage(backgroundUrl!),
+                  image: CachedNetworkImageProvider(backgroundUrl!),
                   fit: BoxFit.cover,
                   colorFilter: ColorFilter.mode(
                     Colors.black.withValues(alpha: 0.3),
@@ -1871,7 +1872,7 @@ class _LiveScreenState extends State<LiveScreen> {
                         radius: 10,
                         backgroundColor: Colors.white24,
                         backgroundImage: isValidUrl(avatarUrl)
-                            ? NetworkImage(avatarUrl!)
+                            ? CachedNetworkImageProvider(avatarUrl!)
                             : null,
                         child: !isValidUrl(avatarUrl)
                             ? const Icon(
