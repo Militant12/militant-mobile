@@ -11,10 +11,14 @@ import 'common/common.dart';
 /// horizontal. Il ne prend aucune place quand aucun live n'est en cours ou si
 /// le chargement échoue.
 class LiveNowStrip extends StatefulWidget {
-  const LiveNowStrip({super.key, this.loadLives});
+  const LiveNowStrip({super.key, this.loadLives, this.refreshCount = 0});
 
   /// Pour les tests ; par défaut `ApiService.fetchActiveLives`.
   final Future<List<Map<String, dynamic>>> Function()? loadLives;
+
+  /// Change à chaque rafraîchissement du fil : les lives sont rechargés, pour
+  /// retirer ceux qui sont terminés et montrer ceux qui viennent de commencer.
+  final int refreshCount;
 
   @override
   State<LiveNowStrip> createState() => _LiveNowStripState();
@@ -30,6 +34,12 @@ class _LiveNowStripState extends State<LiveNowStrip> {
     _load();
   }
 
+  @override
+  void didUpdateWidget(LiveNowStrip oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.refreshCount != oldWidget.refreshCount) _load();
+  }
+
   Future<void> _load() async {
     try {
       final List<Map<String, dynamic>> lives;
@@ -41,7 +51,9 @@ class _LiveNowStripState extends State<LiveNowStrip> {
       }
       if (mounted) setState(() => _lives = lives);
     } catch (_) {
-      // Le fil reste utilisable sans ce bandeau.
+      // Le fil reste utilisable sans ce bandeau. Les lives déjà affichés sont
+      // peut-être terminés : mieux vaut les retirer.
+      if (mounted) setState(() => _lives = const []);
     }
   }
 

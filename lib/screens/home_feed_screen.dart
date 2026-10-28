@@ -178,6 +178,7 @@ class _FeedListState extends State<FeedList>
   Object? _error;
   bool _isLoadingPreferences = false;
   int _currentPage = 1;
+  int _refreshCount = 0; // Recharge le bandeau « En direct » avec le fil
   final ScrollController _scrollController = ScrollController();
   List<String> _interests = [];
   String? _mainCause;
@@ -257,6 +258,7 @@ class _FeedListState extends State<FeedList>
           _posts.clear();
           _currentPage = 1;
           _hasMore = true;
+          _refreshCount++;
         }
       });
     }
@@ -676,7 +678,12 @@ class _FeedListState extends State<FeedList>
         itemBuilder: (context, index) {
           if (index == 0) {
             return widget.feedType == 'global'
-                ? const Column(children: [StoriesBar(), LiveNowStrip()])
+                ? Column(
+                    children: [
+                      const StoriesBar(),
+                      LiveNowStrip(refreshCount: _refreshCount),
+                    ],
+                  )
                 : const StoriesBar();
           }
 
