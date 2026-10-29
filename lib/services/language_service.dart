@@ -425,7 +425,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'subtitle_notifications': 'Gérer les notifications',
       'subtitle_security': 'Changer de mot de passe',
       'subtitle_privacy': 'Paramètres de confidentialité',
-      'version': 'Version 1.0.9',
+      'version': 'Version 1.1.0',
 
       // Notifications Settings
       'notifications_push': 'Notifications push',
@@ -1547,7 +1547,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'subtitle_notifications': 'Manage notifications',
       'subtitle_security': 'Change password',
       'subtitle_privacy': 'Privacy settings',
-      'version': 'Version 1.0.9',
+      'version': 'Version 1.1.0',
 
       // Notifications Settings
       'notifications_push': 'Push notifications',
@@ -2663,7 +2663,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'subtitle_notifications': 'Gestionar notificaciones',
       'subtitle_security': 'Cambiar contraseña',
       'subtitle_privacy': 'Configuración de privacidad',
-      'version': 'Versión 1.0.9',
+      'version': 'Versión 1.1.0',
 
       // Notifications Settings
       'notifications_push': 'Notificaciones push',

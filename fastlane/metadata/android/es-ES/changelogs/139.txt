@@ -1,0 +1,4 @@
+- Navegación simplificada e interfaz más coherente.
+- Mejor compatibilidad con los temas y la accesibilidad.
+- Estado sin conexión más visible y carga de medios más fiable.
+- Confirmación inmediata al guardar publicaciones.

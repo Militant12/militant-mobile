@@ -1,0 +1,4 @@
+- Streamlined navigation and a more consistent interface.
+- Improved theme and accessibility support.
+- Clearer offline status and more reliable media loading.
+- Immediate confirmation when saving posts.

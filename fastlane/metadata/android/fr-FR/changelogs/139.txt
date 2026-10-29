@@ -1,0 +1,4 @@
+- Navigation et interface harmonisées.
+- Meilleure prise en charge des thèmes et de l'accessibilité.
+- Mode hors ligne plus visible et chargement des médias plus fiable.
+- Enregistrement des publications avec confirmation immédiate.
