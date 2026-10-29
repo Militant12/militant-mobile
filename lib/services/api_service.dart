@@ -382,8 +382,10 @@ class ApiService {
       } else {
         path = 'uploads/$path';
       }
-    } else if (path.startsWith('uploads/')) {
-      // no-op
+    } else if (RegExp(r'^(posts|stories|albums|messages)/').hasMatch(path)) {
+      // Certains médias arrivent avec leur dossier mais sans « uploads/ »
+      // (ex. « posts/<uuid>.jpg »), alors qu'ils sont servis sous /uploads.
+      path = 'uploads/$path';
     }
 
     return '$mainUrl/$path';
