@@ -1,4 +1,5 @@
-- Navegación simplificada e interfaz más coherente.
-- Mejor compatibilidad con los temas y la accesibilidad.
-- Estado sin conexión más visible y carga de medios más fiable.
-- Confirmación inmediata al guardar publicaciones.
+- Nueva navegación entre Inicio, Grupos, Agenda, Chat y Perfil.
+- Temas claro y oscuro coherentes, con mejores cargas y estados vacíos.
+- Mejor accesibilidad y traducciones en llamadas, páginas, directos y moderación.
+- Estado sin conexión visible, caché multimedia y carga de imágenes más fiable.
+- Errores más claros, directos actualizados con el inicio y guardado de publicaciones anulable.

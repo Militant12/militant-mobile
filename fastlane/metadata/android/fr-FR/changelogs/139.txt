@@ -1,4 +1,5 @@
-- Navigation et interface harmonisées.
-- Meilleure prise en charge des thèmes et de l'accessibilité.
-- Mode hors ligne plus visible et chargement des médias plus fiable.
-- Enregistrement des publications avec confirmation immédiate.
+- Nouvelle navigation entre l'accueil, les groupes, l'agenda, le chat et le profil.
+- Interface harmonisée en modes clair et sombre, avec de meilleurs chargements et écrans vides.
+- Accessibilité et traductions renforcées dans les appels, les pages, les directs et la modération.
+- Mode hors ligne visible, médias mis en cache et chargement des images plus fiable.
+- Erreurs plus claires, directs actualisés avec le fil et enregistrement des publications annulable.

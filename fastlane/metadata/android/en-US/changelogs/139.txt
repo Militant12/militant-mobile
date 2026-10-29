@@ -1,4 +1,5 @@
-- Streamlined navigation and a more consistent interface.
-- Improved theme and accessibility support.
-- Clearer offline status and more reliable media loading.
-- Immediate confirmation when saving posts.
+- New navigation across Home, Groups, Calendar, Chat and Profile.
+- Consistent light and dark themes with improved loading and empty states.
+- Better accessibility and translations for calls, pages, live streams and moderation.
+- Visible offline status, media caching and more reliable image loading.
+- Clearer errors, live streams refreshed with the feed and undoable post saving.
