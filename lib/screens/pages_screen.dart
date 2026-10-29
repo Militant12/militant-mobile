@@ -8,6 +8,9 @@ import 'page_detail_screen.dart';
 import 'create_page_screen.dart';
 import '../utils/error_helper.dart';
 import '../utils/page_categories.dart';
+import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
+import '../theme/app_tokens.dart';
 
 class PagesScreen extends StatefulWidget {
   const PagesScreen({super.key});
@@ -98,18 +101,18 @@ class _PagesScreenState extends State<PagesScreen>
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : Colors.grey[50],
+      backgroundColor: isDark ? AppColors.darkBackground : Colors.grey[50],
       appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        backgroundColor: context.colors.surface,
         title: Text(
           lang.translate('pages_title'),
-          style: TextStyle(color: isDark ? Colors.white : Colors.black),
+          style: TextStyle(color: context.colors.onSurface),
         ),
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: const Color(0xFFBE1E1E),
-          labelColor: isDark ? Colors.white : Colors.black,
-          unselectedLabelColor: isDark ? Colors.white54 : Colors.grey,
+          indicatorColor: AppColors.militantRed,
+          labelColor: context.colors.onSurface,
+          unselectedLabelColor: context.tokens.textMuted,
           isScrollable: true,
           tabs: [
             Tab(
@@ -165,7 +168,7 @@ class _PagesScreenState extends State<PagesScreen>
             _loadPages();
           }
         },
-        backgroundColor: const Color(0xFFBE1E1E),
+        backgroundColor: AppColors.militantRed,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
@@ -182,7 +185,7 @@ class _PagesScreenState extends State<PagesScreen>
               Icons.flag_outlined,
               size: 64,
               color: Theme.of(context).brightness == Brightness.dark
-                  ? const Color(0xFF888888)
+                  ? AppColors.grey888
                   : Colors.grey,
             ),
             const SizedBox(height: 16),
@@ -190,9 +193,9 @@ class _PagesScreenState extends State<PagesScreen>
               lang.translate('no_pages_message'),
               style: TextStyle(
                 color: Theme.of(context).brightness == Brightness.dark
-                    ? const Color(0xFF888888)
+                    ? AppColors.grey888
                     : Colors.grey[600],
-                fontSize: 16,
+                fontSize: AppTokens.fontBodyLarge,
               ),
             ),
             const SizedBox(height: 8),
@@ -200,9 +203,9 @@ class _PagesScreenState extends State<PagesScreen>
               lang.translate('create_page_subtitle'),
               style: TextStyle(
                 color: Theme.of(context).brightness == Brightness.dark
-                    ? const Color(0xFF666666)
+                    ? AppColors.grey666
                     : Colors.grey[500],
-                fontSize: 14,
+                fontSize: AppTokens.fontBodyMedium,
               ),
             ),
             const SizedBox(height: 24),
@@ -217,7 +220,7 @@ class _PagesScreenState extends State<PagesScreen>
               icon: const Icon(Icons.add),
               label: Text(lang.translate('create_page_button')),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFBE1E1E),
+                backgroundColor: AppColors.militantRed,
                 foregroundColor: Colors.white,
               ),
             ),
@@ -228,7 +231,7 @@ class _PagesScreenState extends State<PagesScreen>
 
     return RefreshIndicator(
       onRefresh: _loadPages,
-      color: const Color(0xFFBE1E1E),
+      color: AppColors.militantRed,
       child: ListView.builder(
         padding: const EdgeInsets.only(top: 8),
         itemCount: _myPages.length,
@@ -250,7 +253,7 @@ class _PagesScreenState extends State<PagesScreen>
               Icons.favorite_border,
               size: 64,
               color: Theme.of(context).brightness == Brightness.dark
-                  ? const Color(0xFF888888)
+                  ? AppColors.grey888
                   : Colors.grey,
             ),
             const SizedBox(height: 16),
@@ -258,9 +261,9 @@ class _PagesScreenState extends State<PagesScreen>
               lang.translate('no_followed_pages'),
               style: TextStyle(
                 color: Theme.of(context).brightness == Brightness.dark
-                    ? const Color(0xFF888888)
+                    ? AppColors.grey888
                     : Colors.grey[600],
-                fontSize: 16,
+                fontSize: AppTokens.fontBodyLarge,
               ),
             ),
             const SizedBox(height: 24),
@@ -269,7 +272,7 @@ class _PagesScreenState extends State<PagesScreen>
               icon: const Icon(Icons.explore),
               label: Text(lang.translate('discover_pages')),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFBE1E1E),
+                backgroundColor: AppColors.militantRed,
                 foregroundColor: Colors.white,
               ),
             ),
@@ -280,7 +283,7 @@ class _PagesScreenState extends State<PagesScreen>
 
     return RefreshIndicator(
       onRefresh: _loadPages,
-      color: const Color(0xFFBE1E1E),
+      color: AppColors.militantRed,
       child: ListView.builder(
         padding: const EdgeInsets.only(top: 8),
         itemCount: _followedPages.length,
@@ -302,7 +305,7 @@ class _PagesScreenState extends State<PagesScreen>
               Icons.search_off,
               size: 64,
               color: Theme.of(context).brightness == Brightness.dark
-                  ? const Color(0xFF888888)
+                  ? AppColors.grey888
                   : Colors.grey,
             ),
             const SizedBox(height: 16),
@@ -310,9 +313,9 @@ class _PagesScreenState extends State<PagesScreen>
               lang.translate('no_discover_pages'),
               style: TextStyle(
                 color: Theme.of(context).brightness == Brightness.dark
-                    ? const Color(0xFF888888)
+                    ? AppColors.grey888
                     : Colors.grey[600],
-                fontSize: 16,
+                fontSize: AppTokens.fontBodyLarge,
               ),
             ),
           ],
@@ -322,7 +325,7 @@ class _PagesScreenState extends State<PagesScreen>
 
     return RefreshIndicator(
       onRefresh: _loadPages,
-      color: const Color(0xFFBE1E1E),
+      color: AppColors.militantRed,
       child: ListView.builder(
         padding: const EdgeInsets.only(top: 8),
         itemCount: _discoverPages.length,
@@ -342,8 +345,6 @@ class _PagesScreenState extends State<PagesScreen>
     bool showFollow = false,
   }) {
     final lang = LanguageService.instance;
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final name = page['name'] ?? lang.translate('pages_title');
     final description = page['description'] ?? '';
     final category = page['category'] ?? '';
@@ -363,7 +364,7 @@ class _PagesScreenState extends State<PagesScreen>
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: isDark ? Colors.white10 : Colors.grey[200]!,
+              color: context.colors.outlineVariant,
             ),
           ),
         ),
@@ -381,8 +382,8 @@ class _PagesScreenState extends State<PagesScreen>
                         child: Text(
                           name,
                           style: TextStyle(
-                            color: isDark ? Colors.white : Colors.black,
-                            fontSize: 16,
+                            color: context.colors.onSurface,
+                            fontSize: AppTokens.fontBodyLarge,
                             fontWeight: FontWeight.bold,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -396,14 +397,14 @@ class _PagesScreenState extends State<PagesScreen>
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFBE1E1E),
+                            color: AppColors.militantRed,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             showBadge,
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 10,
+                              fontSize: AppTokens.fontLabelSmall,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -416,14 +417,14 @@ class _PagesScreenState extends State<PagesScreen>
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: isDark ? Colors.white10 : Colors.grey[200],
+                            color: context.colors.outlineVariant,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             pageCategoryLabel(category),
                             style: TextStyle(
-                              color: isDark ? Colors.white54 : Colors.grey[600],
-                              fontSize: 11,
+                              color: context.tokens.textMuted,
+                              fontSize: AppTokens.fontLabelSmall,
                             ),
                           ),
                         ),
@@ -436,10 +437,8 @@ class _PagesScreenState extends State<PagesScreen>
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: isDark
-                            ? const Color(0xFF888888)
-                            : Colors.grey[600],
-                        fontSize: 14,
+                        color: context.tokens.textMuted,
+                        fontSize: AppTokens.fontBodyMedium,
                       ),
                     ),
                   ],
@@ -448,15 +447,15 @@ class _PagesScreenState extends State<PagesScreen>
                     children: [
                       Icon(
                         Icons.people,
-                        color: isDark ? const Color(0xFF888888) : Colors.grey,
+                        color: context.tokens.textMuted,
                         size: 14,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         '$followersCount ${followersCount > 1 ? lang.translate('followers_count_plural') : lang.translate('followers_count')}',
                         style: TextStyle(
-                          color: isDark ? const Color(0xFF888888) : Colors.grey,
-                          fontSize: 12,
+                          color: context.tokens.textMuted,
+                          fontSize: AppTokens.fontBodySmall,
                         ),
                       ),
                     ],
@@ -469,7 +468,7 @@ class _PagesScreenState extends State<PagesScreen>
               ElevatedButton(
                 onPressed: () => _followPage(page),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFBE1E1E),
+                  backgroundColor: AppColors.militantRed,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -479,7 +478,7 @@ class _PagesScreenState extends State<PagesScreen>
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
-                child: Text(lang.translate('follow_button'), style: const TextStyle(fontSize: 13)),
+                child: Text(lang.translate('follow_button'), style: const TextStyle(fontSize: AppTokens.fontBodyMedium)),
               ),
             ],
           ],
@@ -522,10 +521,10 @@ class _PagesScreenState extends State<PagesScreen>
           width: 56,
           height: 56,
           decoration: BoxDecoration(
-            color: const Color(0xFFBE1E1E).withOpacity(0.1),
+            color: AppColors.militantRed.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Icon(Icons.flag, color: Color(0xFFBE1E1E), size: 28),
+          child: const Icon(Icons.flag, color: AppColors.militantRed, size: 28),
         ),
       );
     }

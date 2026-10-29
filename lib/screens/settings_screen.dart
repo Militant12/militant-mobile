@@ -11,6 +11,9 @@ import './badge_selection_screen.dart';
 import './two_factor_settings_screen.dart';
 import './edit_profile_screen.dart';
 import '../utils/error_helper.dart';
+import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
+import '../theme/app_tokens.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -232,8 +235,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final dividerColor = isDark ? Colors.white10 : Colors.black12;
-    final subtitleColor = isDark ? const Color(0xFF888888) : Colors.grey[700];
+    final dividerColor = context.colors.outlineVariant;
+    final subtitleColor = isDark ? AppColors.grey888 : Colors.grey[700];
     final titleColor = theme.textTheme.bodyLarge?.color;
 
     return InkWell(
@@ -245,7 +248,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         child: Row(
           children: [
-            Icon(icon, color: const Color(0xFFBE1E1E)),
+            Icon(icon, color: AppColors.militantRed),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -253,12 +256,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   Text(
                     title,
-                    style: TextStyle(color: titleColor, fontSize: 16),
+                    style: TextStyle(color: titleColor, fontSize: AppTokens.fontBodyLarge),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(color: subtitleColor, fontSize: 14),
+                    style: TextStyle(color: subtitleColor, fontSize: AppTokens.fontBodyMedium),
                   ),
                 ],
               ),
@@ -293,10 +296,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               leading: Icon(
                 Icons.dark_mode,
-                color: isDark ? const Color(0xFFBE1E1E) : onSurface,
+                color: isDark ? AppColors.militantRed : onSurface,
               ),
               trailing: isDark
-                  ? const Icon(Icons.check, color: Color(0xFFBE1E1E))
+                  ? const Icon(Icons.check, color: AppColors.militantRed)
                   : null,
               onTap: () {
                 Navigator.pop(context);
@@ -310,10 +313,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               leading: Icon(
                 Icons.light_mode,
-                color: !isDark ? const Color(0xFFBE1E1E) : onSurface,
+                color: !isDark ? AppColors.militantRed : onSurface,
               ),
               trailing: !isDark
-                  ? const Icon(Icons.check, color: Color(0xFFBE1E1E))
+                  ? const Icon(Icons.check, color: AppColors.militantRed)
                   : null,
               onTap: () {
                 Navigator.pop(context);
@@ -361,7 +364,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
       trailing: isSelected
-          ? const Icon(Icons.check, color: Color(0xFFBE1E1E))
+          ? const Icon(Icons.check, color: AppColors.militantRed)
           : null,
       onTap: () {
         Navigator.pop(context);
@@ -382,7 +385,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       applicationIcon: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[100],
+          color: context.colors.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(16),
         ),
         child: SvgPicture.asset('assets/logo.svg', width: 60, height: 60),
@@ -392,7 +395,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Text(
           lang.translate('social_network'),
           style: TextStyle(
-            fontSize: 14,
+            fontSize: AppTokens.fontBodyMedium,
             color: isDark ? Colors.white70 : Colors.black87,
           ),
         ),
@@ -400,9 +403,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Text(
           lang.translate('copyright'),
           style: TextStyle(
-            fontSize: 12,
+            fontSize: AppTokens.fontBodySmall,
             fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white54 : Colors.grey[600],
+            color: context.tokens.textMuted,
           ),
         ),
         const SizedBox(height: 24),
@@ -417,10 +420,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               icon: const Icon(Icons.language, size: 18),
               label: Text(lang.translate('view_website')),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFBE1E1E),
+                backgroundColor: AppColors.militantRed,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 12),
-                textStyle: const TextStyle(fontSize: 12),
+                textStyle: const TextStyle(fontSize: AppTokens.fontBodySmall),
               ),
             ),
             ElevatedButton.icon(
@@ -431,10 +434,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               icon: const Icon(Icons.code, size: 18),
               label: Text(lang.translate('source_code')),
               style: ElevatedButton.styleFrom(
-                backgroundColor: isDark ? Colors.white10 : Colors.grey[200],
-                foregroundColor: isDark ? Colors.white : Colors.black,
+                backgroundColor: context.colors.outlineVariant,
+                foregroundColor: context.colors.onSurface,
                 padding: const EdgeInsets.symmetric(horizontal: 12),
-                textStyle: const TextStyle(fontSize: 12),
+                textStyle: const TextStyle(fontSize: AppTokens.fontBodySmall),
               ),
             ),
           ],
@@ -456,7 +459,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           backgroundColor: theme.scaffoldBackgroundColor,
           title: Text(
             lang.translate('delete_account_title'),
-            style: const TextStyle(color: Color(0xFFBE1E1E)),
+            style: const TextStyle(color: AppColors.militantRed),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -478,7 +481,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   labelText: lang.translate('enter_password_to_delete'),
                   labelStyle: const TextStyle(color: Colors.grey),
                   focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFFBE1E1E)),
+                    borderSide: BorderSide(color: AppColors.militantRed),
                   ),
                 ),
               ),
@@ -533,12 +536,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Color(0xFFBE1E1E),
+                        color: AppColors.militantRed,
                       ),
                     )
                   : Text(
                       lang.translate('delete_account_confirm'),
-                      style: const TextStyle(color: Color(0xFFBE1E1E)),
+                      style: const TextStyle(color: AppColors.militantRed),
                     ),
             ),
           ],
@@ -629,7 +632,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     borderSide: BorderSide(color: borderColor),
                   ),
                   focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFFBE1E1E)),
+                    borderSide: BorderSide(color: AppColors.militantRed),
                   ),
                 ),
                 validator: (v) =>
@@ -647,7 +650,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     borderSide: BorderSide(color: borderColor),
                   ),
                   focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFFBE1E1E)),
+                    borderSide: BorderSide(color: AppColors.militantRed),
                   ),
                 ),
                 validator: (v) => v!.length < 8
@@ -666,7 +669,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     borderSide: BorderSide(color: borderColor),
                   ),
                   focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFFBE1E1E)),
+                    borderSide: BorderSide(color: AppColors.militantRed),
                   ),
                 ),
                 validator: (v) => v != _newPasswordController.text
@@ -677,7 +680,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               ElevatedButton(
                 onPressed: _isLoading ? null : _changePassword,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFBE1E1E),
+                  backgroundColor: AppColors.militantRed,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
@@ -959,17 +962,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               lang.translate('notifications_provider_ntfy'),
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
-                                fontSize: 14,
+                                fontSize: AppTokens.fontBodyMedium,
                               ),
                             ),
                             subtitle: Text(
                               lang.translate(
                                 'notifications_provider_ntfy_subtitle',
                               ),
-                              style: const TextStyle(fontSize: 12),
+                              style: const TextStyle(fontSize: AppTokens.fontBodySmall),
                             ),
                             value: PushProvider.ntfy,
-                            activeColor: const Color(0xFFBE1E1E),
+                            activeColor: AppColors.militantRed,
                             groupValue: _pushProvider,
                             onChanged: _isUpdatingPushProvider
                                 ? null
@@ -986,17 +989,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               ),
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
-                                fontSize: 14,
+                                fontSize: AppTokens.fontBodyMedium,
                               ),
                             ),
                             subtitle: Text(
                               lang.translate(
                                 'notifications_provider_onesignal_subtitle',
                               ),
-                              style: const TextStyle(fontSize: 12),
+                              style: const TextStyle(fontSize: AppTokens.fontBodySmall),
                             ),
                             value: PushProvider.onesignal,
-                            activeColor: const Color(0xFFBE1E1E),
+                            activeColor: AppColors.militantRed,
                             groupValue: _pushProvider,
                             onChanged: _isUpdatingPushProvider
                                 ? null
@@ -1011,17 +1014,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               lang.translate('notifications_provider_both'),
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
-                                fontSize: 14,
+                                fontSize: AppTokens.fontBodyMedium,
                               ),
                             ),
                             subtitle: Text(
                               lang.translate(
                                 'notifications_provider_both_subtitle',
                               ),
-                              style: const TextStyle(fontSize: 12),
+                              style: const TextStyle(fontSize: AppTokens.fontBodySmall),
                             ),
                             value: PushProvider.both,
-                            activeColor: const Color(0xFFBE1E1E),
+                            activeColor: AppColors.militantRed,
                             groupValue: _pushProvider,
                             onChanged: _isUpdatingPushProvider
                                 ? null
@@ -1078,7 +1081,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 ListTile(
                   leading: const Icon(
                     Icons.send_to_mobile,
-                    color: Color(0xFFBE1E1E),
+                    color: AppColors.militantRed,
                   ),
                   title: Text(lang.translate('test_notifications')),
                   subtitle: Text(lang.translate('test_notifications_desc')),
@@ -1136,8 +1139,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       child: Text(
         title.toUpperCase(),
         style: const TextStyle(
-          color: Color(0xFFBE1E1E),
-          fontSize: 12,
+          color: AppColors.militantRed,
+          fontSize: AppTokens.fontBodySmall,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.0,
         ),
@@ -1152,12 +1155,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     ValueChanged<bool> onChanged,
   ) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return SwitchListTile(
       value: value,
       onChanged: onChanged,
-      activeThumbColor: const Color(0xFFBE1E1E),
+      activeThumbColor: AppColors.militantRed,
       tileColor: theme.scaffoldBackgroundColor, // Seamless with background
       title: Text(
         title,
@@ -1166,8 +1168,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       subtitle: Text(
         subtitle,
         style: TextStyle(
-          color: isDark ? Colors.white70 : Colors.grey,
-          fontSize: 12,
+          color: context.tokens.textMuted,
+          fontSize: AppTokens.fontBodySmall,
         ),
       ),
     );
@@ -1305,12 +1307,11 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
     ValueChanged<bool> onChanged,
   ) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return SwitchListTile(
       value: value,
       onChanged: onChanged,
-      activeThumbColor: const Color(0xFFBE1E1E),
+      activeThumbColor: AppColors.militantRed,
       tileColor: theme.scaffoldBackgroundColor,
       title: Text(
         title,
@@ -1319,8 +1320,8 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
       subtitle: Text(
         subtitle,
         style: TextStyle(
-          color: isDark ? Colors.white70 : Colors.grey,
-          fontSize: 12,
+          color: context.tokens.textMuted,
+          fontSize: AppTokens.fontBodySmall,
         ),
       ),
     );

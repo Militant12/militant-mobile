@@ -4,6 +4,8 @@ import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
 import '../utils/error_helper.dart';
 import '../services/language_service.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class AudioRecorderWidget extends StatefulWidget {
   final Function(File audioFile) onRecordingComplete;
@@ -111,7 +113,7 @@ class _AudioRecorderWidgetState extends State<AudioRecorderWidget> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF2A2A2A),
+        color: AppColors.darkSurfaceHigh,
         borderRadius: BorderRadius.circular(24),
       ),
       child: Row(
@@ -129,7 +131,7 @@ class _AudioRecorderWidgetState extends State<AudioRecorderWidget> {
             width: 12,
             height: 12,
             decoration: const BoxDecoration(
-              color: Color(0xFFBE1E1E),
+              color: AppColors.militantRed,
               shape: BoxShape.circle,
             ),
           ),
@@ -138,14 +140,14 @@ class _AudioRecorderWidgetState extends State<AudioRecorderWidget> {
             _formatDuration(_recordDuration),
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 16,
+              fontSize: AppTokens.fontBodyLarge,
               fontWeight: FontWeight.bold,
             ),
           ),
           const Spacer(),
           IconButton(
             tooltip: LanguageService.instance.translate('send'),
-            icon: const Icon(Icons.send, color: Color(0xFFBE1E1E)),
+            icon: const Icon(Icons.send, color: AppColors.militantRed),
             onPressed: _stopRecording,
           ),
         ],

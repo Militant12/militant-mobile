@@ -22,6 +22,8 @@ import '../widgets/incoming_call_banner.dart';
 import '../widgets/signal_typing_indicator.dart';
 import '../utils/error_helper.dart';
 import '../widgets/common/common.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 const String _groupCallMessagePrefix = '__militant_group_call__:';
 const Duration _groupChatPollInterval = Duration(seconds: 10);
@@ -284,7 +286,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: theme.brightness == Brightness.dark
-          ? const Color(0xFF1E1E1E)
+          ? AppColors.darkSurface
           : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -318,7 +320,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     lang.translate('wallpaper_title'),
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: AppTokens.fontBodyLarge,
                       fontWeight: FontWeight.bold,
                       color: theme.textTheme.titleLarge?.color,
                     ),
@@ -330,7 +332,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     height: 160,
                     decoration: BoxDecoration(
                       color: theme.brightness == Brightness.dark
-                          ? const Color(0xFF121212)
+                          ? AppColors.darkBackground
                           : Colors.grey[200],
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.grey.withOpacity(0.3)),
@@ -367,7 +369,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   // Select button
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFBE1E1E),
+                      backgroundColor: AppColors.militantRed,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
@@ -386,7 +388,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     const SizedBox(height: 8),
                     TextButton.icon(
                       style: TextButton.styleFrom(
-                        foregroundColor: const Color(0xFFBE1E1E),
+                        foregroundColor: AppColors.militantRed,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       icon: const Icon(Icons.delete),
@@ -660,7 +662,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     maxLines: 1,
                     style: TextStyle(
                       color: theme.textTheme.titleLarge?.color,
-                      fontSize: 16,
+                      fontSize: AppTokens.fontBodyLarge,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -674,8 +676,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                             _groupDetails!['auto_delete_time'].toString(),
                           ),
                       style: const TextStyle(
-                        color: Color(0xFFBE1E1E),
-                        fontSize: 10,
+                        color: AppColors.militantRed,
+                        fontSize: AppTokens.fontLabelSmall,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -856,7 +858,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                       ),
                       child: Text(
                         _reactionEmoji(reactionType),
-                        style: const TextStyle(fontSize: 22),
+                        style: const TextStyle(fontSize: AppTokens.fontTitleLarge),
                       ),
                     ),
                   );
@@ -1097,7 +1099,6 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   Widget _buildMessageBubble(dynamic message) {
     final lang = LanguageService.instance;
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     final content = message['content'] ?? '';
     final groupCallMessage = _parseGroupCallMessage(content.toString());
@@ -1134,12 +1135,12 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     // Debug skipped
 
     final bubbleColor = isMine
-        ? const Color(0xFFBE1E1E)
-        : (isDark ? const Color(0xFF2A2A2A) : Colors.grey[300]);
+        ? AppColors.militantRed
+        : (context.colors.surfaceContainerHigh);
 
     final textColor = isMine
         ? Colors.white
-        : (isDark ? Colors.white : Colors.black);
+        : (context.colors.onSurface);
 
     return Align(
       alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
@@ -1170,7 +1171,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   },
                   child: Text(
                     username,
-                    style: TextStyle(color: theme.hintColor, fontSize: 12),
+                    style: TextStyle(color: theme.hintColor, fontSize: AppTokens.fontBodySmall),
                   ),
                 ),
               ),
@@ -1201,7 +1202,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                           left: BorderSide(
                             color: isMine
                                 ? Colors.white70
-                                : const Color(0xFFBE1E1E),
+                                : AppColors.militantRed,
                             width: 3,
                           ),
                         ),
@@ -1215,7 +1216,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                                 : lang.translate('anonymous_user'),
                             style: TextStyle(
                               color: textColor.withOpacity(0.85),
-                              fontSize: 12,
+                              fontSize: AppTokens.fontBodySmall,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -1226,7 +1227,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               color: textColor.withOpacity(0.72),
-                              fontSize: 12,
+                              fontSize: AppTokens.fontBodySmall,
                             ),
                           ),
                         ],
@@ -1248,7 +1249,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                           text: isTranslated && translatedText != null
                               ? translatedText
                               : content,
-                          style: TextStyle(color: textColor, fontSize: 15),
+                          style: TextStyle(color: textColor, fontSize: AppTokens.fontBodyLarge),
                         ),
                         if (content.isNotEmpty)
                           Builder(
@@ -1297,7 +1298,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                                       : lang.translate('translate_action'),
                                   style: TextStyle(
                                     color: textColor.withOpacity(0.7),
-                                    fontSize: 11,
+                                    fontSize: AppTokens.fontLabelSmall,
                                   ),
                                 ),
                               ],
@@ -1315,7 +1316,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                           '${lang.translate('edited_label')} ',
                           style: TextStyle(
                             color: textColor.withOpacity(0.5),
-                            fontSize: 9,
+                            fontSize: AppTokens.fontLabelSmall,
                             fontStyle: FontStyle.italic,
                           ),
                         ),
@@ -1323,7 +1324,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                         _formatTime(createdAt),
                         style: TextStyle(
                           color: textColor.withOpacity(0.7),
-                          fontSize: 11,
+                          fontSize: AppTokens.fontLabelSmall,
                         ),
                       ),
                       if (isMine) ...[
@@ -1361,14 +1362,14 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                                 color: isSelected
                                     ? (isMine
                                           ? Colors.white
-                                          : const Color(0xFFFFE5E5))
+                                          : AppColors.militantRedLight)
                                     : (isMine
                                           ? Colors.white.withOpacity(0.16)
                                           : Colors.black.withOpacity(0.08)),
                                 borderRadius: BorderRadius.circular(999),
                                 border: Border.all(
                                   color: isSelected
-                                      ? const Color(0xFFBE1E1E)
+                                      ? AppColors.militantRed
                                       : Colors.transparent,
                                 ),
                               ),
@@ -1376,9 +1377,9 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                                 '${_reactionEmoji(entry.key)} ${entry.value}',
                                 style: TextStyle(
                                   color: isSelected
-                                      ? const Color(0xFFBE1E1E)
+                                      ? AppColors.militantRed
                                       : textColor,
-                                  fontSize: 12,
+                                  fontSize: AppTokens.fontBodySmall,
                                   fontWeight: isSelected
                                       ? FontWeight.w700
                                       : FontWeight.w500,
@@ -1452,7 +1453,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
-                    fontSize: 14,
+                    fontSize: AppTokens.fontBodyMedium,
                   ),
                 ),
               ),
@@ -1463,7 +1464,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             LanguageService.instance.translate('call_group_tap_to_join'),
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.88),
-              fontSize: 13,
+              fontSize: AppTokens.fontBodyMedium,
             ),
           ),
           const SizedBox(height: 10),
@@ -1475,7 +1476,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
               label: Text(LanguageService.instance.translate('join')),
               style: FilledButton.styleFrom(
                 backgroundColor: Colors.white,
-                foregroundColor: const Color(0xFFBE1E1E),
+                foregroundColor: AppColors.militantRed,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 14,
                   vertical: 10,
@@ -1717,7 +1718,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     width: 3,
                     height: 34,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFBE1E1E),
+                      color: AppColors.militantRed,
                       borderRadius: BorderRadius.circular(99),
                     ),
                   ),
@@ -1739,7 +1740,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                           style: TextStyle(
                             color: theme.textTheme.bodyMedium?.color,
                             fontWeight: FontWeight.w700,
-                            fontSize: 12,
+                            fontSize: AppTokens.fontBodySmall,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -1749,7 +1750,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             color: theme.hintColor,
-                            fontSize: 12,
+                            fontSize: AppTokens.fontBodySmall,
                           ),
                         ),
                       ],
@@ -1768,7 +1769,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             children: [
               IconButton(
                 tooltip: LanguageService.instance.translate('a11y_attach'),
-                icon: const Icon(Icons.attach_file, color: Color(0xFFBE1E1E)),
+                icon: const Icon(Icons.attach_file, color: AppColors.militantRed),
                 onPressed: _pickMedia,
               ),
               Expanded(

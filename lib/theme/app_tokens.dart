@@ -28,6 +28,18 @@ class AppTokens extends ThemeExtension<AppTokens> {
   static const double space16 = 16;
   static const double space24 = 24;
 
+  // Tailles de texte : l'échelle Material 3 (mêmes valeurs que
+  // `context.text`), utilisable dans les `const TextStyle`.
+  static const double fontLabelSmall = 11;
+  static const double fontBodySmall = 12;
+  static const double fontBodyMedium = 14;
+  static const double fontBodyLarge = 16;
+  static const double fontTitleLarge = 22;
+  static const double fontHeadlineSmall = 24;
+  static const double fontHeadlineMedium = 28;
+  static const double fontHeadlineLarge = 32;
+  static const double fontDisplayMedium = 45;
+
   // Rayons
   static const double radius8 = 8;
   static const double radius12 = 12;

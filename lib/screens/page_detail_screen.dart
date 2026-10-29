@@ -11,6 +11,9 @@ import '../widgets/video_player_widget.dart';
 import '../widgets/file_video_player.dart';
 import '../utils/error_helper.dart';
 import '../utils/page_categories.dart';
+import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
+import '../theme/app_tokens.dart';
 
 class PageDetailScreen extends StatefulWidget {
   final dynamic page;
@@ -233,7 +236,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF1E1E1E)
+            ? AppColors.darkSurface
             : Colors.white,
         title: Text(lang.translate('choose_media')),
         content: Column(
@@ -242,7 +245,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             ListTile(
               leading: const Icon(
                 Icons.photo_library,
-                color: Color(0xFFBE1E1E),
+                color: AppColors.militantRed,
               ),
               title: Text(lang.translate('image_from_gallery')),
               onTap: () => Navigator.pop(context, {
@@ -251,7 +254,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               }),
             ),
             ListTile(
-              leading: const Icon(Icons.videocam, color: Color(0xFFBE1E1E)),
+              leading: const Icon(Icons.videocam, color: AppColors.militantRed),
               title: Text(lang.translate('video_from_gallery')),
               onTap: () => Navigator.pop(context, {
                 'source': ImageSource.gallery,
@@ -259,7 +262,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               }),
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt, color: Color(0xFFBE1E1E)),
+              leading: const Icon(Icons.camera_alt, color: AppColors.militantRed),
               title: Text(lang.translate('take_photo')),
               onTap: () => Navigator.pop(context, {
                 'source': ImageSource.camera,
@@ -269,7 +272,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             ListTile(
               leading: const Icon(
                 Icons.videocam_outlined,
-                color: Color(0xFFBE1E1E),
+                color: AppColors.militantRed,
               ),
               title: Text(lang.translate('record_video')),
               onTap: () => Navigator.pop(context, {
@@ -425,7 +428,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           ElevatedButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFBE1E1E),
+              backgroundColor: AppColors.militantRed,
               foregroundColor: Colors.white,
             ),
             child: Text(lang.translate('save')),
@@ -479,7 +482,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
     showModalBottomSheet(
       context: context,
       backgroundColor: Theme.of(context).brightness == Brightness.dark
-          ? const Color(0xFF1E1E1E)
+          ? AppColors.darkSurface
           : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -500,15 +503,15 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: const Color(0xFFBE1E1E).withOpacity(0.1),
+                            color: AppColors.militantRed.withOpacity(0.1),
                           ),
                           child: const Icon(
                             Icons.thumb_up,
-                            color: Color(0xFFBE1E1E),
+                            color: AppColors.militantRed,
                             size: 24,
                           ),
                         )
-                      : Text(e.value, style: const TextStyle(fontSize: 32)),
+                      : Text(e.value, style: const TextStyle(fontSize: AppTokens.fontHeadlineLarge)),
                 ),
               )
               .toList(),
@@ -592,7 +595,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           backgroundColor: Theme.of(context).brightness == Brightness.dark
-              ? const Color(0xFF1E1E1E)
+              ? AppColors.darkSurface
               : Colors.white,
           title: Text(
             lang.translate('add_member'),
@@ -621,7 +624,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                   ),
                   filled: true,
                   fillColor: Theme.of(context).brightness == Brightness.dark
-                      ? const Color(0xFF2A2A2A)
+                      ? AppColors.darkSurfaceHigh
                       : Colors.grey[100],
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -633,7 +636,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               DropdownButtonFormField<String>(
                 initialValue: role,
                 dropdownColor: Theme.of(context).brightness == Brightness.dark
-                    ? const Color(0xFF2A2A2A)
+                    ? AppColors.darkSurfaceHigh
                     : Colors.white,
                 style: TextStyle(
                   color: Theme.of(context).brightness == Brightness.dark
@@ -654,7 +657,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Theme.of(context).brightness == Brightness.dark
-                      ? const Color(0xFF2A2A2A)
+                      ? AppColors.darkSurfaceHigh
                       : Colors.grey[100],
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -698,7 +701,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFBE1E1E),
+                backgroundColor: AppColors.militantRed,
                 foregroundColor: Colors.white,
               ),
               child: Text(lang.translate('add')),
@@ -724,14 +727,14 @@ class _PageDetailScreenState extends State<PageDetailScreen>
     final privacy = page['privacy'] ?? 'public';
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : Colors.grey[50],
+      backgroundColor: isDark ? AppColors.darkBackground : Colors.grey[50],
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxScrolled) => [
           // Cover + header
           SliverAppBar(
             expandedHeight: 200,
             pinned: true,
-            backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+            backgroundColor: context.colors.surface,
             iconTheme: const IconThemeData(color: Colors.white),
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
@@ -766,7 +769,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           // Page info
           SliverToBoxAdapter(
             child: Container(
-              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+              color: context.colors.surface,
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -784,8 +787,8 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                             Text(
                               name,
                               style: TextStyle(
-                                color: isDark ? Colors.white : Colors.black,
-                                fontSize: 20,
+                                color: context.colors.onSurface,
+                                fontSize: AppTokens.fontTitleLarge,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -799,18 +802,14 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                       vertical: 2,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: isDark
-                                          ? Colors.white10
-                                          : Colors.grey[200],
+                                      color: context.colors.outlineVariant,
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
                                       pageCategoryLabel(category),
                                       style: TextStyle(
-                                        color: isDark
-                                            ? Colors.white54
-                                            : Colors.grey[600],
-                                        fontSize: 12,
+                                        color: context.tokens.textMuted,
+                                        fontSize: AppTokens.fontBodySmall,
                                       ),
                                     ),
                                   ),
@@ -838,7 +837,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                           lang.translate('private'),
                                           style: const TextStyle(
                                             color: Colors.white70,
-                                            fontSize: 11,
+                                            fontSize: AppTokens.fontLabelSmall,
                                           ),
                                         ),
                                       ],
@@ -848,10 +847,8 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                 Text(
                                   '$followersCount ${followersCount > 1 ? lang.translate('followers_count_plural') : lang.translate('followers_count')}',
                                   style: TextStyle(
-                                    color: isDark
-                                        ? const Color(0xFF888888)
-                                        : Colors.grey,
-                                    fontSize: 12,
+                                    color: context.tokens.textMuted,
+                                    fontSize: AppTokens.fontBodySmall,
                                   ),
                                 ),
                               ],
@@ -867,14 +864,14 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFBE1E1E),
+                            color: AppColors.militantRed,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             lang.translate('admin_badge'),
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 12,
+                              fontSize: AppTokens.fontBodySmall,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -884,12 +881,10 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                           onPressed: _toggleFollow,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _isFollowed
-                                ? (isDark
-                                      ? const Color(0xFF2A2A2A)
-                                      : Colors.grey[200])
-                                : const Color(0xFFBE1E1E),
+                                ? (context.colors.surfaceContainerHigh)
+                                : AppColors.militantRed,
                             foregroundColor: _isFollowed
-                                ? (isDark ? Colors.white : Colors.black)
+                                ? (context.colors.onSurface)
                                 : Colors.white,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16,
@@ -929,13 +924,13 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 TabBar(
                   key: ValueKey(_tabController.hashCode),
                   controller: _tabController,
-                  indicatorColor: const Color(0xFFBE1E1E),
-                  labelColor: isDark ? Colors.white : Colors.black,
-                  unselectedLabelColor: isDark ? Colors.white54 : Colors.grey,
+                  indicatorColor: AppColors.militantRed,
+                  labelColor: context.colors.onSurface,
+                  unselectedLabelColor: context.tokens.textMuted,
                   isScrollable: (_tabController?.length ?? 1) > 3,
                   tabs: _buildTabs(),
                 ),
-                isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                context.colors.surface,
               ),
             ),
         ],
@@ -986,7 +981,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFBE1E1E), Color(0xFF8B0000), Color(0xFF2C0000)],
+          colors: [AppColors.militantRed, Color(0xFF8B0000), Color(0xFF2C0000)],
         ),
       ),
     );
@@ -1003,8 +998,8 @@ class _PageDetailScreenState extends State<PageDetailScreen>
     }
     return CircleAvatar(
       radius: size / 2,
-      backgroundColor: const Color(0xFFBE1E1E).withOpacity(0.2),
-      child: Icon(Icons.flag, color: const Color(0xFFBE1E1E), size: size * 0.5),
+      backgroundColor: AppColors.militantRed.withOpacity(0.2),
+      child: Icon(Icons.flag, color: AppColors.militantRed, size: size * 0.5),
     );
   }
 
@@ -1045,7 +1040,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
     addLink(
       'social_twitter',
       Icons.alternate_email,
-      isDark ? Colors.white : Colors.black,
+      context.colors.onSurface,
       'https://twitter.com/',
     );
     addLink(
@@ -1063,7 +1058,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
     addLink(
       'social_tiktok',
       Icons.music_note,
-      isDark ? Colors.white : Colors.black,
+      context.colors.onSurface,
       'https://tiktok.com/@',
     );
     addLink(
@@ -1092,14 +1087,14 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 Icon(
                   Icons.location_on,
                   size: 16,
-                  color: isDark ? Colors.white38 : Colors.grey,
+                  color: context.tokens.textMuted,
                 ),
                 const SizedBox(width: 6),
                 Text(
                   location,
                   style: TextStyle(
-                    color: isDark ? Colors.white54 : Colors.grey,
-                    fontSize: 14,
+                    color: context.tokens.textMuted,
+                    fontSize: AppTokens.fontBodyMedium,
                   ),
                 ),
               ],
@@ -1115,15 +1110,15 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                   Icon(
                     Icons.link,
                     size: 16,
-                    color: isDark ? Colors.white38 : Colors.grey,
+                    color: context.tokens.textMuted,
                   ),
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(
                       website,
                       style: const TextStyle(
-                        color: Color(0xFFBE1E1E),
-                        fontSize: 14,
+                        color: AppColors.militantRed,
+                        fontSize: AppTokens.fontBodyMedium,
                         decoration: TextDecoration.underline,
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -1145,11 +1140,10 @@ class _PageDetailScreenState extends State<PageDetailScreen>
   // ==================== POSTS TAB ====================
   Widget _buildPostsTab() {
     final lang = LanguageService.instance;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return RefreshIndicator(
       onRefresh: _loadPosts,
-      color: const Color(0xFFBE1E1E),
+      color: AppColors.militantRed,
       child: ListView(
         padding: const EdgeInsets.all(12),
         children: [
@@ -1158,7 +1152,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                color: context.colors.surface,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
@@ -1168,17 +1162,15 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                     maxLines: 3,
                     minLines: 1,
                     style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black,
+                      color: context.colors.onSurface,
                     ),
                     decoration: InputDecoration(
                       hintText: lang.translate('post_content_hint'),
                       hintStyle: TextStyle(
-                        color: isDark ? Colors.white38 : Colors.grey,
+                        color: context.tokens.textMuted,
                       ),
                       filled: true,
-                      fillColor: isDark
-                          ? const Color(0xFF2A2A2A)
-                          : Colors.grey[100],
+                      fillColor: context.colors.surfaceContainerHigh,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
@@ -1238,7 +1230,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                         onPressed: _isUploading ? null : _pickMedia,
                         icon: Icon(
                           Icons.photo_camera,
-                          color: isDark ? Colors.white54 : Colors.grey[600],
+                          color: context.tokens.textMuted,
                         ),
                         tooltip: lang.translate('add_media'),
                       ),
@@ -1257,7 +1249,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                               },
                         icon: Icon(
                           Icons.image,
-                          color: isDark ? Colors.white54 : Colors.grey[600],
+                          color: context.tokens.textMuted,
                         ),
                         tooltip: lang.translate('quick_image'),
                       ),
@@ -1280,7 +1272,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                               : lang.translate('publish'),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFBE1E1E),
+                          backgroundColor: AppColors.militantRed,
                           foregroundColor: Colors.white,
                         ),
                       ),
@@ -1297,7 +1289,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             Container(
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                color: context.colors.surface,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
@@ -1306,16 +1298,14 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                     Icon(
                       Icons.article_outlined,
                       size: 48,
-                      color: isDark ? const Color(0xFF888888) : Colors.grey,
+                      color: context.tokens.textMuted,
                     ),
                     const SizedBox(height: 12),
                     Text(
                       lang.translate('no_posts_message'),
                       style: TextStyle(
-                        color: isDark
-                            ? const Color(0xFF888888)
-                            : Colors.grey[600],
-                        fontSize: 16,
+                        color: context.tokens.textMuted,
+                        fontSize: AppTokens.fontBodyLarge,
                       ),
                     ),
                   ],
@@ -1347,7 +1337,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -1368,15 +1358,15 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                         page['name'] ??
                             LanguageService.instance.translate('page_default_name'),
                         style: TextStyle(
-                          color: isDark ? Colors.white : Colors.black,
+                          color: context.colors.onSurface,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
                         _formatDate(post['created_at'] ?? ''),
                         style: TextStyle(
-                          color: isDark ? const Color(0xFF888888) : Colors.grey,
-                          fontSize: 12,
+                          color: context.tokens.textMuted,
+                          fontSize: AppTokens.fontBodySmall,
                         ),
                       ),
                     ],
@@ -1389,7 +1379,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                   PopupMenuButton<String>(
                     icon: Icon(
                       Icons.more_vert,
-                      color: isDark ? Colors.white54 : Colors.grey,
+                      color: context.tokens.textMuted,
                     ),
                     itemBuilder: (context) => [
                       PopupMenuItem(
@@ -1477,8 +1467,8 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                           .translate(likeCount > 1 ? 'page_reactions_count' : 'page_reactions_count_one')
                           .replaceAll('{count}', '$likeCount'),
                       style: TextStyle(
-                        color: isDark ? Colors.white38 : Colors.grey,
-                        fontSize: 12,
+                        color: context.tokens.textMuted,
+                        fontSize: AppTokens.fontBodySmall,
                       ),
                     ),
                   if (commentCount > 0)
@@ -1489,8 +1479,8 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                             .translate(commentCount > 1 ? 'page_comments_count' : 'page_comments_count_one')
                             .replaceAll('{count}', '$commentCount'),
                         style: TextStyle(
-                          color: isDark ? Colors.white54 : Colors.grey[600],
-                          fontSize: 12,
+                          color: context.tokens.textMuted,
+                          fontSize: AppTokens.fontBodySmall,
                           decoration: TextDecoration.underline,
                         ),
                       ),
@@ -1504,7 +1494,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             decoration: BoxDecoration(
               border: Border(
                 top: BorderSide(
-                  color: isDark ? Colors.white10 : Colors.grey[200]!,
+                  color: context.colors.outlineVariant,
                 ),
               ),
             ),
@@ -1517,26 +1507,26 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                     icon: userReaction == 'like'
                         ? const Icon(
                             Icons.thumb_up,
-                            color: Color(0xFFBE1E1E),
+                            color: AppColors.militantRed,
                             size: 18,
                           )
                         : userReaction.isNotEmpty
                         ? Text(
                             emojis[userReaction] ?? '',
-                            style: const TextStyle(fontSize: 16),
+                            style: const TextStyle(fontSize: AppTokens.fontBodyLarge),
                           )
                         : Icon(
                             Icons.thumb_up_outlined,
                             size: 18,
-                            color: isDark ? Colors.white54 : Colors.grey,
+                            color: context.tokens.textMuted,
                           ),
                     label: Text(
                       LanguageService.instance.translate('like_action'),
                       style: TextStyle(
                         color: userReaction.isNotEmpty
-                            ? const Color(0xFFBE1E1E)
-                            : (isDark ? Colors.white54 : Colors.grey),
-                        fontSize: 13,
+                            ? AppColors.militantRed
+                            : (context.tokens.textMuted),
+                        fontSize: AppTokens.fontBodyMedium,
                       ),
                     ),
                   ),
@@ -1547,13 +1537,13 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                     icon: Icon(
                       Icons.comment_outlined,
                       size: 18,
-                      color: isDark ? Colors.white54 : Colors.grey,
+                      color: context.tokens.textMuted,
                     ),
                     label: Text(
                       LanguageService.instance.translate('comment_action'),
                       style: TextStyle(
-                        color: isDark ? Colors.white54 : Colors.grey,
-                        fontSize: 13,
+                        color: context.tokens.textMuted,
+                        fontSize: AppTokens.fontBodyMedium,
                       ),
                     ),
                   ),
@@ -1581,7 +1571,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Theme.of(context).brightness == Brightness.dark
-          ? const Color(0xFF1E1E1E)
+          ? AppColors.darkSurface
           : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -1599,7 +1589,6 @@ class _PageDetailScreenState extends State<PageDetailScreen>
 
   // ==================== FOLLOWERS TAB ====================
   Widget _buildFollowersTab() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (_followers.isEmpty) {
       return Center(
@@ -1609,14 +1598,14 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             Icon(
               Icons.people_outline,
               size: 48,
-              color: isDark ? const Color(0xFF888888) : Colors.grey,
+              color: context.tokens.textMuted,
             ),
             const SizedBox(height: 12),
             Text(
               LanguageService.instance.translate('no_followers'),
               style: TextStyle(
-                color: isDark ? const Color(0xFF888888) : Colors.grey,
-                fontSize: 16,
+                color: context.tokens.textMuted,
+                fontSize: AppTokens.fontBodyLarge,
               ),
             ),
           ],
@@ -1626,7 +1615,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
 
     return RefreshIndicator(
       onRefresh: _loadFollowers,
-      color: const Color(0xFFBE1E1E),
+      color: AppColors.militantRed,
       child: ListView.builder(
         padding: const EdgeInsets.all(12),
         itemCount: _followers.length,
@@ -1637,7 +1626,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+              color: context.colors.surface,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -1655,7 +1644,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                       Text(
                         follower['username'] ?? '',
                         style: TextStyle(
-                          color: isDark ? Colors.white : Colors.black,
+                          color: context.colors.onSurface,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -1663,8 +1652,8 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                         Text(
                           follower['cause'],
                           style: TextStyle(
-                            color: isDark ? Colors.white38 : Colors.grey,
-                            fontSize: 12,
+                            color: context.tokens.textMuted,
+                            fontSize: AppTokens.fontBodySmall,
                           ),
                         ),
                       Text(
@@ -1672,8 +1661,8 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                             .translate('page_follower_since')
                             .replaceAll('{date}', _formatDate(follower['followed_at'] ?? '')),
                         style: TextStyle(
-                          color: isDark ? Colors.white38 : Colors.grey,
-                          fontSize: 11,
+                          color: context.tokens.textMuted,
+                          fontSize: AppTokens.fontLabelSmall,
                         ),
                       ),
                     ],
@@ -1730,11 +1719,10 @@ class _PageDetailScreenState extends State<PageDetailScreen>
   // ==================== TEAM TAB ====================
   Widget _buildTeamTab() {
     final lang = LanguageService.instance;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return RefreshIndicator(
       onRefresh: _loadTeam,
-      color: const Color(0xFFBE1E1E),
+      color: AppColors.militantRed,
       child: ListView(
         padding: const EdgeInsets.all(12),
         children: [
@@ -1743,14 +1731,14 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             padding: const EdgeInsets.all(12),
             margin: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+              color: context.colors.surface,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
               lang.translate('admin_editor_description'),
               style: TextStyle(
-                color: isDark ? Colors.white38 : Colors.grey,
-                fontSize: 13,
+                color: context.tokens.textMuted,
+                fontSize: AppTokens.fontBodyMedium,
               ),
             ),
           ),
@@ -1763,7 +1751,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                color: context.colors.surface,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -1780,7 +1768,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                         Text(
                           member['username'] ?? '',
                           style: TextStyle(
-                            color: isDark ? Colors.white : Colors.black,
+                            color: context.colors.onSurface,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -1796,7 +1784,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                             ),
                             decoration: BoxDecoration(
                               color: member['role'] == 'admin'
-                                  ? const Color(0xFFBE1E1E)
+                                  ? AppColors.militantRed
                                   : Colors.grey,
                               borderRadius: BorderRadius.circular(4),
                             ),
@@ -1811,7 +1799,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                             .translate('page_role_editor'),
                                   style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: 11,
+                                    fontSize: AppTokens.fontLabelSmall,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -1890,7 +1878,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             icon: const Icon(Icons.person_add),
             label: Text(lang.translate('add_member')),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFBE1E1E),
+              backgroundColor: AppColors.militantRed,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
@@ -1987,9 +1975,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF2A2A2A)
-                              : Colors.grey[200],
+                          color: context.colors.surfaceContainerHigh,
                           shape: BoxShape.circle,
                           image: _newAvatar != null
                               ? DecorationImage(
@@ -2014,7 +2000,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                     _pageDetail!['avatar'].toString().isEmpty)
                             ? Icon(
                                 Icons.camera_alt,
-                                color: isDark ? Colors.white54 : Colors.grey,
+                                color: context.tokens.textMuted,
                               )
                             : null,
                       ),
@@ -2024,11 +2010,11 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                         child: Container(
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFBE1E1E),
+                            color: AppColors.militantRed,
                             shape: BoxShape.circle,
                             border: Border.all(
                               color: isDark
-                                  ? const Color(0xFF121212)
+                                  ? AppColors.darkBackground
                                   : Colors.white,
                               width: 2,
                             ),
@@ -2060,9 +2046,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                       Container(
                         height: 80,
                         decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF2A2A2A)
-                              : Colors.grey[200],
+                          color: context.colors.surfaceContainerHigh,
                           borderRadius: BorderRadius.circular(8),
                           image: _newCover != null
                               ? DecorationImage(
@@ -2091,17 +2075,13 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                   children: [
                                     Icon(
                                       Icons.image,
-                                      color: isDark
-                                          ? Colors.white54
-                                          : Colors.grey,
+                                      color: context.tokens.textMuted,
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
                                       lang.translate('add_cover'),
                                       style: TextStyle(
-                                        color: isDark
-                                            ? Colors.white54
-                                            : Colors.grey,
+                                        color: context.tokens.textMuted,
                                       ),
                                     ),
                                   ],
@@ -2139,9 +2119,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           Text(
             lang.translate('category'),
             style: TextStyle(
-              color: isDark ? Colors.white : Colors.black,
+              color: context.colors.onSurface,
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: AppTokens.fontBodyMedium,
             ),
           ),
           const SizedBox(height: 6),
@@ -2149,8 +2129,8 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             initialValue: categories.contains(_selectedCategory)
                 ? _selectedCategory
                 : '',
-            dropdownColor: isDark ? const Color(0xFF2A2A2A) : Colors.white,
-            style: TextStyle(color: isDark ? Colors.white : Colors.black),
+            dropdownColor: isDark ? AppColors.darkSurfaceHigh : Colors.white,
+            style: TextStyle(color: context.colors.onSurface),
             items: categories
                 .map(
                   (c) => DropdownMenuItem(
@@ -2166,7 +2146,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             onChanged: (val) => setState(() => _selectedCategory = val ?? ''),
             decoration: InputDecoration(
               filled: true,
-              fillColor: isDark ? const Color(0xFF2A2A2A) : Colors.white,
+              fillColor: isDark ? AppColors.darkSurfaceHigh : Colors.white,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide.none,
@@ -2187,16 +2167,16 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           Text(
             lang.translate('page_visibility'),
             style: TextStyle(
-              color: isDark ? Colors.white : Colors.black,
+              color: context.colors.onSurface,
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: AppTokens.fontBodyMedium,
             ),
           ),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
             initialValue: _selectedPrivacy,
-            dropdownColor: isDark ? const Color(0xFF2A2A2A) : Colors.white,
-            style: TextStyle(color: isDark ? Colors.white : Colors.black),
+            dropdownColor: isDark ? AppColors.darkSurfaceHigh : Colors.white,
+            style: TextStyle(color: context.colors.onSurface),
             items: [
               DropdownMenuItem(
                 value: 'public',
@@ -2211,7 +2191,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 setState(() => _selectedPrivacy = val ?? 'public'),
             decoration: InputDecoration(
               filled: true,
-              fillColor: isDark ? const Color(0xFF2A2A2A) : Colors.white,
+              fillColor: isDark ? AppColors.darkSurfaceHigh : Colors.white,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide.none,
@@ -2239,9 +2219,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           Text(
             lang.translate('social_links_title'),
             style: TextStyle(
-              color: isDark ? Colors.white : Colors.black,
+              color: context.colors.onSurface,
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: AppTokens.fontBodyMedium,
             ),
           ),
           const SizedBox(height: 8),
@@ -2282,7 +2262,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               icon: const Icon(Icons.check),
               label: Text(lang.translate('save')),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFBE1E1E),
+                backgroundColor: AppColors.militantRed,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
@@ -2310,21 +2290,21 @@ class _PageDetailScreenState extends State<PageDetailScreen>
         Text(
           label,
           style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
+            color: context.colors.onSurface,
             fontWeight: FontWeight.w600,
-            fontSize: 14,
+            fontSize: AppTokens.fontBodyMedium,
           ),
         ),
         const SizedBox(height: 6),
         TextField(
           controller: controller,
           maxLines: maxLines,
-          style: TextStyle(color: isDark ? Colors.white : Colors.black),
+          style: TextStyle(color: context.colors.onSurface),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.grey),
+            hintStyle: TextStyle(color: context.tokens.textMuted),
             filled: true,
-            fillColor: isDark ? const Color(0xFF2A2A2A) : Colors.white,
+            fillColor: isDark ? AppColors.darkSurfaceHigh : Colors.white,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide.none,
@@ -2346,23 +2326,23 @@ class _PageDetailScreenState extends State<PageDetailScreen>
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Icon(icon, color: isDark ? Colors.white38 : Colors.grey, size: 20),
+          Icon(icon, color: context.tokens.textMuted, size: 20),
           const SizedBox(width: 8),
           Expanded(
             child: TextField(
               controller: controller,
               style: TextStyle(
-                color: isDark ? Colors.white : Colors.black,
-                fontSize: 14,
+                color: context.colors.onSurface,
+                fontSize: AppTokens.fontBodyMedium,
               ),
               decoration: InputDecoration(
                 hintText: hint ?? label,
                 hintStyle: TextStyle(
                   color: isDark ? Colors.white24 : Colors.grey[400],
-                  fontSize: 14,
+                  fontSize: AppTokens.fontBodyMedium,
                 ),
                 filled: true,
-                fillColor: isDark ? const Color(0xFF2A2A2A) : Colors.white,
+                fillColor: isDark ? AppColors.darkSurfaceHigh : Colors.white,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide.none,
@@ -2595,7 +2575,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Theme.of(context).brightness == Brightness.dark
-          ? const Color(0xFF1E1E1E)
+          ? AppColors.darkSurface
           : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -2613,7 +2593,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                   },
                   child: Text(
                     e.value,
-                    style: const TextStyle(fontSize: 28),
+                    style: const TextStyle(fontSize: AppTokens.fontHeadlineMedium),
                   ),
                 ),
               )
@@ -2686,7 +2666,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFBE1E1E),
+              backgroundColor: AppColors.militantRed,
               foregroundColor: Colors.white,
             ),
             child: Text(lang.translate('save')),
@@ -2732,9 +2712,9 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                   Text(
                     LanguageService.instance.translate('comments_title'),
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: AppTokens.fontBodyLarge,
                       fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black,
+                      color: context.colors.onSurface,
                     ),
                   ),
                   const Spacer(),
@@ -2743,7 +2723,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                     onPressed: () => Navigator.pop(context),
                     icon: Icon(
                       Icons.close,
-                      color: isDark ? Colors.white54 : Colors.grey,
+                      color: context.tokens.textMuted,
                     ),
                   ),
                 ],
@@ -2760,7 +2740,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                       child: Text(
                         LanguageService.instance.translate('no_comments'),
                         style: TextStyle(
-                          color: isDark ? Colors.white38 : Colors.grey,
+                          color: context.tokens.textMuted,
                         ),
                       ),
                     )
@@ -2820,10 +2800,8 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                           comment['username'] ?? '',
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            fontSize: 13,
-                                            color: isDark
-                                                ? Colors.white
-                                                : Colors.black,
+                                            fontSize: AppTokens.fontBodyMedium,
+                                            color: context.colors.onSurface,
                                           ),
                                         ),
                                         const SizedBox(width: 8),
@@ -2832,10 +2810,8 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                             comment['created_at'] ?? '',
                                           ),
                                           style: TextStyle(
-                                            color: isDark
-                                                ? Colors.white38
-                                                : Colors.grey,
-                                            fontSize: 11,
+                                            color: context.tokens.textMuted,
+                                            fontSize: AppTokens.fontLabelSmall,
                                           ),
                                         ),
                                       ],
@@ -2847,7 +2823,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                         color: isDark
                                             ? Colors.white70
                                             : Colors.black87,
-                                        fontSize: 14,
+                                        fontSize: AppTokens.fontBodyMedium,
                                       ),
                                     ),
                                     const SizedBox(height: 4),
@@ -2858,17 +2834,13 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                           icon: Icon(
                                             Icons.reply,
                                             size: 14,
-                                            color: isDark
-                                                ? Colors.white54
-                                                : Colors.grey,
+                                            color: context.tokens.textMuted,
                                           ),
                                           label: Text(
                                             LanguageService.instance.translate('reply'),
                                             style: TextStyle(
-                                              color: isDark
-                                                  ? Colors.white54
-                                                  : Colors.grey,
-                                              fontSize: 12,
+                                              color: context.tokens.textMuted,
+                                              fontSize: AppTokens.fontBodySmall,
                                             ),
                                           ),
                                           style: TextButton.styleFrom(
@@ -2887,15 +2859,13 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                               ? Text(
                                                   reactionEmoji,
                                                   style: const TextStyle(
-                                                    fontSize: 14,
+                                                    fontSize: AppTokens.fontBodyMedium,
                                                   ),
                                                 )
                                               : Icon(
                                                   Icons.thumb_up_outlined,
                                                   size: 14,
-                                                  color: isDark
-                                                      ? Colors.white54
-                                                      : Colors.grey,
+                                                  color: context.tokens.textMuted,
                                                 ),
                                           label: Text(
                                             reactionsCount > 0
@@ -2903,11 +2873,9 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                                 : LanguageService.instance.translate('react'),
                                             style: TextStyle(
                                               color: userReaction.isNotEmpty
-                                                  ? const Color(0xFFBE1E1E)
-                                                  : (isDark
-                                                        ? Colors.white54
-                                                        : Colors.grey),
-                                              fontSize: 12,
+                                                  ? AppColors.militantRed
+                                                  : (context.tokens.textMuted),
+                                              fontSize: AppTokens.fontBodySmall,
                                             ),
                                           ),
                                           style: TextButton.styleFrom(
@@ -2927,9 +2895,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                   icon: Icon(
                                     Icons.more_vert,
                                     size: 16,
-                                    color: isDark
-                                        ? Colors.white54
-                                        : Colors.grey,
+                                    color: context.tokens.textMuted,
                                   ),
                                   padding: EdgeInsets.zero,
                                   itemBuilder: (context) {
@@ -2942,7 +2908,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                           height: 32,
                                           child: Text(
                                             LanguageService.instance.translate('edit'),
-                                            style: TextStyle(fontSize: 13),
+                                            style: TextStyle(fontSize: AppTokens.fontBodyMedium),
                                           ),
                                         ),
                                       );
@@ -2957,7 +2923,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                             LanguageService.instance.translate('delete'),
                                             style: TextStyle(
                                               color: Colors.red,
-                                              fontSize: 13,
+                                              fontSize: AppTokens.fontBodyMedium,
                                             ),
                                           ),
                                         ),
@@ -2986,7 +2952,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
               decoration: BoxDecoration(
                 border: Border(
                   top: BorderSide(
-                    color: isDark ? Colors.white10 : Colors.grey[300]!,
+                    color: context.colors.outlineVariant,
                   ),
                 ),
               ),
@@ -3002,9 +2968,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: isDark
-                            ? const Color(0xFF2A2A2A)
-                            : Colors.grey[200],
+                        color: context.colors.surfaceContainerHigh,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -3022,7 +2986,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                   .replaceAll('{username}', '${_replyingTo!['username'] ?? ''}'),
                               style: TextStyle(
                                 color: isDark ? Colors.white70 : Colors.black54,
-                                fontSize: 12,
+                                fontSize: AppTokens.fontBodySmall,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -3049,19 +3013,17 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                         child: TextField(
                           controller: _commentController,
                           style: TextStyle(
-                            color: isDark ? Colors.white : Colors.black,
+                            color: context.colors.onSurface,
                           ),
                           decoration: InputDecoration(
                             hintText: _replyingTo != null
                                 ? '${LanguageService.instance.translate('reply_to').replaceAll('{username}', '${_replyingTo!['username'] ?? ''}')}...'
                                 : LanguageService.instance.translate('comment_hint'),
                             hintStyle: TextStyle(
-                              color: isDark ? Colors.white38 : Colors.grey,
+                              color: context.tokens.textMuted,
                             ),
                             filled: true,
-                            fillColor: isDark
-                                ? const Color(0xFF2A2A2A)
-                                : Colors.grey[100],
+                            fillColor: context.colors.surfaceContainerHigh,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20),
                               borderSide: BorderSide.none,
@@ -3083,12 +3045,12 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                 width: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: Color(0xFFBE1E1E),
+                                  color: AppColors.militantRed,
                                 ),
                               )
                             : const Icon(
                                 Icons.send,
-                                color: Color(0xFFBE1E1E),
+                                color: AppColors.militantRed,
                               ),
                       ),
                     ],
@@ -3153,8 +3115,8 @@ class _PagePostContentState extends State<_PagePostContent> {
           child: LinkableText(
             text: widget.content,
             style: TextStyle(
-              color: widget.isDark ? Colors.white : Colors.black,
-              fontSize: 15,
+              color: context.colors.onSurface,
+              fontSize: AppTokens.fontBodyLarge,
             ),
             onLinksDetected: (urls) {
               final newUrls = urls
@@ -3204,8 +3166,8 @@ class _PageDescriptionContentState extends State<_PageDescriptionContent> {
         LinkableText(
           text: widget.description,
           style: TextStyle(
-            color: widget.isDark ? const Color(0xFFAAAAAA) : Colors.grey[700],
-            fontSize: 14,
+            color: context.tokens.textMuted,
+            fontSize: AppTokens.fontBodyMedium,
           ),
           onLinksDetected: (urls) {
             final newUrls = urls

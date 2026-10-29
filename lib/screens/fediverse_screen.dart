@@ -11,6 +11,7 @@ import '../utils/fediverse_text.dart';
 import '../widgets/fediverse_post_card.dart';
 import 'fediverse_profile_screen.dart';
 import '../utils/error_helper.dart';
+import '../theme/app_tokens.dart';
 
 class FediverseScreen extends StatefulWidget {
   const FediverseScreen({super.key});
@@ -536,7 +537,7 @@ class _FediverseProfilesTabState extends State<_FediverseProfilesTab> {
                   Text(
                     lang.translate('fediverse_profiles_title'),
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: AppTokens.fontBodyLarge,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -593,7 +594,7 @@ class _FediverseProfilesTabState extends State<_FediverseProfilesTab> {
               child: Text(
                 lang.translate('fediverse_search_results'),
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: AppTokens.fontBodyLarge,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -647,7 +648,7 @@ class _FediverseProfilesTabState extends State<_FediverseProfilesTab> {
           children: [
             Text(
               LanguageService.instance.translate('fediverse_local_identity'),
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: AppTokens.fontBodyLarge, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             InkWell(
@@ -674,7 +675,7 @@ class _FediverseProfilesTabState extends State<_FediverseProfilesTab> {
                       child: Text(
                         handle,
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: AppTokens.fontBodyLarge,
                           fontWeight: FontWeight.w700,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -1108,7 +1109,7 @@ class _FediverseAccountCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 15,
+                        fontSize: AppTokens.fontBodyLarge,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

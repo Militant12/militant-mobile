@@ -8,6 +8,7 @@ import '../services/language_service.dart';
 import '../utils/fediverse_text.dart';
 import '../widgets/fediverse_post_card.dart';
 import '../utils/error_helper.dart';
+import '../theme/app_tokens.dart';
 
 class FediverseProfileScreen extends StatefulWidget {
   final String initialQuery;
@@ -214,7 +215,7 @@ class _FediverseProfileScreenState extends State<FediverseProfileScreen> {
                       Text(
                         lang.translate('fediverse_recent_posts'),
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: AppTokens.fontBodyLarge,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -294,7 +295,7 @@ class _FediverseProfileScreenState extends State<FediverseProfileScreen> {
             Text(
               displayName,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: AppTokens.fontTitleLarge, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(

@@ -7,6 +7,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../services/private_call_session.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class CallScreen extends StatefulWidget {
   final String? callId;
@@ -214,14 +216,14 @@ class _CallScreenState extends State<CallScreen> {
                     widget.recipientName,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 24,
+                      fontSize: AppTokens.fontHeadlineSmall,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     _callStatus,
-                    style: const TextStyle(color: Colors.white70, fontSize: 16),
+                    style: const TextStyle(color: Colors.white70, fontSize: AppTokens.fontBodyLarge),
                   ),
                 ],
               ),
@@ -316,7 +318,7 @@ class _CallScreenState extends State<CallScreen> {
           else
             CircleAvatar(
               radius: 60,
-              backgroundColor: const Color(0xFFBE1E1E),
+              backgroundColor: AppColors.militantRed,
               child: Padding(
                 padding: const EdgeInsets.all(18),
                 child: SvgPicture.asset(

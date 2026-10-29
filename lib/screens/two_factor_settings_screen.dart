@@ -5,6 +5,9 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../utils/error_helper.dart';
+import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
+import '../theme/app_tokens.dart';
 
 class TwoFactorSettingsScreen extends StatefulWidget {
   const TwoFactorSettingsScreen({super.key});
@@ -203,7 +206,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                         ? lang.translate('2fa_enabled')
                         : lang.translate('secure_your_account'),
                     style: const TextStyle(
-                      fontSize: 20,
+                      fontSize: AppTokens.fontTitleLarge,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -255,7 +258,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: isDark ? Colors.white10 : Colors.grey[200],
+                        color: context.colors.outlineVariant,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -265,7 +268,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                               _secret!,
                               style: const TextStyle(
                                 fontFamily: 'monospace',
-                                fontSize: 16,
+                                fontSize: AppTokens.fontBodyLarge,
                                 letterSpacing: 2,
                               ),
                             ),
@@ -295,7 +298,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                         labelText: lang.translate('six_digit_code'),
                         border: const OutlineInputBorder(),
                         focusedBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFFBE1E1E)),
+                          borderSide: BorderSide(color: AppColors.militantRed),
                         ),
                       ),
                       keyboardType: TextInputType.number,
@@ -307,7 +310,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                       child: ElevatedButton(
                         onPressed: _enable,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFBE1E1E),
+                          backgroundColor: AppColors.militantRed,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),

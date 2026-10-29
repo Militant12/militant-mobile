@@ -11,6 +11,8 @@ import '../widgets/file_video_player.dart';
 import '../widgets/mention_user_avatar.dart';
 import '../utils/post_tags.dart';
 import '../utils/error_helper.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class CreatePostScreen extends StatefulWidget {
   final int? groupId;
@@ -190,7 +192,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Theme.of(context).brightness == Brightness.dark
-            ? const Color(0xFF1E1E1E)
+            ? AppColors.darkSurface
             : Colors.white,
         title: Text(LanguageService.instance.translate('choose_media')),
         content: Column(
@@ -199,7 +201,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             ListTile(
               leading: const Icon(
                 Icons.photo_library,
-                color: Color(0xFFBE1E1E),
+                color: AppColors.militantRed,
               ),
               title: Text(
                 LanguageService.instance.translate('image_from_gallery'),
@@ -210,7 +212,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               }),
             ),
             ListTile(
-              leading: const Icon(Icons.videocam, color: Color(0xFFBE1E1E)),
+              leading: const Icon(Icons.videocam, color: AppColors.militantRed),
               title: Text(
                 LanguageService.instance.translate('video_from_gallery'),
               ),
@@ -220,7 +222,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               }),
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt, color: Color(0xFFBE1E1E)),
+              leading: const Icon(Icons.camera_alt, color: AppColors.militantRed),
               title: Text(LanguageService.instance.translate('take_photo')),
               onTap: () => Navigator.pop(context, {
                 'source': ImageSource.camera,
@@ -228,7 +230,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               }),
             ),
             ListTile(
-              leading: const Icon(Icons.videocam, color: Color(0xFFBE1E1E)),
+              leading: const Icon(Icons.videocam, color: AppColors.militantRed),
               title: Text(LanguageService.instance.translate('record_video')),
               onTap: () => Navigator.pop(context, {
                 'source': ImageSource.camera,
@@ -387,15 +389,15 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Color(0xFFBE1E1E),
+                        color: AppColors.militantRed,
                       ),
                     )
                   : Text(
                       lang.translate('publish_button'),
                       style: const TextStyle(
-                        color: Color(0xFFBE1E1E),
+                        color: AppColors.militantRed,
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: AppTokens.fontBodyLarge,
                       ),
                     ),
             ),
@@ -416,7 +418,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     maxLines: null,
                     style: TextStyle(
                       color: theme.textTheme.bodyLarge?.color,
-                      fontSize: 16,
+                      fontSize: AppTokens.fontBodyLarge,
                     ),
                     decoration: InputDecoration(
                       hintText: lang.translate('create_post_hint'),
@@ -531,14 +533,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             padding: const EdgeInsets.all(8.0),
             decoration: BoxDecoration(
               color: theme.brightness == Brightness.dark
-                  ? const Color(0xFF2A2A2A)
+                  ? AppColors.darkSurfaceHigh
                   : Colors.grey[200],
               border: Border(top: BorderSide(color: theme.dividerColor)),
             ),
             child: Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.photo, color: Color(0xFFBE1E1E)),
+                  icon: const Icon(Icons.photo, color: AppColors.militantRed),
                   onPressed: _pickMedia,
                   tooltip: LanguageService.instance.translate('add_media'),
                 ),
@@ -574,7 +576,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             : Colors.black.withValues(alpha: 0.025),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: const Color(0xFFBE1E1E).withValues(alpha: 0.12),
+          color: AppColors.militantRed.withValues(alpha: 0.12),
         ),
       ),
       child: Column(
@@ -585,7 +587,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               const Icon(
                 Icons.sell_outlined,
                 size: 16,
-                color: Color(0xFFBE1E1E),
+                color: AppColors.militantRed,
               ),
               const SizedBox(width: 8),
               Text(
@@ -608,13 +610,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFBE1E1E).withValues(alpha: 0.10),
+                      color: AppColors.militantRed.withValues(alpha: 0.10),
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
                       '#$tag',
                       style: const TextStyle(
-                        color: Color(0xFFBE1E1E),
+                        color: AppColors.militantRed,
                         fontWeight: FontWeight.w600,
                       ),
                     ),

@@ -7,6 +7,9 @@ import 'moderation_screen.dart';
 import 'discovery_screen.dart';
 import 'fediverse_screen.dart';
 import 'feature_suggestions_screen.dart';
+import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
+import '../theme/app_tokens.dart';
 
 class CommunityScreen extends StatelessWidget {
   const CommunityScreen({super.key});
@@ -40,7 +43,7 @@ class CommunityScreen extends StatelessWidget {
                     translate('explore_mobilize_title'),
                     style: TextStyle(
                       color: textColor,
-                      fontSize: 20,
+                      fontSize: AppTokens.fontTitleLarge,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -61,7 +64,7 @@ class CommunityScreen extends StatelessWidget {
                   translate('discover_militants_desc'),
                   Icons.person_search,
                   const DiscoveryScreen(),
-                  const Color(0xFFBE1E1E),
+                  AppColors.militantRed,
                   isDark,
                 ),
                 const SizedBox(height: 8),
@@ -71,7 +74,7 @@ class CommunityScreen extends StatelessWidget {
                   translate('groups_desc'),
                   Icons.group,
                   const GroupsScreen(),
-                  const Color(0xFFBE1E1E),
+                  AppColors.militantRed,
                   isDark,
                 ),
                 const SizedBox(height: 8),
@@ -145,7 +148,7 @@ class CommunityScreen extends StatelessWidget {
     }
 
     final cardBg = isDark ? const Color(0xFF151515) : Colors.white;
-    final borderColor = isDark ? Colors.white10 : Colors.grey[300]!;
+    final borderColor = context.colors.outlineVariant;
     final shadowColor = isDark
         ? Colors.black.withValues(alpha: 0.4)
         : Colors.grey.withValues(alpha: 0.2);
@@ -158,7 +161,7 @@ class CommunityScreen extends StatelessWidget {
           )
         : null;
 
-    final textColor = isDark ? Colors.white : Colors.black;
+    final textColor = context.colors.onSurface;
     final subTextColor = isDark ? Colors.grey[400] : Colors.grey[700];
 
     return Material(
@@ -215,7 +218,7 @@ class CommunityScreen extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             color: textColor,
-                            fontSize: 16,
+                            fontSize: AppTokens.fontBodyLarge,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 0.5,
                           ),
@@ -226,7 +229,7 @@ class CommunityScreen extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           softWrap: true,
-                          style: TextStyle(color: subTextColor, fontSize: 12),
+                          style: TextStyle(color: subTextColor, fontSize: AppTokens.fontBodySmall),
                         ),
                       ],
                     ),
@@ -234,7 +237,7 @@ class CommunityScreen extends StatelessWidget {
                   if (!isNarrow)
                     Icon(
                       Icons.arrow_forward_ios,
-                      color: isDark ? Colors.white24 : Colors.black12,
+                      color: context.colors.outlineVariant,
                       size: 16,
                     ),
                 ],

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'dart:math' as math;
 import '../services/language_service.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class AudioPlayerWidget extends StatefulWidget {
   final String audioUrl;
@@ -99,7 +101,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget>
         ? (_position.inMilliseconds / _duration.inMilliseconds).clamp(0.0, 1.0)
         : 0.0;
 
-    final accentColor = widget.isMine ? Colors.white : const Color(0xFFBE1E1E);
+    final accentColor = widget.isMine ? Colors.white : AppColors.militantRed;
     final dimColor = widget.isMine
         ? Colors.white.withValues(alpha: 0.45)
         : Colors.grey.shade400;
@@ -199,7 +201,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget>
                       : _formatDuration(_duration),
                   style: TextStyle(
                     color: timeColor,
-                    fontSize: 10,
+                    fontSize: AppTokens.fontLabelSmall,
                     fontWeight: FontWeight.w500,
                     letterSpacing: 0.3,
                   ),

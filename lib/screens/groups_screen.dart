@@ -8,6 +8,7 @@ import '../services/language_service.dart';
 import 'group_detail_screen.dart';
 import '../utils/error_helper.dart';
 import '../widgets/common/common.dart';
+import '../theme/app_tokens.dart';
 
 class GroupsScreen extends StatefulWidget {
   const GroupsScreen({super.key});
@@ -215,7 +216,7 @@ class _GroupsScreenState extends State<GroupsScreen>
                   ),
                   subtitle: Text(
                     lang.translate('group_private_subtitle'),
-                    style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.38), fontSize: 12),
+                    style: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.38), fontSize: AppTokens.fontBodySmall),
                   ),
                   value: isPrivate,
                   activeThumbColor: context.colors.primary,
@@ -482,7 +483,7 @@ class _GroupsScreenState extends State<GroupsScreen>
           onChanged: _onSearchChanged,
           style: TextStyle(
             color: context.colors.onSurface,
-            fontSize: 15,
+            fontSize: AppTokens.fontBodyLarge,
           ),
           decoration: InputDecoration(
             hintText: _tabController.index == 0
@@ -490,7 +491,7 @@ class _GroupsScreenState extends State<GroupsScreen>
                 : lang.translate('discover_groups_hint'),
             hintStyle: TextStyle(
               color: context.colors.onSurface.withValues(alpha: 0.54),
-              fontSize: 14,
+              fontSize: AppTokens.fontBodyMedium,
             ),
             prefixIcon: Icon(
               Icons.search,
@@ -643,7 +644,7 @@ class _GroupsScreenState extends State<GroupsScreen>
                           name,
                           style: TextStyle(
                             color: context.colors.onSurface,
-                            fontSize: 16,
+                            fontSize: AppTokens.fontBodyLarge,
                             fontWeight: FontWeight.bold,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -673,7 +674,7 @@ class _GroupsScreenState extends State<GroupsScreen>
                                 lang.translate('private'),
                                 style: TextStyle(
                                   color: context.colors.onSurface.withValues(alpha: 0.54),
-                                  fontSize: 11,
+                                  fontSize: AppTokens.fontLabelSmall,
                                 ),
                               ),
                             ],
@@ -690,7 +691,7 @@ class _GroupsScreenState extends State<GroupsScreen>
                       softWrap: true,
                       style: TextStyle(
                         color: context.tokens.textMuted,
-                        fontSize: 14,
+                        fontSize: AppTokens.fontBodyMedium,
                       ),
                     ),
                   ],
@@ -707,7 +708,7 @@ class _GroupsScreenState extends State<GroupsScreen>
                         '$membersCount ${membersCount > 1 ? lang.translate('members') : lang.translate('member')}',
                         style: TextStyle(
                           color: context.tokens.textMuted,
-                          fontSize: 12,
+                          fontSize: AppTokens.fontBodySmall,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -721,7 +722,7 @@ class _GroupsScreenState extends State<GroupsScreen>
                         '$postsCount ${postsCount > 1 ? lang.translate('posts_count_plural') : lang.translate('posts_count')}',
                         style: TextStyle(
                           color: context.tokens.textMuted,
-                          fontSize: 12,
+                          fontSize: AppTokens.fontBodySmall,
                         ),
                       ),
                     ],
@@ -757,7 +758,7 @@ class _GroupsScreenState extends State<GroupsScreen>
                       : hasPendingRequest
                       ? lang.translate('request_pending')
                       : lang.translate('join'),
-                  style: const TextStyle(fontSize: 13),
+                  style: const TextStyle(fontSize: AppTokens.fontBodyMedium),
                 ),
               ),
             ],

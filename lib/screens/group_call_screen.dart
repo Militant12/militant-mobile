@@ -6,6 +6,8 @@ import '../services/api_service.dart';
 import '../services/group_call_service.dart';
 import '../services/language_service.dart';
 import '../utils/error_helper.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class GroupCallScreen extends StatefulWidget {
   final String? callId;
@@ -455,7 +457,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
   Widget _buildAudioParticipantTile(_AudioParticipant participant) {
     final isConnected = participant.status == 'joined';
     final borderColor = participant.isSpeaking
-        ? const Color(0xFF35D07F)
+        ? AppColors.success
         : Colors.white24;
 
     return AnimatedContainer(
@@ -472,7 +474,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
         boxShadow: participant.isSpeaking
             ? [
                 BoxShadow(
-                  color: const Color(0xFF35D07F).withValues(alpha: 0.32),
+                  color: AppColors.success.withValues(alpha: 0.32),
                   blurRadius: 18,
                   spreadRadius: 1,
                 ),
@@ -500,7 +502,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
                         _initialsFor(participant.name),
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 24,
+                          fontSize: AppTokens.fontHeadlineSmall,
                           fontWeight: FontWeight.bold,
                         ),
                       )
@@ -520,7 +522,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
                   right: -4,
                   bottom: -4,
                   child: _AudioStatusDot(
-                    color: Color(0xFF35D07F),
+                    color: AppColors.success,
                     icon: Icons.graphic_eq,
                   ),
                 ),
@@ -534,7 +536,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 14,
+              fontSize: AppTokens.fontBodyMedium,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -550,7 +552,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
                     key: ValueKey(participant.status),
                     style: TextStyle(
                       color: isConnected ? Colors.white70 : Colors.white38,
-                      fontSize: 12,
+                      fontSize: AppTokens.fontBodySmall,
                     ),
                   ),
           ),
@@ -626,7 +628,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
                   ),
                   child: Text(
                     label,
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    style: const TextStyle(color: Colors.white, fontSize: AppTokens.fontBodySmall),
                   ),
                 ),
               ),
@@ -655,7 +657,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
                     widget.groupName,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 24,
+                      fontSize: AppTokens.fontHeadlineSmall,
                       fontWeight: FontWeight.bold,
                     ),
                     textAlign: TextAlign.center,
@@ -665,7 +667,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Text(
                       _callStatus,
-                      style: const TextStyle(color: Colors.white70, fontSize: 16),
+                      style: const TextStyle(color: Colors.white70, fontSize: AppTokens.fontBodyLarge),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -809,7 +811,7 @@ class _SpeakingBar extends StatelessWidget {
       width: 4,
       height: height,
       decoration: BoxDecoration(
-        color: const Color(0xFF35D07F),
+        color: AppColors.success,
         borderRadius: BorderRadius.circular(999),
       ),
     );

@@ -10,6 +10,7 @@ import '../widgets/militant_badge.dart';
 import '../widgets/technician_badge.dart';
 import 'chat_screen.dart';
 import '../widgets/common/common.dart';
+import '../theme/app_tokens.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -205,7 +206,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             '@${item['username'] ?? LanguageService.instance.translate('unknown_user')}',
                             style: TextStyle(
                               color: context.colors.onSurface,
-                              fontSize: 15,
+                              fontSize: AppTokens.fontBodyLarge,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -245,7 +246,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             : '',
                         style: TextStyle(
                           color: context.tokens.textMuted,
-                          fontSize: 12,
+                          fontSize: AppTokens.fontBodySmall,
                         ),
                       ),
                     ],
@@ -255,7 +256,7 @@ class _SearchScreenState extends State<SearchScreen> {
               const SizedBox(height: 12),
               LinkableText(
                 text: item['content'] ?? '',
-                style: TextStyle(color: context.colors.onSurface, fontSize: 15),
+                style: TextStyle(color: context.colors.onSurface, fontSize: AppTokens.fontBodyLarge),
               ),
               if (item['media_url'] != null &&
                   item['media_url'].isNotEmpty) ...[

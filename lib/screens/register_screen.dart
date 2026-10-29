@@ -4,6 +4,9 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import 'home_screen.dart';
 import '../utils/error_helper.dart';
+import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
+import '../theme/app_tokens.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -70,7 +73,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       ),
       trailing: isSelected
-          ? const Icon(Icons.check, color: Color(0xFFBE1E1E))
+          ? const Icon(Icons.check, color: AppColors.militantRed)
           : null,
       onTap: () {
         Navigator.pop(context);
@@ -189,10 +192,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 alignment: Alignment.topRight,
                 child: TextButton.icon(
                   onPressed: () => _showLanguageDialog(context),
-                  icon: const Icon(Icons.language, color: Color(0xFFBE1E1E)),
+                  icon: const Icon(Icons.language, color: AppColors.militantRed),
                   label: Text(
                     lang.translate('language_title'),
-                    style: const TextStyle(color: Color(0xFFBE1E1E)),
+                    style: const TextStyle(color: AppColors.militantRed),
                   ),
                 ),
               ),
@@ -208,8 +211,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 style: TextStyle(
                   color:
                       theme.textTheme.displayLarge?.color ??
-                      (isDark ? Colors.white : Colors.black),
-                  fontSize: 28,
+                      (context.colors.onSurface),
+                  fontSize: AppTokens.fontHeadlineMedium,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -217,8 +220,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Text(
                 lang.translate('join_community'),
                 style: TextStyle(
-                  color: isDark ? const Color(0xFFAAAAAA) : Colors.grey[600],
-                  fontSize: 14,
+                  color: context.tokens.textMuted,
+                  fontSize: AppTokens.fontBodyMedium,
                 ),
               ),
               const SizedBox(height: 32),
@@ -271,7 +274,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // Champ cause
               Container(
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[200],
+                  color: context.colors.surfaceContainerHigh,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: DropdownButtonFormField<String>(
@@ -279,15 +282,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   decoration: InputDecoration(
                     labelText: lang.translate('your_main_cause'),
                     labelStyle: TextStyle(
-                      color: isDark
-                          ? const Color(0xFF888888)
-                          : Colors.grey[600],
+                      color: context.tokens.textMuted,
                     ),
                     prefixIcon: Icon(
                       Icons.flag,
-                      color: isDark
-                          ? const Color(0xFF888888)
-                          : Colors.grey[600],
+                      color: context.tokens.textMuted,
                     ),
                     filled: true,
                     fillColor: Colors.transparent,
@@ -301,11 +300,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFBE1E1E)),
+                      borderSide: const BorderSide(color: AppColors.militantRed),
                     ),
                   ),
                   dropdownColor: isDark
-                      ? const Color(0xFF2A2A2A)
+                      ? AppColors.darkSurfaceHigh
                       : Colors.white,
                   style: TextStyle(color: theme.textTheme.bodyLarge?.color),
                   items: _causes.map((cause) {
@@ -347,7 +346,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : () => _register(),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFBE1E1E),
+                    backgroundColor: AppColors.militantRed,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
@@ -366,7 +365,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       : Text(
                           lang.translate('sign_up'),
                           style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: AppTokens.fontBodyLarge,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -381,9 +380,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   Text(
                     '${lang.translate('login_link').split('?')[0]}? ',
                     style: TextStyle(
-                      color: isDark
-                          ? const Color(0xFFAAAAAA)
-                          : Colors.grey[600],
+                      color: context.tokens.textMuted,
                     ),
                   ),
                   TextButton(
@@ -396,7 +393,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: Text(
                       lang.translate('login_button'),
                       style: const TextStyle(
-                        color: Color(0xFFBE1E1E),
+                        color: AppColors.militantRed,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -418,7 +415,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     TextInputType? keyboardType,
   }) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return TextField(
       controller: controller,
@@ -428,14 +424,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(
-          color: isDark ? const Color(0xFF888888) : Colors.grey[600],
+          color: context.tokens.textMuted,
         ),
         prefixIcon: Icon(
           icon,
-          color: isDark ? const Color(0xFF888888) : Colors.grey[600],
+          color: context.tokens.textMuted,
         ),
         filled: true,
-        fillColor: isDark ? const Color(0xFF2A2A2A) : Colors.grey[200],
+        fillColor: context.colors.surfaceContainerHigh,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -446,7 +442,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFBE1E1E)),
+          borderSide: const BorderSide(color: AppColors.militantRed),
         ),
       ),
     );

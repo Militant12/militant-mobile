@@ -4,6 +4,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../services/user_status_service.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 /// Chip cliquable affichant ton propre statut sur ton profil
 class StatusChip extends StatelessWidget {
@@ -38,7 +40,7 @@ class StatusChip extends StatelessWidget {
               Text(
                 LanguageService.instance.translate('status_add'),
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: AppTokens.fontBodySmall,
                   color: context.colors.onSurface.withValues(alpha: 0.7),
                 ),
               ),
@@ -80,7 +82,7 @@ class StatusChip extends StatelessWidget {
             Text(
               status.label,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: AppTokens.fontBodySmall,
                 color: context.colors.onSurface,
                 fontWeight: FontWeight.w600,
               ),
@@ -160,9 +162,8 @@ class _StatusPickerDialogState extends State<StatusPickerDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final accent = const Color(0xFFBE1E1E);
+    final bg = context.colors.surface;
+    final accent = AppColors.militantRed;
 
     return Container(
       decoration: BoxDecoration(
@@ -258,7 +259,7 @@ class _StatusPickerDialogState extends State<StatusPickerDialog> {
                       Text(
                         p.label,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: AppTokens.fontBodySmall,
                           fontWeight: isSelected
                               ? FontWeight.w700
                               : FontWeight.w500,
@@ -396,7 +397,7 @@ class UserStatusBadge extends StatelessWidget {
           Text(
             statusText!,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: AppTokens.fontBodySmall,
               color: preset?.gradient != null
                   ? Colors.white
                   : (preset?.color ??

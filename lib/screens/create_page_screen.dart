@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../utils/error_helper.dart';
+import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
+import '../theme/app_tokens.dart';
 
 class CreatePageScreen extends StatefulWidget {
   const CreatePageScreen({super.key});
@@ -74,14 +77,14 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
     final categories = _getCategories();
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : Colors.grey[50],
+      backgroundColor: isDark ? AppColors.darkBackground : Colors.grey[50],
       appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        backgroundColor: context.colors.surface,
         title: Text(
           lang.translate('create_page_title'),
-          style: TextStyle(color: isDark ? Colors.white : Colors.black),
+          style: TextStyle(color: context.colors.onSurface),
         ),
-        iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
+        iconTheme: IconThemeData(color: context.colors.onSurface),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -93,12 +96,12 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFBE1E1E).withOpacity(0.1),
+                  color: AppColors.militantRed.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.flag,
-                  color: Color(0xFFBE1E1E),
+                  color: AppColors.militantRed,
                   size: 40,
                 ),
               ),
@@ -108,8 +111,8 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
               child: Text(
                 lang.translate('create_page_for_cause'),
                 style: TextStyle(
-                  color: isDark ? const Color(0xFF888888) : Colors.grey[600],
-                  fontSize: 14,
+                  color: context.tokens.textMuted,
+                  fontSize: AppTokens.fontBodyMedium,
                 ),
               ),
             ),
@@ -119,28 +122,28 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
             Text(
               lang.translate('name_field'),
               style: TextStyle(
-                color: isDark ? Colors.white : Colors.black,
+                color: context.colors.onSurface,
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 6),
             TextField(
               controller: _nameController,
-              style: TextStyle(color: isDark ? Colors.white : Colors.black),
+              style: TextStyle(color: context.colors.onSurface),
               decoration: InputDecoration(
                 hintText: lang.translate('page_name_hint'),
                 hintStyle: TextStyle(
-                  color: isDark ? Colors.white38 : Colors.grey,
+                  color: context.tokens.textMuted,
                 ),
                 filled: true,
-                fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                fillColor: context.colors.surface,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide.none,
                 ),
                 prefixIcon: Icon(
                   Icons.edit,
-                  color: isDark ? Colors.white38 : Colors.grey,
+                  color: context.tokens.textMuted,
                 ),
               ),
             ),
@@ -150,7 +153,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
             Text(
               lang.translate('category_field'),
               style: TextStyle(
-                color: isDark ? Colors.white : Colors.black,
+                color: context.colors.onSurface,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -170,7 +173,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
                         size: 16,
                         color: isSelected
                             ? Colors.white
-                            : (isDark ? Colors.white54 : Colors.grey[600]),
+                            : (context.tokens.textMuted),
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -178,16 +181,14 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
                         style: TextStyle(
                           color: isSelected
                               ? Colors.white
-                              : (isDark ? Colors.white : Colors.black),
-                          fontSize: 13,
+                              : (context.colors.onSurface),
+                          fontSize: AppTokens.fontBodyMedium,
                         ),
                       ),
                     ],
                   ),
-                  backgroundColor: isDark
-                      ? const Color(0xFF2A2A2A)
-                      : Colors.grey[100],
-                  selectedColor: const Color(0xFFBE1E1E),
+                  backgroundColor: context.colors.surfaceContainerHigh,
+                  selectedColor: AppColors.militantRed,
                   checkmarkColor: Colors.white,
                   onSelected: (selected) {
                     setState(
@@ -205,7 +206,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
             Text(
               lang.translate('description_field'),
               style: TextStyle(
-                color: isDark ? Colors.white : Colors.black,
+                color: context.colors.onSurface,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -213,14 +214,14 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
             TextField(
               controller: _descController,
               maxLines: 4,
-              style: TextStyle(color: isDark ? Colors.white : Colors.black),
+              style: TextStyle(color: context.colors.onSurface),
               decoration: InputDecoration(
                 hintText: lang.translate('describe_page_hint'),
                 hintStyle: TextStyle(
-                  color: isDark ? Colors.white38 : Colors.grey,
+                  color: context.tokens.textMuted,
                 ),
                 filled: true,
-                fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                fillColor: context.colors.surface,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide.none,
@@ -246,7 +247,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
                     : const Icon(Icons.add),
                 label: Text(_isLoading ? lang.translate('creating') : lang.translate('create_page_button')),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFBE1E1E),
+                  backgroundColor: AppColors.militantRed,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(

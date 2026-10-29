@@ -11,6 +11,7 @@ import 'api_service.dart';
 import 'call_kit_service.dart';
 import 'language_service.dart';
 import 'ntfy_push_service.dart';
+import '../theme/app_colors.dart';
 
 final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -548,7 +549,7 @@ class IncomingCallService {
       barrierDismissible: false,
       builder: (ctx) {
         final theme = Theme.of(ctx);
-        final accent = const Color(0xFFBE1E1E);
+        final accent = AppColors.militantRed;
         final surface = theme.colorScheme.surface;
         final onSurface = theme.colorScheme.onSurface;
         final mutedColor = onSurface.withValues(alpha: 0.72);
@@ -854,7 +855,7 @@ class IncomingCallService {
       barrierDismissible: false,
       builder: (ctx) {
         final theme = Theme.of(ctx);
-        final accent = const Color(0xFFBE1E1E);
+        final accent = AppColors.militantRed;
         final surface = theme.colorScheme.surface;
         final onSurface = theme.colorScheme.onSurface;
         final mutedColor = onSurface.withValues(alpha: 0.72);

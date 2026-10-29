@@ -6,6 +6,8 @@ import '../screens/stories_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../utils/error_helper.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class ProfileStories extends StatefulWidget {
   final int userId;
@@ -57,7 +59,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
           SnackBar(
             content: Text(lang.translate('stories_uploading')),
             duration: const Duration(seconds: 2),
-            backgroundColor: const Color(0xFFBE1E1E),
+            backgroundColor: AppColors.militantRed,
           ),
         );
       }
@@ -99,7 +101,6 @@ class _ProfileStoriesState extends State<ProfileStories> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final lang = LanguageService.instance;
-    final isDark = theme.brightness == Brightness.dark;
     final titleColor = theme.textTheme.bodyLarge?.color;
     final subtitleColor = theme.textTheme.bodyMedium?.color;
 
@@ -108,7 +109,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
         height: 100,
         child: Center(
           child: CircularProgressIndicator(
-            color: Color(0xFFBE1E1E),
+            color: AppColors.militantRed,
             strokeWidth: 2,
           ),
         ),
@@ -137,12 +138,12 @@ class _ProfileStoriesState extends State<ProfileStories> {
                 height: 70,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFFBE1E1E), width: 2),
-                  color: isDark ? const Color(0xFF1E1E1E) : Colors.grey[100],
+                  border: Border.all(color: AppColors.militantRed, width: 2),
+                  color: context.colors.surfaceContainer,
                 ),
                 child: const Icon(
                   Icons.add,
-                  color: Color(0xFFBE1E1E),
+                  color: AppColors.militantRed,
                   size: 30,
                 ),
               ),
@@ -159,14 +160,14 @@ class _ProfileStoriesState extends State<ProfileStories> {
                       style: TextStyle(
                         color: titleColor,
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: AppTokens.fontBodyLarge,
                       ),
                     ),
                     Text(
                       lang.translate('profile_stories_add_subtitle'),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: subtitleColor, fontSize: 13),
+                      style: TextStyle(color: subtitleColor, fontSize: AppTokens.fontBodyMedium),
                     ),
                   ],
                 ),
@@ -210,7 +211,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: const Color(0xFFBE1E1E),
+                      color: AppColors.militantRed,
                       width: 3,
                     ),
                   ),
@@ -221,18 +222,14 @@ class _ProfileStoriesState extends State<ProfileStories> {
                       builder: (context, snapshot) {
                         if (!snapshot.hasData) {
                           return Container(
-                            color: isDark
-                                ? const Color(0xFF1E1E1E)
-                                : Colors.grey[100],
+                            color: context.colors.surfaceContainer,
                           );
                         }
                         return Image(
                           image: CachedNetworkImageProvider(snapshot.data!),
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => Container(
-                            color: isDark
-                                ? const Color(0xFF1E1E1E)
-                                : Colors.grey[100],
+                            color: context.colors.surfaceContainer,
                           ),
                         );
                       },
@@ -264,7 +261,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFBE1E1E),
+                        color: AppColors.militantRed,
                         shape: BoxShape.circle,
                         border: Border.all(color: context.colors.surface, width: 2),
                       ),
@@ -272,7 +269,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
                         '$count',
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 10,
+                          fontSize: AppTokens.fontLabelSmall,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -295,7 +292,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
                     style: TextStyle(
                       color: titleColor,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: AppTokens.fontBodyLarge,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -311,7 +308,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
                         : lang.translate('profile_stories_watch'),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: subtitleColor, fontSize: 13),
+                    style: TextStyle(color: subtitleColor, fontSize: AppTokens.fontBodyMedium),
                   ),
                 ],
               ),

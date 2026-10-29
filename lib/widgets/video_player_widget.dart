@@ -5,6 +5,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'full_screen_video_page.dart';
 import '../services/language_service.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 class VideoPlayerWidget extends StatefulWidget {
   final String videoUrl;
@@ -236,7 +238,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                         width: 64,
                         height: 64,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFBE1E1E).withOpacity(0.9),
+                          color: AppColors.militantRed.withOpacity(0.9),
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
@@ -274,7 +276,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                           'VIDÉO',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 10,
+                            fontSize: AppTokens.fontLabelSmall,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 0.5,
                           ),
@@ -300,7 +302,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                           width: 64,
                           height: 64,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFBE1E1E).withOpacity(0.7),
+                            color: AppColors.militantRed.withOpacity(0.7),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -343,7 +345,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                             _controller!,
                             allowScrubbing: true,
                             colors: const VideoProgressColors(
-                              playedColor: Color(0xFFBE1E1E),
+                              playedColor: AppColors.militantRed,
                               bufferedColor: Colors.white30,
                               backgroundColor: Colors.white12,
                             ),
@@ -358,7 +360,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                                     '${_formatDuration(value.position)} / ${_formatDuration(value.duration)}',
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      fontSize: 11,
+                                      fontSize: AppTokens.fontLabelSmall,
                                     ),
                                   );
                                 },
@@ -433,13 +435,13 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const CircularProgressIndicator(
-                  color: Color(0xFFBE1E1E),
+                  color: AppColors.militantRed,
                   strokeWidth: 2,
                 ),
                 const SizedBox(height: 16),
                 Text(
                   LanguageService.instance.translate('video_preview_loading'),
-                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  style: const TextStyle(color: Colors.white54, fontSize: AppTokens.fontBodySmall),
                 ),
               ],
             ),
@@ -490,7 +492,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white70,
-                      fontSize: 12,
+                      fontSize: AppTokens.fontBodySmall,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -499,7 +501,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFBE1E1E).withOpacity(0.9),
+                    color: AppColors.militantRed.withOpacity(0.9),
                     shape: BoxShape.circle,
                     boxShadow: const [
                       BoxShadow(
@@ -543,21 +545,21 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                 onPressed: _openInBrowser,
                 icon: const Icon(
                   Icons.video_library_outlined,
-                  color: Color(0xFFBE1E1E),
+                  color: AppColors.militantRed,
                   size: 40,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 LanguageService.instance.translate('video_preview_unavailable'),
-                style: TextStyle(color: Colors.white60, fontSize: 13),
+                style: TextStyle(color: Colors.white60, fontSize: AppTokens.fontBodyMedium),
               ),
               const SizedBox(height: 12),
               TextButton.icon(
                 onPressed: _openInBrowser,
                 icon: const Icon(Icons.open_in_new, size: 14),
                 label: Text(LanguageService.instance.translate('video_open')),
-                style: TextButton.styleFrom(foregroundColor: const Color(0xFFBE1E1E)),
+                style: TextButton.styleFrom(foregroundColor: AppColors.militantRed),
               ),
             ],
           ),
@@ -587,7 +589,7 @@ class _VideoBadge extends StatelessWidget {
             'VIDÉO',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 10,
+              fontSize: AppTokens.fontLabelSmall,
               fontWeight: FontWeight.bold,
               letterSpacing: 0.5,
             ),

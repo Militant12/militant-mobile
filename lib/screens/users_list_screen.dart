@@ -8,6 +8,7 @@ import '../widgets/militant_badge.dart';
 import '../widgets/technician_badge.dart';
 import '../utils/error_helper.dart';
 import '../widgets/common/common.dart';
+import '../theme/app_tokens.dart';
 
 class UsersListScreen extends StatefulWidget {
   final int? userId;
@@ -219,7 +220,7 @@ class _UsersListScreenState extends State<UsersListScreen> {
                                 : lang.translate('member_badge'),
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 10,
+                              fontSize: AppTokens.fontLabelSmall,
                               fontWeight: FontWeight.bold,
                             ),
                           ),

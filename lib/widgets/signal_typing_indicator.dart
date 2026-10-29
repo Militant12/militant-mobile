@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_tokens.dart';
 
 class SignalTypingIndicator extends StatefulWidget {
   const SignalTypingIndicator({
@@ -63,7 +64,7 @@ class _SignalTypingIndicatorState extends State<SignalTypingIndicator>
                 widget.text,
                 style: TextStyle(
                   color: textColor,
-                  fontSize: 12,
+                  fontSize: AppTokens.fontBodySmall,
                   fontWeight: FontWeight.w500,
                 ),
               ),

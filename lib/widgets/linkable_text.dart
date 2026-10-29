@@ -7,6 +7,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
+import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
+import '../theme/app_tokens.dart';
 
 class LinkableText extends StatelessWidget {
   final String text;
@@ -28,7 +31,7 @@ class LinkableText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final defaultLinkColor = linkColor ?? const Color(0xFFBE1E1E);
+    final defaultLinkColor = linkColor ?? AppColors.militantRed;
 
     // Extraire les URLs pour les cartes embed
     final urls = _extractUrls(text);
@@ -445,9 +448,9 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
     return Container(
       margin: const EdgeInsets.only(top: 12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2A2A2A) : Colors.grey[100],
+        color: context.colors.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isDark ? Colors.white10 : Colors.black12),
+        border: Border.all(color: context.colors.outlineVariant),
       ),
       child: InkWell(
         onTap: () => _launchUrl(widget.url),
@@ -488,7 +491,7 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
                       borderRadius: BorderRadius.circular(8),
                       border: _platform == null
                           ? Border.all(
-                              color: isDark ? Colors.white10 : Colors.black12,
+                              color: context.colors.outlineVariant,
                             )
                           : null,
                     ),
@@ -541,7 +544,7 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
                             style: TextStyle(
                               color: theme.textTheme.bodyLarge?.color,
                               fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                              fontSize: AppTokens.fontBodyMedium,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -552,7 +555,7 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
                             style: TextStyle(
                               color: theme.textTheme.bodyLarge?.color,
                               fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                              fontSize: AppTokens.fontBodyMedium,
                             ),
                           ),
 
@@ -563,7 +566,7 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
                             _description!,
                             style: TextStyle(
                               color: theme.textTheme.bodyMedium?.color,
-                              fontSize: 12,
+                              fontSize: AppTokens.fontBodySmall,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -573,7 +576,7 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
                             _shortenUrl(widget.url),
                             style: TextStyle(
                               color: theme.textTheme.bodyMedium?.color,
-                              fontSize: 12,
+                              fontSize: AppTokens.fontBodySmall,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -636,7 +639,7 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
   }
 
   Color _getPlatformColor(String? platform) {
-    if (platform == null) return const Color(0xFF888888);
+    if (platform == null) return AppColors.grey888;
     switch (platform) {
       case 'openai':
         return const Color(0xFF10A37F);
@@ -672,7 +675,7 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
       case 'reddit':
         return const Color(0xFFFF4500);
       default:
-        return const Color(0xFFBE1E1E); // Couleur thème Militant par défaut
+        return AppColors.militantRed; // Couleur thème Militant par défaut
     }
   }
 

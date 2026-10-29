@@ -9,6 +9,7 @@ import '../services/language_service.dart';
 import '../screens/stories_screen.dart';
 import '../widgets/file_video_player.dart';
 import '../utils/error_helper.dart';
+import '../theme/app_tokens.dart';
 
 class StoriesBar extends StatefulWidget {
   const StoriesBar({super.key});
@@ -244,7 +245,7 @@ class _StoriesBarState extends State<StoriesBar> {
               const SizedBox(height: 4),
               Text(
                 lang.translate('stories_add'),
-                style: TextStyle(fontSize: 12, color: context.tokens.textMuted),
+                style: TextStyle(fontSize: AppTokens.fontBodySmall, color: context.tokens.textMuted),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -328,7 +329,7 @@ class _StoriesBarState extends State<StoriesBar> {
                                   : '?'),
                               style: TextStyle(
                                 color: context.colors.onSurface,
-                                fontSize: 20,
+                                fontSize: AppTokens.fontTitleLarge,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -339,7 +340,7 @@ class _StoriesBarState extends State<StoriesBar> {
               const SizedBox(height: 4),
               Text(
                 username,
-                style: TextStyle(fontSize: 12, color: context.tokens.textMuted),
+                style: TextStyle(fontSize: AppTokens.fontBodySmall, color: context.tokens.textMuted),
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
