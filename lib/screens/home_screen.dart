@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'home_feed_screen.dart';
-import 'live_screen.dart';
+import 'events_screen.dart';
+import 'groups_screen.dart';
 import 'messages_screen.dart';
 import 'profile_screen.dart';
-import 'community_screen.dart';
 import '../services/language_service.dart';
 import '../services/deep_link_service.dart';
 import '../services/message_navigation_service.dart';
@@ -75,8 +75,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void _initScreens() {
     _screens = [
       const HomeFeedScreen(),
-      const CommunityScreen(), // Menu grille
-      const LiveScreen(),
+      const GroupsScreen(),
+      const EventsScreen(),
       const MessagesScreen(),
       ProfileScreen(key: _profileKey),
     ];
@@ -91,14 +91,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         label: lang.translate('home_title'),
       ),
       NavigationDestination(
-        icon: const Icon(Icons.grid_view_outlined),
-        selectedIcon: const Icon(Icons.grid_view),
-        label: lang.translate('community_nav_title'),
+        icon: const Icon(Icons.groups_outlined),
+        selectedIcon: const Icon(Icons.groups),
+        label: lang.translate('groups_title'),
       ),
       NavigationDestination(
-        icon: const Icon(Icons.live_tv_outlined),
-        selectedIcon: const Icon(Icons.live_tv),
-        label: 'Live',
+        icon: const Icon(Icons.event_outlined),
+        selectedIcon: const Icon(Icons.event),
+        label: lang.translate('agenda_title'),
       ),
       NavigationDestination(
         icon: const Icon(Icons.message_outlined),

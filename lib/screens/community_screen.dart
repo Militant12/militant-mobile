@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/language_service.dart';
-import 'groups_screen.dart';
-import 'events_screen.dart';
+import 'live_screen.dart';
 import 'pages_screen.dart';
 import 'moderation_screen.dart';
 import 'discovery_screen.dart';
@@ -70,10 +69,10 @@ class CommunityScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 _buildMenuCard(
                   context,
-                  translate('groups_title'),
-                  translate('groups_desc'),
-                  Icons.group,
-                  const GroupsScreen(),
+                  translate('live_title'),
+                  translate('live_desc'),
+                  Icons.live_tv,
+                  const LiveScreen(),
                   AppColors.militantRed,
                   isDark,
                 ),
@@ -95,16 +94,6 @@ class CommunityScreen extends StatelessWidget {
                   Icons.flag,
                   const PagesScreen(),
                   Colors.blue[700]!,
-                  isDark,
-                ),
-                const SizedBox(height: 8),
-                _buildMenuCard(
-                  context,
-                  translate('events_title'),
-                  translate('events_desc'),
-                  Icons.event,
-                  const EventsScreen(),
-                  Colors.orange[800]!,
                   isDark,
                 ),
                 const SizedBox(height: 8),

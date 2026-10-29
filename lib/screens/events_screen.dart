@@ -66,7 +66,7 @@ class _EventsScreenState extends State<EventsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(LanguageService.instance.translate('events_title')),
+        title: Text(LanguageService.instance.translate('agenda_title')),
       ),
       body: _isLoading && _events.isEmpty
           ? const SkeletonList()

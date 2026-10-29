@@ -8,11 +8,12 @@ import '../widgets/stories_bar.dart';
 import 'create_post_screen.dart';
 import 'search_screen.dart';
 import 'notifications_screen.dart';
-import 'messages_screen.dart';
+import 'community_screen.dart';
 import '../services/notification_badge_service.dart';
 import '../theme/app_tokens.dart';
 import '../theme/theme_context.dart';
 import '../widgets/common/common.dart';
+import '../widgets/live_now_strip.dart';
 import 'discovery_screen.dart';
 
 const _feedInterestStorageKey = 'feed_interests';
@@ -103,13 +104,15 @@ class _HomeFeedScreenState extends State<HomeFeedScreen>
                 },
               ),
               IconButton(
-                icon: const Icon(Icons.message),
-                tooltip: LanguageService.instance.translate('action_messages'),
+                icon: const Icon(Icons.grid_view),
+                tooltip: LanguageService.instance.translate(
+                  'community_nav_title',
+                ),
                 onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const MessagesScreen(),
+                      builder: (context) => const CommunityScreen(),
                     ),
                   );
                 },
@@ -175,6 +178,7 @@ class _FeedListState extends State<FeedList>
   Object? _error;
   bool _isLoadingPreferences = false;
   int _currentPage = 1;
+  int _refreshCount = 0; // Recharge le bandeau « En direct » avec le fil
   final ScrollController _scrollController = ScrollController();
   List<String> _interests = [];
   String? _mainCause;
@@ -254,6 +258,7 @@ class _FeedListState extends State<FeedList>
           _posts.clear();
           _currentPage = 1;
           _hasMore = true;
+          _refreshCount++;
         }
       });
     }
@@ -672,7 +677,14 @@ class _FeedListState extends State<FeedList>
         itemCount: listItemCount,
         itemBuilder: (context, index) {
           if (index == 0) {
-            return const StoriesBar();
+            return widget.feedType == 'global'
+                ? Column(
+                    children: [
+                      const StoriesBar(),
+                      LiveNowStrip(refreshCount: _refreshCount),
+                    ],
+                  )
+                : const StoriesBar();
           }
 
           if (widget.feedType == 'global' && index == 1) {

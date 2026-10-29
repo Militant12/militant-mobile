@@ -27,6 +27,9 @@ void main() {
     'lib/screens/profile_screen.dart',
     'lib/widgets/video_player_widget.dart',
     'lib/widgets/post_card.dart',
+    'lib/screens/home_screen.dart',
+    'lib/screens/community_screen.dart',
+    'lib/widgets/live_now_strip.dart',
   ];
   const languages = ['fr', 'en', 'es'];
   // Catches plain keys as well as `translate(cond ? 'a' : 'b')`.
