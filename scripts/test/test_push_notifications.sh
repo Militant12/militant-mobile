@@ -5,12 +5,12 @@
 #
 #  Usage avec tokens :
 #    TOKEN_A="..." TOKEN_B="..." USER_A_ID=1 USER_B_ID=48 \
-#    USER_A_LOGIN="calyps" ./test_push_notifications.sh
+#    USER_A_LOGIN="calyps" ./scripts/test/test_push_notifications.sh
 #
 #  Usage avec login/mdp :
 #    USER_A_LOGIN="calyps" USER_A_PASS="mdp" \
 #    USER_B_LOGIN="alber" USER_B_PASS="mdp" \
-#    ./test_push_notifications.sh
+#    ./scripts/test/test_push_notifications.sh
 # ============================================================
 
 BASE_URL="${BASE_URL:-https://api.militant.revlibertaire.com}"

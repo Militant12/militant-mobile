@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Exécuter les commandes depuis la racine du dépôt, quel que soit le dossier
+# courant utilisé pour lancer ce script.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+cd "$PROJECT_ROOT" || exit 1
+
 # Configuration
 VERSION=$(grep "version: " pubspec.yaml | sed 's/version: //')
 echo "🚀 Préparation de la version $VERSION pour Google Play Store..."

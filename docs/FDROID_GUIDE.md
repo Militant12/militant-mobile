@@ -132,7 +132,7 @@ Le fichier `pubspec_fdroid.yaml` est volontairement copié avant la résolution 
 
 ### Étape 2 : Ajouter la recette de l'application
 1. Dans votre fork de `fdroiddata`, créez une nouvelle branche (ex. `add-militant`).
-2. Créez le fichier `metadata/com.militant.militant_flutter.yml` et collez-y le contenu de [`metadata/com.militant.militant_flutter.yml`](file:///home/anar/Bureau/militant-flutter/metadata/com.militant.militant_flutter.yml).
+2. Créez le fichier `metadata/com.militant.militant_flutter.yml` et collez-y le contenu de [`metadata/com.militant.militant_flutter.yml`](../metadata/com.militant.militant_flutter.yml).
 3. Committez le fichier : `git commit -m "Add com.militant.militant_flutter"`.
 4. Poussez la branche sur votre fork.
 

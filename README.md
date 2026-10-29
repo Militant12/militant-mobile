@@ -270,7 +270,7 @@ militant_flutter/
 │       ├── api_service.dart
 │       └── language_service.dart
 ├── android/                         # Configuration Android
-├── ios/                            # Configuration iOS
+├── ios/                             # Configuration iOS
 ├── assets/
 │   ├── logo.svg                    # Logo de l'application
 │   ├── badges/                     # Badges militants (exclusif mobile)
@@ -292,9 +292,26 @@ militant_flutter/
 │   │   ├── cnt-ait-e.jpg
 │   │   ├── ulet-ait.png
 │   │   └── ...
-│   └── offline.html                # Page hors ligne
+│   └── offline.html                 # Page hors ligne
+├── docs/                            # Documentation technique et publication
+├── scripts/
+│   ├── test/                        # Tests et diagnostics manuels
+│   └── release/                     # Publication des versions
+├── test/                            # Tests automatisés Flutter
 └── pubspec.yaml                    # Dépendances Flutter
 ```
+
+## Documentation
+
+- [Appels audio et vidéo](docs/APPELS_AUDIO_VIDEO.md)
+- [Construction et publication F-Droid](docs/FDROID_GUIDE.md)
+- [Reconnexion ICE lors d'un changement de réseau](docs/ICE_RESTART.md)
+- [Publication sur Google Play](docs/PLAY_STORE.md)
+- [Publication du projet sur GitLab](docs/PUBLISH.md)
+
+Les tests et diagnostics manuels sont regroupés dans `scripts/test/`. Les
+scripts de construction restent directement dans `scripts/` et les scripts de
+publication sont placés dans `scripts/release/`.
 
 ## Dépendances principales
 

@@ -59,7 +59,7 @@ if [ -n "$BASE_URL" ] && [ -n "$API_TOKEN" ]; then
 else
   echo "BASE_URL ou API_TOKEN non défini -> test API ignoré."
   echo "Exemple:"
-  echo "BASE_URL=\"https://ton-domaine/api\" API_TOKEN=\"token\" ./check_push_diag.sh"
+  echo "BASE_URL=\"https://ton-domaine/api\" API_TOKEN=\"token\" ./scripts/test/check_push_diag.sh"
 fi
 
 print_section "Logs serveur OneSignal (snapshot)"
