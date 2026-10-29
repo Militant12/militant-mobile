@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.5.5
   flutter_svg: ^2.3.0
@@ -32,6 +34,7 @@ dependencies:
   connectivity_plus: ^7.3.2
   font_awesome_flutter: ^10.8.0
   crypto: ^3.0.6
+  cached_network_image: ^3.4.1
 
 dev_dependencies:
   flutter_test:
