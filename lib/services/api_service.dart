@@ -940,7 +940,9 @@ class ApiService {
     if (response.statusCode == 200 || response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
-      throw Exception('Erreur de sauvegarde');
+      throw Exception(
+        _extractApiError(response, fallbackError: 'Erreur de sauvegarde'),
+      );
     }
   }
 
@@ -3826,7 +3828,12 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      throw Exception('Erreur de suppression du favori');
+      throw Exception(
+        _extractApiError(
+          response,
+          fallbackError: 'Erreur de suppression du favori',
+        ),
+      );
     }
   }
 
