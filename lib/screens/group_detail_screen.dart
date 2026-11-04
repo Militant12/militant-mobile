@@ -137,6 +137,10 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     }
   }
 
+  /// Vrai juste après avoir rejoint le groupe : le tampon arrive en
+  /// s'animant.
+  bool _stampLanding = false;
+
   Future<void> _joinGroup() async {
     final lang = LanguageService.instance;
     try {
@@ -164,7 +168,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                 onPressed: () => Navigator.pop(context, true),
                 child: Text(
                   lang.translate('send_request'),
-                  style: const TextStyle(color: AppColors.militantRed),
+                  style: TextStyle(color: context.colors.onPrimaryContainer),
                 ),
               ),
             ],
@@ -175,19 +179,15 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       }
 
       await api.joinGroup(_groupData!['id']);
+      _stampLanding = !isPrivate;
 
       // Reload group info to get updated status
       await _loadGroupInfo();
 
-      if (mounted) {
+      // Groupe public : le tampon « Rejoint » confirme à lui seul.
+      if (mounted && isPrivate) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              isPrivate
-                  ? lang.translate('join_request_sent')
-                  : lang.translate('joined_group_success'),
-            ),
-          ),
+          SnackBar(content: Text(lang.translate('join_request_sent'))),
         );
       }
     } catch (e, st) {
@@ -222,7 +222,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
             onPressed: () => Navigator.pop(context, true),
             child: Text(
               lang.translate('leave'),
-              style: const TextStyle(color: AppColors.militantRed),
+              style: TextStyle(color: context.colors.onPrimaryContainer),
             ),
           ),
         ],
@@ -504,7 +504,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.militantRed,
+                backgroundColor: context.colors.primary,
                 foregroundColor: Colors.white,
               ),
               child: Text(lang.translate('save')),
@@ -592,8 +592,8 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                               top: 8,
                               child: Container(
                                 padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                  color: AppColors.militantRed,
+                                decoration: BoxDecoration(
+                                  color: context.colors.primary,
                                   shape: BoxShape.circle,
                                 ),
                                 constraints: const BoxConstraints(
@@ -668,14 +668,27 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Title
-                    Text(
-                      name,
-                      style: TextStyle(
-                        fontSize: AppTokens.fontHeadlineMedium,
-                        fontWeight: FontWeight.w800,
-                        color: theme.textTheme.titleLarge?.color,
-                      ),
+                    // Titre, et le tampon à côté pour les membres.
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(name, style: context.text.headlineMedium),
+                        ),
+                        if (isMember) ...[
+                          const SizedBox(width: AppTokens.space12),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 6),
+                            child: Stamp(
+                              label: lang.translate('stamp_joined'),
+                              semanticLabel: lang.translate(
+                                'stamp_joined_status',
+                              ),
+                              animate: _stampLanding,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 8),
 
@@ -687,13 +700,13 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                               ? Icons.lock
                               : Icons.public,
                           size: 16,
-                          color: Colors.grey,
+                          color: context.tokens.textMuted,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           '$privacy · $membersCount ${membersCount > 1 ? lang.translate('members') : lang.translate('member')}',
-                          style: const TextStyle(
-                            color: Colors.grey,
+                          style: TextStyle(
+                            color: context.tokens.textMuted,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -744,20 +757,18 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: isMember
-                                  ? (isDark
-                                        ? Colors.grey[800]
-                                        : Colors.grey[300])
+                                  ? context.colors.surfaceContainerHigh
                                   : (_groupData!['has_pending_request'] ==
                                             'pending'
-                                        ? Colors.orange
-                                        : AppColors.militantRed),
+                                        ? context.tokens.warningSoft
+                                        : context.colors.primary),
                               foregroundColor: isMember
-                                  ? (isDark ? Colors.white70 : Colors.black87)
-                                  : Colors.white,
+                                  ? context.colors.onSurface
+                                  : (_groupData!['has_pending_request'] ==
+                                            'pending'
+                                        ? context.tokens.warning
+                                        : context.colors.onPrimary),
                               elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
                               padding: const EdgeInsets.symmetric(vertical: 10),
                             ),
                           ),
@@ -769,14 +780,9 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                             icon: const Icon(Icons.share, size: 18),
                             label: Text(lang.translate('share')),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: isDark
-                                  ? Colors.grey[800]
-                                  : Colors.grey[200],
+                              backgroundColor: context.colors.surfaceContainerHigh,
                               foregroundColor: theme.textTheme.bodyLarge?.color,
                               elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               iconColor: theme.iconTheme.color,
                             ),
@@ -930,7 +936,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                               color: theme.scaffoldBackgroundColor,
                               width: 2,
                             ),
-                            color: Colors.grey[400],
+                            color: context.colors.surfaceContainerHigh,
                           ),
                           child: ClipOval(
                             child: _buildMemberAvatar(displayMembers[i]),
@@ -960,7 +966,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                       LanguageService.instance.translate('group_members_subtitle'),
                       style: TextStyle(
                         fontSize: AppTokens.fontBodySmall,
-                        color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7) ?? Colors.grey,
+                        color: context.tokens.textMuted,
                       ),
                     ),
                   ],
@@ -970,13 +976,13 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: AppColors.militantRed.withOpacity(0.1),
+                  color: context.colors.primaryContainer,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.arrow_forward_ios_rounded,
                   size: 14,
-                  color: AppColors.militantRed,
+                  color: context.colors.onPrimaryContainer,
                 ),
               ),
             ],
@@ -1006,7 +1012,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       return Image(
         image: CachedNetworkImageProvider(coverUrl),
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(color: Colors.grey[900]),
+        errorBuilder: (_, __, ___) => Container(color: context.colors.surfaceContainerHigh),
       );
     }
 
@@ -1017,15 +1023,15 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
         return SvgPicture.network(
           url,
           fit: BoxFit.cover,
-          placeholderBuilder: (_) => Container(color: Colors.grey[900]),
+          placeholderBuilder: (_) => Container(color: context.colors.surfaceContainerHigh),
         );
       }
       return Image(
         image: CachedNetworkImageProvider(url),
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(color: Colors.grey[900]),
+        errorBuilder: (_, __, ___) => Container(color: context.colors.surfaceContainerHigh),
       );
     }
-    return Container(color: AppColors.militantRed.withOpacity(0.5));
+    return Container(color: context.colors.primary.withValues(alpha: 0.5));
   }
 }

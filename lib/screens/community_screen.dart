@@ -6,7 +6,6 @@ import 'moderation_screen.dart';
 import 'discovery_screen.dart';
 import 'fediverse_screen.dart';
 import 'feature_suggestions_screen.dart';
-import '../theme/app_colors.dart';
 import '../theme/theme_context.dart';
 import '../theme/app_tokens.dart';
 
@@ -19,7 +18,6 @@ class CommunityScreen extends StatelessWidget {
       valueListenable: LanguageService.instance,
       builder: (context, locale, child) {
         final theme = Theme.of(context);
-        final isDark = theme.brightness == Brightness.dark;
         final translate = LanguageService.instance.translate;
 
         final backgroundColor = theme.scaffoldBackgroundColor;
@@ -53,8 +51,6 @@ class CommunityScreen extends StatelessWidget {
                   translate('fediverse_menu_desc'),
                   Icons.hub_outlined,
                   const FediverseScreen(),
-                  Colors.teal[700]!,
-                  isDark,
                 ),
                 const SizedBox(height: 8),
                 _buildMenuCard(
@@ -63,8 +59,6 @@ class CommunityScreen extends StatelessWidget {
                   translate('discover_militants_desc'),
                   Icons.person_search,
                   const DiscoveryScreen(),
-                  AppColors.militantRed,
-                  isDark,
                 ),
                 const SizedBox(height: 8),
                 _buildMenuCard(
@@ -73,8 +67,6 @@ class CommunityScreen extends StatelessWidget {
                   translate('live_desc'),
                   Icons.live_tv,
                   const LiveScreen(),
-                  AppColors.militantRed,
-                  isDark,
                 ),
                 const SizedBox(height: 8),
                 _buildMenuCard(
@@ -83,8 +75,6 @@ class CommunityScreen extends StatelessWidget {
                   translate('suggest_features_desc'),
                   Icons.lightbulb_outline,
                   const FeatureSuggestionsScreen(),
-                  const Color(0xFF6D5DF6),
-                  isDark,
                 ),
                 const SizedBox(height: 8),
                 _buildMenuCard(
@@ -93,8 +83,6 @@ class CommunityScreen extends StatelessWidget {
                   translate('pages_desc'),
                   Icons.flag,
                   const PagesScreen(),
-                  Colors.blue[700]!,
-                  isDark,
                 ),
                 const SizedBox(height: 8),
                 _buildMenuCard(
@@ -103,8 +91,6 @@ class CommunityScreen extends StatelessWidget {
                   translate('moderation_desc'),
                   Icons.security,
                   const ModerationScreen(),
-                  Colors.purple[700]!,
-                  isDark,
                 ),
                 const SizedBox(height: 8),
               ],
@@ -121,37 +107,13 @@ class CommunityScreen extends StatelessWidget {
     String subtitle,
     IconData icon,
     Widget screen,
-    Color accentColor,
-    bool isDark,
   ) {
-    Color iconColor = accentColor;
-    Color iconBgColor = accentColor.withValues(alpha: 0.15);
-
-    if (title == 'Pages' || title == 'Páginas') {
-      iconColor = Colors.black;
-      if (isDark) {
-        iconBgColor = Colors.white;
-      } else {
-        iconBgColor = Colors.grey[200]!;
-      }
-    }
-
-    final cardBg = isDark ? const Color(0xFF151515) : Colors.white;
-    final borderColor = context.colors.outlineVariant;
-    final shadowColor = isDark
-        ? Colors.black.withValues(alpha: 0.4)
-        : Colors.grey.withValues(alpha: 0.2);
-
-    final gradient = isDark
-        ? const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF252525), Color(0xFF151515)],
-          )
-        : null;
-
+    // Une seule teinte pour toutes les entrées : le rouge signale l'action,
+    // pas la catégorie.
+    final iconColor = context.colors.onPrimaryContainer;
+    final iconBgColor = context.colors.primaryContainer;
     final textColor = context.colors.onSurface;
-    final subTextColor = isDark ? Colors.grey[400] : Colors.grey[700];
+    final subTextColor = context.tokens.textMuted;
 
     return Material(
       color: Colors.transparent,
@@ -166,17 +128,10 @@ class CommunityScreen extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
-            color: cardBg,
+            color: context.colors.surface,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: borderColor),
-            gradient: gradient,
-            boxShadow: [
-              BoxShadow(
-                color: shadowColor,
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            border: Border.all(color: context.colors.outlineVariant),
+            boxShadow: context.tokens.cardShadow,
           ),
           child: LayoutBuilder(
             builder: (context, constraints) {

@@ -4,7 +4,6 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../widgets/militant_badge.dart';
 import '../utils/error_helper.dart';
-import '../theme/app_colors.dart';
 import '../theme/theme_context.dart';
 import '../theme/app_tokens.dart';
 
@@ -151,18 +150,18 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
               onPressed: _saveBadge,
               child: Text(
                 lang.translate('save'),
-                style: const TextStyle(color: AppColors.militantRed),
+                style: TextStyle(color: context.colors.onPrimaryContainer),
               ),
             ),
           if (_isSaving)
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(16.0),
               child: SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: AppColors.militantRed,
+                  color: context.colors.primary,
                 ),
               ),
             ),
@@ -218,7 +217,7 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.militantRed.withOpacity(0.1)
+              ? context.colors.primaryContainer
               : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
@@ -231,9 +230,9 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
                 height: 40,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.grey.withOpacity(0.3),
+                  color: context.colors.surfaceContainerHigh,
                 ),
-                child: const Icon(Icons.close, color: Colors.grey, size: 24),
+                child: Icon(Icons.close, color: context.tokens.textMuted, size: 24),
               )
             else
               MilitantBadge(badgeId: id, size: 40),
@@ -243,7 +242,7 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
                 name,
                 style: TextStyle(
                   color: isSelected
-                      ? AppColors.militantRed
+                      ? context.colors.onPrimaryContainer
                       : (context.colors.onSurface),
                   fontSize: AppTokens.fontBodyLarge,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -251,7 +250,7 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
               ),
             ),
             if (isSelected)
-              const Icon(Icons.check_circle, color: AppColors.militantRed),
+              Icon(Icons.check_circle, color: context.colors.onPrimaryContainer),
           ],
         ),
       ),

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../utils/error_helper.dart';
-import '../theme/app_colors.dart';
 import '../theme/theme_context.dart';
 import '../theme/app_tokens.dart';
 
@@ -72,12 +71,10 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
   @override
   Widget build(BuildContext context) {
     final lang = LanguageService.instance;
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final categories = _getCategories();
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : Colors.grey[50],
+      backgroundColor: context.theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: context.colors.surface,
         title: Text(
@@ -96,12 +93,12 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.militantRed.withOpacity(0.1),
+                  color: context.colors.primaryContainer,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.flag,
-                  color: AppColors.militantRed,
+                  color: context.colors.onPrimaryContainer,
                   size: 40,
                 ),
               ),
@@ -188,7 +185,7 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
                     ],
                   ),
                   backgroundColor: context.colors.surfaceContainerHigh,
-                  selectedColor: AppColors.militantRed,
+                  selectedColor: context.colors.primary,
                   checkmarkColor: Colors.white,
                   onSelected: (selected) {
                     setState(
@@ -247,12 +244,9 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
                     : const Icon(Icons.add),
                 label: Text(_isLoading ? lang.translate('creating') : lang.translate('create_page_button')),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.militantRed,
+                  backgroundColor: context.colors.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
                 ),
               ),
             ),

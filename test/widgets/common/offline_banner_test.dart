@@ -9,6 +9,7 @@ import 'package:militant/widgets/common/offline_banner.dart';
 
 void main() {
   final offlineText = LanguageService.instance.translate('offline_banner');
+  final onlineAgainText = LanguageService.instance.translate('online_again');
 
   Future<StreamController<List<ConnectivityResult>>> pumpBanner(
     WidgetTester tester, {
@@ -48,9 +49,27 @@ void main() {
     expect(find.text(offlineText), findsOneWidget);
     expect(find.text('Contenu'), findsOneWidget);
 
+    // Retour du réseau : « De nouveau en ligne » pendant 2 s, puis rien.
+    changes.add([ConnectivityResult.mobile]);
+    await tester.pump();
+    await tester.pump();
+    expect(find.text(offlineText), findsNothing);
+    expect(find.text(onlineAgainText), findsOneWidget);
+
+    await tester.pump(OfflineBanner.backOnlineDuration);
+    await tester.pumpAndSettle();
+    expect(find.text(onlineAgainText), findsNothing);
+    expect(find.text('Contenu'), findsOneWidget);
+  });
+
+  testWidgets('rien à annoncer au démarrage en ligne', (tester) async {
+    final changes = await pumpBanner(
+      tester,
+      initial: [ConnectivityResult.wifi],
+    );
     changes.add([ConnectivityResult.mobile]);
     await tester.pumpAndSettle();
-    expect(find.text(offlineText), findsNothing);
+    expect(find.text(onlineAgainText), findsNothing);
   });
 
   testWidgets('hors ligne dès le démarrage', (tester) async {

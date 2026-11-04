@@ -10,6 +10,7 @@ import 'militant_badge.dart';
 import 'technician_badge.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../theme/app_motion.dart';
 import '../theme/app_tokens.dart';
 import '../theme/theme_context.dart';
 import '../utils/date_formatter.dart';
@@ -167,15 +168,10 @@ class _PostCardState extends State<PostCard> {
           ),
         );
       },
+      // Une vraie carte, espacée des autres de space-3 sur le fond paper.
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        decoration: BoxDecoration(
-          color: colors.surface,
-          border: Border(
-            bottom: BorderSide(color: context.theme.dividerColor, width: 1),
-          ),
-          boxShadow: context.tokens.cardShadow,
-        ),
+        margin: _PostCardFrame.margin,
+        decoration: _PostCardFrame.decoration(context),
         child: Padding(
           padding: const EdgeInsets.all(AppTokens.space16),
           child: Column(
@@ -252,10 +248,8 @@ class _PostCardState extends State<PostCard> {
                                   widget.post.username,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
+                                  style: context.text.titleMedium?.copyWith(
                                     color: textColor,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: AppTokens.fontBodyLarge,
                                   ),
                                 ),
                               ),
@@ -279,15 +273,13 @@ class _PostCardState extends State<PostCard> {
                                   child: Container(
                                     padding: const EdgeInsets.all(2),
                                     decoration: BoxDecoration(
-                                      color: colors.primary.withValues(
-                                        alpha: 0.15,
-                                      ),
+                                      color: colors.primaryContainer,
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Icon(
                                       Icons.shield,
                                       size: 16,
-                                      color: colors.primary,
+                                      color: colors.onPrimaryContainer,
                                     ),
                                   ),
                                 ),
@@ -297,7 +289,9 @@ class _PostCardState extends State<PostCard> {
                         ),
                         Text(
                           DateFormatter.formatRelative(widget.post.feedDate),
-                          style: TextStyle(color: subtitleColor, fontSize: AppTokens.fontBodyMedium),
+                          style: context.text.bodySmall?.copyWith(
+                            color: subtitleColor,
+                          ),
                         ),
                       ],
                     ),
@@ -316,7 +310,7 @@ class _PostCardState extends State<PostCard> {
                 text: _showTranslation && _translatedContent != null
                     ? _translatedContent!
                     : _currentContent,
-                style: TextStyle(color: textColor, fontSize: AppTokens.fontBodyLarge, height: 1.4),
+                style: context.text.bodyLarge!.copyWith(color: textColor),
                 onLinksDetected: (urls) {
                   // Filtrer les nouvelles URLs pour éviter les rebuilds inutiles
                   final newUrls = urls
@@ -358,7 +352,7 @@ class _PostCardState extends State<PostCard> {
                         Icons.translate,
                         size: 16,
                         color: _showTranslation
-                            ? colors.primary
+                            ? colors.onPrimaryContainer
                             : subtitleColor,
                       ),
                       const SizedBox(width: AppTokens.space4),
@@ -370,7 +364,7 @@ class _PostCardState extends State<PostCard> {
                             : lang.translate('translate_action'),
                         style: TextStyle(
                           color: _showTranslation
-                              ? colors.primary
+                              ? colors.onPrimaryContainer
                               : subtitleColor,
                           fontSize: AppTokens.fontBodyMedium,
                         ),
@@ -390,7 +384,7 @@ class _PostCardState extends State<PostCard> {
                   )
                 else
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(AppTokens.radius12),
+                    borderRadius: BorderRadius.circular(AppTokens.radius8),
                     child: Image(
                       image: CachedNetworkImageProvider(_mediaUrl!),
                       width: double.infinity,
@@ -434,44 +428,51 @@ class _PostCardState extends State<PostCard> {
                   ),
               ],
 
-              const SizedBox(height: 12),
+              const SizedBox(height: AppTokens.space4),
 
-              // Actions (like, comment, share)
-              Row(
-                children: [
-                  _buildActionButton(
-                    icon: _isLiked ? Icons.thumb_up : Icons.thumb_up_off_alt,
-                    count: _likesCount,
-                    semanticsKey: 'post_likes_count',
-                    selected: _isLiked,
-                    color: _isLiked ? colors.primary : subtitleColor,
-                    onTap: _toggleLike,
-                  ),
-                  const SizedBox(width: 24),
-                  _buildActionButton(
-                    icon: Icons.comment_outlined,
-                    count: widget.post.commentsCount,
-                    semanticsKey: 'post_comments_count',
-                    color: subtitleColor,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              PostDetailScreen(post: widget.post),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(width: 24),
-                  _buildActionButton(
-                    icon: Icons.share_outlined,
-                    count: widget.post.sharesCount,
-                    semanticsKey: 'post_shares_count',
-                    color: subtitleColor,
-                    onTap: () => _sharePost(context),
-                  ),
-                ],
+              // Actions (like, comment, share). Chaque zone d'appui fait au
+              // moins 44px ; le décalage à gauche aligne l'icône du J'aime
+              // sur le texte.
+              Transform.translate(
+                offset: const Offset(-AppTokens.space8, 0),
+                child: Row(
+                  children: [
+                    _buildActionButton(
+                      icon: _isLiked
+                          ? Icons.thumb_up_rounded
+                          : Icons.thumb_up_outlined,
+                      count: _likesCount,
+                      semanticsKey: 'post_likes_count',
+                      selected: _isLiked,
+                      color: _isLiked ? colors.onPrimaryContainer : subtitleColor,
+                      onTap: _toggleLike,
+                    ),
+                    const SizedBox(width: AppTokens.space8),
+                    _buildActionButton(
+                      icon: Icons.comment_outlined,
+                      count: widget.post.commentsCount,
+                      semanticsKey: 'post_comments_count',
+                      color: subtitleColor,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                PostDetailScreen(post: widget.post),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(width: AppTokens.space8),
+                    _buildActionButton(
+                      icon: Icons.share_outlined,
+                      count: widget.post.sharesCount,
+                      semanticsKey: 'post_shares_count',
+                      color: subtitleColor,
+                      onTap: () => _sharePost(context),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -497,19 +498,30 @@ class _PostCardState extends State<PostCard> {
       excludeSemantics: true,
       child: InkWell(
         onTap: onTap,
-        child: Row(
-          children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(width: AppTokens.space4),
-            Text(
-              '$count',
-              style: TextStyle(
-                color: color,
-                fontSize: AppTokens.fontBodyMedium,
-                fontWeight: FontWeight.w500,
-              ),
+        borderRadius: BorderRadius.circular(AppTokens.radiusPill),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppTokens.space8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Le J'aime (selected non nul) rebondit quand on l'active.
+                if (selected == null)
+                  Icon(icon, color: color, size: 20)
+                else
+                  _ReactionIcon(icon: icon, color: color, active: selected),
+                const SizedBox(width: AppTokens.space4),
+                RollingCount(
+                  count: count,
+                  style: context.text.bodyMedium?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -1263,6 +1275,67 @@ class _PostCardState extends State<PostCard> {
   }
 }
 
+/// Icône d'une réaction : quand elle s'active, elle se remplit, passe en
+/// rouge et fait un petit rebond incliné. Quand elle se désactive, elle
+/// change sans rebond.
+class _ReactionIcon extends StatelessWidget {
+  const _ReactionIcon({
+    required this.icon,
+    required this.color,
+    required this.active,
+  });
+
+  final IconData icon;
+  final Color color;
+  final bool active;
+
+  static final Animatable<double> _scale = Tween<double>(
+    begin: 0.6,
+    end: 1,
+  ).chain(CurveTween(curve: AppMotion.pop));
+  static final Animatable<double> _tilt = Tween<double>(
+    begin: -0.06,
+    end: 0,
+  ).chain(CurveTween(curve: AppMotion.pop));
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: active
+          ? AppMotion.of(context, AppMotion.slow)
+          : Duration.zero,
+      transitionBuilder: (child, animation) {
+        // L'icône sortante laisse aussitôt la place.
+        if (child.key != ValueKey<bool>(active)) return const SizedBox.shrink();
+        return ScaleTransition(
+          scale: animation.drive(_scale),
+          child: RotationTransition(
+            turns: animation.drive(_tilt),
+            child: child,
+          ),
+        );
+      },
+      child: Icon(icon, key: ValueKey<bool>(active), color: color, size: 20),
+    );
+  }
+}
+
+/// Cadre commun à [PostCard] et à son squelette : carte `surface` aux coins
+/// `radius-lg`, filet `line`, ombre `shadow-card` en clair seulement.
+abstract final class _PostCardFrame {
+  static const EdgeInsets margin = EdgeInsets.symmetric(
+    horizontal: AppTokens.space16,
+    vertical: AppTokens.space12 / 2,
+  );
+
+  static BoxDecoration decoration(BuildContext context) => BoxDecoration(
+    color: context.colors.surface,
+    borderRadius: BorderRadius.circular(AppTokens.radius20),
+    border: Border.all(color: context.colors.outlineVariant),
+    boxShadow: context.tokens.cardShadow,
+  );
+}
+
 /// Squelette d'un [PostCard] affiché pendant le premier chargement du fil.
 ///
 /// À placer sous un [SkeletonPulse] pour que plusieurs squelettes pulsent
@@ -1273,14 +1346,9 @@ class PostCardSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: AppTokens.space4),
+      margin: _PostCardFrame.margin,
       padding: const EdgeInsets.all(AppTokens.space16),
-      decoration: BoxDecoration(
-        color: context.colors.surface,
-        border: Border(
-          bottom: BorderSide(color: context.theme.dividerColor, width: 1),
-        ),
-      ),
+      decoration: _PostCardFrame.decoration(context),
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1309,7 +1377,7 @@ class PostCardSkeleton extends StatelessWidget {
           SkeletonBox(
             width: double.infinity,
             height: 180,
-            radius: AppTokens.radius12,
+            radius: AppTokens.radius8,
           ),
           SizedBox(height: AppTokens.space16),
           SkeletonBox(width: 160, height: 16),

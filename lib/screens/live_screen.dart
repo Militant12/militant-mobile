@@ -1991,9 +1991,6 @@ class _LiveScreenState extends State<LiveScreen> {
                   onPressed: _isConnecting ? null : _startAsCreator,
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.militantRed,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
                   ),
                   child: _isConnecting
                       ? const CircularProgressIndicator(

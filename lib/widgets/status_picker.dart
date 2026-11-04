@@ -4,7 +4,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../services/user_status_service.dart';
-import '../theme/app_colors.dart';
 import '../theme/app_tokens.dart';
 
 /// Chip cliquable affichant ton propre statut sur ton profil
@@ -163,7 +162,7 @@ class _StatusPickerDialogState extends State<StatusPickerDialog> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final bg = context.colors.surface;
-    final accent = AppColors.militantRed;
+    final accent = context.colors.primary;
 
     return Container(
       decoration: BoxDecoration(
@@ -186,7 +185,7 @@ class _StatusPickerDialogState extends State<StatusPickerDialog> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey[500],
+                color: context.colors.outline,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -287,12 +286,12 @@ class _StatusPickerDialogState extends State<StatusPickerDialog> {
                 'status_custom_hint',
               ),
               counterText: '',
-              prefixIcon: const Padding(
+              prefixIcon: Padding(
                 padding: EdgeInsets.all(12),
                 child: FaIcon(
                   FontAwesomeIcons.penToSquare,
                   size: 14,
-                  color: Colors.grey,
+                  color: context.tokens.textMuted,
                 ),
               ),
               border: OutlineInputBorder(
@@ -316,8 +315,8 @@ class _StatusPickerDialogState extends State<StatusPickerDialog> {
                 icon: const FaIcon(FontAwesomeIcons.trash, size: 12),
                 label: Text(LanguageService.instance.translate('status_clear')),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.red,
-                  side: const BorderSide(color: Colors.red),
+                  foregroundColor: context.colors.error,
+                  side: BorderSide(color: context.colors.error),
                 ),
               ),
               const SizedBox(width: 10),

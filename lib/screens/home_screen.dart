@@ -11,6 +11,8 @@ import '../widgets/incoming_call_banner.dart';
 import '../services/api_service.dart';
 import '../services/notification_badge_service.dart';
 import 'banned_screen.dart';
+import '../theme/app_motion.dart';
+import '../theme/theme_context.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -87,27 +89,27 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return [
       NavigationDestination(
         icon: const Icon(Icons.home_outlined),
-        selectedIcon: const Icon(Icons.home),
+        selectedIcon: const Icon(Icons.home_rounded),
         label: lang.translate('home_title'),
       ),
       NavigationDestination(
         icon: const Icon(Icons.groups_outlined),
-        selectedIcon: const Icon(Icons.groups),
+        selectedIcon: const Icon(Icons.groups_rounded),
         label: lang.translate('groups_title'),
       ),
       NavigationDestination(
-        icon: const Icon(Icons.event_outlined),
-        selectedIcon: const Icon(Icons.event),
+        icon: const Icon(Icons.calendar_month_outlined),
+        selectedIcon: const Icon(Icons.calendar_month_rounded),
         label: lang.translate('agenda_title'),
       ),
       NavigationDestination(
-        icon: const Icon(Icons.message_outlined),
-        selectedIcon: const Icon(Icons.message),
+        icon: const Icon(Icons.chat_bubble_outline_rounded),
+        selectedIcon: const Icon(Icons.chat_bubble_rounded),
         label: lang.translate('messages_title'),
       ),
       NavigationDestination(
-        icon: const Icon(Icons.person_outline),
-        selectedIcon: const Icon(Icons.person),
+        icon: const Icon(Icons.person_outline_rounded),
+        selectedIcon: const Icon(Icons.person_rounded),
         label: lang.translate('profile_title'),
       ),
     ];
@@ -126,14 +128,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           const IncomingCallBanner(),
         ],
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex < _screens.length ? _selectedIndex : 0,
-        onDestinationSelected: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        destinations: _buildDestinations(),
+      // Filet `line` au-dessus de la barre du bas.
+      bottomNavigationBar: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(color: context.colors.outlineVariant),
+          ),
+        ),
+        child: NavigationBar(
+          // L'indicateur de l'onglet actif s'étire depuis le centre.
+          animationDuration: AppMotion.of(context, AppMotion.base),
+          selectedIndex: _selectedIndex < _screens.length ? _selectedIndex : 0,
+          onDestinationSelected: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+          destinations: _buildDestinations(),
+        ),
       ),
     );
   }

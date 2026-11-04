@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import '../../theme/app_theme.dart';
 import '../../theme/theme_context.dart';
 
 /// Avatar rond commun (utilisateur, groupe, page).
 ///
 /// [url] doit déjà être résolue (`ApiService.getImageUrl`). Sans image, ou si
-/// elle ne se charge pas, affiche l'initiale de [name] sur fond rouge, ou le
-/// logo Militant si [name] est vide.
+/// elle ne se charge pas, affiche les initiales de [name] (deux au plus) sur
+/// `surface-alt`, ou le logo Militant si [name] est vide.
 class AppAvatar extends StatelessWidget {
   const AppAvatar({
     super.key,
@@ -31,14 +32,20 @@ class AppAvatar extends StatelessWidget {
 
   double get _size => radius * 2;
 
-  String? get _initial {
-    final trimmed = name?.trim() ?? '';
-    return trimmed.isEmpty ? null : trimmed.characters.first.toUpperCase();
+  /// « Collectif Banlieues » → « CB », « camille » → « C ».
+  String? get _initials {
+    final words = (name ?? '')
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((w) => w.isNotEmpty)
+        .take(2);
+    if (words.isEmpty) return null;
+    return words.map((w) => w.characters.first.toUpperCase()).join();
   }
 
   Widget _fallback(BuildContext context) {
-    final initial = _initial;
-    if (initial == null) {
+    final initials = _initials;
+    if (initials == null) {
       return SvgPicture.asset(
         'assets/logo.svg',
         width: _size,
@@ -49,14 +56,18 @@ class AppAvatar extends StatelessWidget {
     return Container(
       width: _size,
       height: _size,
-      color: context.colors.primary,
+      color: context.colors.surfaceContainerHigh,
       alignment: Alignment.center,
       child: Text(
-        initial,
+        initials,
+        maxLines: 1,
         style: TextStyle(
-          color: context.colors.onPrimary,
-          fontWeight: FontWeight.bold,
-          fontSize: radius * 0.8,
+          fontFamily: AppFonts.display,
+          fontFamilyFallback: AppFonts.fallback,
+          color: context.colors.onSurface,
+          fontWeight: FontWeight.w800,
+          fontSize: radius * (initials.characters.length > 1 ? 0.7 : 0.8),
+          height: 1,
         ),
       ),
     );

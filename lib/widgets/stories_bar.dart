@@ -181,7 +181,6 @@ class _StoriesBarState extends State<StoriesBar> {
           SnackBar(
             content: Text('${lang.translate('stories_error')}: ${getFriendlyErrorMessage(e, lang)}'),
             duration: const Duration(seconds: 5),
-            backgroundColor: Colors.red,
           ),
         );
       }

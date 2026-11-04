@@ -11,7 +11,6 @@ import './badge_selection_screen.dart';
 import './two_factor_settings_screen.dart';
 import './edit_profile_screen.dart';
 import '../utils/error_helper.dart';
-import '../theme/app_colors.dart';
 import '../theme/theme_context.dart';
 import '../theme/app_tokens.dart';
 
@@ -234,9 +233,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required VoidCallback onTap,
   }) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final dividerColor = context.colors.outlineVariant;
-    final subtitleColor = isDark ? AppColors.grey888 : Colors.grey[700];
+    final subtitleColor = context.tokens.textMuted;
     final titleColor = theme.textTheme.bodyLarge?.color;
 
     return InkWell(
@@ -248,7 +246,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         child: Row(
           children: [
-            Icon(icon, color: AppColors.militantRed),
+            Icon(icon, color: context.colors.onPrimaryContainer),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -296,10 +294,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               leading: Icon(
                 Icons.dark_mode,
-                color: isDark ? AppColors.militantRed : onSurface,
+                color: isDark ? context.colors.onPrimaryContainer : onSurface,
               ),
               trailing: isDark
-                  ? const Icon(Icons.check, color: AppColors.militantRed)
+                  ? Icon(Icons.check, color: context.colors.onPrimaryContainer)
                   : null,
               onTap: () {
                 Navigator.pop(context);
@@ -313,10 +311,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               leading: Icon(
                 Icons.light_mode,
-                color: !isDark ? AppColors.militantRed : onSurface,
+                color: !isDark ? context.colors.onPrimaryContainer : onSurface,
               ),
               trailing: !isDark
-                  ? const Icon(Icons.check, color: AppColors.militantRed)
+                  ? Icon(Icons.check, color: context.colors.onPrimaryContainer)
                   : null,
               onTap: () {
                 Navigator.pop(context);
@@ -364,7 +362,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
       trailing: isSelected
-          ? const Icon(Icons.check, color: AppColors.militantRed)
+          ? Icon(Icons.check, color: context.colors.onPrimaryContainer)
           : null,
       onTap: () {
         Navigator.pop(context);
@@ -420,7 +418,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               icon: const Icon(Icons.language, size: 18),
               label: Text(lang.translate('view_website')),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.militantRed,
+                backgroundColor: context.colors.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 textStyle: const TextStyle(fontSize: AppTokens.fontBodySmall),
@@ -459,7 +457,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           backgroundColor: theme.scaffoldBackgroundColor,
           title: Text(
             lang.translate('delete_account_title'),
-            style: const TextStyle(color: AppColors.militantRed),
+            style: TextStyle(color: context.colors.onPrimaryContainer),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -479,9 +477,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 decoration: InputDecoration(
                   labelText: lang.translate('enter_password_to_delete'),
-                  labelStyle: const TextStyle(color: Colors.grey),
-                  focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.militantRed),
+                  labelStyle: TextStyle(color: context.tokens.textMuted),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: context.colors.primary),
                   ),
                 ),
               ),
@@ -492,7 +490,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: isLoading ? null : () => Navigator.pop(context),
               child: Text(
                 lang.translate('cancel'),
-                style: const TextStyle(color: Colors.grey),
+                style: TextStyle(color: context.tokens.textMuted),
               ),
             ),
             TextButton(
@@ -514,7 +512,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               content: Text(
                                 lang.translate('delete_account_request_sent'),
                               ),
-                              backgroundColor: Colors.green,
                             ),
                           );
                         }
@@ -524,24 +521,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(getFriendlyErrorMessage(e)),
-                              backgroundColor: Colors.red,
                             ),
                           );
                         }
                       }
                     },
               child: isLoading
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: AppColors.militantRed,
+                        color: context.colors.primary,
                       ),
                     )
                   : Text(
                       lang.translate('delete_account_confirm'),
-                      style: const TextStyle(color: AppColors.militantRed),
+                      style: TextStyle(color: context.colors.onPrimaryContainer),
                     ),
             ),
           ],
@@ -631,8 +627,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: borderColor),
                   ),
-                  focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.militantRed),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: context.colors.primary),
                   ),
                 ),
                 validator: (v) =>
@@ -649,8 +645,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: borderColor),
                   ),
-                  focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.militantRed),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: context.colors.primary),
                   ),
                 ),
                 validator: (v) => v!.length < 8
@@ -668,8 +664,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: borderColor),
                   ),
-                  focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.militantRed),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: context.colors.primary),
                   ),
                 ),
                 validator: (v) => v != _newPasswordController.text
@@ -680,7 +676,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               ElevatedButton(
                 onPressed: _isLoading ? null : _changePassword,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.militantRed,
+                  backgroundColor: context.colors.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
@@ -823,7 +819,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               LanguageService.instance.translate('settings_updated'),
             ),
             duration: const Duration(seconds: 1),
-            backgroundColor: Colors.green,
           ),
         );
       }
@@ -851,7 +846,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(getFriendlyErrorMessage(e)),
-            backgroundColor: Colors.red,
           ),
         );
       }
@@ -879,7 +873,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               LanguageService.instance.translate('settings_updated'),
             ),
             duration: const Duration(seconds: 1),
-            backgroundColor: Colors.green,
           ),
         );
       }
@@ -894,7 +887,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(getFriendlyErrorMessage(e)),
-            backgroundColor: Colors.red,
           ),
         );
       }
@@ -972,7 +964,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               style: const TextStyle(fontSize: AppTokens.fontBodySmall),
                             ),
                             value: PushProvider.ntfy,
-                            activeColor: AppColors.militantRed,
+                            activeColor: context.colors.primary,
                             groupValue: _pushProvider,
                             onChanged: _isUpdatingPushProvider
                                 ? null
@@ -999,7 +991,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               style: const TextStyle(fontSize: AppTokens.fontBodySmall),
                             ),
                             value: PushProvider.onesignal,
-                            activeColor: AppColors.militantRed,
+                            activeColor: context.colors.primary,
                             groupValue: _pushProvider,
                             onChanged: _isUpdatingPushProvider
                                 ? null
@@ -1024,7 +1016,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               style: const TextStyle(fontSize: AppTokens.fontBodySmall),
                             ),
                             value: PushProvider.both,
-                            activeColor: AppColors.militantRed,
+                            activeColor: context.colors.primary,
                             groupValue: _pushProvider,
                             onChanged: _isUpdatingPushProvider
                                 ? null
@@ -1079,9 +1071,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 ),
                 const Divider(),
                 ListTile(
-                  leading: const Icon(
+                  leading: Icon(
                     Icons.send_to_mobile,
-                    color: AppColors.militantRed,
+                    color: context.colors.onPrimaryContainer,
                   ),
                   title: Text(lang.translate('test_notifications')),
                   subtitle: Text(lang.translate('test_notifications_desc')),
@@ -1117,7 +1109,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             content: Text(
               lang.translate('notification_test_sent'),
             ),
-            backgroundColor: Colors.blue,
           ),
         );
       }
@@ -1126,7 +1117,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(getFriendlyErrorMessage(e)),
-            backgroundColor: Colors.red,
           ),
         );
       }
@@ -1138,8 +1128,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
       child: Text(
         title.toUpperCase(),
-        style: const TextStyle(
-          color: AppColors.militantRed,
+        style: TextStyle(
+          color: context.colors.onPrimaryContainer,
           fontSize: AppTokens.fontBodySmall,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.0,
@@ -1159,7 +1149,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return SwitchListTile(
       value: value,
       onChanged: onChanged,
-      activeThumbColor: AppColors.militantRed,
+      activeThumbColor: context.colors.primary,
       tileColor: theme.scaffoldBackgroundColor, // Seamless with background
       title: Text(
         title,
@@ -1311,7 +1301,7 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
     return SwitchListTile(
       value: value,
       onChanged: onChanged,
-      activeThumbColor: AppColors.militantRed,
+      activeThumbColor: context.colors.primary,
       tileColor: theme.scaffoldBackgroundColor,
       title: Text(
         title,

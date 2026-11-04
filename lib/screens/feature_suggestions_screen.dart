@@ -147,14 +147,14 @@ class _FeatureSuggestionsScreenState extends State<FeatureSuggestionsScreen> {
       appBar: AppBar(title: Text(translate('feature_suggestions'))),
       floatingActionButton: FloatingActionButton(
         onPressed: _openCreateDialog,
-        backgroundColor: AppColors.militantRed,
+        backgroundColor: context.colors.primary,
         child: const Icon(Icons.add, color: Colors.white),
       ),
       body: _isLoading
           ? const AppLoader()
           : RefreshIndicator(
               onRefresh: _loadData,
-              color: AppColors.militantRed,
+              color: context.colors.primary,
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
                 children: [
@@ -217,8 +217,8 @@ class _FeatureSuggestionsScreenState extends State<FeatureSuggestionsScreen> {
               Container(
                 width: 36,
                 height: 36,
-                decoration: const BoxDecoration(
-                  color: AppColors.militantRed,
+                decoration: BoxDecoration(
+                  color: context.colors.primary,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.lightbulb_outline, color: Colors.white),
@@ -315,7 +315,7 @@ class _FeatureSuggestionsScreenState extends State<FeatureSuggestionsScreen> {
                 setState(() => _filter = entry.key);
                 _loadData();
               },
-              selectedColor: AppColors.militantRed,
+              selectedColor: context.colors.primary,
               labelStyle: TextStyle(
                 color: selected ? Colors.white : null,
                 fontWeight: FontWeight.w600,
@@ -523,7 +523,7 @@ class _FeatureSuggestionDetailScreenState
                   Expanded(
                     child: RefreshIndicator(
                       onRefresh: _loadDetail,
-                      color: AppColors.militantRed,
+                      color: context.colors.primary,
                       child: ListView(
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
                         children: [
@@ -599,7 +599,7 @@ class _FeatureSuggestionDetailScreenState
                                 ? null
                                 : _submitComment,
                             style: IconButton.styleFrom(
-                              backgroundColor: AppColors.militantRed,
+                              backgroundColor: context.colors.primary,
                             ),
                             icon: _isSubmittingComment
                                 ? const SizedBox(
@@ -689,7 +689,7 @@ class _FeatureSuggestionDetailScreenState
               decoration: BoxDecoration(
                 color: isDark
                     ? Colors.white10
-                    : AppColors.militantRed.withValues(alpha: 0.06),
+                    : context.colors.primaryContainer,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
@@ -698,7 +698,7 @@ class _FeatureSuggestionDetailScreenState
                   Text(
                     translate('admin_response'),
                     style: TextStyle(
-                      color: isDark ? Colors.white : AppColors.militantRed,
+                      color: isDark ? Colors.white : context.colors.onPrimaryContainer,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -811,10 +811,10 @@ class _SuggestionCard extends StatelessWidget {
                         suggestion.score.toString(),
                         style: TextStyle(
                           color: suggestion.score > 0
-                              ? Colors.green
+                              ? context.tokens.success
                               : suggestion.score < 0
-                              ? Colors.red
-                              : (isDark ? Colors.white70 : Colors.black54),
+                              ? context.colors.error
+                              : context.tokens.textMuted,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -957,28 +957,21 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color bg;
-    Color fg = Colors.white;
-    switch (status) {
-      case 'done':
-        bg = Colors.green;
-        break;
-      case 'rejected':
-        bg = Colors.red;
-        break;
-      case 'in_progress':
-        bg = Colors.orange;
-        break;
-      case 'planned':
-        bg = Colors.blue;
-        break;
-      default:
-        bg = Colors.grey;
-    }
+    // Fond teinté et texte de la couleur d'état : lisible dans les deux
+    // thèmes.
+    final tokens = context.tokens;
+    final colors = context.colors;
+    final (Color bg, Color fg) = switch (status) {
+      'done' => (tokens.successSoft, tokens.success),
+      'rejected' => (colors.errorContainer, colors.error),
+      'in_progress' => (tokens.warningSoft, tokens.warning),
+      'planned' => (colors.surfaceContainerHigh, colors.onSurface),
+      _ => (colors.surfaceContainerHigh, tokens.textMuted),
+    };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
-        color: bg.withValues(alpha: 0.9),
+        color: bg,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
@@ -1016,7 +1009,7 @@ class _MiniVoteButton extends StatelessWidget {
           width: 34,
           height: 34,
           decoration: BoxDecoration(
-            color: selected ? AppColors.militantRed : Colors.transparent,
+            color: selected ? context.colors.primary : Colors.transparent,
             shape: BoxShape.circle,
             border: Border.all(
               color: Theme.of(context).brightness == Brightness.dark
@@ -1048,12 +1041,16 @@ class _VoteButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = positive ? Colors.green : Colors.red;
+    final activeColor = positive
+        ? context.tokens.success
+        : context.colors.error;
     return OutlinedButton.icon(
       onPressed: onTap,
       style: OutlinedButton.styleFrom(
         backgroundColor: selected ? activeColor.withValues(alpha: 0.12) : null,
-        side: BorderSide(color: selected ? activeColor : Colors.black12),
+        side: BorderSide(
+          color: selected ? activeColor : context.colors.outlineVariant,
+        ),
       ),
       icon: Icon(icon, size: 18, color: selected ? activeColor : null),
       label: Text(

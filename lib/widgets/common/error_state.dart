@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../services/language_service.dart';
-import '../../theme/theme_context.dart';
 import '../../utils/error_helper.dart';
 import 'empty_state.dart';
 
@@ -36,12 +35,8 @@ class ErrorState extends StatelessWidget {
           ? null
           : FilledButton.icon(
               onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
+              icon: const Icon(Icons.refresh_rounded),
               label: Text(lang.translate('retry')),
-              style: FilledButton.styleFrom(
-                backgroundColor: context.colors.primary,
-                foregroundColor: context.colors.onPrimary,
-              ),
             ),
     );
   }

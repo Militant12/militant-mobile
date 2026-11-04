@@ -18,7 +18,7 @@ class BannedScreen extends StatelessWidget {
     final reason = ban['reason'] ?? lang.translate('banned_reason_unspecified');
     final colors = context.colors;
     final muted = context.tokens.textMuted;
-    final warning = context.isDark ? Colors.orange : Colors.orange.shade800;
+    final warning = context.tokens.warning;
 
     String durationText;
     if (isPermanent) {

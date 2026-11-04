@@ -243,9 +243,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(
+              leading: Icon(
                 Icons.photo_library,
-                color: AppColors.militantRed,
+                color: context.colors.onPrimaryContainer,
               ),
               title: Text(lang.translate('image_from_gallery')),
               onTap: () => Navigator.pop(context, {
@@ -254,7 +254,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               }),
             ),
             ListTile(
-              leading: const Icon(Icons.videocam, color: AppColors.militantRed),
+              leading: Icon(Icons.videocam, color: context.colors.onPrimaryContainer),
               title: Text(lang.translate('video_from_gallery')),
               onTap: () => Navigator.pop(context, {
                 'source': ImageSource.gallery,
@@ -262,7 +262,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               }),
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt, color: AppColors.militantRed),
+              leading: Icon(Icons.camera_alt, color: context.colors.onPrimaryContainer),
               title: Text(lang.translate('take_photo')),
               onTap: () => Navigator.pop(context, {
                 'source': ImageSource.camera,
@@ -270,9 +270,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               }),
             ),
             ListTile(
-              leading: const Icon(
+              leading: Icon(
                 Icons.videocam_outlined,
-                color: AppColors.militantRed,
+                color: context.colors.onPrimaryContainer,
               ),
               title: Text(lang.translate('record_video')),
               onTap: () => Navigator.pop(context, {
@@ -375,7 +375,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: context.colors.error),
             child: Text(lang.translate('delete')),
           ),
         ],
@@ -428,7 +428,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           ElevatedButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.militantRed,
+              backgroundColor: context.colors.primary,
               foregroundColor: Colors.white,
             ),
             child: Text(lang.translate('save')),
@@ -503,11 +503,11 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: AppColors.militantRed.withOpacity(0.1),
+                            color: context.colors.primaryContainer,
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.thumb_up,
-                            color: AppColors.militantRed,
+                            color: context.colors.onPrimaryContainer,
                             size: 24,
                           ),
                         )
@@ -618,14 +618,10 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 decoration: InputDecoration(
                   labelText: lang.translate('username_label'),
                   labelStyle: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white54
-                        : Colors.grey,
+                    color: context.tokens.textMuted,
                   ),
                   filled: true,
-                  fillColor: Theme.of(context).brightness == Brightness.dark
-                      ? AppColors.darkSurfaceHigh
-                      : Colors.grey[100],
+                  fillColor: context.colors.surfaceContainerHigh,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide.none,
@@ -656,9 +652,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 onChanged: (val) => setDialogState(() => role = val!),
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: Theme.of(context).brightness == Brightness.dark
-                      ? AppColors.darkSurfaceHigh
-                      : Colors.grey[100],
+                  fillColor: context.colors.surfaceContainerHigh,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide.none,
@@ -701,7 +695,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.militantRed,
+                backgroundColor: context.colors.primary,
                 foregroundColor: Colors.white,
               ),
               child: Text(lang.translate('add')),
@@ -727,7 +721,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
     final privacy = page['privacy'] ?? 'public';
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : Colors.grey[50],
+      backgroundColor: context.theme.scaffoldBackgroundColor,
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxScrolled) => [
           // Cover + header
@@ -864,7 +858,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.militantRed,
+                            color: context.colors.primary,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -882,16 +876,13 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _isFollowed
                                 ? (context.colors.surfaceContainerHigh)
-                                : AppColors.militantRed,
+                                : context.colors.primary,
                             foregroundColor: _isFollowed
                                 ? (context.colors.onSurface)
                                 : Colors.white,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16,
                               vertical: 8,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
                             ),
                           ),
                           child: Text(
@@ -924,7 +915,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 TabBar(
                   key: ValueKey(_tabController.hashCode),
                   controller: _tabController,
-                  indicatorColor: AppColors.militantRed,
+                  indicatorColor: context.colors.primary,
                   labelColor: context.colors.onSurface,
                   unselectedLabelColor: context.tokens.textMuted,
                   isScrollable: (_tabController?.length ?? 1) > 3,
@@ -998,8 +989,8 @@ class _PageDetailScreenState extends State<PageDetailScreen>
     }
     return CircleAvatar(
       radius: size / 2,
-      backgroundColor: AppColors.militantRed.withOpacity(0.2),
-      child: Icon(Icons.flag, color: AppColors.militantRed, size: size * 0.5),
+      backgroundColor: context.colors.primaryContainer,
+      child: Icon(Icons.flag, color: context.colors.onPrimaryContainer, size: size * 0.5),
     );
   }
 
@@ -1116,8 +1107,8 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                   Flexible(
                     child: Text(
                       website,
-                      style: const TextStyle(
-                        color: AppColors.militantRed,
+                      style: TextStyle(
+                        color: context.colors.onPrimaryContainer,
                         fontSize: AppTokens.fontBodyMedium,
                         decoration: TextDecoration.underline,
                       ),
@@ -1143,7 +1134,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
 
     return RefreshIndicator(
       onRefresh: _loadPosts,
-      color: AppColors.militantRed,
+      color: context.colors.primary,
       child: ListView(
         padding: const EdgeInsets.all(12),
         children: [
@@ -1272,7 +1263,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                               : lang.translate('publish'),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.militantRed,
+                          backgroundColor: context.colors.primary,
                           foregroundColor: Colors.white,
                         ),
                       ),
@@ -1396,15 +1387,15 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                         value: 'delete',
                         child: Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.delete,
-                              color: Colors.red,
+                              color: context.colors.error,
                               size: 18,
                             ),
                             const SizedBox(width: 8),
                             Text(
                               LanguageService.instance.translate('delete'),
-                              style: const TextStyle(color: Colors.red),
+                              style: TextStyle(color: context.colors.error),
                             ),
                           ],
                         ),
@@ -1505,9 +1496,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                   child: TextButton.icon(
                     onPressed: () => _showReactionPicker(post['id']),
                     icon: userReaction == 'like'
-                        ? const Icon(
+                        ? Icon(
                             Icons.thumb_up,
-                            color: AppColors.militantRed,
+                            color: context.colors.onPrimaryContainer,
                             size: 18,
                           )
                         : userReaction.isNotEmpty
@@ -1524,7 +1515,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                       LanguageService.instance.translate('like_action'),
                       style: TextStyle(
                         color: userReaction.isNotEmpty
-                            ? AppColors.militantRed
+                            ? context.colors.onPrimaryContainer
                             : (context.tokens.textMuted),
                         fontSize: AppTokens.fontBodyMedium,
                       ),
@@ -1615,7 +1606,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
 
     return RefreshIndicator(
       onRefresh: _loadFollowers,
-      color: AppColors.militantRed,
+      color: context.colors.primary,
       child: ListView.builder(
         padding: const EdgeInsets.all(12),
         itemCount: _followers.length,
@@ -1670,7 +1661,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 ),
                 IconButton(
                   tooltip: LanguageService.instance.translate('remove'),
-                  icon: const Icon(Icons.close, color: Colors.red, size: 20),
+                  icon: Icon(Icons.close, color: context.colors.error, size: 20),
                   onPressed: () async {
                     final confirm = await showDialog<bool>(
                       context: context,
@@ -1685,7 +1676,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                             onPressed: () => Navigator.pop(ctx, true),
                             child: Text(
                               lang.translate('remove_member'),
-                              style: const TextStyle(color: Colors.red),
+                              style: TextStyle(color: context.colors.error),
                             ),
                           ),
                         ],
@@ -1722,7 +1713,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
 
     return RefreshIndicator(
       onRefresh: _loadTeam,
-      color: AppColors.militantRed,
+      color: context.colors.primary,
       child: ListView(
         padding: const EdgeInsets.all(12),
         children: [
@@ -1784,8 +1775,8 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                             ),
                             decoration: BoxDecoration(
                               color: member['role'] == 'admin'
-                                  ? AppColors.militantRed
-                                  : Colors.grey,
+                                  ? context.colors.primary
+                                  : context.tokens.textMuted,
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Row(
@@ -1823,9 +1814,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                       member['user_id'].toString() != _currentUserId.toString())
                     IconButton(
                       tooltip: LanguageService.instance.translate('remove_member'),
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.close,
-                        color: Colors.red,
+                        color: context.colors.error,
                         size: 20,
                       ),
                       onPressed: () async {
@@ -1842,7 +1833,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                 onPressed: () => Navigator.pop(ctx, true),
                                 child: Text(
                                   lang.translate('remove_member'),
-                                  style: const TextStyle(color: Colors.red),
+                                  style: TextStyle(color: context.colors.error),
                                 ),
                               ),
                             ],
@@ -1878,12 +1869,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             icon: const Icon(Icons.person_add),
             label: Text(lang.translate('add_member')),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.militantRed,
+              backgroundColor: context.colors.primary,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
             ),
           ),
         ],
@@ -2010,7 +1998,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                         child: Container(
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
-                            color: AppColors.militantRed,
+                            color: context.colors.primary,
                             shape: BoxShape.circle,
                             border: Border.all(
                               color: isDark
@@ -2262,12 +2250,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               icon: const Icon(Icons.check),
               label: Text(lang.translate('save')),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.militantRed,
+                backgroundColor: context.colors.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
               ),
             ),
           ),
@@ -2338,7 +2323,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               decoration: InputDecoration(
                 hintText: hint ?? label,
                 hintStyle: TextStyle(
-                  color: isDark ? Colors.white24 : Colors.grey[400],
+                  color: context.tokens.textMuted,
                   fontSize: AppTokens.fontBodyMedium,
                 ),
                 filled: true,
@@ -2617,7 +2602,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: context.colors.error),
             child: Text(lang.translate('delete')),
           ),
         ],
@@ -2666,7 +2651,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.militantRed,
+              backgroundColor: context.colors.primary,
               foregroundColor: Colors.white,
             ),
             child: Text(lang.translate('save')),
@@ -2873,7 +2858,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                                 : LanguageService.instance.translate('react'),
                                             style: TextStyle(
                                               color: userReaction.isNotEmpty
-                                                  ? AppColors.militantRed
+                                                  ? context.colors.onPrimaryContainer
                                                   : (context.tokens.textMuted),
                                               fontSize: AppTokens.fontBodySmall,
                                             ),
@@ -2922,7 +2907,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                           child: Text(
                                             LanguageService.instance.translate('delete'),
                                             style: TextStyle(
-                                              color: Colors.red,
+                                              color: context.colors.error,
                                               fontSize: AppTokens.fontBodyMedium,
                                             ),
                                           ),
@@ -3040,17 +3025,17 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                         tooltip: LanguageService.instance.translate('send'),
                         onPressed: _isSending ? null : _sendComment,
                         icon: _isSending
-                            ? const SizedBox(
+                            ? SizedBox(
                                 height: 20,
                                 width: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: AppColors.militantRed,
+                                  color: context.colors.primary,
                                 ),
                               )
-                            : const Icon(
+                            : Icon(
                                 Icons.send,
-                                color: AppColors.militantRed,
+                                color: context.colors.onPrimaryContainer,
                               ),
                       ),
                     ],

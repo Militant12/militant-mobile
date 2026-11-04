@@ -211,7 +211,7 @@ class _UsersListScreenState extends State<UsersListScreen> {
                           decoration: BoxDecoration(
                             color: isAdmin
                                 ? context.colors.primary
-                                : Colors.grey[600],
+                                : context.tokens.textMuted,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
@@ -315,9 +315,9 @@ class _UsersListScreenState extends State<UsersListScreen> {
               value: 'demote',
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.arrow_downward,
-                    color: Colors.orange,
+                    color: context.tokens.warning,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
@@ -437,7 +437,7 @@ class _UsersListScreenState extends State<UsersListScreen> {
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(
               lang.translate('demote_to_editor'),
-              style: const TextStyle(color: Colors.orange),
+              style: TextStyle(color: context.tokens.warning),
             ),
           ),
         ],
@@ -501,7 +501,7 @@ class _UsersListScreenState extends State<UsersListScreen> {
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(
               lang.translate('delete'),
-              style: const TextStyle(color: Colors.red),
+              style: TextStyle(color: context.colors.error),
             ),
           ),
         ],

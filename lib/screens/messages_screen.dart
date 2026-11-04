@@ -183,6 +183,8 @@ class _MessagesScreenState extends State<MessagesScreen>
         return Scaffold(
           appBar: AppBar(
             title: Text(lang.translate('messages_title')),
+            titleTextStyle: context.text.headlineMedium,
+            centerTitle: false,
             bottom: TabBar(
               controller: _tabController,
               indicatorColor: context.colors.primary,

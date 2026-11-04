@@ -23,6 +23,14 @@ class _GroupsScreenState extends State<GroupsScreen>
   final List<dynamic> _myGroups = [];
   final List<dynamic> _discoverGroups = [];
   final Set<int> _joiningGroupIds = <int>{};
+
+  /// Groupes publics rejoints depuis Découvrir : ils restent à leur place,
+  /// le tampon « Rejoint » posé dessus, jusqu'au prochain chargement.
+  final Set<int> _justJoinedIds = <int>{};
+
+  /// Tampons déjà posés : ils ne rejouent pas leur arrivée quand la liste est
+  /// reconstruite.
+  final Set<int> _stampPlayedIds = <int>{};
   bool _isLoading = false;
   Object? _error;
   ApiService? _api;
@@ -65,6 +73,7 @@ class _GroupsScreenState extends State<GroupsScreen>
       if (!mounted) return;
       setState(() {
         _error = null;
+        _justJoinedIds.clear();
         _myGroups.clear();
         _myGroups.addAll(myGroups);
         _discoverGroups.clear();
@@ -339,20 +348,32 @@ class _GroupsScreenState extends State<GroupsScreen>
             'has_pending_request': 'pending',
           };
         }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(lang.translate('join_request_sent'))),
+          );
+        }
       } else {
-        await _loadGroups();
-      }
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              isPrivate
-                  ? lang.translate('join_request_sent')
-                  : '${lang.translate('joined_group')} ${groupData['name']}',
-            ),
-          ),
+        // Le groupe passe dans « Mes groupes » ; dans Découvrir il garde sa
+        // place et reçoit le tampon, qui confirme à lui seul.
+        final index = _discoverGroups.indexWhere(
+          (item) => item is Map && _parseGroupId(item['id']) == groupId,
         );
+        await _loadGroups();
+        if (mounted) {
+          setState(() {
+            final stillListed = _discoverGroups.any(
+              (item) => item is Map && _parseGroupId(item['id']) == groupId,
+            );
+            if (!stillListed) {
+              _discoverGroups.insert(
+                index < 0 ? 0 : index.clamp(0, _discoverGroups.length),
+                {...groupData, 'is_member': 1},
+              );
+            }
+            _justJoinedIds.add(groupId);
+          });
+        }
       }
     } catch (e, st) {
       debugPrint('[GroupsScreen][_joinGroup] groupId=$groupId error=$e');
@@ -375,10 +396,9 @@ class _GroupsScreenState extends State<GroupsScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          LanguageService.instance.translate('groups_title'),
-          style: TextStyle(color: context.colors.onSurface),
-        ),
+        title: Text(LanguageService.instance.translate('groups_title')),
+        titleTextStyle: context.text.headlineMedium,
+        centerTitle: false,
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: context.colors.primary,
@@ -616,6 +636,7 @@ class _GroupsScreenState extends State<GroupsScreen>
         !isMember && group['has_pending_request'] == 'pending';
     final isJoining =
         !isMember && groupId != null && _joiningGroupIds.contains(groupId);
+    final justJoined = groupId != null && _justJoinedIds.contains(groupId);
 
     return InkWell(
       onTap: () {
@@ -730,27 +751,28 @@ class _GroupsScreenState extends State<GroupsScreen>
                 ],
               ),
             ),
-            if (!isMember) ...[
+            if (!isMember && justJoined) ...[
               const SizedBox(width: 8),
-              ElevatedButton(
+              Stamp(
+                label: lang.translate('stamp_joined'),
+                semanticLabel: lang.translate('stamp_joined_status'),
+                animate: _stampPlayedIds.add(groupId),
+              ),
+            ] else if (!isMember) ...[
+              const SizedBox(width: 8),
+              // Rejoindre : bouton tonal (brand-soft, brand-ink).
+              FilledButton.tonal(
                 onPressed: hasPendingRequest || isJoining
                     ? null
                     : () => _joinGroup(group),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: hasPendingRequest
-                      ? Colors.orange
-                      : context.colors.primary,
+                style: FilledButton.styleFrom(
                   disabledBackgroundColor: hasPendingRequest
-                      ? Colors.orange
-                      : context.colors.onSurface.withValues(alpha: 0.24),
-                  foregroundColor: context.colors.onPrimary,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
+                      ? context.tokens.warningSoft
+                      : null,
+                  disabledForegroundColor: hasPendingRequest
+                      ? context.tokens.warning
+                      : null,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                 ),
                 child: Text(
                   isJoining
@@ -758,7 +780,6 @@ class _GroupsScreenState extends State<GroupsScreen>
                       : hasPendingRequest
                       ? lang.translate('request_pending')
                       : lang.translate('join'),
-                  style: const TextStyle(fontSize: AppTokens.fontBodyMedium),
                 ),
               ),
             ],
