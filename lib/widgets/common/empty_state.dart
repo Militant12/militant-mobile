@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_motion.dart';
 import '../../theme/app_tokens.dart';
 import '../../theme/theme_context.dart';
 
@@ -33,33 +34,72 @@ class EmptyState extends StatelessWidget {
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          // Les éléments montent l'un après l'autre en apparaissant.
           children: [
-            EmptyStateVignette(icon: icon),
+            _Rise(order: 0, child: EmptyStateVignette(icon: icon)),
             const SizedBox(height: AppTokens.space24),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: context.text.titleLarge,
+            _Rise(
+              order: 1,
+              child: Text(
+                title,
+                textAlign: TextAlign.center,
+                style: context.text.titleLarge,
+              ),
             ),
             if (message != null) ...[
               const SizedBox(height: AppTokens.space8),
               // Une ligne d'environ 32 caractères, plus facile à lire.
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 300),
-                child: Text(
-                  message!,
-                  textAlign: TextAlign.center,
-                  style: context.text.bodyMedium?.copyWith(color: muted),
+              _Rise(
+                order: 2,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 300),
+                  child: Text(
+                    message!,
+                    textAlign: TextAlign.center,
+                    style: context.text.bodyMedium?.copyWith(color: muted),
+                  ),
                 ),
               ),
             ],
             if (action != null) ...[
               const SizedBox(height: AppTokens.space24),
-              action!,
+              _Rise(order: 3, child: action!),
             ],
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Monte de 12px en apparaissant, [order] × 60 ms après le premier élément.
+/// Sans animation, l'élément est là d'emblée.
+class _Rise extends StatelessWidget {
+  const _Rise({required this.order, required this.child});
+
+  final int order;
+  final Widget child;
+
+  static const Duration _stagger = Duration(milliseconds: 60);
+
+  @override
+  Widget build(BuildContext context) {
+    if (AppMotion.reduced(context)) return child;
+    final delay = _stagger * order;
+    final total = AppMotion.slow + delay;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: total,
+      curve: Interval(
+        delay.inMicroseconds / total.inMicroseconds,
+        1,
+        curve: AppMotion.enter,
+      ),
+      builder: (context, t, child) => Opacity(
+        opacity: t,
+        child: Transform.translate(offset: Offset(0, 12 * (1 - t)), child: child),
+      ),
+      child: child,
     );
   }
 }

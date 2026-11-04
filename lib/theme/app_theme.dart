@@ -268,6 +268,22 @@ abstract final class AppTheme {
           ),
         ),
       ),
+      // Snackbar flottante : fond ink, texte paper (le contraste s'inverse
+      // avec le thème). En Material 3 elle se déplie vers le haut en
+      // apparaissant.
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: scheme.inverseSurface,
+        contentTextStyle: text.bodyMedium?.copyWith(
+          color: scheme.onInverseSurface,
+        ),
+        actionTextColor: scheme.onInverseSurface,
+        closeIconColor: scheme.onInverseSurface,
+        elevation: 6,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTokens.radius12),
+        ),
+      ),
       badgeTheme: BadgeThemeData(
         backgroundColor: scheme.primary,
         textColor: scheme.onPrimary,

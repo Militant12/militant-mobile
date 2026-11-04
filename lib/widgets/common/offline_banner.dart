@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 
 import '../../services/language_service.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_motion.dart';
 import '../../theme/app_tokens.dart';
 import '../../theme/theme_context.dart';
 
@@ -102,8 +103,10 @@ class _OfflineBannerState extends State<OfflineBanner> {
     final visible = _connection != _Connection.online;
     return Column(
       children: [
+        // Le bandeau glisse depuis le haut et pousse le contenu.
         AnimatedSize(
-          duration: const Duration(milliseconds: 200),
+          duration: AppMotion.of(context, AppMotion.base),
+          curve: AppMotion.enter,
           child: visible
               ? _Banner(
                   topPadding: topPadding,

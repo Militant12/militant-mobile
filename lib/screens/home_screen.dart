@@ -11,6 +11,7 @@ import '../widgets/incoming_call_banner.dart';
 import '../services/api_service.dart';
 import '../services/notification_badge_service.dart';
 import 'banned_screen.dart';
+import '../theme/app_motion.dart';
 import '../theme/theme_context.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -135,6 +136,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           ),
         ),
         child: NavigationBar(
+          // L'indicateur de l'onglet actif s'étire depuis le centre.
+          animationDuration: AppMotion.of(context, AppMotion.base),
           selectedIndex: _selectedIndex < _screens.length ? _selectedIndex : 0,
           onDestinationSelected: (index) {
             setState(() {

@@ -10,6 +10,7 @@ import 'militant_badge.dart';
 import 'technician_badge.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../theme/app_motion.dart';
 import '../theme/app_tokens.dart';
 import '../theme/theme_context.dart';
 import '../utils/date_formatter.dart';
@@ -427,44 +428,51 @@ class _PostCardState extends State<PostCard> {
                   ),
               ],
 
-              const SizedBox(height: 12),
+              const SizedBox(height: AppTokens.space4),
 
-              // Actions (like, comment, share)
-              Row(
-                children: [
-                  _buildActionButton(
-                    icon: _isLiked ? Icons.thumb_up : Icons.thumb_up_off_alt,
-                    count: _likesCount,
-                    semanticsKey: 'post_likes_count',
-                    selected: _isLiked,
-                    color: _isLiked ? colors.primary : subtitleColor,
-                    onTap: _toggleLike,
-                  ),
-                  const SizedBox(width: 24),
-                  _buildActionButton(
-                    icon: Icons.comment_outlined,
-                    count: widget.post.commentsCount,
-                    semanticsKey: 'post_comments_count',
-                    color: subtitleColor,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              PostDetailScreen(post: widget.post),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(width: 24),
-                  _buildActionButton(
-                    icon: Icons.share_outlined,
-                    count: widget.post.sharesCount,
-                    semanticsKey: 'post_shares_count',
-                    color: subtitleColor,
-                    onTap: () => _sharePost(context),
-                  ),
-                ],
+              // Actions (like, comment, share). Chaque zone d'appui fait au
+              // moins 44px ; le décalage à gauche aligne l'icône du J'aime
+              // sur le texte.
+              Transform.translate(
+                offset: const Offset(-AppTokens.space8, 0),
+                child: Row(
+                  children: [
+                    _buildActionButton(
+                      icon: _isLiked
+                          ? Icons.thumb_up_rounded
+                          : Icons.thumb_up_outlined,
+                      count: _likesCount,
+                      semanticsKey: 'post_likes_count',
+                      selected: _isLiked,
+                      color: _isLiked ? colors.onPrimaryContainer : subtitleColor,
+                      onTap: _toggleLike,
+                    ),
+                    const SizedBox(width: AppTokens.space8),
+                    _buildActionButton(
+                      icon: Icons.comment_outlined,
+                      count: widget.post.commentsCount,
+                      semanticsKey: 'post_comments_count',
+                      color: subtitleColor,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                PostDetailScreen(post: widget.post),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(width: AppTokens.space8),
+                    _buildActionButton(
+                      icon: Icons.share_outlined,
+                      count: widget.post.sharesCount,
+                      semanticsKey: 'post_shares_count',
+                      color: subtitleColor,
+                      onTap: () => _sharePost(context),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -490,19 +498,30 @@ class _PostCardState extends State<PostCard> {
       excludeSemantics: true,
       child: InkWell(
         onTap: onTap,
-        child: Row(
-          children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(width: AppTokens.space4),
-            Text(
-              '$count',
-              style: TextStyle(
-                color: color,
-                fontSize: AppTokens.fontBodyMedium,
-                fontWeight: FontWeight.w500,
-              ),
+        borderRadius: BorderRadius.circular(AppTokens.radiusPill),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppTokens.space8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Le J'aime (selected non nul) rebondit quand on l'active.
+                if (selected == null)
+                  Icon(icon, color: color, size: 20)
+                else
+                  _ReactionIcon(icon: icon, color: color, active: selected),
+                const SizedBox(width: AppTokens.space4),
+                RollingCount(
+                  count: count,
+                  style: context.text.bodyMedium?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -1253,6 +1272,51 @@ class _PostCardState extends State<PostCard> {
         );
       }
     }
+  }
+}
+
+/// Icône d'une réaction : quand elle s'active, elle se remplit, passe en
+/// rouge et fait un petit rebond incliné. Quand elle se désactive, elle
+/// change sans rebond.
+class _ReactionIcon extends StatelessWidget {
+  const _ReactionIcon({
+    required this.icon,
+    required this.color,
+    required this.active,
+  });
+
+  final IconData icon;
+  final Color color;
+  final bool active;
+
+  static final Animatable<double> _scale = Tween<double>(
+    begin: 0.6,
+    end: 1,
+  ).chain(CurveTween(curve: AppMotion.pop));
+  static final Animatable<double> _tilt = Tween<double>(
+    begin: -0.06,
+    end: 0,
+  ).chain(CurveTween(curve: AppMotion.pop));
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: active
+          ? AppMotion.of(context, AppMotion.slow)
+          : Duration.zero,
+      transitionBuilder: (child, animation) {
+        // L'icône sortante laisse aussitôt la place.
+        if (child.key != ValueKey<bool>(active)) return const SizedBox.shrink();
+        return ScaleTransition(
+          scale: animation.drive(_scale),
+          child: RotationTransition(
+            turns: animation.drive(_tilt),
+            child: child,
+          ),
+        );
+      },
+      child: Icon(icon, key: ValueKey<bool>(active), color: color, size: 20),
+    );
   }
 }
 
