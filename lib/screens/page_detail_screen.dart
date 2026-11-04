@@ -884,9 +884,6 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                               horizontal: 16,
                               vertical: 8,
                             ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
                           ),
                           child: Text(
                             _isFollowed
@@ -1875,9 +1872,6 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               backgroundColor: AppColors.militantRed,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
             ),
           ),
         ],
@@ -2259,9 +2253,6 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 backgroundColor: AppColors.militantRed,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
               ),
             ),
           ),

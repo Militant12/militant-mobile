@@ -178,9 +178,6 @@ class _GroupInviteScreenState extends State<GroupInviteScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: context.colors.primary,
                             foregroundColor: context.colors.onPrimary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
                           ),
                           child: Text(lang.translate('invite')),
                         ),

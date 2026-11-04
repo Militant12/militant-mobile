@@ -748,9 +748,6 @@ class _GroupsScreenState extends State<GroupsScreen>
                     horizontal: 16,
                     vertical: 8,
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
                 ),
                 child: Text(
                   isJoining

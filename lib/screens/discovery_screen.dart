@@ -256,9 +256,6 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                     backgroundColor: context.colors.primary,
                     foregroundColor: context.colors.onPrimary,
                     padding: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
                   ),
                   child: Text(
                     LanguageService.instance.translate('follow'),

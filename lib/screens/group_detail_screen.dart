@@ -756,9 +756,6 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                                         ? context.tokens.warning
                                         : context.colors.onPrimary),
                               elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
                               padding: const EdgeInsets.symmetric(vertical: 10),
                             ),
                           ),
@@ -773,9 +770,6 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                               backgroundColor: context.colors.surfaceContainerHigh,
                               foregroundColor: theme.textTheme.bodyLarge?.color,
                               elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               iconColor: theme.iconTheme.color,
                             ),

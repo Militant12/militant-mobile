@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
 import 'app_tokens.dart';
+import 'cut_corner_border.dart';
 
 /// Polices de la charte, embarquées dans `assets/fonts/` (licence OFL) plutôt
 /// que téléchargées au lancement.
@@ -160,9 +161,122 @@ abstract final class AppTheme {
         backgroundColor: scheme.surface,
         modalBackgroundColor: scheme.surface,
       ),
+      // Le coin coupé sur tout ce qu'on peut toucher. Les couleurs des
+      // boutons restent celles de Material 3 (primary, tonal, contour…).
+      filledButtonTheme: FilledButtonThemeData(
+        style: _buttonStyle(text).copyWith(
+          padding: const WidgetStatePropertyAll(
+            EdgeInsets.symmetric(horizontal: 20),
+          ),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: _buttonStyle(text).copyWith(
+          elevation: const WidgetStatePropertyAll(0),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: _buttonStyle(text).copyWith(
+          foregroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.disabled)
+                ? scheme.onSurface.withValues(alpha: 0.38)
+                : scheme.onSurface,
+          ),
+          side: WidgetStateProperty.resolveWith(
+            (states) => BorderSide(
+              color: states.contains(WidgetState.disabled)
+                  ? scheme.onSurface.withValues(alpha: 0.12)
+                  : scheme.outline,
+            ),
+          ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: ButtonStyle(
+          shape: _cutShape(AppShapes.medium),
+          textStyle: WidgetStatePropertyAll(text.labelLarge),
+          foregroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.disabled)
+                ? scheme.onSurface.withValues(alpha: 0.38)
+                : scheme.onPrimaryContainer,
+          ),
+        ),
+      ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: scheme.primary,
+        foregroundColor: scheme.onPrimary,
+        shape: AppShapes.large,
+      ),
+      chipTheme: ChipThemeData(
+        shape: AppShapes.small,
+        side: WidgetStateBorderSide.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? BorderSide(color: scheme.primaryContainer)
+              : BorderSide(color: scheme.outline),
+        ),
+        selectedColor: scheme.primaryContainer,
+        checkmarkColor: scheme.onPrimaryContainer,
+        showCheckmark: true,
+        labelStyle: text.labelLarge?.copyWith(
+          color: WidgetStateColor.resolveWith(
+            (states) => states.contains(WidgetState.selected)
+                ? scheme.onPrimaryContainer
+                : scheme.onSurface,
+          ),
+        ),
+      ),
+      // Barre du bas : indicateur brand-soft au coin coupé, icône et libellé
+      // en brand-ink, plus d'aplat rouge plein.
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: scheme.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        indicatorColor: scheme.primaryContainer,
+        indicatorShape: AppShapes.small,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        labelTextStyle: WidgetStateProperty.resolveWith(
+          (states) => text.labelMedium!.copyWith(
+            color: states.contains(WidgetState.selected)
+                ? scheme.onPrimaryContainer
+                : scheme.onSurfaceVariant,
+          ),
+        ),
+        iconTheme: WidgetStateProperty.resolveWith(
+          (states) => IconThemeData(
+            size: 24,
+            color: states.contains(WidgetState.selected)
+                ? scheme.onPrimaryContainer
+                : scheme.onSurfaceVariant,
+          ),
+        ),
+      ),
+      badgeTheme: BadgeThemeData(
+        backgroundColor: scheme.primary,
+        textColor: scheme.onPrimary,
+      ),
       extensions: [tokens],
     );
   }
+
+  /// La coupe s'ouvre de 4px au survol et au focus clavier ; `Material`
+  /// anime le passage d'une forme à l'autre.
+  static WidgetStateProperty<OutlinedBorder> _cutShape(CutCornerBorder shape) {
+    final open = shape.copyWith(cut: shape.cut + 4);
+    return WidgetStateProperty.resolveWith(
+      (states) =>
+          states.contains(WidgetState.hovered) ||
+              states.contains(WidgetState.focused)
+          ? open
+          : shape,
+    );
+  }
+
+  /// Bouton de 48px de haut, libellé en `label`, coin coupé `cut-md`.
+  static ButtonStyle _buttonStyle(TextTheme text) => ButtonStyle(
+    shape: _cutShape(AppShapes.medium),
+    minimumSize: const WidgetStatePropertyAll(Size(64, 48)),
+    textStyle: WidgetStatePropertyAll(text.labelLarge),
+  );
 
   /// Archivo pour les titres (`display*`, `headline*`, `titleLarge`),
   /// Atkinson Hyperlegible Next pour le reste, sur l'échelle Material 3.

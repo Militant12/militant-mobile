@@ -698,9 +698,6 @@ class _ModerationScreenState extends State<ModerationScreen>
               backgroundColor: context.colors.primary,
               foregroundColor: context.colors.onPrimary,
               padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
             ),
             icon: Icon(_isCandidate ? Icons.cancel : Icons.how_to_vote),
             label: Text(

@@ -266,9 +266,6 @@ class _ChatScreenState extends State<ChatScreen> {
                       backgroundColor: AppColors.militantRed,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
                     ),
                     icon: const Icon(Icons.photo_library),
                     label: Text(lang.translate('wallpaper_choose')),

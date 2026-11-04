@@ -458,9 +458,6 @@ class _PagesScreenState extends State<PagesScreen>
                     horizontal: 16,
                     vertical: 8,
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
                 ),
                 child: Text(lang.translate('follow_button'), style: const TextStyle(fontSize: AppTokens.fontBodyMedium)),
               ),

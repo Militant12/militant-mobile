@@ -349,9 +349,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     backgroundColor: AppColors.militantRed,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
                   ),
                   child: _isLoading
                       ? const SizedBox(
