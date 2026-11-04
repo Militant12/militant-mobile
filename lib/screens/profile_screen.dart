@@ -776,16 +776,16 @@ class ProfileScreenState extends State<ProfileScreen>
                       Container(
                         width: 10,
                         height: 10,
-                        decoration: const BoxDecoration(
-                          color: Colors.green,
+                        decoration: BoxDecoration(
+                          color: context.tokens.success,
                           shape: BoxShape.circle,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         lang.translate('online'),
-                        style: const TextStyle(
-                          color: Colors.green,
+                        style: TextStyle(
+                          color: context.tokens.success,
                           fontSize: AppTokens.fontBodyMedium,
                           fontWeight: FontWeight.bold,
                         ),
@@ -1179,7 +1179,7 @@ class ProfileScreenState extends State<ProfileScreen>
               padding: const EdgeInsets.all(48),
               child: Column(
                 children: [
-                  const Icon(Icons.lock_outline, size: 64, color: Colors.grey),
+                  Icon(Icons.lock_outline, size: 64, color: context.tokens.textMuted),
                   const SizedBox(height: 16),
                   Text(
                     lang.translate('private_account_title'),

@@ -234,9 +234,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required VoidCallback onTap,
   }) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final dividerColor = context.colors.outlineVariant;
-    final subtitleColor = isDark ? AppColors.inkMutedDark : Colors.grey[700];
+    final subtitleColor = context.tokens.textMuted;
     final titleColor = theme.textTheme.bodyLarge?.color;
 
     return InkWell(
@@ -479,7 +478,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 decoration: InputDecoration(
                   labelText: lang.translate('enter_password_to_delete'),
-                  labelStyle: const TextStyle(color: Colors.grey),
+                  labelStyle: TextStyle(color: context.tokens.textMuted),
                   focusedBorder: const UnderlineInputBorder(
                     borderSide: BorderSide(color: AppColors.militantRed),
                   ),
@@ -492,7 +491,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: isLoading ? null : () => Navigator.pop(context),
               child: Text(
                 lang.translate('cancel'),
-                style: const TextStyle(color: Colors.grey),
+                style: TextStyle(color: context.tokens.textMuted),
               ),
             ),
             TextButton(
@@ -514,7 +513,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               content: Text(
                                 lang.translate('delete_account_request_sent'),
                               ),
-                              backgroundColor: Colors.green,
                             ),
                           );
                         }
@@ -524,7 +522,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(getFriendlyErrorMessage(e)),
-                              backgroundColor: Colors.red,
                             ),
                           );
                         }
@@ -823,7 +820,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               LanguageService.instance.translate('settings_updated'),
             ),
             duration: const Duration(seconds: 1),
-            backgroundColor: Colors.green,
           ),
         );
       }
@@ -851,7 +847,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(getFriendlyErrorMessage(e)),
-            backgroundColor: Colors.red,
           ),
         );
       }
@@ -879,7 +874,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               LanguageService.instance.translate('settings_updated'),
             ),
             duration: const Duration(seconds: 1),
-            backgroundColor: Colors.green,
           ),
         );
       }
@@ -894,7 +888,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(getFriendlyErrorMessage(e)),
-            backgroundColor: Colors.red,
           ),
         );
       }
@@ -1117,7 +1110,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             content: Text(
               lang.translate('notification_test_sent'),
             ),
-            backgroundColor: Colors.blue,
           ),
         );
       }
@@ -1126,7 +1118,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(getFriendlyErrorMessage(e)),
-            backgroundColor: Colors.red,
           ),
         );
       }

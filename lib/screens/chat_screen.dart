@@ -215,7 +215,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       height: 4,
                       margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
-                        color: Colors.grey[600],
+                        color: context.tokens.textMuted,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -235,11 +235,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   Container(
                     height: 160,
                     decoration: BoxDecoration(
-                      color: theme.brightness == Brightness.dark
-                          ? AppColors.darkBackground
-                          : Colors.grey[200],
+                      color: context.colors.surfaceContainerHigh,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                      border: Border.all(color: context.colors.outlineVariant),
                       image: hasWallpaper
                           ? DecorationImage(
                               image: (_backgroundImagePath!.startsWith('/') ||
@@ -255,7 +253,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         ? Center(
                             child: Text(
                               lang.translate('wallpaper_none'),
-                              style: TextStyle(color: Colors.grey[600]),
+                              style: TextStyle(color: context.tokens.textMuted),
                             ),
                           )
                         : null,

@@ -72,12 +72,10 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
   @override
   Widget build(BuildContext context) {
     final lang = LanguageService.instance;
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final categories = _getCategories();
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : Colors.grey[50],
+      backgroundColor: context.theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: context.colors.surface,
         title: Text(

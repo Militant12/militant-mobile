@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import '../services/language_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_tokens.dart';
+import '../theme/theme_context.dart';
 
 class AudioPlayerWidget extends StatefulWidget {
   final String audioUrl;
@@ -104,10 +105,10 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget>
     final accentColor = widget.isMine ? Colors.white : AppColors.militantRed;
     final dimColor = widget.isMine
         ? Colors.white.withValues(alpha: 0.45)
-        : Colors.grey.shade400;
+        : context.colors.outline;
     final timeColor = widget.isMine
         ? Colors.white.withValues(alpha: 0.75)
-        : Colors.grey.shade600;
+        : context.tokens.textMuted;
 
     return SizedBox(
       width: 240,

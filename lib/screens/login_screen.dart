@@ -390,7 +390,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 12),
                       Text(
                         dialogError!,
-                        style: const TextStyle(color: Colors.red),
+                        style: TextStyle(color: context.colors.error),
                       ),
                     ],
                   ],
@@ -607,22 +607,22 @@ class _LoginScreenState extends State<LoginScreen> {
                   padding: const EdgeInsets.all(12),
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
+                    color: context.colors.error.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.withOpacity(0.3)),
+                    border: Border.all(color: context.colors.error.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.error_outline,
-                        color: Colors.red,
+                        color: context.colors.error,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _errorMessage!,
-                          style: const TextStyle(color: Colors.red),
+                          style: TextStyle(color: context.colors.error),
                         ),
                       ),
                     ],
@@ -689,7 +689,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   lang.translate('two_fa_code_hint'),
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    color: context.tokens.textMuted,
                   ),
                 ),
                 const SizedBox(height: 24),

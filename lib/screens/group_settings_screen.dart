@@ -299,7 +299,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                   ),
                 ),
                 ListTile(
-                  leading: const Icon(Icons.link, color: Colors.green),
+                  leading: Icon(Icons.link, color: context.tokens.textMuted),
                   title: Text(
                     lang.translate('invite_link'),
                     style: TextStyle(color: theme.textTheme.bodyLarge?.color),
@@ -338,7 +338,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                   ),
                 ),
                 ListTile(
-                  leading: const Icon(Icons.timer_outlined, color: Colors.blue),
+                  leading: Icon(Icons.timer_outlined, color: context.tokens.textMuted),
                   title: Text(
                     lang.translate('ephemeral_messages'),
                     style: TextStyle(color: theme.textTheme.bodyLarge?.color),
@@ -368,7 +368,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                 ),
                 const Divider(height: 1),
                 ListTile(
-                  leading: const Icon(Icons.security, color: Colors.orange),
+                  leading: Icon(Icons.security, color: context.tokens.textMuted),
                   title: Text(
                     lang.translate('everyone_is_admin'),
                     style: TextStyle(color: theme.textTheme.bodyLarge?.color),
@@ -575,7 +575,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                         children: [
                           IconButton(
                             tooltip: LanguageService.instance.translate('approve'),
-                            icon: const Icon(Icons.check, color: Colors.green),
+                            icon: Icon(Icons.check, color: context.tokens.success),
                             onPressed: () =>
                                 _handleRequest(r['request_id'], true),
                           ),

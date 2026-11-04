@@ -284,13 +284,13 @@ class _ModerationScreenState extends State<ModerationScreen>
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.orange,
+                    color: context.tokens.warningSoft,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     reasonLabels[report.reason] ?? report.reason,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: context.tokens.warning,
                       fontSize: AppTokens.fontBodySmall,
                       fontWeight: FontWeight.bold,
                     ),
@@ -426,7 +426,7 @@ class _ModerationScreenState extends State<ModerationScreen>
                       icon: const Icon(Icons.delete, size: 16),
                       label: Text(lang.translate('mod_vote_remove')),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
+                        backgroundColor: context.colors.primary,
                         foregroundColor: context.colors.onPrimary,
                       ),
                     ),
@@ -438,8 +438,8 @@ class _ModerationScreenState extends State<ModerationScreen>
                       icon: const Icon(Icons.warning, size: 16),
                       label: Text(lang.translate('mod_vote_warn')),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        foregroundColor: context.colors.onPrimary,
+                        backgroundColor: context.tokens.warningSoft,
+                        foregroundColor: context.tokens.warning,
                       ),
                     ),
                   ),
@@ -450,8 +450,8 @@ class _ModerationScreenState extends State<ModerationScreen>
                       icon: const Icon(Icons.check, size: 16),
                       label: Text(lang.translate('mod_vote_keep')),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: context.colors.onPrimary,
+                        backgroundColor: context.tokens.successSoft,
+                        foregroundColor: context.tokens.success,
                       ),
                     ),
                   ),
@@ -519,8 +519,8 @@ class _ModerationScreenState extends State<ModerationScreen>
                             icon: const Icon(Icons.warning_amber, size: 16),
                             label: Text(lang.translate('mod_action_warn')),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orange.shade800,
-                              foregroundColor: context.colors.onPrimary,
+                              backgroundColor: context.tokens.warningSoft,
+                              foregroundColor: context.tokens.warning,
                               padding: const EdgeInsets.symmetric(vertical: 8),
                             ),
                           ),
@@ -617,8 +617,8 @@ class _ModerationScreenState extends State<ModerationScreen>
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange.shade800,
-              foregroundColor: context.colors.onPrimary,
+              backgroundColor: context.tokens.warningSoft,
+              foregroundColor: context.tokens.warning,
             ),
             child: Text(lang.translate('mod_action_warn')),
           ),
@@ -842,7 +842,7 @@ class _ModerationScreenState extends State<ModerationScreen>
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(
               lang.translate('mod_cancel_candidacy'),
-              style: const TextStyle(color: Colors.red),
+              style: TextStyle(color: context.colors.error),
             ),
           ),
         ],
@@ -902,19 +902,19 @@ class _ModerationScreenState extends State<ModerationScreen>
           decoration: BoxDecoration(
             color: context.colors.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+            border: Border.all(color: context.colors.error.withValues(alpha: 0.3)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  const Icon(Icons.visibility, size: 18, color: Colors.red),
+                  Icon(Icons.visibility, size: 18, color: context.colors.error),
                   const SizedBox(width: 8),
                   Text(
                     lang.translate('mod_transparency_title'),
-                    style: const TextStyle(
-                      color: Colors.red,
+                    style: TextStyle(
+                      color: context.colors.error,
                       fontSize: AppTokens.fontBodyLarge,
                       fontWeight: FontWeight.bold,
                     ),
@@ -975,19 +975,19 @@ class _ModerationScreenState extends State<ModerationScreen>
           decoration: BoxDecoration(
             color: context.colors.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+            border: Border.all(color: context.tokens.warning.withValues(alpha: 0.3)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  const Icon(Icons.gavel, size: 20, color: Colors.orange),
+                  Icon(Icons.gavel, size: 20, color: context.tokens.warning),
                   const SizedBox(width: 8),
                   Text(
                     lang.translate('mod_sanctions_title'),
-                    style: const TextStyle(
-                      color: Colors.orange,
+                    style: TextStyle(
+                      color: context.tokens.warning,
                       fontSize: AppTokens.fontBodyLarge,
                       fontWeight: FontWeight.bold,
                     ),
@@ -1011,15 +1011,15 @@ class _ModerationScreenState extends State<ModerationScreen>
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withValues(alpha: 0.1),
+                  color: context.tokens.warning.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
                   children: [
                     Text(
                       '${_sanctions.length}',
-                      style: const TextStyle(
-                        color: Colors.orange,
+                      style: TextStyle(
+                        color: context.tokens.warning,
                         fontSize: AppTokens.fontHeadlineSmall,
                         fontWeight: FontWeight.bold,
                       ),
@@ -1075,7 +1075,7 @@ class _ModerationScreenState extends State<ModerationScreen>
               padding: const EdgeInsets.all(32),
               child: Column(
                 children: [
-                  const Icon(Icons.check_circle, size: 48, color: Colors.green),
+                  Icon(Icons.check_circle, size: 48, color: context.tokens.success),
                   const SizedBox(height: 12),
                   Text(
                     lang.translate('mod_no_sanctions'),
@@ -1094,7 +1094,7 @@ class _ModerationScreenState extends State<ModerationScreen>
   Widget _buildSanctionCard(Map<String, dynamic> sanction) {
     final lang = LanguageService.instance;
     final isBan = sanction['_type'] == 'ban';
-    final color = isBan ? context.colors.primary : Colors.orange;
+    final color = isBan ? context.colors.primary : context.tokens.warning;
     final label = isBan
         ? lang.translate('mod_sanction_ban')
         : lang.translate('mod_sanction_warning');
@@ -1234,7 +1234,7 @@ class _ModerationScreenState extends State<ModerationScreen>
 
   Widget _buildActionItem(Map<String, dynamic> action) {
     final isWarning = action['action_type'] == 'warning';
-    final color = isWarning ? Colors.orange : context.colors.primary;
+    final color = isWarning ? context.tokens.warning : context.colors.primary;
     final lang = LanguageService.instance;
     final label = isWarning
         ? lang.translate('mod_sanction_warning')
@@ -1392,16 +1392,16 @@ class _ModerationScreenState extends State<ModerationScreen>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.2),
+                  color: context.tokens.success.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.check, color: Colors.green, size: 16),
+                    Icon(Icons.check, color: context.tokens.success, size: 16),
                     const SizedBox(width: 4),
                     Text(
                       '${candidate.votesFor}',
-                      style: const TextStyle(color: Colors.green),
+                      style: TextStyle(color: context.tokens.success),
                     ),
                   ],
                 ),
@@ -1410,16 +1410,16 @@ class _ModerationScreenState extends State<ModerationScreen>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.2),
+                  color: context.colors.error.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.close, color: Colors.red, size: 16),
+                    Icon(Icons.close, color: context.colors.error, size: 16),
                     const SizedBox(width: 4),
                     Text(
                       '${candidate.votesAgainst}',
-                      style: const TextStyle(color: Colors.red),
+                      style: TextStyle(color: context.colors.error),
                     ),
                   ],
                 ),
@@ -1466,16 +1466,14 @@ class _ModerationScreenState extends State<ModerationScreen>
                       LanguageService.instance.translate('mod_vote_for'),
                     ),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: candidate.myVote == 'for'
-                          ? Colors.white
-                          : Colors.green,
+                      foregroundColor: context.tokens.success,
                       backgroundColor: candidate.myVote == 'for'
-                          ? Colors.green
+                          ? context.tokens.successSoft
                           : null,
                       side: BorderSide(
                         color: candidate.myVote == 'for'
-                            ? Colors.green
-                            : Colors.green.withValues(alpha: 0.5),
+                            ? context.tokens.success
+                            : context.tokens.success.withValues(alpha: 0.5),
                       ),
                     ),
                   ),
@@ -1497,16 +1495,14 @@ class _ModerationScreenState extends State<ModerationScreen>
                             ),
                     ),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: candidate.myVote == 'against'
-                          ? Colors.white
-                          : Colors.red,
+                      foregroundColor: context.colors.error,
                       backgroundColor: candidate.myVote == 'against'
-                          ? Colors.red
+                          ? context.colors.errorContainer
                           : null,
                       side: BorderSide(
                         color: candidate.myVote == 'against'
-                            ? Colors.red
-                            : Colors.red.withValues(alpha: 0.5),
+                            ? context.colors.error
+                            : context.colors.error.withValues(alpha: 0.5),
                       ),
                     ),
                   ),

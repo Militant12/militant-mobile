@@ -186,7 +186,7 @@ class _StatusPickerDialogState extends State<StatusPickerDialog> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey[500],
+                color: context.colors.outline,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -287,12 +287,12 @@ class _StatusPickerDialogState extends State<StatusPickerDialog> {
                 'status_custom_hint',
               ),
               counterText: '',
-              prefixIcon: const Padding(
+              prefixIcon: Padding(
                 padding: EdgeInsets.all(12),
                 child: FaIcon(
                   FontAwesomeIcons.penToSquare,
                   size: 14,
-                  color: Colors.grey,
+                  color: context.tokens.textMuted,
                 ),
               ),
               border: OutlineInputBorder(
@@ -316,8 +316,8 @@ class _StatusPickerDialogState extends State<StatusPickerDialog> {
                 icon: const FaIcon(FontAwesomeIcons.trash, size: 12),
                 label: Text(LanguageService.instance.translate('status_clear')),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.red,
-                  side: const BorderSide(color: Colors.red),
+                  foregroundColor: context.colors.error,
+                  side: BorderSide(color: context.colors.error),
                 ),
               ),
               const SizedBox(width: 10),

@@ -811,10 +811,10 @@ class _SuggestionCard extends StatelessWidget {
                         suggestion.score.toString(),
                         style: TextStyle(
                           color: suggestion.score > 0
-                              ? Colors.green
+                              ? context.tokens.success
                               : suggestion.score < 0
-                              ? Colors.red
-                              : (isDark ? Colors.white70 : Colors.black54),
+                              ? context.colors.error
+                              : context.tokens.textMuted,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -957,28 +957,21 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color bg;
-    Color fg = Colors.white;
-    switch (status) {
-      case 'done':
-        bg = Colors.green;
-        break;
-      case 'rejected':
-        bg = Colors.red;
-        break;
-      case 'in_progress':
-        bg = Colors.orange;
-        break;
-      case 'planned':
-        bg = Colors.blue;
-        break;
-      default:
-        bg = Colors.grey;
-    }
+    // Fond teinté et texte de la couleur d'état : lisible dans les deux
+    // thèmes.
+    final tokens = context.tokens;
+    final colors = context.colors;
+    final (Color bg, Color fg) = switch (status) {
+      'done' => (tokens.successSoft, tokens.success),
+      'rejected' => (colors.errorContainer, colors.error),
+      'in_progress' => (tokens.warningSoft, tokens.warning),
+      'planned' => (colors.surfaceContainerHigh, colors.onSurface),
+      _ => (colors.surfaceContainerHigh, tokens.textMuted),
+    };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
-        color: bg.withValues(alpha: 0.9),
+        color: bg,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
@@ -1048,12 +1041,16 @@ class _VoteButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = positive ? Colors.green : Colors.red;
+    final activeColor = positive
+        ? context.tokens.success
+        : context.colors.error;
     return OutlinedButton.icon(
       onPressed: onTap,
       style: OutlinedButton.styleFrom(
         backgroundColor: selected ? activeColor.withValues(alpha: 0.12) : null,
-        side: BorderSide(color: selected ? activeColor : Colors.black12),
+        side: BorderSide(
+          color: selected ? activeColor : context.colors.outlineVariant,
+        ),
       ),
       icon: Icon(icon, size: 18, color: selected ? activeColor : null),
       label: Text(

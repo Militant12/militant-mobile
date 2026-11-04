@@ -231,9 +231,9 @@ class _BadgeSelectionScreenState extends State<BadgeSelectionScreen> {
                 height: 40,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.grey.withOpacity(0.3),
+                  color: context.colors.surfaceContainerHigh,
                 ),
-                child: const Icon(Icons.close, color: Colors.grey, size: 24),
+                child: Icon(Icons.close, color: context.tokens.textMuted, size: 24),
               )
             else
               MilitantBadge(badgeId: id, size: 40),

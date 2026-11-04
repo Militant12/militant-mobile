@@ -375,7 +375,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: context.colors.error),
             child: Text(lang.translate('delete')),
           ),
         ],
@@ -618,14 +618,10 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 decoration: InputDecoration(
                   labelText: lang.translate('username_label'),
                   labelStyle: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white54
-                        : Colors.grey,
+                    color: context.tokens.textMuted,
                   ),
                   filled: true,
-                  fillColor: Theme.of(context).brightness == Brightness.dark
-                      ? AppColors.darkSurfaceHigh
-                      : Colors.grey[100],
+                  fillColor: context.colors.surfaceContainerHigh,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide.none,
@@ -656,9 +652,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 onChanged: (val) => setDialogState(() => role = val!),
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: Theme.of(context).brightness == Brightness.dark
-                      ? AppColors.darkSurfaceHigh
-                      : Colors.grey[100],
+                  fillColor: context.colors.surfaceContainerHigh,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide.none,
@@ -727,7 +721,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
     final privacy = page['privacy'] ?? 'public';
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : Colors.grey[50],
+      backgroundColor: context.theme.scaffoldBackgroundColor,
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxScrolled) => [
           // Cover + header
@@ -1396,15 +1390,15 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                         value: 'delete',
                         child: Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.delete,
-                              color: Colors.red,
+                              color: context.colors.error,
                               size: 18,
                             ),
                             const SizedBox(width: 8),
                             Text(
                               LanguageService.instance.translate('delete'),
-                              style: const TextStyle(color: Colors.red),
+                              style: TextStyle(color: context.colors.error),
                             ),
                           ],
                         ),
@@ -1670,7 +1664,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 ),
                 IconButton(
                   tooltip: LanguageService.instance.translate('remove'),
-                  icon: const Icon(Icons.close, color: Colors.red, size: 20),
+                  icon: Icon(Icons.close, color: context.colors.error, size: 20),
                   onPressed: () async {
                     final confirm = await showDialog<bool>(
                       context: context,
@@ -1685,7 +1679,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                             onPressed: () => Navigator.pop(ctx, true),
                             child: Text(
                               lang.translate('remove_member'),
-                              style: const TextStyle(color: Colors.red),
+                              style: TextStyle(color: context.colors.error),
                             ),
                           ),
                         ],
@@ -1784,8 +1778,8 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                             ),
                             decoration: BoxDecoration(
                               color: member['role'] == 'admin'
-                                  ? AppColors.militantRed
-                                  : Colors.grey,
+                                  ? context.colors.primary
+                                  : context.tokens.textMuted,
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Row(
@@ -1823,9 +1817,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                       member['user_id'].toString() != _currentUserId.toString())
                     IconButton(
                       tooltip: LanguageService.instance.translate('remove_member'),
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.close,
-                        color: Colors.red,
+                        color: context.colors.error,
                         size: 20,
                       ),
                       onPressed: () async {
@@ -1842,7 +1836,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                                 onPressed: () => Navigator.pop(ctx, true),
                                 child: Text(
                                   lang.translate('remove_member'),
-                                  style: const TextStyle(color: Colors.red),
+                                  style: TextStyle(color: context.colors.error),
                                 ),
                               ),
                             ],
@@ -2338,7 +2332,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               decoration: InputDecoration(
                 hintText: hint ?? label,
                 hintStyle: TextStyle(
-                  color: isDark ? Colors.white24 : Colors.grey[400],
+                  color: context.tokens.textMuted,
                   fontSize: AppTokens.fontBodyMedium,
                 ),
                 filled: true,
@@ -2617,7 +2611,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: context.colors.error),
             child: Text(lang.translate('delete')),
           ),
         ],
@@ -2922,7 +2916,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                           child: Text(
                                             LanguageService.instance.translate('delete'),
                                             style: TextStyle(
-                                              color: Colors.red,
+                                              color: context.colors.error,
                                               fontSize: AppTokens.fontBodyMedium,
                                             ),
                                           ),

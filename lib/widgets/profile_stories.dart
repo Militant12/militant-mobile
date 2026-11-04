@@ -77,7 +77,6 @@ class _ProfileStoriesState extends State<ProfileStories> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(lang.translate('stories_created')),
-              backgroundColor: Colors.green,
             ),
           );
           _loadStories();
@@ -89,7 +88,6 @@ class _ProfileStoriesState extends State<ProfileStories> {
             SnackBar(
               content: Text('${lang.translate('stories_error')}: ${getFriendlyErrorMessage(e, lang)}'),
               duration: const Duration(seconds: 5),
-              backgroundColor: Colors.red,
             ),
           );
         }

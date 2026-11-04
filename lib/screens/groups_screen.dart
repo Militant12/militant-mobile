@@ -736,13 +736,14 @@ class _GroupsScreenState extends State<GroupsScreen>
                     ? null
                     : () => _joinGroup(group),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: hasPendingRequest
-                      ? Colors.orange
-                      : context.colors.primary,
+                  backgroundColor: context.colors.primary,
                   disabledBackgroundColor: hasPendingRequest
-                      ? Colors.orange
-                      : context.colors.onSurface.withValues(alpha: 0.24),
+                      ? context.tokens.warningSoft
+                      : context.colors.onSurface.withValues(alpha: 0.12),
                   foregroundColor: context.colors.onPrimary,
+                  disabledForegroundColor: hasPendingRequest
+                      ? context.tokens.warning
+                      : null,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 8,

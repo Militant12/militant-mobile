@@ -13,6 +13,7 @@ import '../utils/post_tags.dart';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_tokens.dart';
+import '../theme/theme_context.dart';
 
 class CreatePostScreen extends StatefulWidget {
   final int? groupId;
@@ -532,9 +533,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           Container(
             padding: const EdgeInsets.all(8.0),
             decoration: BoxDecoration(
-              color: theme.brightness == Brightness.dark
-                  ? AppColors.darkSurfaceHigh
-                  : Colors.grey[200],
+              color: context.colors.surfaceContainerHigh,
               border: Border(top: BorderSide(color: theme.dividerColor)),
             ),
             child: Row(

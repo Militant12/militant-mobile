@@ -97,11 +97,9 @@ class _PagesScreenState extends State<PagesScreen>
   @override
   Widget build(BuildContext context) {
     final lang = LanguageService.instance;
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : Colors.grey[50],
+      backgroundColor: context.theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: context.colors.surface,
         title: Text(
@@ -184,17 +182,13 @@ class _PagesScreenState extends State<PagesScreen>
             Icon(
               Icons.flag_outlined,
               size: 64,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.inkMutedDark
-                  : Colors.grey,
+              color: context.tokens.textMuted,
             ),
             const SizedBox(height: 16),
             Text(
               lang.translate('no_pages_message'),
               style: TextStyle(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.inkMutedDark
-                    : Colors.grey[600],
+                color: context.tokens.textMuted,
                 fontSize: AppTokens.fontBodyLarge,
               ),
             ),
@@ -202,9 +196,7 @@ class _PagesScreenState extends State<PagesScreen>
             Text(
               lang.translate('create_page_subtitle'),
               style: TextStyle(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.inkMutedLight
-                    : Colors.grey[500],
+                color: context.tokens.textMuted,
                 fontSize: AppTokens.fontBodyMedium,
               ),
             ),
@@ -252,17 +244,13 @@ class _PagesScreenState extends State<PagesScreen>
             Icon(
               Icons.favorite_border,
               size: 64,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.inkMutedDark
-                  : Colors.grey,
+              color: context.tokens.textMuted,
             ),
             const SizedBox(height: 16),
             Text(
               lang.translate('no_followed_pages'),
               style: TextStyle(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.inkMutedDark
-                    : Colors.grey[600],
+                color: context.tokens.textMuted,
                 fontSize: AppTokens.fontBodyLarge,
               ),
             ),
@@ -304,17 +292,13 @@ class _PagesScreenState extends State<PagesScreen>
             Icon(
               Icons.search_off,
               size: 64,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.inkMutedDark
-                  : Colors.grey,
+              color: context.tokens.textMuted,
             ),
             const SizedBox(height: 16),
             Text(
               lang.translate('no_discover_pages'),
               style: TextStyle(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.inkMutedDark
-                    : Colors.grey[600],
+                color: context.tokens.textMuted,
                 fontSize: AppTokens.fontBodyLarge,
               ),
             ),

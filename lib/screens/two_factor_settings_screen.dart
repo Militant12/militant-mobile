@@ -105,7 +105,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
             onPressed: () => Navigator.pop(context, true),
             child: Text(
               lang.translate('disable_2fa'),
-              style: const TextStyle(color: Colors.red),
+              style: TextStyle(color: context.colors.error),
             ),
           ),
         ],
@@ -144,7 +144,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(8),
-              color: Colors.grey[200],
+              color: context.colors.surfaceContainerHigh,
               child: Column(
                 children: _recoveryCodes!
                     .map(
@@ -182,8 +182,6 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final lang = LanguageService.instance;
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(title: Text(lang.translate('two_factor_auth'))),
@@ -198,7 +196,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                     child: Icon(
                       _isEnabled ? Icons.verified_user : Icons.security,
                       size: 80,
-                      color: _isEnabled ? Colors.green : Colors.grey,
+                      color: _isEnabled ? context.tokens.success : context.tokens.textMuted,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -217,7 +215,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                         ? lang.translate('2fa_enabled_message')
                         : lang.translate('2fa_description'),
                     style: TextStyle(
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      color: context.tokens.textMuted,
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -325,7 +323,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                       child: OutlinedButton(
                         onPressed: _disable,
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.red,
+                          foregroundColor: context.colors.error,
                         ),
                         child: Text(lang.translate('disable_2fa')),
                       ),
