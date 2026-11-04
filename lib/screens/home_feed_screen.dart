@@ -51,6 +51,8 @@ class _HomeFeedScreenState extends State<HomeFeedScreen>
         return Scaffold(
           appBar: AppBar(
             title: Text(LanguageService.instance.translate('app_title')),
+            titleTextStyle: context.text.headlineMedium,
+            centerTitle: false,
             bottom: TabBar(
               controller: _tabController,
               tabs: [

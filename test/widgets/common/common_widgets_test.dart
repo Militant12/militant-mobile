@@ -18,7 +18,7 @@ void main() {
       final box = tester.widget<Container>(
         find.ancestor(of: find.text('É'), matching: find.byType(Container)),
       );
-      expect(box.color, AppColors.militantRed);
+      expect(box.color, AppTheme.dark().colorScheme.primary);
     });
 
     testWidgets('respecte le rayon demandé', (tester) async {
@@ -46,7 +46,7 @@ void main() {
         ),
       );
       final decoration = dot.decoration! as BoxDecoration;
-      expect(decoration.color, AppColors.success);
+      expect(decoration.color, AppColors.successLight);
       expect((decoration.border! as Border).top.color, Colors.white);
     });
 
@@ -116,7 +116,7 @@ void main() {
       final indicator = tester.widget<CircularProgressIndicator>(
         find.byType(CircularProgressIndicator),
       );
-      expect(indicator.color, AppColors.militantRed);
+      expect(indicator.color, AppTheme.dark().colorScheme.primary);
     });
 
     testWidgets('SkeletonList partage une seule animation', (tester) async {

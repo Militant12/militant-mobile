@@ -1362,7 +1362,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                                 color: isSelected
                                     ? (isMine
                                           ? Colors.white
-                                          : AppColors.militantRedLight)
+                                          : AppColors.brandSoftLight)
                                     : (isMine
                                           ? Colors.white.withOpacity(0.16)
                                           : Colors.black.withOpacity(0.08)),

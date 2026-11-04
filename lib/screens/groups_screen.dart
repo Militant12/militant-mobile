@@ -375,10 +375,9 @@ class _GroupsScreenState extends State<GroupsScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          LanguageService.instance.translate('groups_title'),
-          style: TextStyle(color: context.colors.onSurface),
-        ),
+        title: Text(LanguageService.instance.translate('groups_title')),
+        titleTextStyle: context.text.headlineMedium,
+        centerTitle: false,
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: context.colors.primary,

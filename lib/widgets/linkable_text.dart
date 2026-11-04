@@ -639,7 +639,7 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
   }
 
   Color _getPlatformColor(String? platform) {
-    if (platform == null) return AppColors.grey888;
+    if (platform == null) return AppColors.inkMutedDark;
     switch (platform) {
       case 'openai':
         return const Color(0xFF10A37F);

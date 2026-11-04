@@ -457,7 +457,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
   Widget _buildAudioParticipantTile(_AudioParticipant participant) {
     final isConnected = participant.status == 'joined';
     final borderColor = participant.isSpeaking
-        ? AppColors.success
+        ? AppColors.successDark
         : Colors.white24;
 
     return AnimatedContainer(
@@ -474,7 +474,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
         boxShadow: participant.isSpeaking
             ? [
                 BoxShadow(
-                  color: AppColors.success.withValues(alpha: 0.32),
+                  color: AppColors.successDark.withValues(alpha: 0.32),
                   blurRadius: 18,
                   spreadRadius: 1,
                 ),
@@ -522,7 +522,7 @@ class _GroupCallScreenState extends State<GroupCallScreen> {
                   right: -4,
                   bottom: -4,
                   child: _AudioStatusDot(
-                    color: AppColors.success,
+                    color: AppColors.successDark,
                     icon: Icons.graphic_eq,
                   ),
                 ),
@@ -811,7 +811,7 @@ class _SpeakingBar extends StatelessWidget {
       width: 4,
       height: height,
       decoration: BoxDecoration(
-        color: AppColors.success,
+        color: AppColors.successDark,
         borderRadius: BorderRadius.circular(999),
       ),
     );

@@ -293,7 +293,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
       return Container(
         color: AppColors.darkSurface,
         child: const Center(
-          child: Icon(Icons.image, size: 64, color: AppColors.grey888),
+          child: Icon(Icons.image, size: 64, color: AppColors.inkMutedDark),
         ),
       );
     }
@@ -325,7 +325,7 @@ class _StoriesScreenState extends State<StoriesScreen> {
               child: Icon(
                 Icons.broken_image,
                 size: 64,
-                color: AppColors.grey888,
+                color: AppColors.inkMutedDark,
               ),
             ),
           ),

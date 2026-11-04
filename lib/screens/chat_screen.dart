@@ -1361,7 +1361,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             color: isSelected
                                 ? (isMine
                                       ? Colors.white
-                                      : AppColors.militantRedLight)
+                                      : AppColors.brandSoftLight)
                                 : (isMine
                                       ? Colors.white.withValues(alpha: 0.16)
                                       : Colors.black.withValues(alpha: 0.08)),

@@ -646,10 +646,13 @@ class ProfileScreenState extends State<ProfileScreen>
       return Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
-          title: Text(
-            lang.translate('profile_title'),
-            style: TextStyle(color: theme.textTheme.titleLarge?.color),
-          ),
+          title: Text(lang.translate('profile_title')),
+          // Grand titre sur l'onglet Profil, titre standard sur le profil
+          // d'une autre personne.
+          titleTextStyle: widget.userId == null
+              ? context.text.headlineMedium
+              : null,
+          centerTitle: widget.userId == null ? false : null,
         ),
         body: ErrorState(
           title: lang.translate('profile_load_error'),
@@ -671,10 +674,13 @@ class ProfileScreenState extends State<ProfileScreen>
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text(
-          lang.translate('profile_title'),
-          style: TextStyle(color: theme.textTheme.titleLarge?.color),
-        ),
+        title: Text(lang.translate('profile_title')),
+        // Grand titre sur l'onglet Profil, titre standard sur le profil
+        // d'une autre personne.
+        titleTextStyle: widget.userId == null
+            ? context.text.headlineMedium
+            : null,
+        centerTitle: widget.userId == null ? false : null,
         actions: [
           if (_isMe) ...[
             IconButton(

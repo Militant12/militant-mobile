@@ -67,7 +67,7 @@ const List<PresetStatus> kPresetStatuses = [
     key: 'dnd',
     labelKey: 'status_dnd',
     icon: FontAwesomeIcons.volumeXmark,
-    color: AppColors.grey888,
+    color: AppColors.inkMutedDark,
   ),
   PresetStatus(
     key: 'formation',

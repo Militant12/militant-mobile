@@ -3,91 +3,217 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 import 'app_tokens.dart';
 
+/// Polices de la charte, embarquées dans `assets/fonts/` (licence OFL) plutôt
+/// que téléchargées au lancement.
+abstract final class AppFonts {
+  /// Titres : une linéale franche qui rappelle l'affiche.
+  static const String display = 'Archivo';
+
+  /// Tout le reste. Dessinée par le Braille Institute pour les personnes
+  /// malvoyantes : I, l et 1 se distinguent, comme 0 et O.
+  static const String text = 'Atkinson Hyperlegible Next';
+
+  /// Codes de double authentification.
+  static const String mono = 'Atkinson Hyperlegible Mono';
+
+  /// Pour les alphabets que les deux polices ne couvrent pas (cyrillique,
+  /// grec, arabe…), fournie par le système.
+  static const List<String> fallback = ['Noto Sans'];
+}
+
 /// Thèmes clair et sombre de Militant.
-///
-/// Les thèmes de composants (cartes, champs, chips, barre du bas…) seront
-/// ajoutés au fur et à mesure de la migration des écrans, pour ne pas
-/// modifier le rendu des écrans pas encore migrés.
 abstract final class AppTheme {
   static ThemeData light() {
-    const scheme = ColorScheme.light(
+    const scheme = ColorScheme(
+      brightness: Brightness.light,
       primary: AppColors.militantRed,
       onPrimary: Colors.white,
+      primaryContainer: AppColors.brandSoftLight,
+      onPrimaryContainer: AppColors.brandInkLight,
       secondary: AppColors.militantRed,
       onSecondary: Colors.white,
+      secondaryContainer: AppColors.brandSoftLight,
+      onSecondaryContainer: AppColors.brandInkLight,
+      error: AppColors.brandInkLight,
+      onError: Colors.white,
+      errorContainer: AppColors.brandSoftLight,
+      onErrorContainer: AppColors.brandInkLight,
       surface: AppColors.lightSurface,
-      onSurface: Colors.black,
-      onSurfaceVariant: Color(0xFF757575),
+      onSurface: AppColors.inkLight,
+      onSurfaceVariant: AppColors.inkMutedLight,
+      surfaceContainerLowest: Colors.white,
       surfaceContainerLow: AppColors.lightSurfaceLow,
-      surfaceContainer: AppColors.lightSurfaceHigh,
-      surfaceContainerHigh: AppColors.greyE3,
-      outline: Color(0xFFBDBDBD),
-      outlineVariant: AppColors.greyE3,
+      surfaceContainer: AppColors.lightSurfaceLow,
+      surfaceContainerHigh: AppColors.lightSurfaceHigh,
+      surfaceContainerHighest: AppColors.lightSurfaceHigh,
+      outline: AppColors.lineStrongLight,
+      outlineVariant: AppColors.lineLight,
+      inverseSurface: AppColors.inkLight,
+      onInverseSurface: AppColors.lightBackground,
+      inversePrimary: AppColors.brandInkDark,
+      scrim: Color(0x7A141112),
+      // Pas de teinte rouge sur les surfaces surélevées : les fonds restent
+      // neutres, le rouge sert à agir.
+      surfaceTint: Colors.transparent,
     );
     return _build(
       scheme: scheme,
       scaffold: AppColors.lightBackground,
-      appBarBackground: Colors.white,
-      appBarForeground: Colors.black,
       tokens: AppTokens.light,
     );
   }
 
   static ThemeData dark() {
-    const scheme = ColorScheme.dark(
-      primary: AppColors.militantRed,
+    const scheme = ColorScheme(
+      brightness: Brightness.dark,
+      primary: AppColors.militantRedDark,
       onPrimary: Colors.white,
-      secondary: AppColors.militantRed,
+      primaryContainer: AppColors.brandSoftDark,
+      onPrimaryContainer: AppColors.brandInkDark,
+      secondary: AppColors.militantRedDark,
       onSecondary: Colors.white,
+      secondaryContainer: AppColors.brandSoftDark,
+      onSecondaryContainer: AppColors.brandInkDark,
+      error: AppColors.brandInkDark,
+      onError: AppColors.noir,
+      errorContainer: AppColors.brandSoftDark,
+      onErrorContainer: AppColors.brandInkDark,
       surface: AppColors.darkSurface,
-      onSurface: Colors.white,
-      onSurfaceVariant: AppColors.grey888,
+      onSurface: AppColors.inkDark,
+      onSurfaceVariant: AppColors.inkMutedDark,
+      surfaceContainerLowest: AppColors.darkBackground,
       surfaceContainerLow: AppColors.darkSurfaceLow,
       surfaceContainer: AppColors.darkSurface,
       surfaceContainerHigh: AppColors.darkSurfaceHigh,
-      outline: Color(0xFF555555),
-      outlineVariant: AppColors.darkSurfaceHigh,
+      surfaceContainerHighest: AppColors.darkSurfaceHigh,
+      outline: AppColors.lineStrongDark,
+      outlineVariant: AppColors.lineDark,
+      inverseSurface: AppColors.inkDark,
+      onInverseSurface: AppColors.darkBackground,
+      inversePrimary: AppColors.militantRed,
+      scrim: Color(0xA3000000),
+      surfaceTint: Colors.transparent,
     );
     return _build(
       scheme: scheme,
       scaffold: AppColors.darkBackground,
-      appBarBackground: AppColors.darkSurface,
-      appBarForeground: Colors.white,
       tokens: AppTokens.dark,
     );
   }
 
+  /// Étiquette en capitales (`eyebrow`) : pastille En direct, intitulés de
+  /// section. Le texte est mis en capitales par le code, jamais dans les
+  /// traductions.
+  static TextStyle eyebrow(TextTheme text) => text.labelSmall!.copyWith(
+    fontFamily: AppFonts.display,
+    fontFamilyFallback: AppFonts.fallback,
+    fontSize: 11,
+    height: 16 / 11,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 0.88,
+  );
+
   static ThemeData _build({
     required ColorScheme scheme,
     required Color scaffold,
-    required Color appBarBackground,
-    required Color appBarForeground,
     required AppTokens tokens,
   }) {
     final base = ThemeData(
       brightness: scheme.brightness,
       colorScheme: scheme,
       useMaterial3: true,
+      fontFamily: AppFonts.text,
+      fontFamilyFallback: AppFonts.fallback,
     );
+    final text = _textTheme(base.textTheme);
     return base.copyWith(
       primaryColor: scheme.primary,
       scaffoldBackgroundColor: scaffold,
+      textTheme: text,
+      dividerColor: scheme.outlineVariant,
+      dividerTheme: DividerThemeData(color: scheme.outlineVariant),
       appBarTheme: AppBarTheme(
-        backgroundColor: appBarBackground,
-        foregroundColor: appBarForeground,
+        backgroundColor: scaffold,
+        foregroundColor: scheme.onSurface,
         elevation: 0,
-        iconTheme: IconThemeData(color: appBarForeground),
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        iconTheme: IconThemeData(color: scheme.onSurface),
+        titleTextStyle: text.titleLarge?.copyWith(color: scheme.onSurface),
+      ),
+      tabBarTheme: TabBarThemeData(
+        labelColor: scheme.onSurface,
+        unselectedLabelColor: scheme.onSurfaceVariant,
+        indicatorColor: scheme.primary,
+        dividerColor: scheme.outlineVariant,
+        labelStyle: text.labelLarge,
+        unselectedLabelStyle: text.labelLarge,
       ),
       progressIndicatorTheme: ProgressIndicatorThemeData(color: scheme.primary),
-      // Les écrans forçaient #1E1E1E pour les dialogues et feuilles du bas :
-      // on garde cette surface en sombre (blanc en clair) plutôt que les
-      // teintes Material 3 par défaut.
-      dialogTheme: DialogThemeData(backgroundColor: scheme.surface),
+      // Dialogues et feuilles du bas sur `surface`, plutôt que les teintes
+      // Material 3 par défaut.
+      dialogTheme: DialogThemeData(
+        backgroundColor: scheme.surface,
+        titleTextStyle: text.titleLarge?.copyWith(color: scheme.onSurface),
+      ),
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: scheme.surface,
         modalBackgroundColor: scheme.surface,
       ),
       extensions: [tokens],
+    );
+  }
+
+  /// Archivo pour les titres (`display*`, `headline*`, `titleLarge`),
+  /// Atkinson Hyperlegible Next pour le reste, sur l'échelle Material 3.
+  static TextTheme _textTheme(TextTheme base) {
+    TextStyle display(
+      TextStyle? style,
+      double size,
+      double lineHeight,
+      FontWeight weight,
+      double tracking,
+    ) => style!.copyWith(
+      fontFamily: AppFonts.display,
+      fontFamilyFallback: AppFonts.fallback,
+      fontSize: size,
+      height: lineHeight / size,
+      fontWeight: weight,
+      letterSpacing: tracking * size,
+    );
+
+    TextStyle text(
+      TextStyle? style,
+      double size,
+      double lineHeight,
+      FontWeight weight, [
+      double tracking = 0,
+    ]) => style!.copyWith(
+      fontSize: size,
+      height: lineHeight / size,
+      fontWeight: weight,
+      letterSpacing: tracking * size,
+    );
+
+    const w400 = FontWeight.w400;
+    const w700 = FontWeight.w700;
+    const w800 = FontWeight.w800;
+    return base.copyWith(
+      displayLarge: display(base.displayLarge, 57, 64, w800, -0.02),
+      displayMedium: display(base.displayMedium, 45, 50, w800, -0.02),
+      displaySmall: display(base.displaySmall, 36, 44, w800, -0.02),
+      headlineLarge: display(base.headlineLarge, 32, 38, w800, -0.01),
+      headlineMedium: display(base.headlineMedium, 28, 34, w800, -0.01),
+      headlineSmall: display(base.headlineSmall, 24, 30, w800, -0.01),
+      titleLarge: display(base.titleLarge, 22, 28, w700, -0.005),
+      titleMedium: text(base.titleMedium, 16, 22, w700),
+      titleSmall: text(base.titleSmall, 14, 20, w700),
+      bodyLarge: text(base.bodyLarge, 16, 24, w400),
+      bodyMedium: text(base.bodyMedium, 14, 20, w400),
+      bodySmall: text(base.bodySmall, 12, 16, w400),
+      labelLarge: text(base.labelLarge, 14, 20, w700, 0.01),
+      labelMedium: text(base.labelMedium, 12, 16, w700, 0.01),
+      labelSmall: text(base.labelSmall, 11, 16, w400, 0.01),
     );
   }
 }

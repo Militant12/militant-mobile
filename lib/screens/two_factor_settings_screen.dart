@@ -6,6 +6,7 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../utils/error_helper.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_theme.dart';
 import '../theme/theme_context.dart';
 import '../theme/app_tokens.dart';
 
@@ -149,7 +150,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                     .map(
                       (c) => Text(
                         c,
-                        style: const TextStyle(fontFamily: 'monospace'),
+                        style: const TextStyle(fontFamily: AppFonts.mono),
                       ),
                     )
                     .toList(),
@@ -267,7 +268,7 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                             child: Text(
                               _secret!,
                               style: const TextStyle(
-                                fontFamily: 'monospace',
+                                fontFamily: AppFonts.mono,
                                 fontSize: AppTokens.fontBodyLarge,
                                 letterSpacing: 2,
                               ),

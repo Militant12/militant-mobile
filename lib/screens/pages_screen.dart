@@ -185,7 +185,7 @@ class _PagesScreenState extends State<PagesScreen>
               Icons.flag_outlined,
               size: 64,
               color: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.grey888
+                  ? AppColors.inkMutedDark
                   : Colors.grey,
             ),
             const SizedBox(height: 16),
@@ -193,7 +193,7 @@ class _PagesScreenState extends State<PagesScreen>
               lang.translate('no_pages_message'),
               style: TextStyle(
                 color: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.grey888
+                    ? AppColors.inkMutedDark
                     : Colors.grey[600],
                 fontSize: AppTokens.fontBodyLarge,
               ),
@@ -203,7 +203,7 @@ class _PagesScreenState extends State<PagesScreen>
               lang.translate('create_page_subtitle'),
               style: TextStyle(
                 color: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.grey666
+                    ? AppColors.inkMutedLight
                     : Colors.grey[500],
                 fontSize: AppTokens.fontBodyMedium,
               ),
@@ -253,7 +253,7 @@ class _PagesScreenState extends State<PagesScreen>
               Icons.favorite_border,
               size: 64,
               color: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.grey888
+                  ? AppColors.inkMutedDark
                   : Colors.grey,
             ),
             const SizedBox(height: 16),
@@ -261,7 +261,7 @@ class _PagesScreenState extends State<PagesScreen>
               lang.translate('no_followed_pages'),
               style: TextStyle(
                 color: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.grey888
+                    ? AppColors.inkMutedDark
                     : Colors.grey[600],
                 fontSize: AppTokens.fontBodyLarge,
               ),
@@ -305,7 +305,7 @@ class _PagesScreenState extends State<PagesScreen>
               Icons.search_off,
               size: 64,
               color: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.grey888
+                  ? AppColors.inkMutedDark
                   : Colors.grey,
             ),
             const SizedBox(height: 16),
@@ -313,7 +313,7 @@ class _PagesScreenState extends State<PagesScreen>
               lang.translate('no_discover_pages'),
               style: TextStyle(
                 color: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.grey888
+                    ? AppColors.inkMutedDark
                     : Colors.grey[600],
                 fontSize: AppTokens.fontBodyLarge,
               ),

@@ -236,7 +236,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final dividerColor = context.colors.outlineVariant;
-    final subtitleColor = isDark ? AppColors.grey888 : Colors.grey[700];
+    final subtitleColor = isDark ? AppColors.inkMutedDark : Colors.grey[700];
     final titleColor = theme.textTheme.bodyLarge?.color;
 
     return InkWell(
