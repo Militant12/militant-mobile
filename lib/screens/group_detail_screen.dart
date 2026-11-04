@@ -137,6 +137,10 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
     }
   }
 
+  /// Vrai juste après avoir rejoint le groupe : le tampon arrive en
+  /// s'animant.
+  bool _stampLanding = false;
+
   Future<void> _joinGroup() async {
     final lang = LanguageService.instance;
     try {
@@ -175,19 +179,15 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       }
 
       await api.joinGroup(_groupData!['id']);
+      _stampLanding = !isPrivate;
 
       // Reload group info to get updated status
       await _loadGroupInfo();
 
-      if (mounted) {
+      // Groupe public : le tampon « Rejoint » confirme à lui seul.
+      if (mounted && isPrivate) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              isPrivate
-                  ? lang.translate('join_request_sent')
-                  : lang.translate('joined_group_success'),
-            ),
-          ),
+          SnackBar(content: Text(lang.translate('join_request_sent'))),
         );
       }
     } catch (e, st) {
@@ -668,14 +668,27 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Title
-                    Text(
-                      name,
-                      style: TextStyle(
-                        fontSize: AppTokens.fontHeadlineMedium,
-                        fontWeight: FontWeight.w800,
-                        color: theme.textTheme.titleLarge?.color,
-                      ),
+                    // Titre, et le tampon à côté pour les membres.
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(name, style: context.text.headlineMedium),
+                        ),
+                        if (isMember) ...[
+                          const SizedBox(width: AppTokens.space12),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 6),
+                            child: Stamp(
+                              label: lang.translate('stamp_joined'),
+                              semanticLabel: lang.translate(
+                                'stamp_joined_status',
+                              ),
+                              animate: _stampLanding,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 8),
 

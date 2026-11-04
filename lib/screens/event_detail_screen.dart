@@ -20,6 +20,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   Map<String, dynamic>? _event;
   bool _isLoading = true;
   bool _isJoining = false;
+
+  /// Vrai juste après « J'y serai » : le tampon arrive en s'animant.
+  bool _stampLanding = false;
   Object? _error;
 
   @override
@@ -79,6 +82,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       } else {
         await api.joinEvent(widget.eventId);
       }
+      _stampLanding = !isParticipating;
       await _loadEvent();
     } catch (e) {
       if (mounted) {
@@ -90,6 +94,19 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     } finally {
       if (mounted) setState(() => _isJoining = false);
     }
+  }
+
+  /// Pendant l'envoi, le bouton est désactivé et son icône tourne.
+  Widget _participationIcon(IconData icon) {
+    if (!_isJoining) return Icon(icon, size: 20);
+    return SizedBox(
+      width: 18,
+      height: 18,
+      child: CircularProgressIndicator(
+        color: context.tokens.textMuted,
+        strokeWidth: 2,
+      ),
+    );
   }
 
   Future<String?> _getImageUrl(String? path) async {
@@ -121,9 +138,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         _event!['is_participating'] == 1 || _event!['is_participating'] == true;
     final participantsCount = _event!['participants_count'] ?? 0;
     final coverImage = _event!['cover_image'] ?? _event!['image'];
-    final buttonForeground = isParticipating
-        ? context.colors.onSurface
-        : context.colors.onPrimary;
 
     return Scaffold(
       body: CustomScrollView(
@@ -175,14 +189,28 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Titre
-                  Text(
-                    _event!['title'] ?? lang.translate('event'),
-                    style: TextStyle(
-                      color: context.colors.onSurface,
-                      fontSize: AppTokens.fontHeadlineMedium,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  // Titre, et le tampon à côté quand on y va.
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _event!['title'] ?? lang.translate('event'),
+                          style: context.text.headlineMedium,
+                        ),
+                      ),
+                      if (isParticipating) ...[
+                        const SizedBox(width: AppTokens.space12),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Stamp(
+                            label: lang.translate('stamp_going'),
+                            semanticLabel: lang.translate('stamp_going_status'),
+                            animate: _stampLanding,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 8),
 
@@ -372,47 +400,22 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
 
                   const SizedBox(height: 16),
 
-                  // Bouton Participer / Quitter
+                  // J'y serai / Je n'y vais plus
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _isJoining ? null : _toggleParticipation,
-                      icon: _isJoining
-                          ? SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                color: buttonForeground,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : Icon(
-                              isParticipating
-                                  ? Icons.check_circle
-                                  : Icons.add_circle_outline,
-                              color: buttonForeground,
+                    child: isParticipating
+                        ? OutlinedButton.icon(
+                            onPressed: _isJoining ? null : _toggleParticipation,
+                            icon: _participationIcon(Icons.event_busy_outlined),
+                            label: Text(lang.translate('event_not_going')),
+                          )
+                        : FilledButton.icon(
+                            onPressed: _isJoining ? null : _toggleParticipation,
+                            icon: _participationIcon(
+                              Icons.event_available_rounded,
                             ),
-                      label: Text(
-                        isParticipating ? lang.translate('participating_status') : lang.translate('participate_button'),
-                        style: TextStyle(
-                          color: buttonForeground,
-                          fontSize: AppTokens.fontBodyLarge,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isParticipating
-                            ? context.colors.surfaceContainerHigh
-                            : context.colors.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: isParticipating
-                              ? BorderSide(color: context.colors.primary)
-                              : BorderSide.none,
-                        ),
-                      ),
-                    ),
+                            label: Text(lang.translate('event_going')),
+                          ),
                   ),
 
                   const SizedBox(height: 28),
