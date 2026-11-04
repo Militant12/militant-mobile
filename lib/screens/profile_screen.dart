@@ -27,7 +27,6 @@ import '../widgets/linkable_text.dart';
 import 'chat_screen.dart';
 import '../utils/error_helper.dart';
 import '../utils/date_formatter.dart';
-import '../theme/app_colors.dart';
 import '../theme/app_tokens.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -556,7 +555,7 @@ class ProfileScreenState extends State<ProfileScreen>
                         ),
                       ),
                       trailing: isCurrent
-                          ? const Icon(Icons.check, color: AppColors.militantRed)
+                          ? Icon(Icons.check, color: context.colors.onPrimaryContainer)
                           : null,
                       onTap: isCurrent
                           ? null
@@ -576,7 +575,7 @@ class ProfileScreenState extends State<ProfileScreen>
               icon: const Icon(Icons.person_add),
               label: Text(lang.translate('add_account')),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.militantRed,
+                backgroundColor: context.colors.primary,
                 foregroundColor: Colors.white,
               ),
             ),
@@ -745,13 +744,13 @@ class ProfileScreenState extends State<ProfileScreen>
                         child: Container(
                           padding: const EdgeInsets.all(3),
                           decoration: BoxDecoration(
-                            color: AppColors.militantRed.withOpacity(0.15),
+                            color: context.colors.primaryContainer,
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.shield,
                             size: 20,
-                            color: AppColors.militantRed,
+                            color: context.colors.onPrimaryContainer,
                           ),
                         ),
                       ),
@@ -759,10 +758,10 @@ class ProfileScreenState extends State<ProfileScreen>
                     if (_profile?['is_private'] == 1 ||
                         _profile?['is_private'] == true) ...[
                       const SizedBox(width: 8),
-                      const Icon(
+                      Icon(
                         Icons.lock,
                         size: 20,
-                        color: AppColors.militantRed,
+                        color: context.colors.onPrimaryContainer,
                       ),
                     ],
                   ],
@@ -874,10 +873,10 @@ class ProfileScreenState extends State<ProfileScreen>
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.alternate_email,
                               size: 14,
-                              color: AppColors.militantRed,
+                              color: context.colors.onPrimaryContainer,
                             ),
                             const SizedBox(width: 6),
                             Flexible(
@@ -1069,7 +1068,7 @@ class ProfileScreenState extends State<ProfileScreen>
                               );
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.militantRed,
+                              backgroundColor: context.colors.primary,
                               foregroundColor: Colors.white,
                               minimumSize: const Size(double.infinity, 45),
                             ),
@@ -1108,7 +1107,7 @@ class ProfileScreenState extends State<ProfileScreen>
                           child: ElevatedButton(
                             onPressed: _acceptFriendRequest,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.militantRed,
+                              backgroundColor: context.colors.primary,
                               foregroundColor: Colors.white,
                               minimumSize: const Size(double.infinity, 45),
                             ),
@@ -1135,7 +1134,7 @@ class ProfileScreenState extends State<ProfileScreen>
                     ElevatedButton(
                       onPressed: _sendFriendRequest,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.militantRed,
+                        backgroundColor: context.colors.primary,
                         foregroundColor: Colors.white,
                         minimumSize: const Size(double.infinity, 45),
                       ),
@@ -1150,7 +1149,7 @@ class ProfileScreenState extends State<ProfileScreen>
                           : Colors.transparent,
                       side: _isFollowing
                           ? null
-                          : const BorderSide(color: AppColors.militantRed),
+                          : BorderSide(color: context.colors.primary),
                       minimumSize: const Size(double.infinity, 40),
                     ),
                     child: Text(
@@ -1160,7 +1159,7 @@ class ProfileScreenState extends State<ProfileScreen>
                       style: TextStyle(
                         color: _isFollowing
                             ? textColor
-                            : AppColors.militantRed,
+                            : context.colors.onPrimaryContainer,
                       ),
                     ),
                   ),
@@ -1211,8 +1210,8 @@ class ProfileScreenState extends State<ProfileScreen>
               color: theme.cardColor,
               child: TabBar(
                 controller: _tabController,
-                indicatorColor: AppColors.militantRed,
-                labelColor: AppColors.militantRed,
+                indicatorColor: context.colors.primary,
+                labelColor: context.colors.onPrimaryContainer,
                 unselectedLabelColor: subtitleColor,
                 tabs: [
                   Tab(text: '${lang.translate('posts')} (${_posts.length})'),
@@ -1254,11 +1253,11 @@ class ProfileScreenState extends State<ProfileScreen>
                               _loadUserPosts(uid);
                             }
                           },
-                          icon: const Icon(Icons.refresh,
-                              size: 18, color: AppColors.militantRed),
+                          icon: Icon(Icons.refresh,
+                              size: 18, color: context.colors.onPrimaryContainer),
                           label: Text(
                             LanguageService.instance.translate('retry'),
-                            style: TextStyle(color: AppColors.militantRed),
+                            style: TextStyle(color: context.colors.onPrimaryContainer),
                           ),
                         ),
                       ],
@@ -1385,10 +1384,10 @@ class ProfileScreenState extends State<ProfileScreen>
                 color: theme.cardColor,
                 child: imageUrl != null
                     ? isVideo
-                          ? const Center(
+                          ? Center(
                               child: Icon(
                                 Icons.play_circle_outline,
-                                color: AppColors.militantRed,
+                                color: context.colors.onPrimaryContainer,
                                 size: 40,
                               ),
                             )
@@ -1398,9 +1397,9 @@ class ProfileScreenState extends State<ProfileScreen>
                               loadingBuilder:
                                   (context, child, loadingProgress) {
                                     if (loadingProgress == null) return child;
-                                    return const Center(
+                                    return Center(
                                       child: CircularProgressIndicator(
-                                        color: AppColors.militantRed,
+                                        color: context.colors.primary,
                                         strokeWidth: 2,
                                       ),
                                     );
@@ -1470,7 +1469,7 @@ class ProfileScreenState extends State<ProfileScreen>
                 : (social['key'] as String)[0].toUpperCase() +
                       (social['key'] as String).substring(1),
             icon: Icon(social['icon'] as IconData, size: 24),
-            color: AppColors.militantRed,
+            color: context.colors.onPrimaryContainer,
             onPressed: () async {
               try {
                 final urlTemplate = social['url'] as String;
@@ -1553,7 +1552,7 @@ class ProfileScreenState extends State<ProfileScreen>
         ),
         child: Row(
           children: [
-            Icon(icon, color: AppColors.militantRed),
+            Icon(icon, color: context.colors.onPrimaryContainer),
             const SizedBox(width: 16),
             Expanded(
               child: Text(

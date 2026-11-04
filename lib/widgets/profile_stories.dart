@@ -6,7 +6,6 @@ import '../screens/stories_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../utils/error_helper.dart';
-import '../theme/app_colors.dart';
 import '../theme/app_tokens.dart';
 
 class ProfileStories extends StatefulWidget {
@@ -59,7 +58,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
           SnackBar(
             content: Text(lang.translate('stories_uploading')),
             duration: const Duration(seconds: 2),
-            backgroundColor: AppColors.militantRed,
+            backgroundColor: context.colors.primary,
           ),
         );
       }
@@ -103,11 +102,11 @@ class _ProfileStoriesState extends State<ProfileStories> {
     final subtitleColor = theme.textTheme.bodyMedium?.color;
 
     if (_isLoading) {
-      return const SizedBox(
+      return SizedBox(
         height: 100,
         child: Center(
           child: CircularProgressIndicator(
-            color: AppColors.militantRed,
+            color: context.colors.primary,
             strokeWidth: 2,
           ),
         ),
@@ -136,12 +135,12 @@ class _ProfileStoriesState extends State<ProfileStories> {
                 height: 70,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.militantRed, width: 2),
+                  border: Border.all(color: context.colors.primary, width: 2),
                   color: context.colors.surfaceContainer,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.add,
-                  color: AppColors.militantRed,
+                  color: context.colors.onPrimaryContainer,
                   size: 30,
                 ),
               ),
@@ -209,7 +208,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppColors.militantRed,
+                      color: context.colors.primary,
                       width: 3,
                     ),
                   ),
@@ -259,7 +258,7 @@ class _ProfileStoriesState extends State<ProfileStories> {
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: AppColors.militantRed,
+                        color: context.colors.primary,
                         shape: BoxShape.circle,
                         border: Border.all(color: context.colors.surface, width: 2),
                       ),

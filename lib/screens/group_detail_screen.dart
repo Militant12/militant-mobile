@@ -168,7 +168,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                 onPressed: () => Navigator.pop(context, true),
                 child: Text(
                   lang.translate('send_request'),
-                  style: const TextStyle(color: AppColors.militantRed),
+                  style: TextStyle(color: context.colors.onPrimaryContainer),
                 ),
               ),
             ],
@@ -222,7 +222,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
             onPressed: () => Navigator.pop(context, true),
             child: Text(
               lang.translate('leave'),
-              style: const TextStyle(color: AppColors.militantRed),
+              style: TextStyle(color: context.colors.onPrimaryContainer),
             ),
           ),
         ],
@@ -504,7 +504,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.militantRed,
+                backgroundColor: context.colors.primary,
                 foregroundColor: Colors.white,
               ),
               child: Text(lang.translate('save')),
@@ -592,8 +592,8 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                               top: 8,
                               child: Container(
                                 padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                  color: AppColors.militantRed,
+                                decoration: BoxDecoration(
+                                  color: context.colors.primary,
                                   shape: BoxShape.circle,
                                 ),
                                 constraints: const BoxConstraints(
@@ -976,13 +976,13 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: AppColors.militantRed.withOpacity(0.1),
+                  color: context.colors.primaryContainer,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.arrow_forward_ios_rounded,
                   size: 14,
-                  color: AppColors.militantRed,
+                  color: context.colors.onPrimaryContainer,
                 ),
               ),
             ],
@@ -1032,6 +1032,6 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
         errorBuilder: (_, __, ___) => Container(color: context.colors.surfaceContainerHigh),
       );
     }
-    return Container(color: AppColors.militantRed.withOpacity(0.5));
+    return Container(color: context.colors.primary.withValues(alpha: 0.5));
   }
 }

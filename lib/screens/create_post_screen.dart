@@ -200,9 +200,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(
+              leading: Icon(
                 Icons.photo_library,
-                color: AppColors.militantRed,
+                color: context.colors.onPrimaryContainer,
               ),
               title: Text(
                 LanguageService.instance.translate('image_from_gallery'),
@@ -213,7 +213,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               }),
             ),
             ListTile(
-              leading: const Icon(Icons.videocam, color: AppColors.militantRed),
+              leading: Icon(Icons.videocam, color: context.colors.onPrimaryContainer),
               title: Text(
                 LanguageService.instance.translate('video_from_gallery'),
               ),
@@ -223,7 +223,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               }),
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt, color: AppColors.militantRed),
+              leading: Icon(Icons.camera_alt, color: context.colors.onPrimaryContainer),
               title: Text(LanguageService.instance.translate('take_photo')),
               onTap: () => Navigator.pop(context, {
                 'source': ImageSource.camera,
@@ -231,7 +231,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               }),
             ),
             ListTile(
-              leading: const Icon(Icons.videocam, color: AppColors.militantRed),
+              leading: Icon(Icons.videocam, color: context.colors.onPrimaryContainer),
               title: Text(LanguageService.instance.translate('record_video')),
               onTap: () => Navigator.pop(context, {
                 'source': ImageSource.camera,
@@ -385,18 +385,18 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             child: TextButton(
               onPressed: _isLoading ? null : _createPost,
               child: _isLoading
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: AppColors.militantRed,
+                        color: context.colors.primary,
                       ),
                     )
                   : Text(
                       lang.translate('publish_button'),
-                      style: const TextStyle(
-                        color: AppColors.militantRed,
+                      style: TextStyle(
+                        color: context.colors.onPrimaryContainer,
                         fontWeight: FontWeight.bold,
                         fontSize: AppTokens.fontBodyLarge,
                       ),
@@ -539,7 +539,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             child: Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.photo, color: AppColors.militantRed),
+                  icon: Icon(Icons.photo, color: context.colors.onPrimaryContainer),
                   onPressed: _pickMedia,
                   tooltip: LanguageService.instance.translate('add_media'),
                 ),
@@ -575,7 +575,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             : Colors.black.withValues(alpha: 0.025),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: AppColors.militantRed.withValues(alpha: 0.12),
+          color: context.colors.primaryContainer,
         ),
       ),
       child: Column(
@@ -583,10 +583,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         children: [
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.sell_outlined,
                 size: 16,
-                color: AppColors.militantRed,
+                color: context.colors.onPrimaryContainer,
               ),
               const SizedBox(width: 8),
               Text(
@@ -609,13 +609,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.militantRed.withValues(alpha: 0.10),
+                      color: context.colors.primaryContainer,
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
                       '#$tag',
-                      style: const TextStyle(
-                        color: AppColors.militantRed,
+                      style: TextStyle(
+                        color: context.colors.onPrimaryContainer,
                         fontWeight: FontWeight.w600,
                       ),
                     ),

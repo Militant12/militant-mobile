@@ -6,6 +6,7 @@ import '../utils/error_helper.dart';
 import '../services/language_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_tokens.dart';
+import '../theme/theme_context.dart';
 
 class AudioRecorderWidget extends StatefulWidget {
   final Function(File audioFile) onRecordingComplete;
@@ -130,8 +131,8 @@ class _AudioRecorderWidgetState extends State<AudioRecorderWidget> {
           Container(
             width: 12,
             height: 12,
-            decoration: const BoxDecoration(
-              color: AppColors.militantRed,
+            decoration: BoxDecoration(
+              color: context.colors.primary,
               shape: BoxShape.circle,
             ),
           ),
@@ -147,7 +148,8 @@ class _AudioRecorderWidgetState extends State<AudioRecorderWidget> {
           const Spacer(),
           IconButton(
             tooltip: LanguageService.instance.translate('send'),
-            icon: const Icon(Icons.send, color: AppColors.militantRed),
+            // La barre d'enregistrement est toujours sombre.
+            icon: const Icon(Icons.send, color: AppColors.brandInkDark),
             onPressed: _stopRecording,
           ),
         ],

@@ -243,9 +243,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(
+              leading: Icon(
                 Icons.photo_library,
-                color: AppColors.militantRed,
+                color: context.colors.onPrimaryContainer,
               ),
               title: Text(lang.translate('image_from_gallery')),
               onTap: () => Navigator.pop(context, {
@@ -254,7 +254,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               }),
             ),
             ListTile(
-              leading: const Icon(Icons.videocam, color: AppColors.militantRed),
+              leading: Icon(Icons.videocam, color: context.colors.onPrimaryContainer),
               title: Text(lang.translate('video_from_gallery')),
               onTap: () => Navigator.pop(context, {
                 'source': ImageSource.gallery,
@@ -262,7 +262,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               }),
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt, color: AppColors.militantRed),
+              leading: Icon(Icons.camera_alt, color: context.colors.onPrimaryContainer),
               title: Text(lang.translate('take_photo')),
               onTap: () => Navigator.pop(context, {
                 'source': ImageSource.camera,
@@ -270,9 +270,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               }),
             ),
             ListTile(
-              leading: const Icon(
+              leading: Icon(
                 Icons.videocam_outlined,
-                color: AppColors.militantRed,
+                color: context.colors.onPrimaryContainer,
               ),
               title: Text(lang.translate('record_video')),
               onTap: () => Navigator.pop(context, {
@@ -428,7 +428,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           ElevatedButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.militantRed,
+              backgroundColor: context.colors.primary,
               foregroundColor: Colors.white,
             ),
             child: Text(lang.translate('save')),
@@ -503,11 +503,11 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: AppColors.militantRed.withOpacity(0.1),
+                            color: context.colors.primaryContainer,
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.thumb_up,
-                            color: AppColors.militantRed,
+                            color: context.colors.onPrimaryContainer,
                             size: 24,
                           ),
                         )
@@ -695,7 +695,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.militantRed,
+                backgroundColor: context.colors.primary,
                 foregroundColor: Colors.white,
               ),
               child: Text(lang.translate('add')),
@@ -858,7 +858,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.militantRed,
+                            color: context.colors.primary,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -876,7 +876,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _isFollowed
                                 ? (context.colors.surfaceContainerHigh)
-                                : AppColors.militantRed,
+                                : context.colors.primary,
                             foregroundColor: _isFollowed
                                 ? (context.colors.onSurface)
                                 : Colors.white,
@@ -915,7 +915,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 TabBar(
                   key: ValueKey(_tabController.hashCode),
                   controller: _tabController,
-                  indicatorColor: AppColors.militantRed,
+                  indicatorColor: context.colors.primary,
                   labelColor: context.colors.onSurface,
                   unselectedLabelColor: context.tokens.textMuted,
                   isScrollable: (_tabController?.length ?? 1) > 3,
@@ -989,8 +989,8 @@ class _PageDetailScreenState extends State<PageDetailScreen>
     }
     return CircleAvatar(
       radius: size / 2,
-      backgroundColor: AppColors.militantRed.withOpacity(0.2),
-      child: Icon(Icons.flag, color: AppColors.militantRed, size: size * 0.5),
+      backgroundColor: context.colors.primaryContainer,
+      child: Icon(Icons.flag, color: context.colors.onPrimaryContainer, size: size * 0.5),
     );
   }
 
@@ -1107,8 +1107,8 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                   Flexible(
                     child: Text(
                       website,
-                      style: const TextStyle(
-                        color: AppColors.militantRed,
+                      style: TextStyle(
+                        color: context.colors.onPrimaryContainer,
                         fontSize: AppTokens.fontBodyMedium,
                         decoration: TextDecoration.underline,
                       ),
@@ -1134,7 +1134,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
 
     return RefreshIndicator(
       onRefresh: _loadPosts,
-      color: AppColors.militantRed,
+      color: context.colors.primary,
       child: ListView(
         padding: const EdgeInsets.all(12),
         children: [
@@ -1263,7 +1263,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                               : lang.translate('publish'),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.militantRed,
+                          backgroundColor: context.colors.primary,
                           foregroundColor: Colors.white,
                         ),
                       ),
@@ -1496,9 +1496,9 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                   child: TextButton.icon(
                     onPressed: () => _showReactionPicker(post['id']),
                     icon: userReaction == 'like'
-                        ? const Icon(
+                        ? Icon(
                             Icons.thumb_up,
-                            color: AppColors.militantRed,
+                            color: context.colors.onPrimaryContainer,
                             size: 18,
                           )
                         : userReaction.isNotEmpty
@@ -1515,7 +1515,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                       LanguageService.instance.translate('like_action'),
                       style: TextStyle(
                         color: userReaction.isNotEmpty
-                            ? AppColors.militantRed
+                            ? context.colors.onPrimaryContainer
                             : (context.tokens.textMuted),
                         fontSize: AppTokens.fontBodyMedium,
                       ),
@@ -1606,7 +1606,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
 
     return RefreshIndicator(
       onRefresh: _loadFollowers,
-      color: AppColors.militantRed,
+      color: context.colors.primary,
       child: ListView.builder(
         padding: const EdgeInsets.all(12),
         itemCount: _followers.length,
@@ -1713,7 +1713,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
 
     return RefreshIndicator(
       onRefresh: _loadTeam,
-      color: AppColors.militantRed,
+      color: context.colors.primary,
       child: ListView(
         padding: const EdgeInsets.all(12),
         children: [
@@ -1869,7 +1869,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
             icon: const Icon(Icons.person_add),
             label: Text(lang.translate('add_member')),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.militantRed,
+              backgroundColor: context.colors.primary,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
@@ -1998,7 +1998,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                         child: Container(
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
-                            color: AppColors.militantRed,
+                            color: context.colors.primary,
                             shape: BoxShape.circle,
                             border: Border.all(
                               color: isDark
@@ -2250,7 +2250,7 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               icon: const Icon(Icons.check),
               label: Text(lang.translate('save')),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.militantRed,
+                backgroundColor: context.colors.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
@@ -2651,7 +2651,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.militantRed,
+              backgroundColor: context.colors.primary,
               foregroundColor: Colors.white,
             ),
             child: Text(lang.translate('save')),
@@ -2858,7 +2858,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                                 : LanguageService.instance.translate('react'),
                                             style: TextStyle(
                                               color: userReaction.isNotEmpty
-                                                  ? AppColors.militantRed
+                                                  ? context.colors.onPrimaryContainer
                                                   : (context.tokens.textMuted),
                                               fontSize: AppTokens.fontBodySmall,
                                             ),
@@ -3025,17 +3025,17 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                         tooltip: LanguageService.instance.translate('send'),
                         onPressed: _isSending ? null : _sendComment,
                         icon: _isSending
-                            ? const SizedBox(
+                            ? SizedBox(
                                 height: 20,
                                 width: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: AppColors.militantRed,
+                                  color: context.colors.primary,
                                 ),
                               )
-                            : const Icon(
+                            : Icon(
                                 Icons.send,
-                                color: AppColors.militantRed,
+                                color: context.colors.onPrimaryContainer,
                               ),
                       ),
                     ],

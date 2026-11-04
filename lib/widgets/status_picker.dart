@@ -4,7 +4,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../services/user_status_service.dart';
-import '../theme/app_colors.dart';
 import '../theme/app_tokens.dart';
 
 /// Chip cliquable affichant ton propre statut sur ton profil
@@ -163,7 +162,7 @@ class _StatusPickerDialogState extends State<StatusPickerDialog> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final bg = context.colors.surface;
-    final accent = AppColors.militantRed;
+    final accent = context.colors.primary;
 
     return Container(
       decoration: BoxDecoration(

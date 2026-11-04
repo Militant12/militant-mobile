@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/language_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
 
 class TechnicianBadge extends StatelessWidget {
   final double size;
@@ -23,7 +24,7 @@ class TechnicianBadge extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.militantRed.withOpacity(0.4),
+              color: context.colors.primary.withValues(alpha: 0.4),
               blurRadius: size * 0.2,
               spreadRadius: 0.5,
             ),

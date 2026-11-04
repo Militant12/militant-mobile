@@ -7,6 +7,7 @@ import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_tokens.dart';
+import '../theme/theme_context.dart';
 
 class StoriesScreen extends StatefulWidget {
   final List<dynamic> stories;
@@ -208,12 +209,12 @@ class _StoriesScreenState extends State<StoriesScreen> {
                           return CircleAvatar(
                             radius: 20,
                             backgroundImage: CachedNetworkImageProvider(snapshot.data!),
-                            backgroundColor: AppColors.militantRed,
+                            backgroundColor: context.colors.primary,
                           );
                         }
                         return CircleAvatar(
                           radius: 20,
-                          backgroundColor: AppColors.militantRed,
+                          backgroundColor: context.colors.primary,
                           child: Text(
                             username[0].toUpperCase(),
                             style: const TextStyle(color: Colors.white),

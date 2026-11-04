@@ -263,7 +263,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   // Select button
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.militantRed,
+                      backgroundColor: context.colors.primary,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
@@ -279,7 +279,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     const SizedBox(height: 8),
                     TextButton.icon(
                       style: TextButton.styleFrom(
-                        foregroundColor: AppColors.militantRed,
+                        foregroundColor: context.colors.onPrimaryContainer,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       icon: const Icon(Icons.delete),
@@ -675,7 +675,7 @@ class _ChatScreenState extends State<ChatScreen> {
           Icon(
             _autoDeleteTime == value ? Icons.radio_button_checked : Icons.radio_button_off,
             size: 20,
-            color: AppColors.militantRed,
+            color: context.colors.onPrimaryContainer,
           ),
           const SizedBox(width: 12),
           Text(label),
@@ -692,16 +692,16 @@ class _ChatScreenState extends State<ChatScreen> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      color: AppColors.militantRed.withValues(alpha: 0.10),
+      color: context.colors.primaryContainer,
       child: Row(
         children: [
-          const Icon(Icons.timer_outlined, size: 18, color: AppColors.militantRed),
+          Icon(Icons.timer_outlined, size: 18, color: context.colors.onPrimaryContainer),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               _autoDeleteSubtitle(),
-              style: const TextStyle(
-                color: AppColors.militantRed,
+              style: TextStyle(
+                color: context.colors.onPrimaryContainer,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -1168,7 +1168,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final translatedText = message['_translatedText'];
 
     final bubbleColor = isMine
-        ? AppColors.militantRed
+        ? context.colors.primary
         : (context.colors.surfaceContainerHigh);
 
     final textColor = isMine
@@ -1203,7 +1203,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border(
                       left: BorderSide(
-                        color: isMine ? Colors.white70 : AppColors.militantRed,
+                        color: isMine ? Colors.white70 : context.colors.primary,
                         width: 3,
                       ),
                     ),
@@ -1363,7 +1363,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             borderRadius: BorderRadius.circular(999),
                             border: Border.all(
                               color: isSelected
-                                  ? AppColors.militantRed
+                                  ? context.colors.primary
                                   : Colors.transparent,
                             ),
                           ),
@@ -1371,7 +1371,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             '${_reactionEmoji(entry.key)} ${entry.value}',
                             style: TextStyle(
                               color: isSelected
-                                  ? AppColors.militantRed
+                                  ? context.colors.onPrimaryContainer
                                   : textColor,
                               fontSize: AppTokens.fontBodySmall,
                               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
@@ -1568,7 +1568,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     width: 3,
                     height: 34,
                     decoration: BoxDecoration(
-                      color: AppColors.militantRed,
+                      color: context.colors.primary,
                       borderRadius: BorderRadius.circular(99),
                     ),
                   ),
@@ -1612,7 +1612,7 @@ class _ChatScreenState extends State<ChatScreen> {
             children: [
           IconButton(
             tooltip: LanguageService.instance.translate('a11y_attach'),
-            icon: const Icon(Icons.attach_file, color: AppColors.militantRed),
+            icon: Icon(Icons.attach_file, color: context.colors.onPrimaryContainer),
             onPressed: _pickMedia,
           ),
           Expanded(

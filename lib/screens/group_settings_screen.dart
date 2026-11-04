@@ -176,7 +176,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
         title: Text(lang.translate('group_settings')),
         actions: [
           _isSaving
-              ? const Padding(
+              ? Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16.0),
                   child: Center(
                     child: SizedBox(
@@ -184,7 +184,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                       height: 24,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: AppColors.militantRed,
+                        color: context.colors.primary,
                       ),
                     ),
                   ),
@@ -208,7 +208,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: isDark ? AppColors.darkSurfaceHigh : Colors.white,
-                      border: Border.all(color: AppColors.militantRed, width: 2),
+                      border: Border.all(color: context.colors.primary, width: 2),
                     ),
                     child: ClipOval(
                       child: _newGroupImageFile != null
@@ -232,9 +232,9 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                       onTap: _pickImage,
                       child: Container(
                         padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: AppColors.militantRed,
+                          color: context.colors.primary,
                         ),
                         child: const Icon(
                           Icons.camera_alt,
@@ -261,7 +261,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                     style: TextStyle(
                       fontSize: AppTokens.fontBodyLarge,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.militantRed,
+                      color: context.colors.onPrimaryContainer,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -294,7 +294,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                     style: TextStyle(
                       fontSize: AppTokens.fontBodyLarge,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.militantRed,
+                      color: context.colors.onPrimaryContainer,
                     ),
                   ),
                 ),
@@ -333,7 +333,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                     style: TextStyle(
                       fontSize: AppTokens.fontBodyLarge,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.militantRed,
+                      color: context.colors.onPrimaryContainer,
                     ),
                   ),
                 ),
@@ -395,7 +395,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                             onPressed: () => Navigator.pop(context, true),
                             child: Text(
                               lang.translate('confirm'),
-                              style: TextStyle(color: AppColors.militantRed),
+                              style: TextStyle(color: context.colors.onPrimaryContainer),
                             ),
                           ),
                         ],
@@ -446,16 +446,16 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                         style: TextStyle(
                           fontSize: AppTokens.fontBodyLarge,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.militantRed,
+                          color: context.colors.onPrimaryContainer,
                         ),
                       ),
                       Row(
                         children: [
                           IconButton(
                             tooltip: LanguageService.instance.translate('add_member'),
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.person_add,
-                              color: AppColors.militantRed,
+                              color: context.colors.onPrimaryContainer,
                             ),
                             onPressed: _showAddMemberDialog,
                           ),
@@ -496,7 +496,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                           : lang.translate('member'),
                       style: TextStyle(
                         color: isAdmin
-                            ? AppColors.militantRed
+                            ? context.colors.onPrimaryContainer
                             : theme.hintColor,
                         fontWeight: isAdmin
                             ? FontWeight.bold
@@ -506,9 +506,9 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                     trailing: isAdmin
                         ? IconButton(
                             tooltip: LanguageService.instance.translate('remove_member'),
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.remove_circle,
-                              color: AppColors.militantRed,
+                              color: context.colors.onPrimaryContainer,
                             ),
                             onPressed: () =>
                                 _removeMember(m['user_id'], m['username']),
@@ -537,7 +537,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                           style: TextStyle(
                             fontSize: AppTokens.fontBodyLarge,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.militantRed,
+                            color: context.colors.onPrimaryContainer,
                           ),
                         ),
                         Text(
@@ -581,9 +581,9 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                           ),
                           IconButton(
                             tooltip: LanguageService.instance.translate('reject'),
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.close,
-                              color: AppColors.militantRed,
+                              color: context.colors.onPrimaryContainer,
                             ),
                             onPressed: () =>
                                 _handleRequest(r['request_id'], false),
@@ -601,11 +601,11 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
           Card(
             color: isDark ? AppColors.darkSurfaceHigh : Colors.white,
             child: ListTile(
-              leading: const Icon(Icons.exit_to_app, color: AppColors.militantRed),
+              leading: Icon(Icons.exit_to_app, color: context.colors.onPrimaryContainer),
               title: Text(
                 lang.translate('leave_group_action'),
                 style: TextStyle(
-                  color: AppColors.militantRed,
+                  color: context.colors.onPrimaryContainer,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -844,7 +844,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
             onPressed: () => Navigator.pop(context, true),
             child: Text(
               LanguageService.instance.translate('remove'),
-              style: TextStyle(color: AppColors.militantRed),
+              style: TextStyle(color: context.colors.onPrimaryContainer),
             ),
           ),
         ],
@@ -894,7 +894,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
             onPressed: () => Navigator.pop(context, true),
             child: Text(
               LanguageService.instance.translate('leave'),
-              style: TextStyle(color: AppColors.militantRed),
+              style: TextStyle(color: context.colors.onPrimaryContainer),
             ),
           ),
         ],

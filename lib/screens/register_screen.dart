@@ -73,7 +73,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       ),
       trailing: isSelected
-          ? const Icon(Icons.check, color: AppColors.militantRed)
+          ? Icon(Icons.check, color: context.colors.onPrimaryContainer)
           : null,
       onTap: () {
         Navigator.pop(context);
@@ -192,10 +192,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 alignment: Alignment.topRight,
                 child: TextButton.icon(
                   onPressed: () => _showLanguageDialog(context),
-                  icon: const Icon(Icons.language, color: AppColors.militantRed),
+                  icon: Icon(Icons.language, color: context.colors.onPrimaryContainer),
                   label: Text(
                     lang.translate('language_title'),
-                    style: const TextStyle(color: AppColors.militantRed),
+                    style: TextStyle(color: context.colors.onPrimaryContainer),
                   ),
                 ),
               ),
@@ -300,7 +300,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.militantRed),
+                      borderSide: BorderSide(color: context.colors.primary),
                     ),
                   ),
                   dropdownColor: isDark
@@ -346,7 +346,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : () => _register(),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.militantRed,
+                    backgroundColor: context.colors.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
@@ -389,8 +389,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     child: Text(
                       lang.translate('login_button'),
-                      style: const TextStyle(
-                        color: AppColors.militantRed,
+                      style: TextStyle(
+                        color: context.colors.onPrimaryContainer,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -439,7 +439,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.militantRed),
+          borderSide: BorderSide(color: context.colors.primary),
         ),
       ),
     );
