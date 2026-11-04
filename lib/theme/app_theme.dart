@@ -156,10 +156,28 @@ abstract final class AppTheme {
       dialogTheme: DialogThemeData(
         backgroundColor: scheme.surface,
         titleTextStyle: text.titleLarge?.copyWith(color: scheme.onSurface),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTokens.radius20),
+        ),
       ),
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: scheme.surface,
         modalBackgroundColor: scheme.surface,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppTokens.radius20),
+          ),
+        ),
+      ),
+      // Cartes : quatre coins arrondis (on ne les déclenche pas d'un appui
+      // comme un bouton), filet `line`, pas d'ombre Material.
+      cardTheme: CardThemeData(
+        color: scheme.surface,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTokens.radius20),
+          side: BorderSide(color: scheme.outlineVariant),
+        ),
       ),
       // Le coin coupé sur tout ce qu'on peut toucher. Les couleurs des
       // boutons restent celles de Material 3 (primary, tonal, contour…).

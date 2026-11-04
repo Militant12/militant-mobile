@@ -1101,6 +1101,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'profile_last_active': 'Dernière activité : {time}',
       'profile_posts_error': 'Impossible de charger les publications',
       'offline_banner': 'Pas de connexion internet',
+      'online_again': 'De nouveau en ligne',
 
       // Navigation
       'agenda_title': 'Agenda',
@@ -2212,6 +2213,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'profile_last_active': 'Last active: {time}',
       'profile_posts_error': 'Unable to load posts',
       'offline_banner': 'No internet connection',
+      'online_again': 'Back online',
 
       // Navigation
       'agenda_title': 'Calendar',
@@ -3320,6 +3322,7 @@ class LanguageService extends ValueNotifier<Locale> {
       'profile_last_active': 'Última actividad: {time}',
       'profile_posts_error': 'No se pudieron cargar las publicaciones',
       'offline_banner': 'Sin conexión a internet',
+      'online_again': 'Conexión restablecida',
 
       // Navigation
       'agenda_title': 'Agenda',

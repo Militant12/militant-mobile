@@ -167,15 +167,10 @@ class _PostCardState extends State<PostCard> {
           ),
         );
       },
+      // Une vraie carte, espacée des autres de space-3 sur le fond paper.
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        decoration: BoxDecoration(
-          color: colors.surface,
-          border: Border(
-            bottom: BorderSide(color: context.theme.dividerColor, width: 1),
-          ),
-          boxShadow: context.tokens.cardShadow,
-        ),
+        margin: _PostCardFrame.margin,
+        decoration: _PostCardFrame.decoration(context),
         child: Padding(
           padding: const EdgeInsets.all(AppTokens.space16),
           child: Column(
@@ -252,10 +247,8 @@ class _PostCardState extends State<PostCard> {
                                   widget.post.username,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
+                                  style: context.text.titleMedium?.copyWith(
                                     color: textColor,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: AppTokens.fontBodyLarge,
                                   ),
                                 ),
                               ),
@@ -279,15 +272,13 @@ class _PostCardState extends State<PostCard> {
                                   child: Container(
                                     padding: const EdgeInsets.all(2),
                                     decoration: BoxDecoration(
-                                      color: colors.primary.withValues(
-                                        alpha: 0.15,
-                                      ),
+                                      color: colors.primaryContainer,
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Icon(
                                       Icons.shield,
                                       size: 16,
-                                      color: colors.primary,
+                                      color: colors.onPrimaryContainer,
                                     ),
                                   ),
                                 ),
@@ -297,7 +288,9 @@ class _PostCardState extends State<PostCard> {
                         ),
                         Text(
                           DateFormatter.formatRelative(widget.post.feedDate),
-                          style: TextStyle(color: subtitleColor, fontSize: AppTokens.fontBodyMedium),
+                          style: context.text.bodySmall?.copyWith(
+                            color: subtitleColor,
+                          ),
                         ),
                       ],
                     ),
@@ -316,7 +309,7 @@ class _PostCardState extends State<PostCard> {
                 text: _showTranslation && _translatedContent != null
                     ? _translatedContent!
                     : _currentContent,
-                style: TextStyle(color: textColor, fontSize: AppTokens.fontBodyLarge, height: 1.4),
+                style: context.text.bodyLarge!.copyWith(color: textColor),
                 onLinksDetected: (urls) {
                   // Filtrer les nouvelles URLs pour éviter les rebuilds inutiles
                   final newUrls = urls
@@ -358,7 +351,7 @@ class _PostCardState extends State<PostCard> {
                         Icons.translate,
                         size: 16,
                         color: _showTranslation
-                            ? colors.primary
+                            ? colors.onPrimaryContainer
                             : subtitleColor,
                       ),
                       const SizedBox(width: AppTokens.space4),
@@ -370,7 +363,7 @@ class _PostCardState extends State<PostCard> {
                             : lang.translate('translate_action'),
                         style: TextStyle(
                           color: _showTranslation
-                              ? colors.primary
+                              ? colors.onPrimaryContainer
                               : subtitleColor,
                           fontSize: AppTokens.fontBodyMedium,
                         ),
@@ -390,7 +383,7 @@ class _PostCardState extends State<PostCard> {
                   )
                 else
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(AppTokens.radius12),
+                    borderRadius: BorderRadius.circular(AppTokens.radius8),
                     child: Image(
                       image: CachedNetworkImageProvider(_mediaUrl!),
                       width: double.infinity,
@@ -1263,6 +1256,22 @@ class _PostCardState extends State<PostCard> {
   }
 }
 
+/// Cadre commun à [PostCard] et à son squelette : carte `surface` aux coins
+/// `radius-lg`, filet `line`, ombre `shadow-card` en clair seulement.
+abstract final class _PostCardFrame {
+  static const EdgeInsets margin = EdgeInsets.symmetric(
+    horizontal: AppTokens.space16,
+    vertical: AppTokens.space12 / 2,
+  );
+
+  static BoxDecoration decoration(BuildContext context) => BoxDecoration(
+    color: context.colors.surface,
+    borderRadius: BorderRadius.circular(AppTokens.radius20),
+    border: Border.all(color: context.colors.outlineVariant),
+    boxShadow: context.tokens.cardShadow,
+  );
+}
+
 /// Squelette d'un [PostCard] affiché pendant le premier chargement du fil.
 ///
 /// À placer sous un [SkeletonPulse] pour que plusieurs squelettes pulsent
@@ -1273,14 +1282,9 @@ class PostCardSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: AppTokens.space4),
+      margin: _PostCardFrame.margin,
       padding: const EdgeInsets.all(AppTokens.space16),
-      decoration: BoxDecoration(
-        color: context.colors.surface,
-        border: Border(
-          bottom: BorderSide(color: context.theme.dividerColor, width: 1),
-        ),
-      ),
+      decoration: _PostCardFrame.decoration(context),
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1309,7 +1313,7 @@ class PostCardSkeleton extends StatelessWidget {
           SkeletonBox(
             width: double.infinity,
             height: 180,
-            radius: AppTokens.radius12,
+            radius: AppTokens.radius8,
           ),
           SizedBox(height: AppTokens.space16),
           SkeletonBox(width: 160, height: 16),

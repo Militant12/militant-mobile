@@ -30,6 +30,8 @@ void main() {
     'lib/screens/home_screen.dart',
     'lib/screens/community_screen.dart',
     'lib/widgets/live_now_strip.dart',
+    'lib/widgets/common/live_badge.dart',
+    'lib/widgets/common/offline_banner.dart',
   ];
   const languages = ['fr', 'en', 'es'];
   // Catches plain keys as well as `translate(cond ? 'a' : 'b')`.

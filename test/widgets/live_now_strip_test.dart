@@ -21,7 +21,9 @@ void main() {
     await tester.pump();
   }
 
-  final header = LanguageService.instance.translate('live_tab_discover');
+  final header = LanguageService.instance
+      .translate('live_tab_discover')
+      .toUpperCase();
 
   testWidgets('rien quand aucun live n’est en cours', (tester) async {
     await pumpStrip(tester, () async => []);
@@ -45,7 +47,7 @@ void main() {
         {'id': 2, 'username': 'sam', 'title': ''},
       ],
     );
-    expect(find.text(header), findsOneWidget);
+    expect(find.text(header), findsNWidgets(2));
     expect(find.text('camille'), findsOneWidget);
     expect(find.text('Manif place de la République'), findsOneWidget);
     expect(find.text('sam'), findsOneWidget);

@@ -12,13 +12,20 @@ Widget _app(Widget child, {ThemeData? theme}) => MaterialApp(
 
 void main() {
   group('AppAvatar', () {
-    testWidgets('affiche l’initiale sur fond rouge sans image', (tester) async {
+    testWidgets('affiche l’initiale sur surface-alt sans image', (tester) async {
       await tester.pumpWidget(_app(const AppAvatar(name: 'émile')));
       expect(find.text('É'), findsOneWidget);
       final box = tester.widget<Container>(
         find.ancestor(of: find.text('É'), matching: find.byType(Container)),
       );
-      expect(box.color, AppTheme.dark().colorScheme.primary);
+      expect(box.color, AppTheme.dark().colorScheme.surfaceContainerHigh);
+    });
+
+    testWidgets('deux initiales au plus', (tester) async {
+      await tester.pumpWidget(
+        _app(const AppAvatar(name: 'Collectif Banlieues Est')),
+      );
+      expect(find.text('CB'), findsOneWidget);
     });
 
     testWidgets('respecte le rayon demandé', (tester) async {

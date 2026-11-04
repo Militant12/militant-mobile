@@ -67,50 +67,39 @@ class _LiveNowStripState extends State<LiveNowStrip> {
   @override
   Widget build(BuildContext context) {
     if (_lives.isEmpty) return const SizedBox.shrink();
-    final lang = LanguageService.instance;
-    final colors = context.colors;
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppTokens.space8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppTokens.space16,
-              AppTokens.space8,
-              AppTokens.space16,
-              AppTokens.space8,
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.circle, size: 10, color: colors.primary),
-                const SizedBox(width: AppTokens.space8),
-                Text(
-                  lang.translate('live_tab_discover'),
-                  style: context.text.titleSmall,
-                ),
-              ],
-            ),
-          ),
-          SizedBox(
-            height: 64,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppTokens.space16,
-              ),
-              itemCount: _lives.length,
-              separatorBuilder: (_, _) =>
-                  const SizedBox(width: AppTokens.space8),
-              itemBuilder: (context, index) => _buildLive(_lives[index]),
-            ),
-          ),
-        ],
+    // Un seul live : la carte prend toute la largeur. Plusieurs : elles
+    // défilent à l'horizontale.
+    if (_lives.length == 1) {
+      return Padding(
+        padding: _padding,
+        child: _buildLive(_lives.single),
+      );
+    }
+    return SizedBox(
+      height: _cardHeight + _padding.vertical,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: _padding,
+        itemCount: _lives.length,
+        separatorBuilder: (_, _) => const SizedBox(width: AppTokens.space12),
+        itemBuilder: (context, index) =>
+            SizedBox(width: 300, child: _buildLive(_lives[index])),
       ),
     );
   }
 
+  static const EdgeInsets _padding = EdgeInsets.fromLTRB(
+    AppTokens.space16,
+    AppTokens.space12 / 2,
+    AppTokens.space16,
+    AppTokens.space12 / 2,
+  );
+  static const double _cardHeight = 88;
+
+  /// Carte d'un live : avatar à l'anneau rouge, pastille En direct, nom et
+  /// titre du live. Toute la carte est la zone d'appui et se lit en une
+  /// phrase.
   Widget _buildLive(Map<String, dynamic> live) {
     final colors = context.colors;
     final username = live['username']?.toString() ?? '';
@@ -126,58 +115,62 @@ class _LiveNowStripState extends State<LiveNowStrip> {
       label: label,
       excludeSemantics: true,
       child: Material(
-        color: colors.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(AppTokens.radiusPill),
+        color: colors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTokens.radius20),
+          side: BorderSide(color: colors.outlineVariant),
+        ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: () => _open(live),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppTokens.space8,
-              AppTokens.space8,
-              AppTokens.space16,
-              AppTokens.space8,
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: colors.primary, width: 2),
+          child: SizedBox(
+            height: _cardHeight,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTokens.space16,
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: colors.primary, width: 2),
+                    ),
+                    child: AppAvatar(
+                      url: _api?.getImageUrl(avatar) ?? avatar,
+                      name: username,
+                      radius: 24,
+                    ),
                   ),
-                  child: AppAvatar(
-                    url: _api?.getImageUrl(avatar) ?? avatar,
-                    name: username,
-                    radius: 18,
-                  ),
-                ),
-                const SizedBox(width: AppTokens.space8),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 160),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        username,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: context.text.labelLarge,
-                      ),
-                      if (title.isNotEmpty)
+                  const SizedBox(width: AppTokens.space12),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const LiveBadge(),
+                        const SizedBox(height: AppTokens.space4),
                         Text(
-                          title,
+                          username,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: context.text.bodySmall?.copyWith(
-                            color: context.tokens.textMuted,
-                          ),
+                          style: context.text.titleMedium,
                         ),
-                    ],
+                        if (title.isNotEmpty)
+                          Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: context.text.bodyMedium?.copyWith(
+                              color: context.tokens.textMuted,
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

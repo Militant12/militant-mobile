@@ -31,7 +31,8 @@ class LinkableText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final defaultLinkColor = linkColor ?? AppColors.militantRed;
+    // brand-ink : le rouge lisible pour du texte, dans les deux thèmes.
+    final defaultLinkColor = linkColor ?? context.colors.onPrimaryContainer;
 
     // Extraire les URLs pour les cartes embed
     final urls = _extractUrls(text);
@@ -449,12 +450,12 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
       margin: const EdgeInsets.only(top: 12),
       decoration: BoxDecoration(
         color: context.colors.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTokens.radius8),
         border: Border.all(color: context.colors.outlineVariant),
       ),
       child: InkWell(
         onTap: () => _launchUrl(widget.url),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTokens.radius8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -462,7 +463,7 @@ class _LinkPreviewCardState extends State<LinkPreviewCard> {
             if (_imageUrl != null && _imageUrl!.isNotEmpty)
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(12),
+                  top: Radius.circular(AppTokens.radius8),
                 ),
                 child: Image(
                   image: CachedNetworkImageProvider(_imageUrl!),
