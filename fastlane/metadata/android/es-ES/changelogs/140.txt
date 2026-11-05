@@ -1,0 +1,4 @@
+- Nueva carta gráfica en rojo y negro de alta legibilidad (Archivo y Atkinson Hyperlegible Next).
+- Componentes visuales rediseñados: tarjetas con esquina recortada, sellos de estado y microanimaciones fluidas.
+- Mejora en el almacenamiento en caché de imágenes, carga progresiva e indicador de presencia en línea.
+- Accesibilidad reforzada (objetivos táctiles de 48 dp, contraste WCAG AA y soporte para reducción de movimiento).

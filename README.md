@@ -31,7 +31,15 @@
 
 Militant est un réseau social décentralisé conçu pour les mouvements militants et les organisations politiques. Cette application mobile permet de se connecter à n'importe quelle instance Militant auto-hébergée.
 
-Version actuelle : **1.1.0+139**.
+Version actuelle : **1.1.0+140**.
+
+
+## Nouveautés 1.1.0 (build 140)
+
+- Nouvelle charte graphique rouge et noir à haute lisibilité (Archivo et Atkinson Hyperlegible Next).
+- Composants visuels repensés : cartes à coin coupé, tampons d'état et micro-animations fluides.
+- Mise en cache des images, chargement progressif et indicateur de présence en ligne améliorés.
+- Accessibilité renforcée (cibles tactiles de 48 dp, contrastes WCAG AA, respect de la réduction des mouvements).
 
 
 ## Nouveautés 1.1.0 (build 139)

@@ -1,0 +1,4 @@
+- New high-legibility red and black graphic charter (Archivo and Atkinson Hyperlegible Next).
+- Redesigned visual components: cut-corner cards, status stamps, and smooth micro-animations.
+- Improved image caching, progressive loading, and online presence indicator.
+- Enhanced accessibility (48 dp touch targets, WCAG AA contrast, reduced motion support).

@@ -1,0 +1,4 @@
+- Nouvelle charte graphique rouge et noir à haute lisibilité (Archivo et Atkinson Hyperlegible Next).
+- Composants visuels repensés : cartes à coin coupé, tampons d'état et micro-animations fluides.
+- Mise en cache des images, chargement progressif et indicateur de présence en ligne améliorés.
+- Accessibilité renforcée (cibles tactiles de 48 dp, contrastes WCAG AA, respect de la réduction des mouvements).
