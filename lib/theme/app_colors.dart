@@ -52,13 +52,11 @@ abstract final class AppColors {
   static const Color lineStrongLight = Color(0xFF8C8385);
   static const Color lineStrongDark = Color(0xFF7A7072);
 
-  // Couleurs d'état, toujours accompagnées d'une icône et d'un texte.
-  // Le succès est bleu-vert plutôt que vert : il ne se confond pas avec le
-  // rouge chez les personnes daltoniennes.
-  static const Color successLight = Color(0xFF0F6B7A);
-  static const Color successDark = Color(0xFF5CC8D6);
-  static const Color successSoftLight = Color(0xFFE3F3F5);
-  static const Color successSoftDark = Color(0xFF0F2A2F);
+  // Couleurs d'état (vert franc pour le statut en ligne et les validations).
+  static const Color successLight = Color(0xFF166534);
+  static const Color successDark = Color(0xFF35D07F);
+  static const Color successSoftLight = Color(0xFFDCFCE7);
+  static const Color successSoftDark = Color(0xFF0D2B1D);
   static const Color warningLight = Color(0xFF8A5300);
   static const Color warningDark = Color(0xFFF2B84B);
   static const Color warningSoftLight = Color(0xFFFBF0DD);
