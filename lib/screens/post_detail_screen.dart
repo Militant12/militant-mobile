@@ -247,7 +247,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           parentId: _replyingTo?.id,
         );
       } else if (_post!.type == 'page') {
-        await api.commentOnPagePost(_post!.id, content);
+        await api.commentOnPagePost(
+          _post!.id,
+          content,
+          parentId: _replyingTo?.id,
+        );
       } else {
         await api.addComment(_post!.id, content, parentId: _replyingTo?.id);
       }

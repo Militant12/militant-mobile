@@ -2464,7 +2464,10 @@ class _CommentsSheetState extends State<_CommentsSheet> {
 
     setState(() => _isSending = true);
     try {
-      await widget.api.commentOnPagePost(widget.postId, text);
+      final parentId = _replyingTo != null && _replyingTo!['id'] != null
+          ? int.tryParse(_replyingTo!['id'].toString())
+          : null;
+      await widget.api.commentOnPagePost(widget.postId, text, parentId: parentId);
       _commentController.clear();
       if (mounted) {
         setState(() => _replyingTo = null);

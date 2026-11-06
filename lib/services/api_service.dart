@@ -4133,16 +4133,21 @@ class ApiService {
 
   Future<Map<String, dynamic>> commentOnPagePost(
     int postId,
-    String content,
-  ) async {
+    String content, {
+    int? parentId,
+  }) async {
+    final payload = <String, dynamic>{
+      'action': 'comment',
+      'post_id': postId,
+      'content': content,
+    };
+    if (parentId != null) {
+      payload['parent_id'] = parentId;
+    }
     final response = await _http.post(
       Uri.parse('$apiUrl/v1/pages.php'),
       headers: _headers,
-      body: jsonEncode({
-        'action': 'comment',
-        'post_id': postId,
-        'content': content,
-      }),
+      body: jsonEncode(payload),
     );
 
     if (response.statusCode == 201 || response.statusCode == 200) {
