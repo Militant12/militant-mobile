@@ -3,12 +3,10 @@ import 'dart:async';
 import '../models/post.dart';
 import '../models/comment.dart';
 import '../services/api_service.dart';
-import '../utils/date_formatter.dart';
+import '../utils/comment_threads.dart';
 import '../services/language_service.dart';
 import '../widgets/post_card.dart';
-import '../widgets/militant_badge.dart';
-import '../widgets/technician_badge.dart';
-import '../widgets/linkable_text.dart';
+import '../widgets/comments/comment_thread_view.dart';
 import '../widgets/mention_user_avatar.dart';
 import '../theme/theme_context.dart';
 import '../utils/error_helper.dart';
@@ -26,7 +24,12 @@ class PostDetailScreen extends StatefulWidget {
 }
 
 class _PostDetailScreenState extends State<PostDetailScreen> {
-  final List<Comment> _comments = [];
+  List<CommentThread> _threads = [];
+
+  /// Fils dépliés, par identifiant du commentaire principal. Gardés quand la
+  /// liste est rechargée.
+  final Set<int> _expanded = {};
+  ApiService? _api;
   bool _isLoading = false;
   Object? _loadError;
   int? _currentUserId;
@@ -184,35 +187,31 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     } catch (_) {}
   }
 
-  Future<void> _loadComments() async {
+  /// Recharge les commentaires. [expandThreadOf] déplie le fil qui contient
+  /// ce commentaire (celui auquel on vient de répondre).
+  Future<void> _loadComments({int? expandThreadOf}) async {
     setState(() => _isLoading = true);
     try {
       final api = await ApiService.getInstance();
-      List<dynamic> commentsData;
-      if (_post!.type == 'group') {
-        commentsData = await api.getGroupPostComments(_post!.id);
-        debugPrint(
-          'Group comments loaded: ${commentsData.length} root comments',
-        );
-      } else {
-        commentsData = await api.getComments(_post!.id);
-        debugPrint('Comments loaded: ${commentsData.length} root comments');
-      }
+      final List<dynamic> commentsData = _post!.type == 'group'
+          ? await api.getGroupPostComments(_post!.id)
+          : await api.getComments(_post!.id);
+      final threads = threadsFromTree([
+        for (final c in commentsData)
+          Comment.fromJson(Map<String, dynamic>.from(c)),
+      ]);
+      keepTranslations(_threads, threads);
       if (mounted) {
         setState(() {
-          _comments.clear();
-          _comments.addAll(
-            commentsData.map((c) {
-              try {
-                return Comment.fromJson(c);
-              } catch (e) {
-                debugPrint('Error parsing comment: $e');
-                debugPrint('Comment data: $c');
-                rethrow;
+          _api = api;
+          _threads = threads;
+          if (expandThreadOf != null) {
+            for (final thread in threads) {
+              if (thread.contains(expandThreadOf)) {
+                _expanded.add(thread.root.id);
               }
-            }).toList(),
-          );
-          debugPrint('Total comments in list: ${_comments.length}');
+            }
+          }
         });
       }
     } catch (e, stackTrace) {
@@ -238,6 +237,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     final content = _commentController.text.trim();
     if (content.isEmpty) return;
 
+    final replyingToId = _replyingTo?.id;
     try {
       final api = await ApiService.getInstance();
       if (_post!.type == 'group') {
@@ -262,8 +262,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         _isMentionLoading = false;
       });
 
-      // Recharger les commentaires ET le post pour mettre à jour le compteur
-      await _loadComments();
+      // Recharger les commentaires ET le post pour mettre à jour le compteur.
+      // Le fil auquel on vient de répondre s'ouvre.
+      await _loadComments(expandThreadOf: replyingToId);
 
       // Recharger le post pour avoir le compteur à jour
       if (_post != null) {
@@ -340,7 +341,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                     ),
                   ),
                 ),
-                if (_isLoading && _comments.isEmpty)
+                if (_isLoading && _threads.isEmpty)
                   const SkeletonPulse(
                     child: Column(
                       children: [
@@ -350,7 +351,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                       ],
                     ),
                   )
-                else if (_comments.isEmpty)
+                else if (_threads.isEmpty)
                   Center(
                     child: Padding(
                       padding: const EdgeInsets.all(32.0),
@@ -361,9 +362,19 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                     ),
                   )
                 else
-                  ..._comments.map(
-                    (comment) => _buildCommentItem(comment, depth: 0),
-                  ),
+                  for (final thread in _threads)
+                    CommentThreadView(
+                      key: ValueKey(thread.root.id),
+                      thread: thread,
+                      expanded: _expanded.contains(thread.root.id),
+                      onToggleExpanded: () => setState(() {
+                        if (!_expanded.remove(thread.root.id)) {
+                          _expanded.add(thread.root.id);
+                        }
+                      }),
+                      actions: _commentActions,
+                    ),
+                const SizedBox(height: AppTokens.space16),
               ],
             ),
           ),
@@ -373,238 +384,19 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     );
   }
 
-  Widget _buildCommentItem(
-    Comment comment, {
-    int depth = 0,
-    String? parentUsername,
-  }) {
-    final lang = LanguageService.instance;
-    final theme = Theme.of(context);
-    final textColor = theme.textTheme.bodyLarge?.color;
-    final subtitleColor = theme.textTheme.bodyMedium?.color;
-    final maxDepth = 3; // Limite de profondeur pour l'indentation
+  bool _isMine(Comment comment) =>
+      _currentUserId != null && comment.userId == _currentUserId;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.only(
-            left: depth > 0 ? (depth * 24.0).clamp(0, maxDepth * 24.0) : 16,
-            right: 16,
-            top: 8,
-            bottom: 4,
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              FutureBuilder<ApiService>(
-                future: ApiService.getInstance(),
-                builder: (context, snapshot) => AppAvatar(
-                  url: snapshot.data?.getImageUrl(comment.userAvatar),
-                  name: comment.username,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            comment.username,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: textColor,
-                              fontWeight: FontWeight.bold,
-                              fontSize: AppTokens.fontBodyLarge,
-                            ),
-                          ),
-                        ),
-                        if (comment.militantBadge != null) ...[
-                          const SizedBox(width: 4),
-                          MilitantBadge(
-                            badgeId: comment.militantBadge,
-                            size: 16,
-                          ),
-                        ],
-                        if (comment.isMilitantTechnician) ...[
-                          const SizedBox(width: 4),
-                          const TechnicianBadge(size: 16),
-                        ],
-                        if (comment.isModerator) ...[
-                          const SizedBox(width: 4),
-                          Tooltip(
-                            message: lang.translate('post_elected_moderator'),
-                            child: Container(
-                              padding: const EdgeInsets.all(2),
-                              decoration: BoxDecoration(
-                                color: context.colors.primary.withValues(
-                                  alpha: 0.15,
-                                ),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Icon(
-                                Icons.shield,
-                                size: 14,
-                                color: context.colors.primary,
-                              ),
-                            ),
-                          ),
-                        ],
-                        const SizedBox(width: 8),
-                        Text(
-                          _formatDate(comment.createdAt),
-                          style: TextStyle(color: subtitleColor, fontSize: AppTokens.fontBodyMedium),
-                        ),
-                        const Spacer(),
-                        if (_currentUserId != null &&
-                            comment.userId == _currentUserId)
-                          PopupMenuButton<String>(
-                            icon: Icon(
-                              Icons.more_horiz,
-                              size: 16,
-                              color: subtitleColor,
-                            ),
-                            onSelected: (value) async {
-                              if (value == 'delete') {
-                                _deleteComment(comment);
-                              } else if (value == 'edit') {
-                                _editComment(comment);
-                              }
-                            },
-                            itemBuilder: (context) => [
-                              PopupMenuItem(
-                                value: 'edit',
-                                child: Text(lang.translate('edit')),
-                              ),
-                              PopupMenuItem(
-                                value: 'delete',
-                                child: Text(lang.translate('delete')),
-                              ),
-                            ],
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    LinkableText(
-                      text:
-                          (parentUsername != null ? "@$parentUsername " : "") +
-                          (comment.isTranslated &&
-                                  comment.translatedContent != null
-                              ? comment.translatedContent!
-                              : comment.content),
-                      style: TextStyle(
-                        color: textColor,
-                        fontSize: AppTokens.fontBodyLarge,
-                        height: 1.4,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    // Boutons Répondre, Réaction et Traduire
-                    Row(
-                      children: [
-                        TextButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              _replyingTo = comment;
-                            });
-                          },
-                          icon: Icon(
-                            Icons.reply,
-                            size: 14,
-                            color: subtitleColor,
-                          ),
-                          label: Text(
-                            lang.translate('reply'),
-                            style: TextStyle(
-                              color: subtitleColor,
-                              fontSize: AppTokens.fontBodyMedium,
-                            ),
-                          ),
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: const Size(0, 0),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        // Bouton de réaction (pouce)
-                        TextButton.icon(
-                          onPressed: () => _toggleCommentReaction(comment),
-                          icon: Icon(
-                            Icons.thumb_up,
-                            size: 14,
-                            color: comment.hasReacted
-                                ? context.colors.primary
-                                : subtitleColor,
-                          ),
-                          label: Text(
-                            comment.reactionsCount > 0
-                                ? '${comment.reactionsCount}'
-                                : '',
-                            style: TextStyle(
-                              color: comment.hasReacted
-                                  ? context.colors.primary
-                                  : subtitleColor,
-                              fontSize: AppTokens.fontBodyMedium,
-                            ),
-                          ),
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: const Size(0, 0),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        // Bouton Traduire
-                        TextButton.icon(
-                          onPressed: () => _toggleCommentTranslation(comment),
-                          icon: Icon(
-                            Icons.translate,
-                            size: 14,
-                            color: comment.isTranslated
-                                ? context.colors.primary
-                                : subtitleColor,
-                          ),
-                          label: Text(
-                            comment.isTranslated
-                                ? lang.translate('original_label')
-                                : lang.translate('translate_action'),
-                            style: TextStyle(
-                              color: comment.isTranslated
-                                  ? context.colors.primary
-                                  : subtitleColor,
-                              fontSize: AppTokens.fontBodyMedium,
-                            ),
-                          ),
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: const Size(0, 0),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        // Afficher les réponses de manière récursive
-        ...comment.replies.map(
-          (reply) => _buildCommentItem(
-            reply,
-            depth: depth + 1,
-            parentUsername: comment.username,
-          ),
-        ),
-      ],
-    );
-  }
+  CommentActions get _commentActions => CommentActions(
+    avatarUrl: (path) => _api?.getImageUrl(path),
+    onLike: _toggleCommentReaction,
+    onReply: (comment) => setState(() => _replyingTo = comment),
+    onTranslate: _toggleCommentTranslation,
+    onEdit: _editComment,
+    onDelete: _deleteComment,
+    canEdit: _isMine,
+    canDelete: _isMine,
+  );
 
   Future<void> _deleteComment(Comment comment) async {
     final lang = LanguageService.instance;
@@ -694,35 +486,40 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     }
   }
 
+  /// Le pouce change tout de suite ; il revient en arrière si l'API refuse.
+  /// Sans rechargement, les traductions et les fils dépliés restent en place.
   Future<void> _toggleCommentReaction(Comment comment) async {
+    final wasReacted = comment.hasReacted;
+    setState(() {
+      comment.hasReacted = !wasReacted;
+      comment.reactionsCount = (comment.reactionsCount + (wasReacted ? -1 : 1))
+          .clamp(0, 1 << 30);
+    });
     try {
       final api = await ApiService.getInstance();
-      String commentType = 'post';
-      if (_post!.type == 'group') {
-        commentType = 'group';
-      } else if (_post!.type == 'page') {
-        commentType = 'page';
-      }
-
-      if (comment.hasReacted) {
+      final commentType = switch (_post!.type) {
+        'group' => 'group',
+        'page' => 'page',
+        _ => 'post',
+      };
+      if (wasReacted) {
         await api.removeCommentReaction(comment.id, commentType);
       } else {
         await api.reactToComment(comment.id, commentType);
       }
-
-      // Recharger les commentaires pour mettre à jour l'état
-      await _loadComments();
     } catch (e) {
       debugPrint('Error toggling comment reaction: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              LanguageService.instance.translate('reaction_error'),
-            ),
-          ),
-        );
-      }
+      if (!mounted) return;
+      setState(() {
+        comment.hasReacted = wasReacted;
+        comment.reactionsCount =
+            (comment.reactionsCount + (wasReacted ? 1 : -1)).clamp(0, 1 << 30);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(LanguageService.instance.translate('reaction_error')),
+        ),
+      );
     }
   }
 
@@ -759,10 +556,6 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         );
       }
     }
-  }
-
-  String _formatDate(DateTime date) {
-    return DateFormatter.formatRelative(date);
   }
 
   Widget _buildCommentInput() {
