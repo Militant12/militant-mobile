@@ -606,7 +606,7 @@ class ApiService {
           );
         }
       } else if (response.statusCode == 404) {
-        throw Exception('Endpoint non trouvé. Vérifiez l\'URL du serveur.');
+        throw Exception('Endpoint non trouvé. Vérifie l\'URL du serveur.');
       } else {
         try {
           final data = jsonDecode(response.body);
@@ -624,7 +624,7 @@ class ApiService {
           e.toString().contains('HandshakeException') ||
           e.toString().contains('CERTIFICATE_VERIFY_FAILED')) {
         throw Exception(
-          'Connexion HTTPS refusée. Vérifiez le certificat SSL du serveur (certificat auto-signé/non valide).',
+          'Connexion HTTPS refusée. Vérifie le certificat SSL du serveur (certificat auto-signé/non valide).',
         );
       }
       if (e.toString().contains('Operation not permitted')) {
@@ -635,7 +635,7 @@ class ApiService {
       if (e.toString().contains('SocketException') ||
           e.toString().contains('Failed host lookup')) {
         throw Exception(
-          'Impossible de se connecter au serveur. Vérifiez votre connexion internet et l\'URL du serveur.',
+          'Impossible de se connecter au serveur. Vérifie ta connexion internet et l\'URL du serveur.',
         );
       }
       rethrow;
@@ -700,7 +700,7 @@ class ApiService {
           e.toString().contains('HandshakeException') ||
           e.toString().contains('CERTIFICATE_VERIFY_FAILED')) {
         throw Exception(
-          'Connexion HTTPS refusée. Vérifiez le certificat SSL du serveur (certificat auto-signé/non valide).',
+          'Connexion HTTPS refusée. Vérifie le certificat SSL du serveur (certificat auto-signé/non valide).',
         );
       }
       if (e.toString().contains('Operation not permitted')) {
@@ -711,7 +711,7 @@ class ApiService {
       if (e.toString().contains('SocketException') ||
           e.toString().contains('Failed host lookup')) {
         throw Exception(
-          'Impossible de se connecter au serveur. Vérifiez votre connexion internet et l\'URL du serveur.',
+          'Impossible de se connecter au serveur. Vérifie ta connexion internet et l\'URL du serveur.',
         );
       }
       rethrow;
@@ -2776,7 +2776,7 @@ class ApiService {
       }
     } else if (response.statusCode == 413) {
       throw Exception(
-        'Fichier trop volumineux (Erreur 413). Essayez un fichier plus petit.',
+        'Fichier trop volumineux (Erreur 413). Essaie un fichier plus petit.',
       );
     } else {
       throw Exception('Erreur d\'upload: ${response.statusCode}');
@@ -4441,7 +4441,7 @@ class ApiService {
         return (body['data'] as Map<String, dynamic>?) ?? body;
       } catch (e) {
         throw Exception(
-          'L\'API des appels n\'est pas encore déployée. Veuillez réessayer plus tard.',
+          'L\'API des appels n\'est pas encore déployée. Réessaie plus tard.',
         );
       }
     } else {
