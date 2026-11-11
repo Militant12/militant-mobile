@@ -398,13 +398,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               style: TextStyle(color: context.colors.onSurface),
               decoration: InputDecoration(
                 labelText: lang.translate('event_title_label'),
-                labelStyle: TextStyle(color: context.tokens.textMuted),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: context.colors.outlineVariant),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: context.colors.primary),
-                ),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -422,13 +415,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               maxLines: 4,
               decoration: InputDecoration(
                 labelText: lang.translate('event_description_label'),
-                labelStyle: TextStyle(color: context.tokens.textMuted),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: context.colors.outlineVariant),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: context.colors.primary),
-                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -439,16 +425,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               style: TextStyle(color: context.colors.onSurface),
               decoration: InputDecoration(
                 labelText: lang.translate('event_location_label'),
-                labelStyle: TextStyle(color: context.tokens.textMuted),
                 prefixIcon: Icon(
                   Icons.location_on,
                   color: context.tokens.textMuted,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: context.colors.outlineVariant),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: context.colors.primary),
                 ),
               ),
             ),

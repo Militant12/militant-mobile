@@ -364,24 +364,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: TextStyle(color: theme.textTheme.bodyLarge?.color),
                       decoration: InputDecoration(
                         labelText: lang.translate('email_label'),
-                        labelStyle: TextStyle(
-                          color: context.tokens.textMuted,
-                        ),
                         prefixIcon: Icon(
                           Icons.email_outlined,
                           color: context.tokens.textMuted,
-                        ),
-                        filled: true,
-                        fillColor: context.colors.surfaceContainerHigh,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: context.colors.primary,
-                          ),
                         ),
                       ),
                     ),
@@ -816,26 +801,9 @@ class _LoginScreenState extends State<LoginScreen> {
       style: TextStyle(color: theme.textTheme.bodyLarge?.color),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(
-          color: context.tokens.textMuted,
-        ),
         prefixIcon: Icon(
           icon,
           color: context.tokens.textMuted,
-        ),
-        filled: true,
-        fillColor: context.colors.surfaceContainerHigh,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: context.colors.primary),
         ),
       ),
     );

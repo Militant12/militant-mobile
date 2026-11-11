@@ -583,12 +583,6 @@ class _FeatureSuggestionDetailScreenState
                               maxLines: 3,
                               decoration: InputDecoration(
                                 hintText: translate('add_comment'),
-                                filled: true,
-                                fillColor: context.colors.surfaceContainerLow,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: BorderSide.none,
-                                ),
                               ),
                             ),
                           ),

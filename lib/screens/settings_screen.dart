@@ -477,10 +477,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 decoration: InputDecoration(
                   labelText: lang.translate('enter_password_to_delete'),
-                  labelStyle: TextStyle(color: context.tokens.textMuted),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: context.colors.primary),
-                  ),
                 ),
               ),
             ],
@@ -602,10 +598,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final lang = LanguageService.instance;
-    final isDark = theme.brightness == Brightness.dark;
     final inputColor = theme.textTheme.bodyLarge?.color;
-    final labelColor = isDark ? Colors.white70 : Colors.black54;
-    final borderColor = isDark ? Colors.white30 : Colors.black26;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -623,13 +616,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 style: TextStyle(color: inputColor),
                 decoration: InputDecoration(
                   labelText: lang.translate('current_password'),
-                  labelStyle: TextStyle(color: labelColor),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: borderColor),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: context.colors.primary),
-                  ),
                 ),
                 validator: (v) =>
                     v!.isEmpty ? lang.translate('password_required') : null,
@@ -641,13 +627,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 style: TextStyle(color: inputColor),
                 decoration: InputDecoration(
                   labelText: lang.translate('new_password'),
-                  labelStyle: TextStyle(color: labelColor),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: borderColor),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: context.colors.primary),
-                  ),
                 ),
                 validator: (v) => v!.length < 8
                     ? lang.translate('password_min_length')
@@ -660,13 +639,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 style: TextStyle(color: inputColor),
                 decoration: InputDecoration(
                   labelText: lang.translate('confirm_password'),
-                  labelStyle: TextStyle(color: labelColor),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: borderColor),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: context.colors.primary),
-                  ),
                 ),
                 validator: (v) => v != _newPasswordController.text
                     ? lang.translate('password_match_error')

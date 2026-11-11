@@ -241,13 +241,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     decoration: InputDecoration(
                       labelText: lang.translate('bio_label'),
                       hintText: lang.translate('bio_hint'),
-                      labelStyle: TextStyle(color: labelColor),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: borderColor),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: context.colors.primary),
-                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -257,14 +250,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     decoration: InputDecoration(
                       labelText: lang.translate('website_label'),
                       hintText: 'https://example.com',
-                      labelStyle: TextStyle(color: labelColor),
                       prefixIcon: Icon(Icons.link, color: labelColor),
-                      enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: borderColor),
-                      ),
-                      focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: context.colors.primary),
-                      ),
                     ),
                   ),
                   
@@ -362,14 +348,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
-          labelStyle: TextStyle(color: labelColor),
           prefixIcon: Icon(icon, color: labelColor),
-          enabledBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: borderColor),
-          ),
-          focusedBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: context.colors.primary),
-          ),
         ),
       ),
     );

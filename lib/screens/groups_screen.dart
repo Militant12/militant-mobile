@@ -192,13 +192,6 @@ class _GroupsScreenState extends State<GroupsScreen>
                   style: TextStyle(color: context.colors.onSurface),
                   decoration: InputDecoration(
                     labelText: lang.translate('group_name_label'),
-                    labelStyle: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.54)),
-                    filled: true,
-                    fillColor: context.colors.surfaceContainerHigh,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -208,13 +201,6 @@ class _GroupsScreenState extends State<GroupsScreen>
                   maxLines: 3,
                   decoration: InputDecoration(
                     labelText: lang.translate('group_description_label'),
-                    labelStyle: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.54)),
-                    filled: true,
-                    fillColor: context.colors.surfaceContainerHigh,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
                   ),
                 ),
                 const SizedBox(height: 12),

@@ -2415,7 +2415,6 @@ class _LiveScreenState extends State<LiveScreen> {
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       labelText: translate('live_report_details_label'),
-                      labelStyle: TextStyle(color: Colors.white70),
                     ),
                   ),
                   const SizedBox(height: 16),

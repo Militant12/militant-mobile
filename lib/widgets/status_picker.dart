@@ -294,9 +294,6 @@ class _StatusPickerDialogState extends State<StatusPickerDialog> {
                   color: context.tokens.textMuted,
                 ),
               ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 12,
                 vertical: 12,

@@ -129,15 +129,6 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
               style: TextStyle(color: context.colors.onSurface),
               decoration: InputDecoration(
                 hintText: lang.translate('page_name_hint'),
-                hintStyle: TextStyle(
-                  color: context.tokens.textMuted,
-                ),
-                filled: true,
-                fillColor: context.colors.surface,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
                 prefixIcon: Icon(
                   Icons.edit,
                   color: context.tokens.textMuted,
@@ -214,15 +205,6 @@ class _CreatePageScreenState extends State<CreatePageScreen> {
               style: TextStyle(color: context.colors.onSurface),
               decoration: InputDecoration(
                 hintText: lang.translate('describe_page_hint'),
-                hintStyle: TextStyle(
-                  color: context.tokens.textMuted,
-                ),
-                filled: true,
-                fillColor: context.colors.surface,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
               ),
             ),
             const SizedBox(height: 24),

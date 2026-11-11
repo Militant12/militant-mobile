@@ -429,8 +429,6 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                   style: TextStyle(color: context.colors.onSurface),
                   decoration: InputDecoration(
                     labelText: lang.translate('group_name'),
-                    filled: true,
-                    fillColor: context.colors.surfaceContainerHigh,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -439,8 +437,6 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                   style: TextStyle(color: context.colors.onSurface),
                   decoration: InputDecoration(
                     labelText: lang.translate('description'),
-                    filled: true,
-                    fillColor: context.colors.surfaceContainerHigh,
                   ),
                   maxLines: 3,
                 ),

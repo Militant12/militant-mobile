@@ -420,26 +420,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       style: TextStyle(color: theme.textTheme.bodyLarge?.color),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(
-          color: context.tokens.textMuted,
-        ),
         prefixIcon: Icon(
           icon,
           color: context.tokens.textMuted,
-        ),
-        filled: true,
-        fillColor: context.colors.surfaceContainerHigh,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: context.colors.primary),
         ),
       ),
     );
