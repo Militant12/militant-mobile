@@ -270,11 +270,6 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                     style: TextStyle(color: theme.textTheme.bodyLarge?.color),
                     decoration: InputDecoration(
                       labelText: lang.translate('group_name_label'),
-                      labelStyle: TextStyle(color: theme.hintColor),
-                      border: const OutlineInputBorder(),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: theme.dividerColor),
-                      ),
                     ),
                   ),
                 ],
@@ -687,15 +682,9 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                           hintText: LanguageService.instance.translate(
                             'search_user',
                           ),
-                          hintStyle: TextStyle(
-                            color: Theme.of(context).hintColor,
-                          ),
                           prefixIcon: Icon(
                             Icons.search,
                             color: Theme.of(context).hintColor,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
                           ),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,

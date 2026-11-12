@@ -417,7 +417,6 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           maxLines: 5,
           decoration: InputDecoration(
             hintText: lang.translate('post_content_hint'),
-            border: OutlineInputBorder(),
           ),
         ),
         actions: [
@@ -617,15 +616,6 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                 ),
                 decoration: InputDecoration(
                   labelText: lang.translate('username_label'),
-                  labelStyle: TextStyle(
-                    color: context.tokens.textMuted,
-                  ),
-                  filled: true,
-                  fillColor: context.colors.surfaceContainerHigh,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -1157,15 +1147,6 @@ class _PageDetailScreenState extends State<PageDetailScreen>
                     ),
                     decoration: InputDecoration(
                       hintText: lang.translate('post_content_hint'),
-                      hintStyle: TextStyle(
-                        color: context.tokens.textMuted,
-                      ),
-                      filled: true,
-                      fillColor: context.colors.surfaceContainerHigh,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
                     ),
                   ),
                   // Media preview
@@ -2287,13 +2268,6 @@ class _PageDetailScreenState extends State<PageDetailScreen>
           style: TextStyle(color: context.colors.onSurface),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: context.tokens.textMuted),
-            filled: true,
-            fillColor: isDark ? AppColors.darkSurfaceHigh : Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide.none,
-            ),
           ),
         ),
       ],
@@ -2322,16 +2296,6 @@ class _PageDetailScreenState extends State<PageDetailScreen>
               ),
               decoration: InputDecoration(
                 hintText: hint ?? label,
-                hintStyle: TextStyle(
-                  color: context.tokens.textMuted,
-                  fontSize: AppTokens.fontBodyMedium,
-                ),
-                filled: true,
-                fillColor: isDark ? AppColors.darkSurfaceHigh : Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 10,

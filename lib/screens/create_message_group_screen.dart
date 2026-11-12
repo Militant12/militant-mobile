@@ -142,7 +142,6 @@ class _CreateMessageGroupScreenState extends State<CreateMessageGroupScreen> {
               decoration: InputDecoration(
                 labelText: lang.translate('group_name_label'),
                 hintText: lang.translate('group_name_hint'),
-                border: const OutlineInputBorder(),
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {

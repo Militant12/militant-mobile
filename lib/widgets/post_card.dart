@@ -939,8 +939,6 @@ class _PostCardState extends State<PostCard> {
           style: TextStyle(color: theme.textTheme.bodyLarge?.color),
           decoration: InputDecoration(
             hintText: lang.translate('create_post_hint'),
-            hintStyle: TextStyle(color: theme.textTheme.bodyMedium?.color),
-            border: OutlineInputBorder(),
           ),
         ),
         actions: [
@@ -1052,7 +1050,6 @@ class _PostCardState extends State<PostCard> {
                 style: TextStyle(color: textColor),
                 decoration: InputDecoration(
                   labelText: lang.translate('live_report_details_label'),
-                  labelStyle: TextStyle(color: subtitleColor),
                 ),
               ),
             ],

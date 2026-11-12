@@ -753,13 +753,6 @@ class _ModerationScreenState extends State<ModerationScreen>
               style: TextStyle(color: context.colors.onSurface),
               decoration: InputDecoration(
                 hintText: lang.translate('mod_apply_hint'),
-                hintStyle: TextStyle(color: context.colors.onSurface.withValues(alpha: 0.38)),
-                filled: true,
-                fillColor: context.colors.surfaceContainerHigh,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
               ),
             ),
           ],

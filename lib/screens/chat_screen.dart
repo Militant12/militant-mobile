@@ -1002,7 +1002,7 @@ class _ChatScreenState extends State<ChatScreen> {
         content: TextField(
           controller: controller,
           style: TextStyle(color: context.colors.onSurface),
-          decoration: InputDecoration(border: OutlineInputBorder()),
+          decoration: InputDecoration(),
           maxLines: null,
         ),
         actions: [

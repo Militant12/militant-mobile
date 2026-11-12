@@ -563,9 +563,6 @@ class _FediverseProfilesTabState extends State<_FediverseProfilesTab> {
                               icon: const Icon(Icons.close),
                             )
                           : null,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
                     ),
                   ),
                 ],

@@ -294,10 +294,6 @@ class _TwoFactorSettingsScreenState extends State<TwoFactorSettingsScreen> {
                       controller: _codeController,
                       decoration: InputDecoration(
                         labelText: lang.translate('six_digit_code'),
-                        border: const OutlineInputBorder(),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: context.colors.primary),
-                        ),
                       ),
                       keyboardType: TextInputType.number,
                       maxLength: 6,

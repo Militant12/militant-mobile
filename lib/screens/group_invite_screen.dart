@@ -115,12 +115,6 @@ class _GroupInviteScreenState extends State<GroupInviteScreen> {
               decoration: InputDecoration(
                 hintText: lang.translate('search_users'),
                 prefixIcon: Icon(Icons.search, color: context.colors.primary),
-                filled: true,
-                fillColor: context.colors.surfaceContainerHigh,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide.none,
-                ),
               ),
             ),
           ),

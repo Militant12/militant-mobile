@@ -114,6 +114,12 @@ abstract final class AppTheme {
     letterSpacing: 0.88,
   );
 
+  static OutlineInputBorder _fieldBorder(BorderSide side) =>
+      OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppTokens.radius12),
+        borderSide: side,
+      );
+
   static ThemeData _build({
     required ColorScheme scheme,
     required Color scaffold,
@@ -219,6 +225,47 @@ abstract final class AppTheme {
                 : scheme.onPrimaryContainer,
           ),
         ),
+      ),
+      // Champs de formulaire : fond `surface-alt`, arrondis, sans contour au
+      // repos. Pas de coin coupé : il reste réservé à ce qu'on presse. Le
+      // focus est un contour rouge de 2 px, l'erreur un contour `error`.
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: scheme.surfaceContainerHigh,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppTokens.space16,
+          vertical: 14,
+        ),
+        labelStyle: text.bodyLarge?.copyWith(color: scheme.onSurfaceVariant),
+        floatingLabelStyle: WidgetStateTextStyle.resolveWith(
+          (states) => text.bodyLarge!.copyWith(
+            color: states.contains(WidgetState.error)
+                ? scheme.error
+                : states.contains(WidgetState.focused)
+                ? scheme.onPrimaryContainer
+                : scheme.onSurfaceVariant,
+          ),
+        ),
+        hintStyle: text.bodyLarge?.copyWith(color: scheme.onSurfaceVariant),
+        helperStyle: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+        errorStyle: text.bodySmall?.copyWith(color: scheme.error),
+        prefixIconColor: scheme.onSurfaceVariant,
+        suffixIconColor: scheme.onSurfaceVariant,
+        border: _fieldBorder(BorderSide.none),
+        enabledBorder: _fieldBorder(BorderSide.none),
+        disabledBorder: _fieldBorder(BorderSide.none),
+        focusedBorder: _fieldBorder(
+          BorderSide(color: scheme.primary, width: 2),
+        ),
+        errorBorder: _fieldBorder(BorderSide(color: scheme.error)),
+        focusedErrorBorder: _fieldBorder(
+          BorderSide(color: scheme.error, width: 2),
+        ),
+      ),
+      textSelectionTheme: TextSelectionThemeData(
+        cursorColor: scheme.primary,
+        selectionHandleColor: scheme.primary,
+        selectionColor: scheme.primary.withValues(alpha: 0.25),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: scheme.primary,

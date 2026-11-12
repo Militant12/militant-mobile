@@ -810,7 +810,6 @@ class _InterestEditorSheetState extends State<_InterestEditorSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
-    final isDark = context.isDark;
     final selectedColor = context.colors.primary;
 
     return SafeArea(
@@ -883,14 +882,6 @@ class _InterestEditorSheetState extends State<_InterestEditorSheet> {
                   decoration: InputDecoration(
                     hintText: widget.hint,
                     isDense: true,
-                    filled: true,
-                    fillColor: isDark
-                        ? Colors.white.withValues(alpha: 0.05)
-                        : Colors.black.withValues(alpha: 0.03),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
                     suffixIcon: IconButton(
                       tooltip: LanguageService.instance.translate('add'),
                       onPressed: () => _addInterest(_controller.text),

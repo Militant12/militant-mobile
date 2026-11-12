@@ -125,4 +125,49 @@ void main() {
     expect(AppTheme.light().colorScheme.onSurfaceVariant, AppTokens.light.textMuted);
     expect(AppTheme.dark().colorScheme.onSurfaceVariant, AppTokens.dark.textMuted);
   });
+
+  group('champs de texte', () {
+    for (final (name, theme) in [
+      ('clair', AppTheme.light()),
+      ('sombre', AppTheme.dark()),
+    ]) {
+      test('$name : fond surface-alt, arrondi 12, sans contour au repos', () {
+        final input = theme.inputDecorationTheme;
+        expect(input.filled, isTrue);
+        expect(input.fillColor, theme.colorScheme.surfaceContainerHigh);
+        final enabled = input.enabledBorder as OutlineInputBorder;
+        expect(enabled.borderSide, BorderSide.none);
+        expect(enabled.borderRadius, BorderRadius.circular(12));
+      });
+
+      test('$name : focus rouge de 2 px, erreur en error', () {
+        final input = theme.inputDecorationTheme;
+        final focused = input.focusedBorder as OutlineInputBorder;
+        expect(focused.borderSide.color, theme.colorScheme.primary);
+        expect(focused.borderSide.width, 2);
+        final error = input.errorBorder as OutlineInputBorder;
+        expect(error.borderSide.color, theme.colorScheme.error);
+      });
+    }
+
+    testWidgets('un champ sans style à lui prend le thème', (tester) async {
+      final theme = AppTheme.light();
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          home: const Scaffold(
+            body: TextField(decoration: InputDecoration(labelText: 'Nom')),
+          ),
+        ),
+      );
+      final decorator = tester.widget<InputDecorator>(
+        find.byType(InputDecorator),
+      );
+      final applied = decorator.decoration.applyDefaults(
+        theme.inputDecorationTheme,
+      );
+      expect(applied.filled, isTrue);
+      expect(applied.fillColor, theme.colorScheme.surfaceContainerHigh);
+    });
+  });
 }
