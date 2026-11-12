@@ -10,6 +10,9 @@ import '../widgets/linkable_text.dart';
 import '../widgets/video_player_widget.dart';
 import '../widgets/file_video_player.dart';
 import '../utils/error_helper.dart';
+import '../models/comment.dart';
+import '../utils/comment_threads.dart';
+import '../widgets/comments/comment_thread_view.dart';
 import '../utils/page_categories.dart';
 import '../theme/app_colors.dart';
 import '../theme/theme_context.dart';
@@ -2392,11 +2395,14 @@ class _CommentsSheet extends StatefulWidget {
 }
 
 class _CommentsSheetState extends State<_CommentsSheet> {
-  List<dynamic> _comments = [];
+  List<CommentThread> _threads = [];
+
+  /// Fils dépliés, par identifiant du commentaire principal.
+  final Set<int> _expanded = {};
   bool _isLoading = true;
   final _commentController = TextEditingController();
   bool _isSending = false;
-  Map<String, dynamic>? _replyingTo;
+  Comment? _replyingTo;
 
   @override
   void initState() {
@@ -2404,16 +2410,29 @@ class _CommentsSheetState extends State<_CommentsSheet> {
     _loadComments();
   }
 
-  Future<void> _loadComments() async {
+  /// [expandThreadOf] déplie le fil qui contient ce commentaire (celui
+  /// auquel on vient de répondre).
+  Future<void> _loadComments({int? expandThreadOf}) async {
     try {
       final comments = await widget.api.getPagePostComments(
         widget.pageId,
         widget.postId,
       );
+      final threads = threadsFromFlat([
+        for (final c in comments) Comment.fromJson(Map<String, dynamic>.from(c)),
+      ]);
+      keepTranslations(_threads, threads);
       if (mounted) {
         setState(() {
-          _comments = comments;
+          _threads = threads;
           _isLoading = false;
+          if (expandThreadOf != null) {
+            for (final thread in threads) {
+              if (thread.contains(expandThreadOf)) {
+                _expanded.add(thread.root.id);
+              }
+            }
+          }
         });
       }
     } catch (e) {
@@ -2428,16 +2447,14 @@ class _CommentsSheetState extends State<_CommentsSheet> {
 
     setState(() => _isSending = true);
     try {
-      final parentId = _replyingTo != null && _replyingTo!['id'] != null
-          ? int.tryParse(_replyingTo!['id'].toString())
-          : null;
+      final parentId = _replyingTo?.id;
       await widget.api.commentOnPagePost(widget.postId, text, parentId: parentId);
       _commentController.clear();
       if (mounted) {
         setState(() => _replyingTo = null);
       }
       widget.onCommentAdded();
-      _loadComments();
+      _loadComments(expandThreadOf: parentId);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -2453,76 +2470,98 @@ class _CommentsSheetState extends State<_CommentsSheet> {
     }
   }
 
-  void _startReply(dynamic comment) {
-    final username = (comment['username'] ?? '').toString().trim();
-    if (username.isEmpty) return;
-
-    final mention = '@$username ';
-    final currentText = _commentController.text;
-    final normalizedText = currentText.trimLeft();
-    final alreadyReplyingToSameUser =
-        _replyingTo?['id'] == comment['id'] &&
-        normalizedText.startsWith(mention);
+  /// La réaction change tout de suite ; elle revient en arrière si l'API
+  /// refuse. Sans rechargement, traductions et fils dépliés restent en place.
+  Future<void> _reactToComment(Comment comment, String reactionType) async {
+    final lang = LanguageService.instance;
+    final previousReaction = comment.userReaction;
+    final previousCount = comment.reactionsCount;
+    final removing = previousReaction == reactionType;
 
     setState(() {
-      _replyingTo = Map<String, dynamic>.from(comment as Map);
-
-      if (alreadyReplyingToSameUser) {
-        return;
+      comment.userReaction = removing ? null : reactionType;
+      comment.hasReacted = !removing;
+      if (removing) {
+        comment.reactionsCount = (previousCount - 1).clamp(0, 1 << 30);
+      } else if (previousReaction == null) {
+        comment.reactionsCount = previousCount + 1;
       }
-
-      final preservedText = normalizedText.isEmpty
-          ? ''
-          : normalizedText.startsWith('@')
-          ? normalizedText
-          : normalizedText;
-      _commentController.text = mention + preservedText;
-      _commentController.selection = TextSelection.fromPosition(
-        TextPosition(offset: _commentController.text.length),
-      );
     });
-  }
-
-  Future<void> _reactToComment(dynamic comment, String reactionType) async {
-    final lang = LanguageService.instance;
-    final commentId = int.tryParse((comment['id'] ?? '').toString());
-    if (commentId == null) return;
-
-    final currentReaction = (comment['user_reaction'] ?? '').toString();
 
     try {
-      if (currentReaction == reactionType) {
-        await widget.api.removeCommentReaction(commentId, 'page');
+      if (removing) {
+        await widget.api.removeCommentReaction(comment.id, 'page');
       } else {
         await widget.api.reactToComment(
-          commentId,
+          comment.id,
           'page',
           reactionType: reactionType,
         );
       }
-      await _loadComments();
     } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        comment.userReaction = previousReaction;
+        comment.hasReacted = previousReaction != null;
+        comment.reactionsCount = previousCount;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(
+        SnackBar(
+          content: Text(getFriendlyErrorMessage(e, lang)),
+        ),
+      );
+    }
+  }
+
+  Future<void> _toggleTranslation(Comment comment) async {
+    if (comment.isTranslated || comment.translatedContent != null) {
+      setState(() => comment.isTranslated = !comment.isTranslated);
+      return;
+    }
+    try {
+      final result = await widget.api.translateText(comment.content);
+      if (mounted && result['success'] == true) {
+        setState(() {
+          comment.translatedContent = result['translated'];
+          comment.isTranslated = true;
+        });
+      }
+    } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(getFriendlyErrorMessage(e, lang)),
+            content: Text(
+              LanguageService.instance.translate('error_translation'),
+            ),
           ),
         );
       }
     }
   }
 
-  void _showCommentReactionPicker(dynamic comment) {
-    final reactions = {
-      'like': '👍',
-      'love': '❤️',
-      'haha': '😂',
-      'wow': '😮',
-      'sad': '😢',
-      'angry': '😠',
-    };
+  bool _isMine(Comment comment) =>
+      widget.currentUserId != null && comment.userId == widget.currentUserId;
+
+  CommentActions get _commentActions => CommentActions(
+    avatarUrl: (path) {
+      final avatar = (path ?? '').trim();
+      return avatar.isEmpty || avatar == 'default.svg'
+          ? null
+          : widget.api.getImageUrl(avatar);
+    },
+    onLike: _showCommentReactionPicker,
+    onReply: (comment) => setState(() => _replyingTo = comment),
+    onTranslate: _toggleTranslation,
+    onEdit: _editComment,
+    onDelete: (comment) => _deleteComment(comment.id),
+    canEdit: _isMine,
+    canDelete: (comment) => _isMine(comment) || widget.canDeleteAnyComment,
+  );
+
+  void _showCommentReactionPicker(Comment comment) {
+    const reactions = commentReactionEmojis;
 
     showModalBottomSheet(
       context: context,
@@ -2595,9 +2634,9 @@ class _CommentsSheetState extends State<_CommentsSheet> {
     }
   }
 
-  Future<void> _editComment(dynamic comment) async {
+  Future<void> _editComment(Comment comment) async {
     final lang = LanguageService.instance;
-    final controller = TextEditingController(text: comment['content']);
+    final controller = TextEditingController(text: comment.content);
     final newContent = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
@@ -2629,7 +2668,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
 
     if (newContent != null && newContent.isNotEmpty) {
       try {
-        await widget.api.updatePageComment(comment['id'], newContent);
+        await widget.api.updatePageComment(comment.id, newContent);
         _loadComments();
       } catch (e) {
         if (mounted) {
@@ -2687,7 +2726,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
             Expanded(
               child: _isLoading
                   ? const AppLoader()
-                  : _comments.isEmpty
+                  : _threads.isEmpty
                   ? Center(
                       child: Text(
                         LanguageService.instance.translate('no_comments'),
@@ -2697,203 +2736,20 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                       ),
                     )
                   : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      itemCount: _comments.length,
+                      padding: const EdgeInsets.only(bottom: 8),
+                      itemCount: _threads.length,
                       itemBuilder: (context, index) {
-                        final comment = _comments[index];
-                        final commentUserId = int.tryParse(
-                          (comment['user_id'] ?? '').toString(),
-                        );
-                        final isCommentOwner =
-                            widget.currentUserId != null &&
-                            commentUserId != null &&
-                            widget.currentUserId == commentUserId;
-                        final canDeleteComment =
-                            isCommentOwner || widget.canDeleteAnyComment;
-                        final reactionsCount = int.tryParse(
-                              (comment['reactions_count'] ?? '0').toString(),
-                            ) ??
-                            0;
-                        final userReaction =
-                            (comment['user_reaction'] ?? '').toString();
-                        final reactionEmoji = {
-                          'like': '👍',
-                          'love': '❤️',
-                          'haha': '😂',
-                          'wow': '😮',
-                          'sad': '😢',
-                          'angry': '😠',
-                        }[userReaction];
-                        final String avatarUrl = (comment['user_avatar'] ?? '')
-                            .toString();
-                        final bool hasAvatar =
-                            avatarUrl.isNotEmpty && avatarUrl != 'default.svg';
-
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              AppAvatar(
-                                url: hasAvatar
-                                    ? widget.api.getImageUrl(avatarUrl)
-                                    : null,
-                                semanticLabel: comment['username']?.toString(),
-                                radius: 16,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          comment['username'] ?? '',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: AppTokens.fontBodyMedium,
-                                            color: context.colors.onSurface,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          _formatTime(
-                                            comment['created_at'] ?? '',
-                                          ),
-                                          style: TextStyle(
-                                            color: context.tokens.textMuted,
-                                            fontSize: AppTokens.fontLabelSmall,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      comment['content'] ?? '',
-                                      style: TextStyle(
-                                        color: isDark
-                                            ? Colors.white70
-                                            : Colors.black87,
-                                        fontSize: AppTokens.fontBodyMedium,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        TextButton.icon(
-                                          onPressed: () => _startReply(comment),
-                                          icon: Icon(
-                                            Icons.reply,
-                                            size: 14,
-                                            color: context.tokens.textMuted,
-                                          ),
-                                          label: Text(
-                                            LanguageService.instance.translate('reply'),
-                                            style: TextStyle(
-                                              color: context.tokens.textMuted,
-                                              fontSize: AppTokens.fontBodySmall,
-                                            ),
-                                          ),
-                                          style: TextButton.styleFrom(
-                                            padding: EdgeInsets.zero,
-                                            minimumSize: const Size(0, 0),
-                                            tapTargetSize: MaterialTapTargetSize
-                                                .shrinkWrap,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        TextButton.icon(
-                                          onPressed: () =>
-                                              _showCommentReactionPicker(comment),
-                                          icon: userReaction.isNotEmpty &&
-                                                  reactionEmoji != null
-                                              ? Text(
-                                                  reactionEmoji,
-                                                  style: const TextStyle(
-                                                    fontSize: AppTokens.fontBodyMedium,
-                                                  ),
-                                                )
-                                              : Icon(
-                                                  Icons.thumb_up_outlined,
-                                                  size: 14,
-                                                  color: context.tokens.textMuted,
-                                                ),
-                                          label: Text(
-                                            reactionsCount > 0
-                                                ? '$reactionsCount'
-                                                : LanguageService.instance.translate('react'),
-                                            style: TextStyle(
-                                              color: userReaction.isNotEmpty
-                                                  ? context.colors.onPrimaryContainer
-                                                  : (context.tokens.textMuted),
-                                              fontSize: AppTokens.fontBodySmall,
-                                            ),
-                                          ),
-                                          style: TextButton.styleFrom(
-                                            padding: EdgeInsets.zero,
-                                            minimumSize: const Size(0, 0),
-                                            tapTargetSize: MaterialTapTargetSize
-                                                .shrinkWrap,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              if (isCommentOwner || canDeleteComment)
-                                PopupMenuButton<String>(
-                                  icon: Icon(
-                                    Icons.more_vert,
-                                    size: 16,
-                                    color: context.tokens.textMuted,
-                                  ),
-                                  padding: EdgeInsets.zero,
-                                  itemBuilder: (context) {
-                                    final items = <PopupMenuEntry<String>>[];
-
-                                    if (isCommentOwner) {
-                                      items.add(
-                                        PopupMenuItem(
-                                          value: 'edit',
-                                          height: 32,
-                                          child: Text(
-                                            LanguageService.instance.translate('edit'),
-                                            style: TextStyle(fontSize: AppTokens.fontBodyMedium),
-                                          ),
-                                        ),
-                                      );
-                                    }
-
-                                    if (canDeleteComment) {
-                                      items.add(
-                                        PopupMenuItem(
-                                          value: 'delete',
-                                          height: 32,
-                                          child: Text(
-                                            LanguageService.instance.translate('delete'),
-                                            style: TextStyle(
-                                              color: context.colors.error,
-                                              fontSize: AppTokens.fontBodyMedium,
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    }
-
-                                    return items;
-                                  },
-                                  onSelected: (val) {
-                                    if (val == 'delete') {
-                                      _deleteComment(comment['id']);
-                                    } else if (val == 'edit') {
-                                      _editComment(comment);
-                                    }
-                                  },
-                                ),
-                            ],
-                          ),
+                        final thread = _threads[index];
+                        return CommentThreadView(
+                          key: ValueKey(thread.root.id),
+                          thread: thread,
+                          expanded: _expanded.contains(thread.root.id),
+                          onToggleExpanded: () => setState(() {
+                            if (!_expanded.remove(thread.root.id)) {
+                              _expanded.add(thread.root.id);
+                            }
+                          }),
+                          actions: _commentActions,
                         );
                       },
                     ),
@@ -2935,7 +2791,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                             child: Text(
                               LanguageService.instance
                                   .translate('replying_to_message')
-                                  .replaceAll('{username}', '${_replyingTo!['username'] ?? ''}'),
+                                  .replaceAll('{username}', _replyingTo!.username),
                               style: TextStyle(
                                 color: isDark ? Colors.white70 : Colors.black54,
                                 fontSize: AppTokens.fontBodySmall,
@@ -2969,7 +2825,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                           ),
                           decoration: InputDecoration(
                             hintText: _replyingTo != null
-                                ? '${LanguageService.instance.translate('reply_to').replaceAll('{username}', '${_replyingTo!['username'] ?? ''}')}...'
+                                ? '${LanguageService.instance.translate('reply_to').replaceAll('{username}', _replyingTo!.username)}...'
                                 : LanguageService.instance.translate('comment_hint'),
                             hintStyle: TextStyle(
                               color: context.tokens.textMuted,
@@ -3014,25 +2870,6 @@ class _CommentsSheetState extends State<_CommentsSheet> {
         ),
       ),
     );
-  }
-
-  String _formatTime(String date) {
-    try {
-      final dt = DateTime.parse(date);
-      final now = DateTime.now();
-      final diff = now.difference(dt);
-      final lang = LanguageService.instance;
-      String ago(String key, int count) => lang
-          .translate('time_ago')
-          .replaceAll('{time}', lang.translate(key).replaceAll('{count}', '$count'));
-      if (diff.inMinutes < 1) return lang.translate('just_now');
-      if (diff.inMinutes < 60) return ago('time_minutes_short', diff.inMinutes);
-      if (diff.inHours < 24) return ago('time_hours_short', diff.inHours);
-      if (diff.inDays < 7) return ago('time_days_short', diff.inDays);
-      return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
-    } catch (_) {
-      return date;
-    }
   }
 
   @override

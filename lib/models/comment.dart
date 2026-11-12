@@ -13,8 +13,14 @@ class Comment {
   final DateTime createdAt;
   final int? parentId;
   final List<Comment> replies;
-  final int reactionsCount;
-  final bool hasReacted;
+
+  // Modifiés sur place quand on réagit, sans recharger toute la liste.
+  int reactionsCount;
+  bool hasReacted;
+
+  /// Réaction choisie (`like`, `love`…), seulement pour les pages.
+  String? userReaction;
+
   bool isTranslated = false;
   String? translatedContent;
 
@@ -33,32 +39,45 @@ class Comment {
     this.replies = const [],
     this.reactionsCount = 0,
     this.hasReacted = false,
+    this.userReaction,
     this.isTranslated = false,
     this.translatedContent,
   });
 
+  /// Lit un commentaire de post, de groupe ou de page : les pages renvoient
+  /// `user_avatar` et `user_reaction` au lieu de `avatar`.
   factory Comment.fromJson(Map<String, dynamic> json) {
+    final userReaction = (json['user_reaction'] ?? '').toString();
     return Comment(
-      id: json['id'] ?? 0,
-      postId: json['post_id'] ?? 0,
-      userId: json['user_id'] ?? 0,
+      id: _asInt(json['id']) ?? 0,
+      postId: _asInt(json['post_id']) ?? 0,
+      userId: _asInt(json['user_id']) ?? 0,
       username: json['username'] ?? 'Utilisateur',
-      userAvatar: json['avatar'],
+      userAvatar: json['avatar'] ?? json['user_avatar'],
       militantBadge: json['militant_badge'],
-      isMilitantTechnician: json['is_militant_technician'] == true || json['is_militant_technician'] == 1 || json['is_militant_technician'] == '1',
-      isModerator: json['is_moderator'] == true || json['is_moderator'] == 1 || json['is_moderator'] == '1',
+      isMilitantTechnician: _asBool(json['is_militant_technician']),
+      isModerator: _asBool(json['is_moderator']),
       content: json['content'] ?? '',
       createdAt: DateFormatter.parseApiDate(json['created_at']),
-      parentId: json['parent_id'],
+      parentId: _asInt(json['parent_id']),
       replies:
           (json['replies'] as List?)
-              ?.map((r) => Comment.fromJson(r))
+              ?.map((r) => Comment.fromJson(Map<String, dynamic>.from(r)))
               .toList() ??
           [],
-      reactionsCount: json['reactions_count'] ?? 0,
-      hasReacted: (json['has_reacted'] is int)
-          ? (json['has_reacted'] as int) > 0
-          : (json['has_reacted'] ?? false),
+      reactionsCount: _asInt(json['reactions_count']) ?? 0,
+      hasReacted: _asBool(json['has_reacted']) || userReaction.isNotEmpty,
+      userReaction: userReaction.isEmpty ? null : userReaction,
     );
   }
+
+  static int? _asInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    final parsed = int.tryParse(value.toString());
+    return parsed == 0 ? null : parsed;
+  }
+
+  static bool _asBool(dynamic value) =>
+      value == true || value == 1 || value == '1';
 }
