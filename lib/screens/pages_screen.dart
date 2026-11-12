@@ -11,6 +11,30 @@ import '../utils/page_categories.dart';
 import '../theme/theme_context.dart';
 import '../theme/app_tokens.dart';
 
+/// Ce que lit un lecteur d'écran sur une ligne de page : nom, rôle,
+/// catégorie, abonnés et description, en une phrase.
+String pageRowSemanticsLabel(Map page, {String? badge}) {
+  final lang = LanguageService.instance;
+  final name = (page['name'] ?? lang.translate('pages_title')).toString();
+  final category = (page['category'] ?? '').toString();
+  final description = (page['description'] ?? '').toString().trim();
+  final followers =
+      int.tryParse(
+        '${page['followers_count'] ?? page['follower_count'] ?? 0}',
+      ) ??
+      0;
+  final followersLabel = followers > 1
+      ? lang.translate('followers_count_plural')
+      : lang.translate('followers_count');
+  return [
+    name,
+    if (badge != null && badge.isNotEmpty) badge,
+    if (category.isNotEmpty) pageCategoryLabel(category),
+    '$followers $followersLabel',
+    if (description.isNotEmpty) description,
+  ].join(', ');
+}
+
 class PagesScreen extends StatefulWidget {
   const PagesScreen({super.key});
 
@@ -334,134 +358,152 @@ class _PagesScreenState extends State<PagesScreen>
     final followersCount =
         page['followers_count'] ?? page['follower_count'] ?? 0;
     final avatar = page['avatar'];
+    void open() {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => PageDetailScreen(page: page)),
+      ).then((_) => _loadPages());
+    }
 
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => PageDetailScreen(page: page)),
-        ).then((_) => _loadPages());
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: context.colors.outlineVariant,
+    // Une seule annonce pour la ligne (nom, catégorie, abonnés, description)
+    // au lieu d'un bouton sans nom ; « Suivre » reste un bouton à part.
+    return Semantics(
+      container: true,
+      button: true,
+      label: pageRowSemanticsLabel(page as Map, badge: showBadge),
+      onTap: open,
+      child: InkWell(
+        onTap: open,
+        excludeFromSemantics: true,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: context.colors.outlineVariant,
+              ),
             ),
           ),
-        ),
-        child: Row(
-          children: [
-            _buildPageAvatar(avatar),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+          child: Row(
+            children: [
+              ExcludeSemantics(child: _buildPageAvatar(avatar)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ExcludeSemantics(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          name,
-                          style: TextStyle(
-                            color: context.colors.onSurface,
-                            fontSize: AppTokens.fontBodyLarge,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (showBadge != null)
-                        Container(
-                          margin: const EdgeInsets.only(left: 6),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: context.colors.primary,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            showBadge,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: AppTokens.fontLabelSmall,
-                              fontWeight: FontWeight.bold,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              name,
+                              style: TextStyle(
+                                color: context.colors.onSurface,
+                                fontSize: AppTokens.fontBodyLarge,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          if (showBadge != null)
+                            Container(
+                              margin: const EdgeInsets.only(left: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: context.colors.primary,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                showBadge,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: AppTokens.fontLabelSmall,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          if (category.isNotEmpty)
+                            Container(
+                              margin: const EdgeInsets.only(left: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: context.colors.outlineVariant,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                pageCategoryLabel(category),
+                                style: TextStyle(
+                                  color: context.tokens.textMuted,
+                                  fontSize: AppTokens.fontLabelSmall,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      if (description.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          description,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: context.tokens.textMuted,
+                            fontSize: AppTokens.fontBodyMedium,
+                          ),
                         ),
-                      if (category.isNotEmpty)
-                        Container(
-                          margin: const EdgeInsets.only(left: 6),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
+                      ],
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.people,
+                            color: context.tokens.textMuted,
+                            size: 14,
                           ),
-                          decoration: BoxDecoration(
-                            color: context.colors.outlineVariant,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            pageCategoryLabel(category),
+                          const SizedBox(width: 4),
+                          Text(
+                            '$followersCount ${followersCount > 1 ? lang.translate('followers_count_plural') : lang.translate('followers_count')}',
                             style: TextStyle(
                               color: context.tokens.textMuted,
-                              fontSize: AppTokens.fontLabelSmall,
+                              fontSize: AppTokens.fontBodySmall,
                             ),
                           ),
-                        ),
-                    ],
-                  ),
-                  if (description.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      description,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: context.tokens.textMuted,
-                        fontSize: AppTokens.fontBodyMedium,
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.people,
-                        color: context.tokens.textMuted,
-                        size: 14,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '$followersCount ${followersCount > 1 ? lang.translate('followers_count_plural') : lang.translate('followers_count')}',
-                        style: TextStyle(
-                          color: context.tokens.textMuted,
-                          fontSize: AppTokens.fontBodySmall,
-                        ),
+                        ],
                       ),
                     ],
-                  ),
-                ],
-              ),
-            ),
-            if (showFollow) ...[
-              const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: () => _followPage(page),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: context.colors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
                   ),
                 ),
-                child: Text(lang.translate('follow_button'), style: const TextStyle(fontSize: AppTokens.fontBodyMedium)),
               ),
+              if (showFollow) ...[
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () => _followPage(page),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: context.colors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                  ),
+                  child: Text(
+                    lang.translate('follow_button'),
+                    semanticsLabel: lang
+                        .translate('a11y_follow_page')
+                        .replaceAll('{name}', '$name'),
+                    style: const TextStyle(fontSize: AppTokens.fontBodyMedium),
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
