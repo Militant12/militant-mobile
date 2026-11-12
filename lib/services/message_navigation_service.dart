@@ -19,6 +19,14 @@ class MessageNavigationService {
   DateTime? _lastNavTime;
   String? _lastNavKey;
 
+  /// Vrai une fois l'ecran d'accueil affiche. Avant, l'ecran de demarrage
+  /// remplace la route du dessus par l'accueil (pushReplacement) et effacerait
+  /// l'ecran ouvert depuis la notification : on met donc la navigation en attente.
+  bool _appReady = false;
+
+  NavigatorState? _readyNavigator() =>
+      _appReady ? appNavigatorKey.currentState : null;
+
   /// Tente d'ouvrir la conversation privée immédiatement,
   /// ou met en attente si le Navigator n'est pas encore prêt.
   void openPrivateChat({
@@ -34,7 +42,7 @@ class MessageNavigationService {
       return;
     }
 
-    final navigator = appNavigatorKey.currentState;
+    final navigator = _readyNavigator();
     if (navigator == null) {
       debugPrint('[MessageNav] Navigator indisponible, mise en attente chat $userId');
       _pendingNotification = {
@@ -81,7 +89,7 @@ class MessageNavigationService {
       return;
     }
 
-    final navigator = appNavigatorKey.currentState;
+    final navigator = _readyNavigator();
     if (navigator == null) {
       debugPrint('[MessageNav] Navigator indisponible, mise en attente groupe $groupId');
       _pendingNotification = {
@@ -125,7 +133,7 @@ class MessageNavigationService {
       return;
     }
 
-    final navigator = appNavigatorKey.currentState;
+    final navigator = _readyNavigator();
     if (navigator == null) {
       debugPrint('[MessageNav] Navigator indisponible, mise en attente post $postId');
       _pendingNotification = {
@@ -159,7 +167,7 @@ class MessageNavigationService {
       return;
     }
 
-    final navigator = appNavigatorKey.currentState;
+    final navigator = _readyNavigator();
     if (navigator == null) {
       debugPrint('[MessageNav] Navigator indisponible, mise en attente profile $userId');
       _pendingNotification = {
@@ -193,7 +201,7 @@ class MessageNavigationService {
       return;
     }
 
-    final navigator = appNavigatorKey.currentState;
+    final navigator = _readyNavigator();
     if (navigator == null) {
       debugPrint('[MessageNav] Navigator indisponible, mise en attente group_detail $groupId');
       _pendingNotification = {
@@ -433,6 +441,7 @@ class MessageNavigationService {
 
   /// Vide la notification en attente (appelé une fois l'écran d'accueil affiché)
   void flushPendingNotification() {
+    _appReady = true;
     final pending = _pendingNotification;
     if (pending == null) return;
     _pendingNotification = null;
