@@ -1,0 +1,5 @@
+- Tocar una notificación con la aplicación cerrada vuelve a abrir la conversación, publicación o perfil correctos, en lugar del inicio.
+- Los comentarios se muestran como hilos de respuestas en publicaciones, grupos y páginas, y se cargan todas las páginas de comentarios.
+- La interfaz en francés tutea en todas partes.
+- Los campos de texto comparten un mismo aspecto, fiel a la identidad visual.
+- Accesibilidad: los lectores de pantalla anuncian las filas de páginas y los botones de seguir.

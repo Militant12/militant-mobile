@@ -1,0 +1,5 @@
+- Tapping a notification while the app is closed opens the right conversation, post or profile again, instead of the home feed.
+- Comments are shown as reply threads on posts, groups and pages, and every page of comments is loaded.
+- The French interface uses the informal "tu" everywhere.
+- Text fields share one look that follows the visual identity.
+- Accessibility: page rows and follow buttons are announced by screen readers.

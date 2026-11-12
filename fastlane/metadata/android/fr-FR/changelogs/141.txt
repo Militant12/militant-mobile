@@ -1,0 +1,5 @@
+- Toucher une notification quand l'appli est fermée ouvre à nouveau la bonne conversation, publication ou le bon profil, et non l'accueil.
+- Commentaires en fils de réponses sur les publications, groupes et pages ; toutes les pages de commentaires sont chargées.
+- L'interface en français tutoie partout.
+- Champs de saisie unifiés, conformes à la charte graphique.
+- Accessibilité : lignes de pages et boutons de suivi annoncés par les lecteurs d'écran.

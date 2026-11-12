@@ -31,7 +31,16 @@
 
 Militant is a decentralized social network designed for activist movements and political organizations. This mobile app lets you connect to any self-hosted Militant instance.
 
-Current version: **1.1.0+140**.
+Current version: **1.1.0+141**.
+
+
+## What's new in 1.1.0 (build 141)
+
+- Tapping a notification while the app is closed opens the right conversation, post or profile again, instead of the home feed.
+- Comments are shown as reply threads on posts, groups and pages, and every page of comments is loaded.
+- The French interface uses the informal "tu" everywhere.
+- Text fields share one look that follows the visual identity.
+- Accessibility: page rows and follow buttons are announced by screen readers.
 
 
 ## What's new in 1.1.0 (build 140)

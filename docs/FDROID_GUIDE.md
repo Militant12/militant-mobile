@@ -31,7 +31,7 @@ fastlane/metadata/android/
 │   ├── short_description.txt      # Résumé court (<= 80 caractères)
 │   ├── full_description.txt       # Description complète (<= 4000 caractères)
 │   ├── changelogs/
-│   │   └── 140.txt                # Notes de version spécifiques au versionCode
+│   │   └── 141.txt                # Notes de version spécifiques au versionCode
 │   └── images/
 │       ├── icon.png               # Icône officielle (512x512 sans métadonnées EXIF)
 │       ├── featureGraphic.png     # Bannière (1024x500 sans EXIF)
@@ -135,8 +135,8 @@ Builds:
       - .flutter/bin/flutter build apk --release --dart-define=DEFAULT_PUSH_PROVIDER=ntfy --dart-define=FDROID_BUILD=true
 
   - versionName: 1.1.0
-    versionCode: 140
-    commit: v1.1.0+140
+    versionCode: 141
+    commit: v1.1.0+141
     output: build/app/outputs/flutter-apk/app-release.apk
     srclibs:
       - flutter@stable
@@ -159,7 +159,7 @@ AutoUpdateMode: Version
 UpdateCheckMode: Tags
 UpdateCheckData: pubspec.yaml|version:\s.+\+(\d+)|.|version:\s(.+)\+
 CurrentVersion: 1.1.0
-CurrentVersionCode: 140
+CurrentVersionCode: 141
 ```
 
 Le fichier `pubspec_fdroid.yaml` est volontairement copié avant la résolution des dépendances : il remplace le plugin Flutter OneSignal par un adaptateur libre. Ainsi, aucun SDK OneSignal n'est embarqué dans l'APK F-Droid.
