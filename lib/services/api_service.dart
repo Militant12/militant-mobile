@@ -1019,24 +1019,14 @@ class ApiService {
 
   // === COMMENTAIRES ===
 
-  Future<List<dynamic>> getComments(int postId, {int page = 1}) async {
-    final response = await _http.get(
-      Uri.parse('$apiUrl/v1/comments.php?post_id=$postId&page=$page'),
-      headers: _headers,
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      debugPrint('Comments API response: ${response.body}');
-      return data['data'] ??
-          []; // paginate() returns 'data' by default if not specified
-    } else {
-      debugPrint(
-        'Comments API error: ${response.statusCode} - ${response.body}',
-      );
-      throw Exception('Erreur de chargement des commentaires');
-    }
-  }
+  /// Commentaires d'un post, réponses comprises.
+  ///
+  /// L'API pagine les commentaires principaux (20 par défaut) : on demande
+  /// toutes les pages pour que les commentaires au-delà du 20e s'affichent.
+  Future<List<dynamic>> getComments(int postId) => _getAllRootComments(
+    'comments.php?post_id=$postId',
+    'Erreur de chargement des commentaires',
+  );
 
   Future<Map<String, dynamic>> addComment(
     int postId,
@@ -1096,21 +1086,48 @@ class ApiService {
     }
   }
 
-  Future<List<dynamic>> getGroupPostComments(int postId, {int page = 1}) async {
-    final response = await _http.get(
-      Uri.parse('$apiUrl/v1/group_comments.php?post_id=$postId&page=$page'),
-      headers: _headers,
-    );
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      debugPrint('Group comments API response: ${response.body}');
-      return data['data'] ?? [];
-    } else {
-      debugPrint(
-        'Group comments API error: ${response.statusCode} - ${response.body}',
+  /// Commentaires d'un post de groupe, paginés comme ceux des posts.
+  Future<List<dynamic>> getGroupPostComments(int postId) =>
+      _getAllRootComments(
+        'group_comments.php?post_id=$postId',
+        'Erreur de chargement des commentaires du groupe',
       );
-      throw Exception('Erreur de chargement des commentaires du groupe');
+
+  /// Nombre de commentaires principaux demandés par page.
+  static const int _commentsPerPage = 50;
+
+  /// Garde-fou si l'API renvoyait une pagination incohérente.
+  static const int _maxCommentPages = 40;
+
+  /// Charge toutes les pages de commentaires principaux de [path].
+  Future<List<dynamic>> _getAllRootComments(
+    String path,
+    String errorMessage,
+  ) async {
+    final comments = <dynamic>[];
+    for (var page = 1; page <= _maxCommentPages; page++) {
+      final response = await _http.get(
+        Uri.parse(
+          '$apiUrl/v1/$path&page=$page&per_page=$_commentsPerPage',
+        ),
+        headers: _headers,
+      );
+      if (response.statusCode != 200) {
+        debugPrint(
+          'Comments API error: ${response.statusCode} - ${response.body}',
+        );
+        throw Exception(errorMessage);
+      }
+      final data = jsonDecode(response.body);
+      final pageComments = data['data'] as List<dynamic>? ?? const [];
+      comments.addAll(pageComments);
+      final totalPages = (data['total_pages'] as num?)?.toInt();
+      final isLastPage = totalPages != null
+          ? page >= totalPages
+          : pageComments.length < _commentsPerPage;
+      if (isLastPage || pageComments.isEmpty) break;
     }
+    return comments;
   }
 
   Future<Map<String, dynamic>> addGroupComment(
