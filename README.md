@@ -1,4 +1,4 @@
-# Militant - Application Mobile
+# Militant - Mobile App
 
 <p align="center">
   <img src="assets/logo.svg" alt="Militant Logo" width="200"/>
@@ -13,15 +13,15 @@
 </p>
 
 <p align="center">
-  Application mobile Flutter pour le réseau social militant décentralisé
+  Flutter mobile app for the decentralized activist social network
 </p>
 
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.militant.militant_flutter&pcampaignid=web_share">
-    <img src="https://img.shields.io/badge/Google%20Play-T%C3%A9l%C3%A9charger-414141?style=for-the-badge&logo=google-play&logoColor=white" alt="Télécharger sur Google Play">
+    <img src="https://img.shields.io/badge/Google%20Play-Download-414141?style=for-the-badge&logo=google-play&logoColor=white" alt="Get it on Google Play">
   </a>
   <a href="https://apkpure.com/p/com.militant.militant_flutter">
-    <img src="assets/apkpure-logo.svg" alt="Disponible sur APKPure" height="40">
+    <img src="assets/apkpure-logo.svg" alt="Available on APKPure" height="40">
   </a>
 </p>
 
@@ -29,219 +29,219 @@
 
 ## Description
 
-Militant est un réseau social décentralisé conçu pour les mouvements militants et les organisations politiques. Cette application mobile permet de se connecter à n'importe quelle instance Militant auto-hébergée.
+Militant is a decentralized social network designed for activist movements and political organizations. This mobile app lets you connect to any self-hosted Militant instance.
 
-Version actuelle : **1.1.0+140**.
-
-
-## Nouveautés 1.1.0 (build 140)
-
-- Nouvelle charte graphique rouge et noir à haute lisibilité (Archivo et Atkinson Hyperlegible Next).
-- Composants visuels repensés : cartes à coin coupé, tampons d'état et micro-animations fluides.
-- Mise en cache des images, chargement progressif et indicateur de présence en ligne améliorés.
-- Accessibilité renforcée (cibles tactiles de 48 dp, contrastes WCAG AA, respect de la réduction des mouvements).
+Current version: **1.1.0+140**.
 
 
-## Nouveautés 1.1.0 (build 139)
+## What's new in 1.1.0 (build 140)
 
-- Navigation et interface harmonisées pour un accès plus direct aux espaces principaux.
-- Meilleure prise en charge des thèmes clair et sombre, de l'accessibilité et des états de chargement.
-- Mode hors ligne plus visible et chargement des médias plus fiable.
-- Enregistrement des publications avec confirmation immédiate et possibilité d'annulation.
-
-
-## Nouveautés 1.0.9 (build 138)
-
-- **Fiabilité des appels et notifications** : corrections de réception des appels entrants et des notifications, avec **OneSignal** rétabli comme choix par défaut dans l’édition Google Play.
-- **Mentions** : les profils mentionnés affichent désormais leur avatar et le lien ouvre bien leur profil.
-- **Deux binaires distincts** : le binaire F-Droid est compilé sans SDK OneSignal ; l’APK/AAB Google Play conserve OneSignal. Le script de compilation choisit automatiquement le manifeste de dépendances correspondant.
-
-- **Gestion des Notifications par E-mail & Contrôle des Interactions (Build 136)** :
-  - **Interrupteur d'e-mails dédié** : Réintégration du commutateur dans les Paramètres > Notifications pour activer ou désactiver les alertes par e-mail directement depuis l'application mobile.
-  - **Respect strict des préférences d'interactions** : La désactivation de « J'aime » (ou commentaires, messages...) empêche désormais l'envoi indésirable d'e-mails ou de notifications push pour chaque like.
-  - **Synchronisation bidirectionnelle** : Alignement automatique des préférences de notifications entre l'application mobile et le profil web.
-  - **Accessibilité continue des interactions** : Les paramètres fins d'interactions restent visibles et configurables même si le push principal est désactivé.
-- **Notifications Push Dégooglisées (ntfy) & Double Diffusion** :
-  - Support complet d'un serveur de notifications push auto-hébergé et dégooglisé via [ntfy](https://ntfy.sh/) (`push.revlibertaire.com`).
-  - Connexion temps réel WebSocket / flux HTTP persistant sans dépendance aux Google Play Services ou Firebase.
-  - Sélecteur de fournisseur dans les Paramètres : **ntfy**, **OneSignal** ou **les deux en simultané** (double diffusion).
-  - Prise en charge des appels entrants audio & vidéo avec ntfy : ouverture directe de l'écran d'appel au clic sur "Répondre".
-  - Demande proactive de permission Android 13+ (`POST_NOTIFICATIONS`) dès l'initialisation et au changement de préférences.
-- **Variantes F-Droid (Libre) & Google Play Store** :
-  - **Édition F-Droid** (`FDROID_BUILD=true`) : 100% libre et dégooglisée, services Firebase désactivés, paramètres épurés sans options propriétaires.
-  - **Édition Play Store** (`FDROID_BUILD=false`) : intégration OneSignal (Google FCM) pour distribution Play Store.
-  - Coexistence des deux versions possible sur le même appareil de test grâce à un `applicationId` distinct (`.fdroid`).
-  - Scripts de compilation automatisés dans le dossier `scripts/` (`build_fdroid.sh` et `build_playstore.sh`).
-- **Fediverse & Profil** :
-  - Remplacement de l'adresse email sur le profil par l'identifiant Fediverse complet (ex: `@pseudo@militant.revlibertaire.com`).
-  - Clic rapide sur le handle Fediverse pour le copier directement dans le presse-papier avec confirmation.
-  - Corrections et améliorations sur l'écran Fediverse et la navigation des profils décentralisés.
-  - Ajout du défilement infini fluide (pagination automatique) pour les publications sur les profils.
-- **Notifications & Messagerie** :
-  - Redirection et ouverture automatique de la conversation (`ChatScreen` et `GroupChatScreen`) lors du clic sur une notification push de message privé ou groupe.
-  - Résolution dynamique de l'avatar et du pseudo de l'interlocuteur dans la barre de titre du chat.
-  - Décodage JSON sécurisé et résilient dans le client API pour éviter les erreurs de réception serveur.
-- **Appels vocaux & vidéo (WebRTC)** :
-  - Support complet des appels longue durée : prolongation du relais TURN à 24h sans coupure.
-  - Optimisation du chargement et du redimensionnement des avatars d'appel entrant avec Coil 2.7.0 (économie de mémoire RAM).
-- **Conformité & Performances Android 15** :
-  - Prise en charge native du bord-à-bord Android 15 (`Edge-to-Edge`) et nettoyage des API système dépréciées.
-  - Optimisations R8 (fullMode) et réduction de taille des ressources (`resource shrinking`).
-  - Version applicative synchronisée sur `1.0.9` (code de version 138).
-
-## Nouveautés 1.0.8
-
-- Optimisation et internationalisation complète de la barre de recherche des groupes (style Facebook) et des messages (Français, Anglais, Espagnol)
-- Navigation vers le profil d'un utilisateur en cliquant sur son nom/avatar depuis les messages, invitations et listes de membres.
-- Correction du bug d'affichage du changement de compte et de la déconnexion sur les profils tiers (visible uniquement sur son propre profil).
-- Réinitialisation du mot de passe depuis l’écran de connexion.
-- Changement rapide de compte avec comptes enregistrés localement.
-- Ajout d’un autre compte sans déconnexion préalable.
-- Protection de la session active pendant l’ajout ou la bascule de compte.
-- Correction des cas où un compte local pouvait disparaître après l’ajout d’un autre compte.
-- Version affichée dans **À propos** synchronisée avec `1.0.8`.
-- Build Android release généré en APK et App Bundle Play Store.
-
-## Fonctionnalités
+- New high-readability red and black visual identity (Archivo and Atkinson Hyperlegible Next).
+- Redesigned visual components: cut-corner cards, status stamps and smooth micro-animations.
+- Improved image caching, progressive loading and online presence indicator.
+- Stronger accessibility (48 dp touch targets, WCAG AA contrast, respect for reduced motion).
 
 
-### Authentification & Comptes
-- **Mot de passe oublié** : demande de lien de réinitialisation directement depuis l’écran de connexion.
-- **Comptes rapides** : sauvegarde locale des comptes connectés pour basculer rapidement entre plusieurs profils.
-- **Ajouter un compte** : connexion à un autre compte sans devoir se déconnecter manuellement du compte courant.
-- **Protection de session** : si une session enregistrée est expirée, l’app restaure la session précédente et demande une reconnexion.
+## What's new in 1.1.0 (build 139)
 
-### Réseau Social Complet
-- **Posts** : Création, modification, suppression de publications avec support multimédia (images, vidéos, audio)
-- **Interactions** : Likes, commentaires, partages, réactions
-- **Profils** : Personnalisation complète avec avatar, bannière, bio, liens sociaux
-- **Badges militants** : Système de badges exclusif à l'app mobile (Militant, Antifa, Anarchiste, CNT-AIT, CNT-F, CNT-SO, FA, OCL, CGA, UCL, FLL, SLM, IWA-AIT, IWW, IAF-IFA, CNT-AIT-E, ULET-AIT)
+- Harmonized navigation and interface for more direct access to the main areas.
+- Better support for light and dark themes, accessibility and loading states.
+- More visible offline mode and more reliable media loading.
+- Saving posts with immediate confirmation and the option to undo.
+
+
+## What's new in 1.0.9 (build 138)
+
+- **Reliable calls and notifications**: fixes for receiving incoming calls and notifications, with **OneSignal** restored as the default choice in the Google Play edition.
+- **Mentions**: mentioned profiles now show their avatar and the link correctly opens their profile.
+- **Two separate binaries**: the F-Droid binary is built without the OneSignal SDK; the Google Play APK/AAB keeps OneSignal. The build script automatically picks the matching dependency manifest.
+
+- **Email Notification Management & Interaction Controls (Build 136)**:
+  - **Dedicated email toggle**: the switch is back in Settings > Notifications to turn email alerts on or off directly from the mobile app.
+  - **Strict respect for interaction preferences**: turning off "Like" (or comments, messages...) now prevents unwanted emails or push notifications for every like.
+  - **Two-way sync**: notification preferences are automatically aligned between the mobile app and the web profile.
+  - **Interaction settings always available**: fine-grained interaction settings stay visible and configurable even when the main push is turned off.
+- **De-Googled Push Notifications (ntfy) & Dual Delivery**:
+  - Full support for a self-hosted, de-Googled push notification server via [ntfy](https://ntfy.sh/) (`push.revlibertaire.com`).
+  - Real-time WebSocket connection / persistent HTTP stream with no dependency on Google Play Services or Firebase.
+  - Provider selector in Settings: **ntfy**, **OneSignal** or **both at the same time** (dual delivery).
+  - Support for incoming audio & video calls with ntfy: tapping "Answer" opens the call screen directly.
+  - Proactive Android 13+ permission request (`POST_NOTIFICATIONS`) at startup and when preferences change.
+- **F-Droid (Free) & Google Play Store Variants**:
+  - **F-Droid edition** (`FDROID_BUILD=true`): 100% free and de-Googled, Firebase services disabled, streamlined settings without proprietary options.
+  - **Play Store edition** (`FDROID_BUILD=false`): OneSignal (Google FCM) integration for Play Store distribution.
+  - Both versions can coexist on the same test device thanks to a separate `applicationId` (`.fdroid`).
+  - Automated build scripts in the `scripts/` folder (`build_fdroid.sh` and `build_playstore.sh`).
+- **Fediverse & Profile**:
+  - The email address on the profile is replaced by the full Fediverse handle (e.g. `@username@militant.revlibertaire.com`).
+  - Tap the Fediverse handle to copy it straight to the clipboard, with confirmation.
+  - Fixes and improvements to the Fediverse screen and decentralized profile navigation.
+  - Smooth infinite scrolling (automatic pagination) added for posts on profiles.
+- **Notifications & Messaging**:
+  - Tapping a push notification for a private or group message automatically opens the conversation (`ChatScreen` and `GroupChatScreen`).
+  - Dynamic resolution of the other person's avatar and username in the chat title bar.
+  - Safe and resilient JSON decoding in the API client to avoid errors when receiving server data.
+- **Voice & Video Calls (WebRTC)**:
+  - Full support for long calls: TURN relay extended to 24h without interruption.
+  - Optimized loading and resizing of incoming call avatars with Coil 2.7.0 (saves RAM).
+- **Android 15 Compliance & Performance**:
+  - Native support for Android 15 edge-to-edge (`Edge-to-Edge`) and cleanup of deprecated system APIs.
+  - R8 optimizations (fullMode) and resource shrinking.
+  - App version synced to `1.0.9` (version code 138).
+
+## What's new in 1.0.8
+
+- Optimization and full internationalization of the group search bar (Facebook style) and messages (French, English, Spanish)
+- Open a user's profile by tapping their name/avatar from messages, invitations and member lists.
+- Fixed account switching and logout showing on other people's profiles (now only visible on your own profile).
+- Password reset from the login screen.
+- Quick account switching with locally saved accounts.
+- Add another account without logging out first.
+- The active session is protected while adding or switching accounts.
+- Fixed cases where a local account could disappear after adding another account.
+- Version shown in **About** synced with `1.0.8`.
+- Android release build generated as an APK and a Play Store App Bundle.
+
+## Features
+
+
+### Authentication & Accounts
+- **Forgot password**: request a reset link directly from the login screen.
+- **Quick accounts**: logged-in accounts are saved locally so you can switch quickly between several profiles.
+- **Add an account**: log in to another account without manually logging out of the current one.
+- **Session protection**: if a saved session has expired, the app restores the previous session and asks you to log in again.
+
+### Full Social Network
+- **Posts**: create, edit and delete posts with multimedia support (images, videos, audio)
+- **Interactions**: likes, comments, shares, reactions
+- **Profiles**: full customization with avatar, banner, bio and social links
+- **Activist badges**: badge system exclusive to the mobile app (Militant, Antifa, Anarchist, CNT-AIT, CNT-F, CNT-SO, FA, OCL, CGA, UCL, FLL, SLM, IWA-AIT, IWW, IAF-IFA, CNT-AIT-E, ULET-AIT)
 
 ### Communication
-- **Messages privés** : Conversations individuelles et groupes en temps réel
-- **Notifications Push Dégooglisées** : Système d'alertes via serveur ntfy souverain auto-hébergé (sans compte Google ni trackers) ou OneSignal
-- **Appels WebRTC** : Appels audio et vidéo chiffrés de pair à pair avec notification d'appel entrant et réponse directe
-- **Mentions** : Mentionnez d'autres utilisateurs avec @
-- **Liens cliquables** : Détection automatique des URLs avec cartes de prévisualisation pour les réseaux sociaux
+- **Private messages**: one-to-one and group conversations in real time
+- **De-Googled push notifications**: alerts through a self-hosted ntfy server (no Google account, no trackers) or OneSignal
+- **WebRTC calls**: encrypted peer-to-peer audio and video calls with incoming call notifications and direct answer
+- **Mentions**: mention other users with @
+- **Clickable links**: automatic URL detection with preview cards for social networks
 
-### Groupes & Événements
-- **Groupes** : Créez et rejoignez des groupes militants avec système d’adhésion privée et invitations.
-- **Événements** : Organisez et participez à des événements militants locaux ou nationaux.
-- **Stories** : Partagez des moments éphémères (24h) avec prévisualisation vidéo.
-- **Lives (v1.0.6)** : Diffusions en direct avec modération communautaire et gestion des invités en temps réel.
+### Groups & Events
+- **Groups**: create and join activist groups with private membership and invitations.
+- **Events**: organize and take part in local or national activist events.
+- **Stories**: share ephemeral moments (24h) with video preview.
+- **Lives (v1.0.6)**: live streams with community moderation and real-time guest management.
 
 ### Fediverse
-- **Espace Fediverse mobile** : onglets dédiés **Flux**, **Profils**, **Abonnements** et **Abonnés**.
-- **Recherche fédérée** : recherche de profils et d’adresses comme `@user@instance.tld`.
-- **Profils distants** : ouverture des profils Fediverse externes avec affichage des posts récents.
-- **Abonnements distants** : suivi et désabonnement de comptes ActivityPub/Mastodon depuis l’application.
-- **Flux distant** : consultation des contenus publiés par les comptes fédérés suivis.
-- **Identité locale** : affichage de l’identité Fediverse locale de l’utilisateur dans l’application.
+- **Mobile Fediverse space**: dedicated **Feed**, **Profiles**, **Following** and **Followers** tabs.
+- **Federated search**: search for profiles and addresses such as `@user@instance.tld`.
+- **Remote profiles**: open external Fediverse profiles and see their recent posts.
+- **Remote follows**: follow and unfollow ActivityPub/Mastodon accounts from the app.
+- **Remote feed**: read content published by the federated accounts you follow.
+- **Local identity**: the user's local Fediverse identity is shown in the app.
 
-### Modération & Sécurité
-- **Modération Démocratique** : Système révolutionnaire où les modérateurs sont élus par vote (70% consensus)
-- **Transparence** : Journal public de toutes les actions de modération
-- **Candidature** : Tout utilisateur peut se porter candidat et retirer sa candidature
-- **Révocation** : Les modérateurs peuvent être révoqués par vote populaire
-- **Actions** : Suppression directe et avertissements pour les élus
-- **Signalements** : Signalez les contenus inappropriés
-- **Comptes privés** : Contrôlez qui peut vous suivre
+### Moderation & Security
+- **Democratic moderation**: a revolutionary system where moderators are elected by vote (70% consensus)
+- **Transparency**: public log of every moderation action
+- **Candidacy**: any user can stand as a candidate and withdraw their candidacy
+- **Recall**: moderators can be recalled by popular vote
+- **Actions**: direct removal and warnings for elected moderators
+- **Reports**: report inappropriate content
+- **Private accounts**: control who can follow you
 
 
-### Multilingue
-- **3 langues** : Français, Anglais, Espagnol 
-- **Traduction automatique** : Traduisez les posts dans votre langue
+### Multilingual
+- **3 languages**: French, English, Spanish
+- **Automatic translation**: translate posts into your language
 
-### Technique
-- **Connexion multi-instances** : Connectez-vous à n'importe quelle instance Militant
-- **Mode hors ligne** : Consultez le contenu même sans connexion
-- **Thème sombre** : Interface moderne avec couleurs du projet
-- **Performance** : Optimisé pour supporter des milliers d'utilisateurs simultanés
+### Technical
+- **Multi-instance login**: connect to any Militant instance
+- **Offline mode**: browse content even without a connection
+- **Dark theme**: modern interface in the project's colors
+- **Performance**: optimized to support thousands of simultaneous users
 
-## Prérequis
+## Requirements
 
-- Flutter 3.0 ou supérieur
-- Dart 3.0 ou supérieur
-- Android Studio (pour le développement Android)
-- Un émulateur Android ou appareil physique
+- Flutter 3.0 or later
+- Dart 3.0 or later
+- Android Studio (for Android development)
+- An Android emulator or physical device
 
-**Note :** Android est supporté. 
+**Note:** Android is supported.
 
 ## Installation
 
-### Cloner le projet
+### Clone the project
 
 ```bash
 git clone https://gitlab.com/votre-username/militant-flutter.git
 cd militant_flutter
 ```
 
-### Installer les dépendances
+### Install dependencies
 
 ```bash
 flutter pub get
 ```
 
-### Lancer l'application
+### Run the app
 
 ```bash
-# Sur émulateur/appareil connecté
+# On a connected emulator/device
 flutter run
 
-# Build APK de debug
+# Debug APK build
 flutter build apk --debug
 
-# Build APK de release
+# Release APK build
 flutter build apk --release
 ```
 
 ## Configuration
 
-### URL de l'instance
+### Instance URL
 
-L'application se connecte par défaut à `https://api.militant.revlibertaire.com`. Vous pouvez changer d'instance directement depuis l'écran de connexion.
+By default the app connects to `https://api.militant.revlibertaire.com`. You can switch instances directly from the login screen.
 
-### Lives (v1.0.6) - Système Avancé
+### Lives (v1.0.6) - Advanced System
 
-L’onglet **Live** s’appuie sur [LiveKit](https://livekit.io/) et offre une expérience de diffusion militante sécurisée.
+The **Live** tab is built on [LiveKit](https://livekit.io/) and offers a secure activist streaming experience.
 
 > [!CAUTION]
-> **Sécurité** : Ne compilez **jamais** l'application avec vos secrets (`LIVEKIT_API_SECRET`). L'application utilise uniquement l'URL du serveur et l'URL de l'API pour récupérer des jetons sécurisés. Le secret doit rester exclusivement sur votre serveur `militant-api`.
+> **Security**: **never** build the app with your secrets (`LIVEKIT_API_SECRET`). The app only uses the server URL and the API URL to fetch secure tokens. The secret must stay exclusively on your `militant-api` server.
 
 > [!TIP]
-> **Format de l'URL** : L'URL du serveur (`LIVEKIT_URL`) doit impérativement commencer par **`wss://`** (ex: `wss://live.votre-instance.org`).
+> **URL format**: the server URL (`LIVEKIT_URL`) must start with **`wss://`** (e.g. `wss://live.votre-instance.org`).
 
-- **Modération démocratique** : Les créateurs peuvent nommer des modérateurs révocables sans hiérarchie. Le blocage des utilisateurs du chat est immédiat.
-- **Gestion des invités (Request Guest)** : Système robuste permettant aux spectateurs de demander à "monter" dans le live, avec approbation/rejet en temps réel par le créateur.
-- **Sécurité u{id}** : Utilisation d'identifiants persistants pour garantir une modération efficace même si l'utilisateur change de pseudonyme.
-- **Auto-nettoyage** : Fermeture automatique des sessions inactives ou suite à une déconnexion prolongée du créateur (timeout 2 min).
-- **Consensus de signalement** : Option de signalement communautaire ; si un seuil de votes est atteint, le live est automatiquement suspendu par sécurité.
+- **Democratic moderation**: creators can appoint recallable moderators without hierarchy. Blocking users from the chat takes effect immediately.
+- **Guest management (Request Guest)**: a robust system that lets viewers ask to "join" the live, with real-time approval/rejection by the creator.
+- **u{id} security**: persistent identifiers ensure effective moderation even if a user changes their username.
+- **Auto-cleanup**: inactive sessions are closed automatically, as are sessions after a prolonged disconnection of the creator (2 min timeout).
+- **Report consensus**: community reporting option; if a vote threshold is reached, the live is automatically suspended for safety.
 
-**Configuration technique (militant-api)** : configurez au minimum `LIVEKIT_URL`, `LIVEKIT_API_KEY` et `LIVEKIT_API_SECRET` pour que l’endpoint `POST …/v1/lives.php?path=token` puisse répondre.
+**Technical configuration (militant-api)**: set at least `LIVEKIT_URL`, `LIVEKIT_API_KEY` and `LIVEKIT_API_SECRET` so the `POST …/v1/lives.php?path=token` endpoint can respond.
 
-### Fediverse mobile
+### Mobile Fediverse
 
-L’application intègre désormais un espace **Fediverse** permettant de se connecter plus directement à l’écosystème ActivityPub.
+The app now includes a **Fediverse** space to connect more directly with the ActivityPub ecosystem.
 
-- **Recherche de comptes distants** : prise en charge des handles et profils fédérés.
-- **Abonnements / abonnés** : listes dédiées pour retrouver les comptes suivis et les abonnés Fediverse.
-- **Flux Fediverse** : lecture des contenus distants synchronisés par l’API.
-- **Profils distants** : affichage des avatars, bios, handles et posts récents.
+- **Remote account search**: support for federated handles and profiles.
+- **Following / followers**: dedicated lists to find the accounts you follow and your Fediverse followers.
+- **Fediverse feed**: read remote content synced by the API.
+- **Remote profiles**: avatars, bios, handles and recent posts are shown.
 
-**Côté API (`militant-api`)**, cela suppose l’activation des endpoints Fediverse mobiles, notamment pour :
-- la recherche distante
-- le suivi / désabonnement de comptes externes
-- la récupération des listes `followers` / `following`
-- l’exposition du `feed` Fediverse
-- la résolution des profils distants
+**On the API side (`militant-api`)**, this requires the mobile Fediverse endpoints to be enabled, in particular for:
+- remote search
+- following / unfollowing external accounts
+- fetching the `followers` / `following` lists
+- exposing the Fediverse `feed`
+- resolving remote profiles
 
-### Badges militants (exclusif mobile)
+### Activist badges (mobile exclusive)
 
-Les badges militants sont une fonctionnalité exclusive à l'application mobile. Ils permettent d'afficher votre appartenance à un mouvement ou une organisation :
+Activist badges are a feature exclusive to the mobile app. They let you show that you belong to a movement or organization:
 
-- Militant (générique)
+- Militant (generic)
 - Antifa
-- Anarchiste
+- Anarchist
 - CNT-AIT, CNT-F, CNT-SO
 - FA (Fédération Anarchiste)
 - OCL (Organisation Communiste Libertaire)
@@ -251,23 +251,23 @@ Les badges militants sont une fonctionnalité exclusive à l'application mobile.
 - SLM (Solidarité Libertaire Militante)
 - IWA-AIT (International Workers' Association)
 - IWW (Industrial Workers of the World)
-- IAF-IFA (Internationale des Fédérations Anarchistes)
+- IAF-IFA (International of Anarchist Federations)
 - CNT-AIT-E (Confederación Nacional del Trabajo)
 - ULET-AIT
 
-Pour choisir votre badge : Profil → Paramètres → Mon badge militant
+To choose your badge: Profile → Settings → My activist badge
 
-## Structure du projet
+## Project structure
 
 ```
 militant_flutter/
 ├── lib/
-│   ├── main.dart                    # Point d'entrée de l'application
-│   ├── models/                      # Modèles de données
+│   ├── main.dart                    # App entry point
+│   ├── models/                      # Data models
 │   │   ├── post.dart
 │   │   ├── user.dart
 │   │   └── ...
-│   ├── screens/                     # Écrans de l'application
+│   ├── screens/                     # App screens
 │   │   ├── home_screen.dart
 │   │   ├── login_screen.dart
 │   │   ├── profile_screen.dart
@@ -276,20 +276,20 @@ militant_flutter/
 │   │   ├── events_screen.dart
 │   │   ├── badge_selection_screen.dart
 │   │   └── ...
-│   ├── widgets/                     # Composants réutilisables
+│   ├── widgets/                     # Reusable components
 │   │   ├── post_card.dart
 │   │   ├── militant_badge.dart
 │   │   ├── linkable_text.dart
 │   │   └── ...
-│   └── services/                    # Services (API, langue)
+│   └── services/                    # Services (API, language)
 │       ├── account_switcher_service.dart
 │       ├── api_service.dart
 │       └── language_service.dart
-├── android/                         # Configuration Android
-├── ios/                             # Configuration iOS
+├── android/                         # Android configuration
+├── ios/                             # iOS configuration
 ├── assets/
-│   ├── logo.svg                    # Logo de l'application
-│   ├── badges/                     # Badges militants (exclusif mobile)
+│   ├── logo.svg                    # App logo
+│   ├── badges/                     # Activist badges (mobile exclusive)
 │   │   ├── militant.svg
 │   │   ├── antifa.svg
 │   │   ├── anarchist.svg
@@ -308,145 +308,144 @@ militant_flutter/
 │   │   ├── cnt-ait-e.jpg
 │   │   ├── ulet-ait.png
 │   │   └── ...
-│   └── offline.html                 # Page hors ligne
-├── docs/                            # Documentation technique et publication
+│   └── offline.html                 # Offline page
+├── docs/                            # Technical and release documentation
 ├── scripts/
-│   ├── test/                        # Tests et diagnostics manuels
-│   └── release/                     # Publication des versions
-├── test/                            # Tests automatisés Flutter
-└── pubspec.yaml                    # Dépendances Flutter
+│   ├── test/                        # Manual tests and diagnostics
+│   └── release/                     # Version publishing
+├── test/                            # Automated Flutter tests
+└── pubspec.yaml                    # Flutter dependencies
 ```
 
 ## Documentation
 
-- [Appels audio et vidéo](docs/APPELS_AUDIO_VIDEO.md)
-- [Construction et publication F-Droid](docs/FDROID_GUIDE.md)
-- [Reconnexion ICE lors d'un changement de réseau](docs/ICE_RESTART.md)
-- [Publication sur Google Play](docs/PLAY_STORE.md)
-- [Publication du projet sur GitLab](docs/PUBLISH.md)
+- [Audio and video calls](docs/APPELS_AUDIO_VIDEO.md)
+- [F-Droid build and release](docs/FDROID_GUIDE.md)
+- [ICE reconnection on network change](docs/ICE_RESTART.md)
+- [Publishing on Google Play](docs/PLAY_STORE.md)
+- [Publishing the project on GitLab](docs/PUBLISH.md)
 
-Les tests et diagnostics manuels sont regroupés dans `scripts/test/`. Les
-scripts de construction restent directement dans `scripts/` et les scripts de
-publication sont placés dans `scripts/release/`.
+Manual tests and diagnostics are grouped in `scripts/test/`. Build scripts stay
+directly in `scripts/` and release scripts are in `scripts/release/`.
 
-## Dépendances principales
+## Main dependencies
 
-- `http` : Communication avec l'API REST
-- `shared_preferences` : Sauvegarde des préférences utilisateur
-- `flutter_svg` : Affichage des logos et badges SVG
-- `image_picker` : Sélection d'images et vidéos
-- `video_player` : Lecture de vidéos
-- `audioplayers` : Lecture de fichiers audio
-- `file_picker` : Sélection de fichiers
-- `url_launcher` : Ouverture de liens externes
-- `share_plus` : Partage de contenu
-- `intl` : Internationalisation et formatage de dates
+- `http`: communication with the REST API
+- `shared_preferences`: saving user preferences
+- `flutter_svg`: displaying SVG logos and badges
+- `image_picker`: picking images and videos
+- `video_player`: video playback
+- `audioplayers`: audio file playback
+- `file_picker`: picking files
+- `url_launcher`: opening external links
+- `share_plus`: sharing content
+- `intl`: internationalization and date formatting
 
-## Compilation & Build de production
+## Compilation & Production Builds
 
-L'application supporte deux modes de compilation distincts selon la cible de distribution :
+The app supports two separate build modes depending on the distribution target:
 
-### 1. Version F-Droid / Autonome (100% Libre & Dégooglisée)
+### 1. F-Droid / Standalone Version (100% Free & De-Googled)
 
-Cette version est exempte de trackers et de dépendances aux services propriétaires Google :
-- **Push par défaut** : `ntfy` via WebSocket persistant sur votre serveur auto-hébergé (`push.revlibertaire.com`).
-- **Services Google / Firebase** : désactivés au niveau Gradle.
-- **Paramètres** : interface épurée masquant les options propriétaires, tout en conservant la configuration granulaire des alertes.
+This version has no trackers and no dependency on proprietary Google services:
+- **Default push**: `ntfy` over a persistent WebSocket to your self-hosted server (`push.revlibertaire.com`).
+- **Google / Firebase services**: disabled at the Gradle level.
+- **Settings**: streamlined interface that hides proprietary options while keeping fine-grained alert configuration.
 
 ```bash
-# Compilation via le script automatisé :
+# Build with the automated script:
 ./scripts/build_fdroid.sh
 
-# Ou via la commande Flutter directe :
+# Or with the Flutter command directly:
 flutter build apk --release \
   --dart-define=DEFAULT_PUSH_PROVIDER=ntfy \
   --dart-define=FDROID_BUILD=true
 ```
-L'APK prêt à distribuer est généré dans `dist/militant-fdroid.apk`.
+The ready-to-distribute APK is generated in `dist/militant-fdroid.apk`.
 
-### 2. Version Google Play Store
+### 2. Google Play Store Version
 
-Cette version intègre les services Google Play et OneSignal pour une distribution standard sur le Play Store :
-- **Push par défaut** : OneSignal (Google FCM) avec possibilité pour l'utilisateur de basculer sur ntfy ou double diffusion.
-- **Format de publication** : Android App Bundle (`.aab`) requis par la Google Play Console.
+This version includes Google Play services and OneSignal for standard distribution on the Play Store:
+- **Default push**: OneSignal (Google FCM), with the option for users to switch to ntfy or dual delivery.
+- **Release format**: Android App Bundle (`.aab`), required by the Google Play Console.
 
 ```bash
-# Compilation via le script automatisé (génère .aab et .apk) :
+# Build with the automated script (generates .aab and .apk):
 ./scripts/build_playstore.sh
 
-# Ou via les commandes Flutter directes :
-# Pour la Play Console (App Bundle) :
+# Or with the Flutter commands directly:
+# For the Play Console (App Bundle):
 flutter build appbundle --release \
   --dart-define=DEFAULT_PUSH_PROVIDER=onesignal \
   --dart-define=FDROID_BUILD=false
 
-# Pour tester en APK local :
+# To test as a local APK:
 flutter build apk --release \
   --dart-define=DEFAULT_PUSH_PROVIDER=onesignal \
   --dart-define=FDROID_BUILD=false
 ```
-Les fichiers sont générés dans :
-- `dist/militant-playstore.aab` (à téléverser sur la Google Play Console)
-- `dist/militant-playstore.apk` (pour test direct)
+The files are generated in:
+- `dist/militant-playstore.aab` (to upload to the Google Play Console)
+- `dist/militant-playstore.apk` (for direct testing)
 
 ---
 
-### Tester les deux versions côte à côte sur le même appareil
+### Testing both versions side by side on the same device
 
-Pour tester simultanément la version Play Store et la version F-Droid sans conflit d'installation :
-- **Play Store** utilise le package standard : `com.militant.militant_flutter`
-- **F-Droid** utilise le suffixe dédié : `com.militant.militant_flutter.fdroid`
+To test the Play Store and F-Droid versions at the same time without installation conflicts:
+- **Play Store** uses the standard package: `com.militant.militant_flutter`
+- **F-Droid** uses a dedicated suffix: `com.militant.militant_flutter.fdroid`
 
 ```bash
-# Installer la version F-Droid sur votre appareil connecté
+# Install the F-Droid version on your connected device
 adb install dist/militant-fdroid-debug.apk
 
-# Installer la version Play Store sur le même appareil
+# Install the Play Store version on the same device
 adb install dist/militant-playstore-debug.apk
 ```
-Les deux applications apparaîtront séparément sur l'écran d'accueil de votre téléphone.
+Both apps will appear separately on your phone's home screen.
 
 ---
 
-## Performance & Scalabilité
+## Performance & Scalability
 
-L'application et l'API sont optimisées pour supporter un grand nombre d'utilisateurs :
+The app and the API are optimized to support a large number of users:
 
-- **Rate limiting généreux** : 1000 requêtes/minute par IP, 500-1000 requêtes/heure par utilisateur
-- **Capacité** : Support de 5 000 à 50 000+ utilisateurs actifs simultanés selon le serveur
-- **Optimisations** : Pagination, cache, requêtes optimisées
-- **Sécurité** : Protection contre les attaques DDoS, brute force, injection SQL, XSS
+- **Generous rate limiting**: 1000 requests/minute per IP, 500-1000 requests/hour per user
+- **Capacity**: support for 5,000 to 50,000+ simultaneous active users depending on the server
+- **Optimizations**: pagination, caching, optimized queries
+- **Security**: protection against DDoS, brute force, SQL injection and XSS attacks
 
-## Déploiement
+## Deployment
 
 ### Google Play Store
-1. Créer ou ouvrir la console Google Play.
-2. Téléverser le fichier `dist/militant-playstore.aab`.
-3. Remplir les fiches de version et valider le déploiement.
+1. Create or open the Google Play Console.
+2. Upload the `dist/militant-playstore.aab` file.
+3. Fill in the release details and confirm the rollout.
 
-### F-Droid / Dépôt tiers
-1. Téléverser l'APK `dist/militant-fdroid.apk` sur votre serveur web ou repository F-Droid.
-2. Signer le fichier avec votre keystore officiel.
+### F-Droid / Third-party repository
+1. Upload the `dist/militant-fdroid.apk` APK to your web server or F-Droid repository.
+2. Sign the file with your official keystore.
 
-## Contribution
+## Contributing
 
-Les contributions sont les bienvenues ! Pour contribuer :
+Contributions are welcome! To contribute:
 
-1. Fork le projet
-2. Créer une branche (`git checkout -b feature/amelioration`)
-3. Commit les changements (`git commit -m 'Ajout fonctionnalité'`)
-4. Push vers la branche (`git push origin feature/amelioration`)
-5. Ouvrir une Merge Request
+1. Fork the project
+2. Create a branch (`git checkout -b feature/improvement`)
+3. Commit your changes (`git commit -m 'Add feature'`)
+4. Push to the branch (`git push origin feature/improvement`)
+5. Open a Merge Request
 
-## Contributeurs
+## Contributors
 
-Merci aux personnes qui font vivre Militant.
+Thanks to everyone who keeps Militant alive.
 
 <p align="center">
-  <a href="https://gitlab.com/AnARCHIS12" title="Contributeur">
+  <a href="https://gitlab.com/AnARCHIS12" title="Contributor">
     <img src="https://secure.gravatar.com/avatar/afe587487cc8d7001386da28375c1d7349eb2d19a1b1d831f0204ff6c7106694?s=80&d=identicon" width="80" height="80" alt="CALYPS" style="border-radius: 50%;" />
   </a>
-  <a href="https://gitlab.com/Jibhey" title="Contributeur">
+  <a href="https://gitlab.com/Jibhey" title="Contributor">
     <img src="https://secure.gravatar.com/avatar/89a6712d07969727069a4673ae307f552d3e5d060e114708200e94f63f144437?s=80&d=identicon" width="80" height="80" alt="Jibhey" style="border-radius: 50%;" />
   </a>
 </p>
@@ -456,23 +455,23 @@ Merci aux personnes qui font vivre Militant.
   <a href="https://gitlab.com/Jibhey">Jibhey</a>
 </p>
 
-## Licence
+## License
 
-Ce projet est sous licence AGPL-3.0. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
+This project is licensed under the AGPL-3.0. See the [LICENSE](LICENSE) file for details.
 
-## Liens
+## Links
 
-- [Site web](https://militant.revlibertaire.com)
+- [Website](https://militant.revlibertaire.com)
 - [Google Play](https://play.google.com/store/apps/details?id=com.militant.militant_flutter&pcampaignid=web_share)
 - [APKPure](https://apkpure.com/p/com.militant.militant_flutter)
 - [Documentation](https://jointomilitant.revliebrtaire.com)
-- [Instance principale](https://api.militant.revlibertaire.com)
-- [Projet principal](https://gitlab.com/militant1)
+- [Main instance](https://api.militant.revlibertaire.com)
+- [Main project](https://gitlab.com/militant1)
 
 ## Support
 
-Pour toute question ou problème :
+For any question or problem:
 
-- Ouvrir une issue sur GitLab
-- Contacter l'équipe de développement
-- Consulter la documentation
+- Open an issue on GitLab
+- Contact the development team
+- Read the documentation
