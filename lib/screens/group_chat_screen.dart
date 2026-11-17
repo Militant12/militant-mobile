@@ -1857,14 +1857,6 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
               onTap: () => Navigator.pop(context, ImageSource.gallery),
             ),
             ListTile(
-              leading: Icon(Icons.camera_alt, color: context.colors.onSurface),
-              title: Text(
-                lang.translate('camera'),
-                style: TextStyle(color: context.colors.onSurface),
-              ),
-              onTap: () => Navigator.pop(context, ImageSource.camera),
-            ),
-            ListTile(
               leading: Icon(Icons.audiotrack, color: context.colors.onSurface),
               title: Text(
                 lang.translate('audio'),
@@ -1931,12 +1923,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
 
     if (source != null) {
       try {
-        final XFile? picked;
-        if (source == ImageSource.camera) {
-          picked = await picker.pickImage(source: ImageSource.camera);
-        } else {
-          picked = await picker.pickMedia();
-        }
+        final picked = await picker.pickMedia();
         if (picked != null) {
           _uploadAndSend(picked.path);
         }
