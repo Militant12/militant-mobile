@@ -1610,11 +1610,16 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           Row(
             children: [
-          IconButton(
-            tooltip: LanguageService.instance.translate('a11y_attach'),
-            icon: Icon(Icons.attach_file, color: context.colors.onPrimaryContainer),
-            onPressed: _pickMedia,
-          ),
+              IconButton(
+                tooltip: lang.translate('camera'),
+                icon: Icon(Icons.camera_alt, color: context.colors.onPrimaryContainer),
+                onPressed: _openCamera,
+              ),
+              IconButton(
+                tooltip: LanguageService.instance.translate('a11y_attach'),
+                icon: Icon(Icons.attach_file, color: context.colors.onPrimaryContainer),
+                onPressed: _pickMedia,
+              ),
           Expanded(
             child: Container(
               constraints: const BoxConstraints(minHeight: 42, maxHeight: 120),
@@ -1767,62 +1772,88 @@ class _ChatScreenState extends State<ChatScreen> {
     );
 
     if (source != null) {
-      final picked = await picker.pickMedia();
-      if (picked != null) {
-        final mediaFile = File(picked.path);
-        final lower = picked.path.toLowerCase();
-        final isVideo =
-            lower.endsWith('.mp4') ||
-            lower.endsWith('.mov') ||
-            lower.endsWith('.webm') ||
-            lower.endsWith('.ogg') ||
-            lower.endsWith('.avi') ||
-            lower.endsWith('.mkv');
-
-        // Afficher l'aperçu avant l'envoi
-        if (mounted) {
-          final confirm = await showDialog<bool>(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: Text(
-                lang.translate('preview_label'),
-                style: TextStyle(color: context.colors.onSurface),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: isVideo
-                        ? SizedBox(
-                            height: 300,
-                            width: double.infinity,
-                            child: FileVideoPlayer(file: mediaFile),
-                          )
-                        : Image.file(mediaFile, fit: BoxFit.contain),
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: Text(lang.translate('cancel')),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: Text(
-                    lang.translate('send'),
-                    style: TextStyle(color: context.colors.primary),
-                  ),
-                ),
-              ],
-            ),
-          );
-
-          if (confirm == true) {
-            _uploadAndSend(picked.path);
-          }
+      try {
+        final XFile? picked;
+        if (source == ImageSource.camera) {
+          picked = await picker.pickImage(source: ImageSource.camera);
+        } else {
+          picked = await picker.pickMedia();
         }
+        if (picked != null) {
+          await _previewAndSendMedia(picked);
+        }
+      } catch (e) {
+        debugPrint('Error picking media: $e');
+      }
+    }
+  }
+
+  Future<void> _openCamera() async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(source: ImageSource.camera);
+      if (picked != null) {
+        await _previewAndSendMedia(picked);
+      }
+    } catch (e) {
+      debugPrint('Error capturing photo from camera: $e');
+    }
+  }
+
+  Future<void> _previewAndSendMedia(XFile picked) async {
+    final lang = LanguageService.instance;
+    final mediaFile = File(picked.path);
+    final lower = picked.path.toLowerCase();
+    final isVideo =
+        lower.endsWith('.mp4') ||
+        lower.endsWith('.mov') ||
+        lower.endsWith('.webm') ||
+        lower.endsWith('.ogg') ||
+        lower.endsWith('.avi') ||
+        lower.endsWith('.mkv');
+
+    // Afficher l'aperçu avant l'envoi
+    if (mounted) {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(
+            lang.translate('preview_label'),
+            style: TextStyle(color: context.colors.onSurface),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: isVideo
+                    ? SizedBox(
+                        height: 300,
+                        width: double.infinity,
+                        child: FileVideoPlayer(file: mediaFile),
+                      )
+                    : Image.file(mediaFile, fit: BoxFit.contain),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(lang.translate('cancel')),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(
+                lang.translate('send'),
+                style: TextStyle(color: context.colors.primary),
+              ),
+            ),
+          ],
+        ),
+      );
+
+      if (confirm == true) {
+        _uploadAndSend(picked.path);
       }
     }
   }

@@ -1765,6 +1765,11 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           Row(
             children: [
               IconButton(
+                tooltip: lang.translate('camera'),
+                icon: Icon(Icons.camera_alt, color: context.colors.onPrimaryContainer),
+                onPressed: _openCamera,
+              ),
+              IconButton(
                 tooltip: LanguageService.instance.translate('a11y_attach'),
                 icon: Icon(Icons.attach_file, color: context.colors.onPrimaryContainer),
                 onPressed: _pickMedia,
@@ -1925,10 +1930,31 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     );
 
     if (source != null) {
-      final picked = await picker.pickMedia();
+      try {
+        final XFile? picked;
+        if (source == ImageSource.camera) {
+          picked = await picker.pickImage(source: ImageSource.camera);
+        } else {
+          picked = await picker.pickMedia();
+        }
+        if (picked != null) {
+          _uploadAndSend(picked.path);
+        }
+      } catch (e) {
+        debugPrint('Error picking media: $e');
+      }
+    }
+  }
+
+  Future<void> _openCamera() async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(source: ImageSource.camera);
       if (picked != null) {
         _uploadAndSend(picked.path);
       }
+    } catch (e) {
+      debugPrint('Error capturing photo from camera: $e');
     }
   }
 
