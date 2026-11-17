@@ -873,12 +873,6 @@ class ProfileScreenState extends State<ProfileScreen>
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              Icons.alternate_email,
-                              size: 14,
-                              color: context.colors.onPrimaryContainer,
-                            ),
-                            const SizedBox(width: 6),
                             Flexible(
                               child: Text(
                                 cleanHandle,
@@ -893,7 +887,7 @@ class ProfileScreenState extends State<ProfileScreen>
                             const SizedBox(width: 6),
                             Icon(
                               Icons.copy,
-                              size: 12,
+                              size: 14,
                               color: subtitleColor?.withValues(alpha: 0.7),
                             ),
                           ],
