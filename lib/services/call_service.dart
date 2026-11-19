@@ -25,6 +25,7 @@ class CallService {
   final Set<String> _appliedRemoteCandidates = <String>{};
   String? _appliedRemoteOfferSdp;
   String? _appliedRemoteAnswerSdp;
+  String? _previousAnswerSdpBeforeRestart;
   int _lastInboundBytesReceived = -1;
   int _stalledMediaPollCount = 0;
   String _lastConnectionState = '';
@@ -44,8 +45,18 @@ class CallService {
   MediaStream? get localStream => _localStream;
   MediaStream? get remoteStream => _remoteStream;
 
-  final Map<String, dynamic> _mediaConstraints = {
-    'audio': true,
+  final Map<String, dynamic> _audioConstraints = {
+    'echoCancellation': true,
+    'noiseSuppression': true,
+    'autoGainControl': true,
+    'googEchoCancellation': true,
+    'googAutoGainControl': true,
+    'googNoiseSuppression': true,
+    'googHighpassFilter': true,
+  };
+
+  late final Map<String, dynamic> _mediaConstraints = {
+    'audio': _audioConstraints,
     'video': {
       'mandatory': {
         'minWidth': '640',
@@ -170,7 +181,8 @@ class CallService {
       return;
     }
 
-    if (_appliedRemoteAnswerSdp == answerSdp) {
+    if (_appliedRemoteAnswerSdp == answerSdp ||
+        _previousAnswerSdpBeforeRestart == answerSdp) {
       return;
     }
 
@@ -356,10 +368,10 @@ class CallService {
           'selectedPair=$hasSelectedPair negotiating=$isTransportNegotiating '
           'stalledPolls=$_stalledMediaPollCount call=$currentCallId',
         );
-        if (_stalledMediaPollCount >= 3 && !_isRestartingIce) {
+        if (_stalledMediaPollCount >= 6 && !_isRestartingIce) {
           _scheduleIceRestart(
             reason: 'media-stalled',
-            delay: const Duration(milliseconds: 300),
+            delay: const Duration(milliseconds: 500),
           );
         }
       }
@@ -453,7 +465,7 @@ class CallService {
       // Obtenir le stream local
       final constraints = callType == 'video'
           ? _mediaConstraints
-          : {'audio': true, 'video': false};
+          : {'audio': _audioConstraints, 'video': false};
 
       _localStream = await navigator.mediaDevices.getUserMedia(constraints);
       debugPrint(
@@ -542,7 +554,7 @@ class CallService {
       // Obtenir le stream local
       final constraints = callType == 'video'
           ? _mediaConstraints
-          : {'audio': true, 'video': false};
+          : {'audio': _audioConstraints, 'video': false};
 
       _localStream = await navigator.mediaDevices.getUserMedia(constraints);
       debugPrint(
@@ -793,6 +805,9 @@ class CallService {
     _isRestartingIce = true;
 
     try {
+      _previousAnswerSdpBeforeRestart = _appliedRemoteAnswerSdp;
+      _appliedRemoteAnswerSdp = null;
+
       // Créer une nouvelle offre avec iceRestart
       final constraints = {'iceRestart': true};
       RTCSessionDescription offer = await _peerConnection!.createOffer(
@@ -844,6 +859,7 @@ class CallService {
     _appliedRemoteCandidates.clear();
     _appliedRemoteOfferSdp = null;
     _appliedRemoteAnswerSdp = null;
+    _previousAnswerSdpBeforeRestart = null;
   }
 
   /// Obtenir l'historique des appels

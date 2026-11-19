@@ -233,25 +233,21 @@ class PrivateCallSession extends ChangeNotifier {
 
         callStatus = LanguageService.instance.translate('call_connecting');
         _log('answering incoming callId=$incomingCallId');
+        await _configureAudioSession(preferSpeaker: isVideo);
         await service.answerCall(
           incomingCallId,
           remoteSdp,
           isVideo ? 'video' : 'audio',
         );
-        
-        // Activer le haut-parleur par défaut pour les appels entrants
-        await _enableSpeakerByDefault();
       } else {
         callStatus = LanguageService.instance.translate('call_ringing');
         _log('starting outgoing call recipientId=$recipientId video=$isVideo');
+        await _configureAudioSession(preferSpeaker: isVideo);
         final startedCallId = isVideo
             ? await service.initiateVideoCall(recipientId!)
             : await service.initiateAudioCall(recipientId!);
         callId = startedCallId;
         _log('outgoing call started callId=$callId');
-        
-        // Activer le haut-parleur par défaut pour les appels sortants
-        await _enableSpeakerByDefault();
       }
 
       _syncStateFromService();
@@ -341,14 +337,49 @@ class PrivateCallSession extends ChangeNotifier {
     }
   }
 
-  Future<void> _enableSpeakerByDefault() async {
+  Future<void> _configureAudioSession({required bool preferSpeaker}) async {
+    if (kIsWeb) return;
+
     try {
-      // Activer le haut-parleur par défaut, mais préférer Bluetooth/écouteurs si connectés
-      await Helper.setSpeakerphoneOnButPreferBluetooth();
-      isSpeakerOn = true;
-      _log('speaker enabled by default (with Bluetooth preference)');
+      if (WebRTC.platformIsAndroid) {
+        await Helper.setAndroidAudioConfiguration(
+          AndroidAudioConfiguration.communication,
+        );
+        if (preferSpeaker) {
+          await Helper.setSpeakerphoneOnButPreferBluetooth();
+        } else {
+          await Helper.setSpeakerphoneOn(false);
+        }
+      } else if (WebRTC.platformIsIOS) {
+        await Helper.setAppleAudioIOMode(
+          AppleAudioIOMode.localAndRemote,
+          preferSpeakerOutput: preferSpeaker,
+        );
+        await Helper.ensureAudioSession();
+        if (preferSpeaker) {
+          await Helper.setSpeakerphoneOnButPreferBluetooth();
+        } else {
+          await Helper.setSpeakerphoneOn(false);
+        }
+      }
+      isSpeakerOn = preferSpeaker;
+      _log('audio session configured (communication, preferSpeaker=$preferSpeaker)');
     } catch (e) {
-      _log('failed to enable speaker by default: $e');
+      _log('failed to configure audio session: $e');
+    }
+  }
+
+  Future<void> _restoreAudioSession() async {
+    if (kIsWeb) return;
+
+    try {
+      if (WebRTC.platformIsAndroid) {
+        await Helper.clearAndroidCommunicationDevice();
+      } else if (WebRTC.platformIsIOS) {
+        await Helper.setAppleAudioIOMode(AppleAudioIOMode.none);
+      }
+    } catch (e) {
+      _log('failed to restore audio session: $e');
     }
   }
 
@@ -458,6 +489,7 @@ class PrivateCallSession extends ChangeNotifier {
         debugPrint('Erreur cleanup session privée: $e');
       }
     }
+    await _restoreAudioSession();
   }
 
   void _resetState() {

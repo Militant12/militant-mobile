@@ -1,0 +1,3 @@
+• Llamadas de audio WebRTC: modo de comunicación por hardware (AEC), auricular por defecto y eliminación del bloqueo solo-UDP en redes móviles.
+• Mejora de estabilidad en reconexiones ICE y filtrado de respuestas SDP antiguas.
+• Correcciones en cámara y visualización del perfil Fediverse.

@@ -1,0 +1,3 @@
+• WebRTC audio calls: enabled hardware communication mode (AEC), earpiece default, and removed UDP-only restriction on mobile networks.
+• Improved ICE restart stability and stale SDP answer filtering.
+• Camera capture and Fediverse profile chip fixes.

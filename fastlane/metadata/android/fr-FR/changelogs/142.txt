@@ -1,0 +1,3 @@
+• Appels audio WebRTC : activation du mode communication matériel (AEC), écouteur interne par défaut et suppression du blocage UDP-only en 4G/5G.
+• Stabilité des reconnexions ICE et filtrage des anciennes réponses SDP.
+• Correctifs caméra et affichage Fediverse sur les profils.

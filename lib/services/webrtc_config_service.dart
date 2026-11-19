@@ -10,8 +10,8 @@ class WebRtcConfigService {
   static DateTime? _lastFetchAt;
 
   static const Duration _cacheDuration = Duration(minutes: 10);
-  static const bool _preferRelayOnMobileNetwork = true;
-  static const bool _preferUdpTurnOnMobileNetwork = true;
+  static const bool _preferRelayOnMobileNetwork = false;
+  static const bool _preferUdpTurnOnMobileNetwork = false;
 
   static const List<Map<String, dynamic>> _defaultIceServers = [
     {'urls': 'stun:stun.l.google.com:19302'},
