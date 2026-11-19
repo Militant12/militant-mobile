@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'api_service.dart';
+import 'call_signaling_state.dart';
 import 'language_service.dart';
 import 'webrtc_config_service.dart';
 
@@ -24,10 +25,8 @@ class CallService {
   int _pollFailureCount = 0;
   final Set<String> _appliedRemoteCandidates = <String>{};
   String? _appliedRemoteOfferSdp;
-  String? _appliedRemoteAnswerSdp;
-  String? _previousAnswerSdpBeforeRestart;
-  int _lastInboundBytesReceived = -1;
-  int _stalledMediaPollCount = 0;
+  final AnswerSdpTracker _answerTracker = AnswerSdpTracker();
+  final MediaStallDetector _stallDetector = MediaStallDetector();
   String _lastConnectionState = '';
   String _lastIceConnectionState = '';
   bool _hasNotifiedConnected = false;
@@ -77,23 +76,10 @@ class CallService {
     return 'unknown';
   }
 
-  String _normalizeRemoteSdp(String? sdp) {
-    if (sdp == null) return '';
-    final trimmed = sdp.trim();
-    if (trimmed.isEmpty || trimmed == 'null' || trimmed == 'undefined') {
-      return '';
-    }
-    return sdp.endsWith('\n') ? sdp : '$sdp\r\n';
-  }
+  String _normalizeRemoteSdp(String? sdp) => normalizeRemoteSdp(sdp);
 
-  bool _sameNormalizedSdp(String? left, String? right) {
-    final normalizedLeft = _normalizeRemoteSdp(left);
-    final normalizedRight = _normalizeRemoteSdp(right);
-    if (normalizedLeft.isEmpty || normalizedRight.isEmpty) {
-      return false;
-    }
-    return normalizedLeft == normalizedRight;
-  }
+  bool _sameNormalizedSdp(String? left, String? right) =>
+      sameNormalizedSdp(left, right);
 
   void _scheduleIceRestart({
     required String reason,
@@ -165,7 +151,7 @@ class CallService {
 
       final answer = await _peerConnection!.createAnswer();
       await _peerConnection!.setLocalDescription(answer);
-      _appliedRemoteAnswerSdp = null;
+      _answerTracker.clearCurrent();
       await apiService.answerCall(currentCallId!, answer.sdp!);
       debugPrint('[WebRTC][private] remote offer answered call=$currentCallId');
     } catch (e) {
@@ -181,15 +167,14 @@ class CallService {
       return;
     }
 
-    if (_appliedRemoteAnswerSdp == answerSdp ||
-        _previousAnswerSdpBeforeRestart == answerSdp) {
+    if (_answerTracker.shouldSkip(answerSdp)) {
       return;
     }
 
     final currentDesc = await _peerConnection!.getRemoteDescription();
     if (currentDesc?.type?.toLowerCase() == 'answer' &&
         _sameNormalizedSdp(currentDesc?.sdp, answerSdp)) {
-      _appliedRemoteAnswerSdp = answerSdp;
+      _answerTracker.markApplied(answerSdp);
       return;
     }
 
@@ -199,7 +184,7 @@ class CallService {
       debugPrint(
         '[WebRTC][private] ignoring stale remote answer call=$currentCallId localType=$localType',
       );
-      _appliedRemoteAnswerSdp = answerSdp;
+      _answerTracker.markApplied(answerSdp);
       return;
     }
 
@@ -210,7 +195,7 @@ class CallService {
       await _peerConnection!.setRemoteDescription(
         RTCSessionDescription(answerSdp, 'answer'),
       );
-      _appliedRemoteAnswerSdp = answerSdp;
+      _answerTracker.markApplied(answerSdp);
     } catch (e) {
       debugPrint(
         '[WebRTC][private] setRemoteDescription answer failed: $e\nSDP: $answerSdp',
@@ -353,30 +338,28 @@ class CallService {
       final isTransportNegotiating =
           _lastConnectionState.contains('connecting') ||
           _lastIceConnectionState.contains('checking');
-      final mediaFlowing =
-          totalInboundBytes > 0 &&
-          (_lastInboundBytesReceived < 0 ||
-              totalInboundBytes > _lastInboundBytesReceived);
 
-      if (mediaFlowing) {
-        _stalledMediaPollCount = 0;
-      } else if (_remoteStream != null &&
-          (hasSelectedPair || isTransportNegotiating)) {
-        _stalledMediaPollCount++;
+      final shouldRestartIce = _stallDetector.record(
+        totalInboundBytes: totalInboundBytes,
+        canJudge:
+            _remoteStream != null &&
+            (hasSelectedPair || isTransportNegotiating),
+        isRestartingIce: _isRestartingIce,
+      );
+
+      if (_stallDetector.stalledPolls > 0) {
         debugPrint(
           '[WebRTC][private][stats] media stalled totalInboundBytes=$totalInboundBytes '
           'selectedPair=$hasSelectedPair negotiating=$isTransportNegotiating '
-          'stalledPolls=$_stalledMediaPollCount call=$currentCallId',
+          'stalledPolls=${_stallDetector.stalledPolls} call=$currentCallId',
         );
-        if (_stalledMediaPollCount >= 6 && !_isRestartingIce) {
-          _scheduleIceRestart(
-            reason: 'media-stalled',
-            delay: const Duration(milliseconds: 500),
-          );
-        }
       }
-
-      _lastInboundBytesReceived = totalInboundBytes;
+      if (shouldRestartIce) {
+        _scheduleIceRestart(
+          reason: 'media-stalled',
+          delay: const Duration(milliseconds: 500),
+        );
+      }
     } catch (e) {
       debugPrint('[WebRTC][private][stats] error=$e call=$currentCallId');
     }
@@ -536,7 +519,9 @@ class CallService {
     try {
       final trimmedSdp = offerSdp.trim();
       if (trimmedSdp.isEmpty || trimmedSdp == 'null') {
-        throw Exception(LanguageService.instance.translate('call_error_offer_missing'));
+        throw Exception(
+          LanguageService.instance.translate('call_error_offer_missing'),
+        );
       }
       final normalizedOfferSdp = offerSdp.endsWith('\n')
           ? offerSdp
@@ -598,7 +583,9 @@ class CallService {
         debugPrint(
           '[WebRTC][private] setRemoteDescription offer failed: $e\nSDP: $normalizedOfferSdp',
         );
-        throw Exception(LanguageService.instance.translate('call_error_invalid_offer'));
+        throw Exception(
+          LanguageService.instance.translate('call_error_invalid_offer'),
+        );
       }
 
       // Créer la réponse
@@ -805,8 +792,7 @@ class CallService {
     _isRestartingIce = true;
 
     try {
-      _previousAnswerSdpBeforeRestart = _appliedRemoteAnswerSdp;
-      _appliedRemoteAnswerSdp = null;
+      _answerTracker.beginIceRestart();
 
       // Créer une nouvelle offre avec iceRestart
       final constraints = {'iceRestart': true};
@@ -851,15 +837,13 @@ class CallService {
     _lastPollTime = null;
     _isRestartingIce = false;
     _pollFailureCount = 0;
-    _lastInboundBytesReceived = -1;
-    _stalledMediaPollCount = 0;
+    _stallDetector.reset();
     _lastConnectionState = '';
     _lastIceConnectionState = '';
     _hasNotifiedConnected = false;
     _appliedRemoteCandidates.clear();
     _appliedRemoteOfferSdp = null;
-    _appliedRemoteAnswerSdp = null;
-    _previousAnswerSdpBeforeRestart = null;
+    _answerTracker.reset();
   }
 
   /// Obtenir l'historique des appels
