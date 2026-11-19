@@ -31,7 +31,14 @@
 
 Militant is a decentralized social network designed for activist movements and political organizations. This mobile app lets you connect to any self-hosted Militant instance.
 
-Current version: **1.1.0+141**.
+Current version: **1.1.2+142**.
+
+
+## What's new in 1.1.2 (build 142)
+
+- Major improvements to audio call quality and stability (hardware communication audio mode, earpiece default for voice calls, echo cancellation, and better reliability on mobile networks).
+- Fixes for camera capture in direct and group chats, and cleaner Fediverse profile handle display.
+- General performance and stability improvements with Militant API V2.
 
 
 ## What's new in 1.1.0 (build 141)
