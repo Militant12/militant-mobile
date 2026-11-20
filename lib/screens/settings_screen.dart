@@ -379,7 +379,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showAboutDialog(
       context: context,
       applicationName: 'Militant',
-      applicationVersion: '1.1.0',
+      applicationVersion: '1.1.2',
       applicationIcon: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
