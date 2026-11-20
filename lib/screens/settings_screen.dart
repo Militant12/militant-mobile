@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/common/common.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../services/api_service.dart';
 import '../services/ntfy_push_service.dart';
@@ -23,12 +24,24 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   String _currentLanguage = 'fr';
+  String? _appVersion;
 
   @override
   void initState() {
     super.initState();
     _currentLanguage = LanguageService.instance.value.languageCode;
     _loadPreferences();
+    _loadAppVersion();
+  }
+
+  Future<void> _loadAppVersion() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      if (mounted) setState(() => _appVersion = info.version);
+    } catch (e, stack) {
+      debugPrint('SettingsScreen: version de l\'application illisible: $e');
+      debugPrintStack(stackTrace: stack);
+    }
   }
 
   Future<void> _loadPreferences() async {
@@ -179,7 +192,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             context,
             icon: Icons.info,
             title: lang.translate('about_title'),
-            subtitle: lang.translate('version'),
+            subtitle: _appVersion == null
+                ? lang.translate('version')
+                : '${lang.translate('version')} $_appVersion',
             onTap: () => _showAboutDialog(context),
           ),
           _buildOption(
@@ -379,7 +394,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showAboutDialog(
       context: context,
       applicationName: 'Militant',
-      applicationVersion: '1.1.2',
+      applicationVersion: _appVersion,
       applicationIcon: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(

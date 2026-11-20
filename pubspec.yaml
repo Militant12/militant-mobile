@@ -59,6 +59,7 @@ dependencies:
   font_awesome_flutter: ^10.8.0
   crypto: ^3.0.6
   cached_network_image: ^3.4.1
+  package_info_plus: ^9.0.1
 
 dev_dependencies:
   flutter_test:
