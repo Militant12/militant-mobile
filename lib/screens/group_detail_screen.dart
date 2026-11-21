@@ -254,8 +254,6 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
   }
 
   Future<void> _shareGroup() async {
-    final lang = LanguageService.instance;
-    final String groupName = _groupData!['name'] ?? lang.translate('group');
     final int groupId = _groupData!['id'];
 
     _api ??= await ApiService.getInstance();
@@ -270,11 +268,9 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       baseUrl = baseUrl.replaceAll('api.', '');
     }
 
-    final String url = '$baseUrl/group_detail.php?id=$groupId';
+    final String url = '$baseUrl/groups/$groupId';
 
-    await Share.share(
-      '${lang.translate('join')} "$groupName" sur Militant !\n$url',
-    );
+    await Share.share(url);
   }
 
   Future<void> _loadGroupInfo() async {

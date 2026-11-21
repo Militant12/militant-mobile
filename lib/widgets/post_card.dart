@@ -627,15 +627,12 @@ class _PostCardState extends State<PostCard> {
 
                 String url;
                 if (widget.post.type == 'group') {
-                  url =
-                      '$baseUrl/group_detail.php?id=${widget.post.groupId}#post-${widget.post.id}';
+                  url = '$baseUrl/groups/${widget.post.groupId}#post-${widget.post.id}';
                 } else {
-                  url = '$baseUrl/post.php?id=${widget.post.id}';
+                  url = '$baseUrl/post/${widget.post.id}';
                 }
 
-                await Share.share(
-                  '${lang.translate('post_share_message')}\n$url',
-                );
+                await Share.share(url);
               },
             ),
             ListTile(
