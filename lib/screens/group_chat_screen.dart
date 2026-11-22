@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme/theme_context.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
@@ -14,6 +15,7 @@ import '../widgets/audio_recorder_widget.dart';
 import '../widgets/full_screen_image_page.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
+import '../services/media_download_service.dart';
 import 'group_call_screen.dart';
 import 'group_settings_screen.dart';
 import 'profile_screen.dart';
@@ -820,7 +822,63 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     );
   }
 
+  bool _isImageMessage(Map<String, dynamic> message) {
+    final media = message['media']?.toString().trim() ?? '';
+    if (media.isEmpty) return false;
+    final mediaType = message['media_type']?.toString().toLowerCase() ?? '';
+    if (mediaType == 'video' || mediaType == 'audio') return false;
+    final lower = media.toLowerCase();
+    return !(lower.endsWith('.mp4') ||
+        lower.endsWith('.mov') ||
+        lower.endsWith('.avi') ||
+        lower.endsWith('.mkv') ||
+        lower.endsWith('.webm') ||
+        lower.endsWith('.mp3') ||
+        lower.endsWith('.wav') ||
+        lower.endsWith('.m4a') ||
+        lower.endsWith('.aac') ||
+        lower.endsWith('.ogg'));
+  }
+
+  Future<void> _downloadMessageImage(String rawMedia) async {
+    final api = _api ?? await ApiService.getInstance();
+    final url = rawMedia.startsWith('http')
+        ? rawMedia
+        : (api.getImageUrl(rawMedia) ?? '');
+    if (url.isEmpty) return;
+    final result = await MediaDownloadService.saveImage(url);
+    if (!mounted) return;
+    final lang = LanguageService.instance;
+    if (result.success) {
+      if (result.savedDirectly) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(lang.translate('image_saved'))),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(lang.translate('image_download_failed'))),
+      );
+    }
+  }
+
+  Future<void> _pasteFromClipboard() async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    final text = data?.text;
+    if (text == null || text.isEmpty) return;
+    final selection = _messageController.selection;
+    final current = _messageController.text;
+    final start = selection.isValid ? selection.start : current.length;
+    final end = selection.isValid ? selection.end : current.length;
+    final updated = current.replaceRange(start, end, text);
+    _messageController.value = TextEditingValue(
+      text: updated,
+      selection: TextSelection.collapsed(offset: start + text.length),
+    );
+  }
+
   void _showOptions(dynamic message) {
+    final messageMap = Map<String, dynamic>.from(message as Map);
     final lang = LanguageService.instance;
     final isMine = message['is_mine'] == true || message['is_mine'] == 1;
     // We can allow admins to delete other people's messages if needed,
@@ -869,10 +927,41 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
               onTap: () {
                 Navigator.pop(context);
                 setState(() {
-                  _replyingTo = Map<String, dynamic>.from(message as Map);
+                  _replyingTo = messageMap;
                 });
               },
             ),
+            if ((messageMap['content'] ?? '').toString().trim().isNotEmpty)
+              ListTile(
+                leading: Icon(Icons.copy_rounded, color: context.colors.onSurface),
+                title: Text(
+                  lang.translate('copy'),
+                  style: TextStyle(color: context.colors.onSurface),
+                ),
+                onTap: () async {
+                  final messenger = ScaffoldMessenger.of(this.context);
+                  Navigator.pop(context);
+                  final copyText = (messageMap['content'] ?? '').toString();
+                  await Clipboard.setData(ClipboardData(text: copyText));
+                  if (mounted) {
+                    messenger.showSnackBar(
+                      SnackBar(content: Text(lang.translate('message_copied'))),
+                    );
+                  }
+                },
+              ),
+            if (_isImageMessage(messageMap))
+              ListTile(
+                leading: Icon(Icons.download_rounded, color: context.colors.onSurface),
+                title: Text(
+                  lang.translate('download_image'),
+                  style: TextStyle(color: context.colors.onSurface),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _downloadMessageImage(messageMap['media'].toString());
+                },
+              ),
             if (isMine)
               ListTile(
                 leading: Icon(Icons.edit, color: context.colors.onSurface),
@@ -1805,6 +1894,17 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                         horizontal: 16,
                         vertical: 11,
                       ),
+                      suffixIcon: _messageController.text.isEmpty
+                          ? IconButton(
+                              tooltip: lang.translate('paste'),
+                              icon: Icon(
+                                Icons.content_paste_rounded,
+                                size: 19,
+                                color: theme.hintColor,
+                              ),
+                              onPressed: _pasteFromClipboard,
+                            )
+                          : null,
                     ),
                   ),
                 ),
