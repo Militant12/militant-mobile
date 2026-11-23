@@ -135,6 +135,9 @@ dependencies {
     // Image loading with downsampling and caching (recommended by Google Play)
     implementation("io.coil-kt:coil:2.7.0")
 
+    // WebSocket client for persistent ntfy background service
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
 
     // Force Datastore 1.1.3 with 16 KB page size alignment fix for libdatastore_shared_counter.so
     constraints {

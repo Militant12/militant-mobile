@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -82,6 +83,9 @@ class NtfyPushService {
   static const String _prefKeyProvider = 'militant_push_provider';
   static const String defaultServerUrl = 'https://push.revlibertaire.com';
   static const String defaultTopicPrefix = 'militant_u_';
+  static const MethodChannel _nativeChannel = MethodChannel(
+    'com.militant.militant_flutter/notifications',
+  );
 
   http.Client? _client;
   StreamSubscription<String>? _streamSub;
@@ -179,6 +183,27 @@ class NtfyPushService {
     }
 
     _serverUrl = _serverUrl.replaceAll(RegExp(r'/+$'), '');
+
+    if (!kIsWeb && Platform.isAndroid) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final token = prefs.getString('api_token') ?? '';
+        final baseUrl = prefs.getString('base_url') ?? '';
+        await _nativeChannel.invokeMethod('startNtfyService', {
+          'serverUrl': _serverUrl,
+          'topic': '$_topicPrefix$userId',
+          'token': token,
+          'baseUrl': baseUrl,
+        });
+        _isConnected = true;
+        return;
+      } catch (e) {
+        debugPrint(
+          '[NtfyPushService] Échec démarrage service Android natif ($e), repli Dart',
+        );
+      }
+    }
+
     _connectStream();
   }
 
@@ -451,6 +476,11 @@ class NtfyPushService {
     _reconnectTimer?.cancel();
     _reconnectTimer = null;
     _cleanupClient();
+    if (!kIsWeb && Platform.isAndroid) {
+      try {
+        await _nativeChannel.invokeMethod('stopNtfyService');
+      } catch (_) {}
+    }
     debugPrint('[NtfyPushService] Écoute ntfy arrêtée');
   }
 }

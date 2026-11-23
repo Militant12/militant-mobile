@@ -111,6 +111,18 @@ class MainActivity : FlutterActivity() {
                     showGeneralNotification(id, title, body, channelId, payload)
                     result.success(null)
                 }
+                "startNtfyService" -> {
+                    val serverUrl = call.argument<String>("serverUrl") ?: ""
+                    val topic = call.argument<String>("topic") ?: ""
+                    val token = call.argument<String>("token") ?: ""
+                    val baseUrl = call.argument<String>("baseUrl") ?: ""
+                    NtfyForegroundService.start(this, serverUrl, topic, token, baseUrl)
+                    result.success(null)
+                }
+                "stopNtfyService" -> {
+                    NtfyForegroundService.stop(this)
+                    result.success(null)
+                }
                 else -> result.notImplemented()
             }
         }
@@ -174,63 +186,7 @@ class MainActivity : FlutterActivity() {
     }
 
     private fun createNotificationChannels() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-            // IMPORTANT : Les canaux ont été renommés pour forcer la recréation avec le son activé
-            // Ancien canal "messages" -> nouveau "messages_v2"
-            // Ancien canal "calls" -> nouveau "calls_v2"
-            
-            // Supprimer les anciens canaux sans son (si existants)
-            try {
-                notificationManager.deleteNotificationChannel("messages")
-                notificationManager.deleteNotificationChannel("calls")
-            } catch (_: Exception) {
-                // Ignorer si les canaux n'existent pas
-            }
-
-            // Canal messages (priorité haute, avec réponse rapide) - VERSION 2 avec son
-            val messagesChannel = NotificationChannel(
-                "messages_v2",
-                "Messages",
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "Messages privés et de groupe"
-                enableVibration(true)
-                setShowBadge(true)
-                // Activer le son par défaut
-                setSound(
-                    android.provider.Settings.System.DEFAULT_NOTIFICATION_URI,
-                    android.media.AudioAttributes.Builder()
-                        .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION)
-                        .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                        .build()
-                )
-            }
-
-            // Canal appels (priorité maximale) - VERSION 2 avec son
-            val callsChannel = NotificationChannel(
-                "calls_v2",
-                "Appels",
-                NotificationManager.IMPORTANCE_MAX
-            ).apply {
-                description = "Appels audio et vidéo entrants"
-                enableVibration(true)
-                setShowBadge(false)
-                lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
-                // Activer le son d'appel (sonnerie)
-                setSound(
-                    android.provider.Settings.System.DEFAULT_RINGTONE_URI,
-                    android.media.AudioAttributes.Builder()
-                        .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
-                        .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                        .build()
-                )
-            }
-
-            notificationManager.createNotificationChannel(messagesChannel)
-            notificationManager.createNotificationChannel(callsChannel)
-        }
+        NotificationHelper.createNotificationChannels(this)
     }
 
     private fun showReplyableNotification(
@@ -244,76 +200,18 @@ class MainActivity : FlutterActivity() {
         token: String,
         baseUrl: String
     ) {
-        val notificationId = if (isGroup) groupId + 5000 else senderId + 1000
-        val requestCode = Random.nextInt(100000)
-
-        // RemoteInput pour la réponse inline
-        val remoteInput = RemoteInput.Builder(ReplyReceiver.KEY_REPLY_TEXT)
-            .setLabel("Répondre à $conversationName...")
-            .build()
-
-        // Intent pour ouvrir l'app au clic
-        val openIntent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
-            putExtra("senderId", senderId)
-            putExtra("groupId", groupId)
-            putExtra("isGroup", isGroup)
-            putExtra("conversationName", conversationName)
-            if (!avatar.isNullOrBlank()) {
-                putExtra("avatar", avatar)
-            }
-        }
-        val openPendingIntent = PendingIntent.getActivity(
-            this,
-            requestCode,
-            openIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        NotificationHelper.showReplyableNotification(
+            context = this,
+            title = title,
+            body = body,
+            senderId = senderId,
+            groupId = groupId,
+            isGroup = isGroup,
+            conversationName = conversationName,
+            avatar = avatar,
+            token = token,
+            baseUrl = baseUrl
         )
-
-        // Intent pour la réponse rapide (BroadcastReceiver)
-        val replyIntent = Intent(this, ReplyReceiver::class.java).apply {
-            action = ReplyReceiver.ACTION_REPLY
-            putExtra(ReplyReceiver.EXTRA_NOTIFICATION_ID, notificationId)
-            putExtra(ReplyReceiver.EXTRA_SENDER_ID, senderId)
-            putExtra(ReplyReceiver.EXTRA_GROUP_ID, groupId)
-            putExtra(ReplyReceiver.EXTRA_IS_GROUP, isGroup)
-            putExtra(ReplyReceiver.EXTRA_CONVERSATION_NAME, conversationName)
-            putExtra(ReplyReceiver.EXTRA_TOKEN, token)
-            putExtra(ReplyReceiver.EXTRA_BASE_URL, baseUrl)
-        }
-        val replyPendingIntent = PendingIntent.getBroadcast(
-            this,
-            requestCode + 1,
-            replyIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
-        )
-
-        // Action "Répondre"
-        val replyAction = NotificationCompat.Action.Builder(
-            R.drawable.ic_stat_militant,
-            "Répondre",
-            replyPendingIntent
-        ).addRemoteInput(remoteInput).build()
-
-        // Construire la notification
-        val notification = NotificationCompat.Builder(this, "messages_v2")
-            .setSmallIcon(R.drawable.ic_stat_militant)
-            .setContentTitle(title)
-            .setContentText(body)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setAutoCancel(true)
-            .setContentIntent(openPendingIntent)
-            .addAction(replyAction)           // ← Bouton "Répondre" inline
-            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
-            .build()
-
-        try {
-            NotificationManagerCompat.from(this).notify(notificationId, notification)
-        } catch (e: SecurityException) {
-            e.printStackTrace()
-        }
     }
 
     private fun showGeneralNotification(
@@ -323,42 +221,14 @@ class MainActivity : FlutterActivity() {
         channelId: String,
         payload: Map<String, Any?>
     ) {
-        val requestCode = Random.nextInt(100000)
-        val openIntent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
-            for ((key, value) in payload) {
-                when (value) {
-                    is Int -> putExtra(key, value)
-                    is Long -> putExtra(key, value)
-                    is Boolean -> putExtra(key, value)
-                    is Double -> putExtra(key, value)
-                    else -> putExtra(key, value?.toString())
-                }
-            }
-        }
-        val openPendingIntent = PendingIntent.getActivity(
-            this,
-            requestCode,
-            openIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        NotificationHelper.showGeneralNotification(
+            context = this,
+            notificationId = notificationId,
+            title = title,
+            body = body,
+            channelId = channelId,
+            payload = payload
         )
-
-        val notification = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.ic_stat_militant)
-            .setContentTitle(title)
-            .setContentText(body)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setAutoCancel(true)
-            .setContentIntent(openPendingIntent)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .build()
-
-        try {
-            NotificationManagerCompat.from(this).notify(notificationId, notification)
-        } catch (e: SecurityException) {
-            e.printStackTrace()
-        }
     }
 
     private fun launchTrustedWebActivity(url: String) {
