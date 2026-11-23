@@ -462,8 +462,14 @@ class _ChatScreenState extends State<ChatScreen> {
       if (_replyingTo != null) 'parent_content': _replyingTo!['content'] ?? '',
     };
 
+    final replyTarget = _replyingTo;
+    final parentId = replyTarget?['id'] is int
+        ? replyTarget!['id'] as int
+        : int.tryParse('${replyTarget?['id'] ?? ''}');
+
     setState(() {
       _isSending = true;
+      _replyingTo = null;
       _messages.insert(
         0,
         tempMessage,
@@ -474,22 +480,35 @@ class _ChatScreenState extends State<ChatScreen> {
 
     try {
       final api = await ApiService.getInstance();
-      await api.sendMessage(
+      final res = await api.sendMessage(
         widget.userId,
         content,
-        parentId: _replyingTo?['id'] is int
-            ? _replyingTo!['id'] as int
-            : int.tryParse('${_replyingTo?['id'] ?? ''}'),
+        parentId: parentId,
       );
       if (mounted) {
-        setState(() => _replyingTo = null);
+        final serverMsg = res['message'] is Map
+            ? Map<String, dynamic>.from(res['message'] as Map)
+            : null;
+        if (serverMsg != null) {
+          setState(() {
+            final idx = _messages.indexWhere((m) => m['id'] == tempId);
+            if (idx != -1) {
+              _messages[idx] = {
+                ..._messages[idx],
+                ...serverMsg,
+                'is_mine': true,
+              };
+            }
+          });
+        }
+        unawaited(_loadMessages());
       }
-      await _loadMessages(); // Refresh to get official data and server timestamps
     } catch (e) {
-      setState(() {
-        _messages.removeAt(0); // Remove optimistic message on error
-      });
       if (mounted) {
+        setState(() {
+          _messages.removeWhere((m) => m['id'] == tempId);
+          _replyingTo ??= replyTarget;
+        });
         final lang = LanguageService.instance;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -498,7 +517,9 @@ class _ChatScreenState extends State<ChatScreen> {
         );
       }
     } finally {
-      setState(() => _isSending = false);
+      if (mounted) {
+        setState(() => _isSending = false);
+      }
     }
   }
 
