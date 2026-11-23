@@ -25,8 +25,8 @@ import '../widgets/common/common.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_tokens.dart';
 
-const Duration _privateChatPollInterval = Duration(seconds: 10);
-const Duration _privateTypingPollInterval = Duration(seconds: 6);
+const Duration _privateChatPollInterval = Duration(seconds: 3);
+const Duration _privateTypingPollInterval = Duration(seconds: 3);
 const List<String> _messageReactionChoices = ['like', 'love', 'haha', 'wow', 'sad', 'angry'];
 
 class ChatScreen extends StatefulWidget {

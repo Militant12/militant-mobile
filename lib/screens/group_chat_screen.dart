@@ -28,8 +28,8 @@ import '../theme/app_colors.dart';
 import '../theme/app_tokens.dart';
 
 const String _groupCallMessagePrefix = '__militant_group_call__:';
-const Duration _groupChatPollInterval = Duration(seconds: 10);
-const Duration _groupTypingPollInterval = Duration(seconds: 6);
+const Duration _groupChatPollInterval = Duration(seconds: 3);
+const Duration _groupTypingPollInterval = Duration(seconds: 3);
 const List<String> _groupMessageReactionChoices = [
   'like',
   'love',
