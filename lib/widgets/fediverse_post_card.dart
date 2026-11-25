@@ -12,6 +12,7 @@ import '../utils/fediverse_text.dart';
 import 'linkable_text.dart';
 import 'video_player_widget.dart';
 import '../theme/app_tokens.dart';
+import '../theme/theme_context.dart';
 
 class FediversePostCard extends StatefulWidget {
   final FediversePost post;
@@ -179,6 +180,7 @@ class _FediversePostCardState extends State<FediversePostCard> {
   Widget build(BuildContext context) {
     final post = widget.post;
     final theme = Theme.of(context);
+    final tokens = context.tokens;
     final accent = theme.colorScheme.primary;
     final content = fediverseHtmlToText(post.content);
     final avatarUrl = post.avatar != null && post.avatar!.trim().isNotEmpty
@@ -225,7 +227,7 @@ class _FediversePostCardState extends State<FediversePostCard> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              color: theme.textTheme.bodySmall?.color,
+                              color: tokens.textMuted,
                             ),
                           ),
                         ],
@@ -234,7 +236,7 @@ class _FediversePostCardState extends State<FediversePostCard> {
                     const SizedBox(width: 8),
                     Text(
                       DateFormatter.formatRelative(post.publishedAt),
-                      style: TextStyle(color: theme.textTheme.bodySmall?.color),
+                      style: TextStyle(color: tokens.textMuted),
                     ),
                   ],
                 ),
@@ -389,7 +391,7 @@ class _FediversePostCardState extends State<FediversePostCard> {
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   child: Text(
                     lang.translate('no_comments'),
-                    style: TextStyle(color: theme.textTheme.bodySmall?.color),
+                    style: TextStyle(color: tokens.textMuted),
                   ),
                 )
               else
