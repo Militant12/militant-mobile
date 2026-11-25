@@ -391,7 +391,9 @@ class _FediversePostCardState extends State<FediversePostCard> {
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   child: Text(
                     lang.translate('no_comments'),
-                    style: TextStyle(color: tokens.textMuted),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: tokens.textMuted,
+                    ),
                   ),
                 )
               else
@@ -418,9 +420,8 @@ class _FediversePostCardState extends State<FediversePostCard> {
                                 handle,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
+                                style: theme.textTheme.titleSmall?.copyWith(
                                   fontWeight: FontWeight.w600,
-                                  fontSize: AppTokens.fontBodySmall,
                                 ),
                               ),
                             ),
@@ -428,14 +429,20 @@ class _FediversePostCardState extends State<FediversePostCard> {
                               IconButton(
                                 tooltip: lang.translate('open'),
                                 visualDensity: VisualDensity.compact,
-                                icon: const Icon(Icons.open_in_new, size: 16),
+                                icon: const Icon(Icons.open_in_new, size: 18),
                                 onPressed: () => _openExternalUrl(origUrl),
                               ),
                           ],
                         ),
                         if (body.isNotEmpty) ...[
-                          const SizedBox(height: 4),
-                          LinkableText(text: body),
+                          const SizedBox(height: 6),
+                          LinkableText(
+                            text: body,
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: theme.textTheme.bodyLarge?.color,
+                              height: 1.45,
+                            ),
+                          ),
                         ],
                       ],
                     ),

@@ -333,7 +333,7 @@ class _CommentTile extends StatelessWidget {
                               comment.username,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: context.text.titleSmall?.copyWith(
+                              style: context.text.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -357,9 +357,9 @@ class _CommentTile extends StatelessWidget {
                         padding: const EdgeInsets.only(right: AppTokens.space8),
                         child: LinkableText(
                           text: text(body),
-                          style: context.text.bodyMedium?.copyWith(
+                          style: context.text.bodyLarge?.copyWith(
                             color: context.colors.onSurface,
-                            height: 1.4,
+                            height: 1.45,
                           ),
                         ),
                       ),
@@ -478,7 +478,7 @@ class _ActionRow extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: AppTokens.space8),
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             foregroundColor: on ? active : muted,
-            textStyle: context.text.labelMedium?.copyWith(
+            textStyle: context.text.labelLarge?.copyWith(
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -497,7 +497,7 @@ class _ActionRow extends StatelessWidget {
           ),
           child: Text(
             date,
-            style: context.text.labelMedium?.copyWith(color: muted),
+            style: context.text.bodySmall?.copyWith(color: muted),
           ),
         ),
         action(
