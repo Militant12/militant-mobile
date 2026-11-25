@@ -300,11 +300,11 @@ class _FediversePostCardState extends State<FediversePostCard> {
                   icon: Icon(
                     Icons.repeat,
                     size: 18,
-                    color: _announced ? Colors.green : null,
+                    color: _announced ? accent : null,
                   ),
                   label: Text(
                     lang.translate('share'),
-                    style: _announced ? const TextStyle(color: Colors.green) : null,
+                    style: _announced ? TextStyle(color: accent) : null,
                   ),
                 ),
                 OutlinedButton.icon(
@@ -348,9 +348,6 @@ class _FediversePostCardState extends State<FediversePostCard> {
                       decoration: InputDecoration(
                         hintText: lang.translate('reply'),
                         isDense: true,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
                       ),
                     ),
                   ),
@@ -427,6 +424,7 @@ class _FediversePostCardState extends State<FediversePostCard> {
                             ),
                             if (origUrl != null && origUrl.isNotEmpty)
                               IconButton(
+                                tooltip: lang.translate('open'),
                                 visualDensity: VisualDensity.compact,
                                 icon: const Icon(Icons.open_in_new, size: 16),
                                 onPressed: () => _openExternalUrl(origUrl),
