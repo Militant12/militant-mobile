@@ -191,10 +191,16 @@ class _FediversePostCardState extends State<FediversePostCard> {
         : post.username;
     final lang = LanguageService.instance;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppTokens.space12),
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        borderRadius: BorderRadius.circular(AppTokens.radius20),
+        border: Border.all(color: context.colors.outlineVariant),
+        boxShadow: tokens.cardShadow,
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(AppTokens.space16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -280,63 +286,66 @@ class _FediversePostCardState extends State<FediversePostCard> {
                   ),
                 ),
             ],
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                OutlinedButton.icon(
-                  onPressed: _isLikeLoading ? null : _toggleLike,
-                  icon: Icon(
-                    _liked ? Icons.favorite : Icons.favorite_border,
-                    size: 18,
-                    color: _liked ? accent : null,
+            const SizedBox(height: AppTokens.space8),
+            Transform.translate(
+              offset: const Offset(-AppTokens.space8, 0),
+              child: Row(
+                children: [
+                  _buildActionPill(
+                    tooltip: lang.translate('like'),
+                    icon: _liked
+                        ? Icons.thumb_up_rounded
+                        : Icons.thumb_up_outlined,
+                    color: _liked
+                        ? context.colors.onPrimaryContainer
+                        : tokens.textMuted,
+                    selected: _liked,
+                    onTap: _isLikeLoading ? null : _toggleLike,
                   ),
-                  label: Text(
-                    lang.translate('like'),
-                    style: _liked ? TextStyle(color: accent) : null,
+                  const SizedBox(width: AppTokens.space4),
+                  _buildActionPill(
+                    tooltip: lang.translate('share'),
+                    icon: Icons.repeat_rounded,
+                    color: _announced
+                        ? context.colors.onPrimaryContainer
+                        : tokens.textMuted,
+                    selected: _announced,
+                    onTap: _isAnnounceLoading ? null : _toggleAnnounce,
                   ),
-                ),
-                OutlinedButton.icon(
-                  onPressed: _isAnnounceLoading ? null : _toggleAnnounce,
-                  icon: Icon(
-                    Icons.repeat,
-                    size: 18,
-                    color: _announced ? accent : null,
+                  const SizedBox(width: AppTokens.space4),
+                  _buildActionPill(
+                    tooltip: lang.translate('reply'),
+                    icon: Icons.reply_rounded,
+                    color: _showReplyForm ? accent : tokens.textMuted,
+                    selected: _showReplyForm,
+                    onTap: () =>
+                        setState(() => _showReplyForm = !_showReplyForm),
                   ),
-                  label: Text(
-                    lang.translate('share'),
-                    style: _announced ? TextStyle(color: accent) : null,
+                  const SizedBox(width: AppTokens.space4),
+                  _buildActionPill(
+                    tooltip: lang.translate('comments'),
+                    icon: Icons.comment_outlined,
+                    label: _replies != null ? '${_replies!.length}' : null,
+                    color: _showReplies ? accent : tokens.textMuted,
+                    selected: _showReplies,
+                    onTap: _toggleReplies,
                   ),
-                ),
-                OutlinedButton.icon(
-                  onPressed: () {
-                    setState(() => _showReplyForm = !_showReplyForm);
-                  },
-                  icon: const Icon(Icons.reply, size: 18),
-                  label: Text(lang.translate('reply')),
-                ),
-                OutlinedButton.icon(
-                  onPressed: _toggleReplies,
-                  icon: const Icon(Icons.chat_bubble_outline, size: 18),
-                  label: Text(
-                    _replies != null
-                        ? '${lang.translate('comments')} (${_replies!.length})'
-                        : lang.translate('comments'),
+                  const Spacer(),
+                  if (widget.onProfileTap != null)
+                    _buildActionPill(
+                      tooltip: lang.translate('profile'),
+                      icon: Icons.person_outline_rounded,
+                      color: tokens.textMuted,
+                      onTap: widget.onProfileTap,
+                    ),
+                  _buildActionPill(
+                    tooltip: lang.translate('open'),
+                    icon: Icons.open_in_new_rounded,
+                    color: tokens.textMuted,
+                    onTap: () => _openExternalUrl(post.originalUrl),
                   ),
-                ),
-                if (widget.onProfileTap != null)
-                  OutlinedButton.icon(
-                    onPressed: widget.onProfileTap,
-                    icon: const Icon(Icons.person_outline, size: 18),
-                    label: Text(lang.translate('profile')),
-                  ),
-                OutlinedButton.icon(
-                  onPressed: () => _openExternalUrl(post.originalUrl),
-                  icon: const Icon(Icons.open_in_new, size: 18),
-                  label: Text(lang.translate('open')),
-                ),
-              ],
+                ],
+              ),
             ),
             if (_showReplyForm) ...[
               const SizedBox(height: 12),
@@ -450,6 +459,52 @@ class _FediversePostCardState extends State<FediversePostCard> {
                 }),
             ],
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionPill({
+    required String tooltip,
+    required IconData icon,
+    required Color color,
+    String? label,
+    bool selected = false,
+    VoidCallback? onTap,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: Semantics(
+        button: true,
+        selected: selected,
+        label: tooltip,
+        excludeSemantics: true,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppTokens.radiusPill),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTokens.space8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, color: color, size: 20),
+                  if (label != null) ...[
+                    const SizedBox(width: AppTokens.space4),
+                    Text(
+                      label,
+                      style: context.text.bodyMedium?.copyWith(
+                        color: color,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
