@@ -1,12 +1,51 @@
+const Map<String, String> _namedHtmlEntities = {
+  'nbsp': ' ',
+  'amp': '&',
+  'lt': '<',
+  'gt': '>',
+  'quot': '"',
+  'apos': "'",
+  'rsquo': '’',
+  'lsquo': '‘',
+  'rdquo': '”',
+  'ldquo': '“',
+  'hellip': '…',
+  'mdash': '—',
+  'ndash': '–',
+  'laquo': '«',
+  'raquo': '»',
+  'euro': '€',
+};
+
+final RegExp _htmlEntityPattern = RegExp(
+  r'&(#\d+|#[xX][0-9a-fA-F]+|[a-zA-Z]+);',
+);
+
+String _decodeHtmlEntitiesOnce(String input) {
+  return input.replaceAllMapped(_htmlEntityPattern, (match) {
+    final entity = match.group(1) ?? '';
+    if (entity.startsWith('#x') || entity.startsWith('#X')) {
+      final cp = int.tryParse(entity.substring(2), radix: 16);
+      if (cp != null &&
+          ((cp >= 1 && cp <= 0xD7FF) || (cp >= 0xE000 && cp <= 0x10FFFF))) {
+        return String.fromCharCode(cp);
+      }
+      return match.group(0) ?? '';
+    }
+    if (entity.startsWith('#')) {
+      final cp = int.tryParse(entity.substring(1), radix: 10);
+      if (cp != null &&
+          ((cp >= 1 && cp <= 0xD7FF) || (cp >= 0xE000 && cp <= 0x10FFFF))) {
+        return String.fromCharCode(cp);
+      }
+      return match.group(0) ?? '';
+    }
+    return _namedHtmlEntities[entity] ?? match.group(0) ?? '';
+  });
+}
+
 String fediverseDecodeHtmlEntities(String input) {
-  return input
-      .replaceAll('&nbsp;', ' ')
-      .replaceAll('&amp;', '&')
-      .replaceAll('&quot;', '"')
-      .replaceAll('&#39;', "'")
-      .replaceAll('&apos;', "'")
-      .replaceAll('&lt;', '<')
-      .replaceAll('&gt;', '>');
+  return _decodeHtmlEntitiesOnce(_decodeHtmlEntitiesOnce(input));
 }
 
 String fediverseHtmlToText(String? html) {

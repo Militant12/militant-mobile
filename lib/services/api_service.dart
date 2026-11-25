@@ -2189,6 +2189,135 @@ class ApiService {
     );
   }
 
+  Future<Map<String, dynamic>> _postFediverseInteraction(
+    String action, {
+    int? postId,
+    String? remotePostId,
+    String? content,
+    required String fallbackError,
+  }) async {
+    final body = <String, dynamic>{
+      'action': action,
+      if (postId != null && postId > 0) 'post_id': postId,
+      if (remotePostId != null && remotePostId.trim().isNotEmpty)
+        'remote_post_id': remotePostId.trim(),
+      if (content != null) 'content': content,
+    };
+
+    final response = await _http.post(
+      Uri.parse('$apiUrl/v1/fediverse.php?action=$action'),
+      headers: _headers,
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return _decodeJsonMap(response, fallbackError: fallbackError);
+    }
+
+    throw Exception(_extractApiError(response, fallbackError: fallbackError));
+  }
+
+  Future<Map<String, dynamic>> likeFediversePost(
+    int postId, {
+    String? remotePostId,
+  }) {
+    return _postFediverseInteraction(
+      'like_post',
+      postId: postId,
+      remotePostId: remotePostId,
+      fallbackError: 'Erreur lors de la réaction Fediverse',
+    );
+  }
+
+  Future<Map<String, dynamic>> unlikeFediversePost(
+    int postId, {
+    String? remotePostId,
+  }) {
+    return _postFediverseInteraction(
+      'unlike_post',
+      postId: postId,
+      remotePostId: remotePostId,
+      fallbackError: 'Erreur lors du retrait de la réaction Fediverse',
+    );
+  }
+
+  Future<Map<String, dynamic>> announceFediversePost(
+    int postId, {
+    String? remotePostId,
+  }) {
+    return _postFediverseInteraction(
+      'announce_post',
+      postId: postId,
+      remotePostId: remotePostId,
+      fallbackError: 'Erreur lors du partage Fediverse',
+    );
+  }
+
+  Future<Map<String, dynamic>> unannounceFediversePost(
+    int postId, {
+    String? remotePostId,
+  }) {
+    return _postFediverseInteraction(
+      'unannounce_post',
+      postId: postId,
+      remotePostId: remotePostId,
+      fallbackError: 'Erreur lors de l’annulation du partage Fediverse',
+    );
+  }
+
+  Future<Map<String, dynamic>> replyFediversePost(
+    int postId,
+    String content, {
+    String? remotePostId,
+  }) {
+    return _postFediverseInteraction(
+      'reply_post',
+      postId: postId,
+      remotePostId: remotePostId,
+      content: content,
+      fallbackError: 'Erreur lors de l’envoi de la réponse Fediverse',
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getFediversePostReplies(
+    int postId, {
+    String? remotePostId,
+    int limit = 15,
+  }) async {
+    final uri = Uri.parse('$apiUrl/v1/fediverse.php').replace(
+      queryParameters: {
+        'action': 'replies',
+        if (postId > 0) 'post_id': '$postId',
+        if (remotePostId != null && remotePostId.trim().isNotEmpty)
+          'remote_post_id': remotePostId.trim(),
+        'limit': '$limit',
+      },
+    );
+
+    final response = await _http.get(uri, headers: _headers);
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final data = _decodeJsonMap(
+        response,
+        fallbackError: 'Erreur de chargement des réponses Fediverse',
+      );
+      final raw = data['replies'] ?? data['items'];
+      if (raw is List) {
+        return raw
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+      }
+      return const [];
+    }
+
+    throw Exception(
+      _extractApiError(
+        response,
+        fallbackError: 'Erreur de chargement des réponses Fediverse',
+      ),
+    );
+  }
+
   // === AMIS ===
 
   Future<Map<String, dynamic>> getFriends({

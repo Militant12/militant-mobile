@@ -7,20 +7,179 @@ import '../models/fediverse_post.dart';
 import '../services/api_service.dart';
 import '../services/language_service.dart';
 import '../utils/date_formatter.dart';
+import '../utils/error_helper.dart';
 import '../utils/fediverse_text.dart';
 import 'linkable_text.dart';
 import 'video_player_widget.dart';
 import '../theme/app_tokens.dart';
 
-class FediversePostCard extends StatelessWidget {
+class FediversePostCard extends StatefulWidget {
   final FediversePost post;
   final VoidCallback? onProfileTap;
 
   const FediversePostCard({super.key, required this.post, this.onProfileTap});
 
   @override
+  State<FediversePostCard> createState() => _FediversePostCardState();
+}
+
+class _FediversePostCardState extends State<FediversePostCard> {
+  bool _liked = false;
+  bool _announced = false;
+  bool _isLikeLoading = false;
+  bool _isAnnounceLoading = false;
+  bool _showReplyForm = false;
+  bool _isSendingReply = false;
+  bool _showReplies = false;
+  bool _isLoadingReplies = false;
+  List<Map<String, dynamic>>? _replies;
+  final TextEditingController _replyController = TextEditingController();
+
+  @override
+  void dispose() {
+    _replyController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _toggleLike() async {
+    if (_isLikeLoading) return;
+    final nextLiked = !_liked;
+    setState(() {
+      _liked = nextLiked;
+      _isLikeLoading = true;
+    });
+
+    try {
+      final api = await ApiService.getInstance();
+      if (nextLiked) {
+        await api.likeFediversePost(
+          widget.post.id,
+          remotePostId: widget.post.remotePostId,
+        );
+      } else {
+        await api.unlikeFediversePost(
+          widget.post.id,
+          remotePostId: widget.post.remotePostId,
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _liked = !nextLiked);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(getFriendlyErrorMessage(e))),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLikeLoading = false);
+      }
+    }
+  }
+
+  Future<void> _toggleAnnounce() async {
+    if (_isAnnounceLoading) return;
+    final nextAnnounced = !_announced;
+    setState(() {
+      _announced = nextAnnounced;
+      _isAnnounceLoading = true;
+    });
+
+    try {
+      final api = await ApiService.getInstance();
+      if (nextAnnounced) {
+        await api.announceFediversePost(
+          widget.post.id,
+          remotePostId: widget.post.remotePostId,
+        );
+      } else {
+        await api.unannounceFediversePost(
+          widget.post.id,
+          remotePostId: widget.post.remotePostId,
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _announced = !nextAnnounced);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(getFriendlyErrorMessage(e))),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isAnnounceLoading = false);
+      }
+    }
+  }
+
+  Future<void> _toggleReplies() async {
+    if (_showReplies) {
+      setState(() => _showReplies = false);
+      return;
+    }
+
+    setState(() => _showReplies = true);
+    if (_replies != null || _isLoadingReplies) {
+      return;
+    }
+
+    setState(() => _isLoadingReplies = true);
+    try {
+      final api = await ApiService.getInstance();
+      final loaded = await api.getFediversePostReplies(
+        widget.post.id,
+        remotePostId: widget.post.remotePostId,
+      );
+      if (!mounted) return;
+      setState(() {
+        _replies = loaded;
+        _isLoadingReplies = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoadingReplies = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(getFriendlyErrorMessage(e))),
+      );
+    }
+  }
+
+  Future<void> _sendReply() async {
+    final text = _replyController.text.trim();
+    if (text.isEmpty || _isSendingReply) return;
+
+    setState(() => _isSendingReply = true);
+    try {
+      final api = await ApiService.getInstance();
+      await api.replyFediversePost(
+        widget.post.id,
+        text,
+        remotePostId: widget.post.remotePostId,
+      );
+      if (!mounted) return;
+      final optimistic = <String, dynamic>{
+        'handle': '@moi',
+        'content': text,
+        'published_at': DateTime.now().toUtc().toIso8601String(),
+      };
+      setState(() {
+        _replyController.clear();
+        _showReplyForm = false;
+        _showReplies = true;
+        _replies = [...(_replies ?? const []), optimistic];
+        _isSendingReply = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isSendingReply = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(getFriendlyErrorMessage(e))),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final post = widget.post;
     final theme = Theme.of(context);
+    final accent = theme.colorScheme.primary;
     final content = fediverseHtmlToText(post.content);
     final avatarUrl = post.avatar != null && post.avatar!.trim().isNotEmpty
         ? post.avatar
@@ -38,7 +197,7 @@ class FediversePostCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             InkWell(
-              onTap: onProfileTap,
+              onTap: widget.onProfileTap,
               borderRadius: BorderRadius.circular(12),
               child: Padding(
                 padding: const EdgeInsets.all(2),
@@ -124,9 +283,49 @@ class FediversePostCard extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                if (onProfileTap != null)
+                OutlinedButton.icon(
+                  onPressed: _isLikeLoading ? null : _toggleLike,
+                  icon: Icon(
+                    _liked ? Icons.favorite : Icons.favorite_border,
+                    size: 18,
+                    color: _liked ? accent : null,
+                  ),
+                  label: Text(
+                    lang.translate('like'),
+                    style: _liked ? TextStyle(color: accent) : null,
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _isAnnounceLoading ? null : _toggleAnnounce,
+                  icon: Icon(
+                    Icons.repeat,
+                    size: 18,
+                    color: _announced ? Colors.green : null,
+                  ),
+                  label: Text(
+                    lang.translate('share'),
+                    style: _announced ? const TextStyle(color: Colors.green) : null,
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    setState(() => _showReplyForm = !_showReplyForm);
+                  },
+                  icon: const Icon(Icons.reply, size: 18),
+                  label: Text(lang.translate('reply')),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _toggleReplies,
+                  icon: const Icon(Icons.chat_bubble_outline, size: 18),
+                  label: Text(
+                    _replies != null
+                        ? '${lang.translate('comments')} (${_replies!.length})'
+                        : lang.translate('comments'),
+                  ),
+                ),
+                if (widget.onProfileTap != null)
                   OutlinedButton.icon(
-                    onPressed: onProfileTap,
+                    onPressed: widget.onProfileTap,
                     icon: const Icon(Icons.person_outline, size: 18),
                     label: Text(lang.translate('profile')),
                   ),
@@ -137,6 +336,112 @@ class FediversePostCard extends StatelessWidget {
                 ),
               ],
             ),
+            if (_showReplyForm) ...[
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _replyController,
+                      minLines: 1,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        hintText: lang.translate('reply'),
+                        isDense: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: _isSendingReply ? null : _sendReply,
+                    child: _isSendingReply
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(lang.translate('send')),
+                  ),
+                ],
+              ),
+            ],
+            if (_showReplies) ...[
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              const SizedBox(height: 10),
+              if (_isLoadingReplies)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    children: [
+                      const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(lang.translate('loading')),
+                    ],
+                  ),
+                )
+              else if (_replies == null || _replies!.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Text(
+                    lang.translate('no_comments'),
+                    style: TextStyle(color: theme.textTheme.bodySmall?.color),
+                  ),
+                )
+              else
+                ..._replies!.map((reply) {
+                  final handle = (reply['handle'] ?? '@${reply['username'] ?? ''}')
+                      .toString();
+                  final body = fediverseHtmlToText(reply['content']?.toString());
+                  final origUrl = reply['original_url']?.toString();
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                handle,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: AppTokens.fontBodySmall,
+                                ),
+                              ),
+                            ),
+                            if (origUrl != null && origUrl.isNotEmpty)
+                              IconButton(
+                                visualDensity: VisualDensity.compact,
+                                icon: const Icon(Icons.open_in_new, size: 16),
+                                onPressed: () => _openExternalUrl(origUrl),
+                              ),
+                          ],
+                        ),
+                        if (body.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          LinkableText(text: body),
+                        ],
+                      ],
+                    ),
+                  );
+                }),
+            ],
           ],
         ),
       ),
